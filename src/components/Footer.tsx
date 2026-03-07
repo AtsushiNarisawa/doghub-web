@@ -87,7 +87,7 @@ export function Footer() {
             </div>
             <div className="mt-6">
               <a
-                href="https://www.airrsv.net/doghubhakone/calendar"
+                href="https://airrsv.net/doghubhakone/calendar"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"

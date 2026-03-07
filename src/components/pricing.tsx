@@ -34,7 +34,7 @@ export function Pricing() {
 
             <div className="mt-auto">
               <a
-                href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
+                href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full border border-[#C2C2C2] bg-white text-[#3C200F] py-4 hover:bg-[#F7F7F7] transition-colors rounded-[2px]"
                 style={{ fontSize: "18px", fontWeight: 400 }}
               >
@@ -82,7 +82,7 @@ export function Pricing() {
 
             <div className="mt-auto">
               <a
-                href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
+                href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full bg-[#3C200F] border border-[#C2C2C2] text-white py-4 hover:opacity-90 transition-opacity rounded-[2px]"
                 style={{ fontSize: "18px", fontWeight: 400 }}
               >

@@ -140,7 +140,7 @@ export function Header() {
               </div>
             ))}
             <a
-              href="https://www.airrsv.net/doghubhakone/calendar"
+              href="https://airrsv.net/doghubhakone/calendar"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-[#3C200F] text-white text-sm font-medium px-6 py-3 text-center mt-3"
@@ -154,7 +154,7 @@ export function Header() {
 
       {/* Right fixed booking tab */}
       <a
-        href="https://www.airrsv.net/doghubhakone/calendar"
+        href="https://airrsv.net/doghubhakone/calendar"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed right-0 z-40 bg-[#3C200F] text-white flex flex-col items-center justify-center gap-3 hover:bg-[#5a3e28] transition-colors rounded-l-md"
