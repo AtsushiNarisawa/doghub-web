@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "host", "value": "www.dog-hub.shop" }],
+      "destination": "https://dog-hub.shop/:path",
+      "permanent": true
+    }
+  ]
+}
