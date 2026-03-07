@@ -86,8 +86,10 @@ export function Footer() {
               </div>
             </div>
             <div className="mt-6">
-              <Link
-                href="/booking"
+              <a
+                href="https://www.airrsv.net/doghubhakone/calendar"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
                 style={{ fontSize: "16px", fontWeight: 400 }}
               >
@@ -96,7 +98,7 @@ export function Footer() {
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
                 <span>ご予約はこちら</span>
-              </Link>
+              </a>
             </div>
           </div>
         </div>

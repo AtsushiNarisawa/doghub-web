@@ -25,13 +25,13 @@ export default function NotFound() {
               >
                 トップページへ戻る
               </Link>
-              <Link
-                href="/booking"
+              <a
+                href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
                 style={{ fontSize: "16px", fontWeight: 400 }}
               >
                 ご予約はこちら
-              </Link>
+              </a>
             </div>
           </div>
         </section>

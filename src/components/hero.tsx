@@ -76,12 +76,12 @@ export function Hero() {
           >
             <span className="text-[#3C200F]" style={{ fontSize: "clamp(13px, 1.5vw, 18px)", fontWeight: 400 }}>はじめての方へ</span>
           </Link>
-          <Link
-            href="/booking"
+          <a
+            href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 py-5 sm:h-[67px] sm:flex-1 hover:bg-[#F7F7F7] transition-colors"
           >
             <span className="text-[#3C200F] flex items-center gap-1.5" style={{ fontSize: "clamp(13px, 1.5vw, 18px)", fontWeight: 400 }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg> ご予約はこちら</span>
-          </Link>
+          </a>
         </div>
       </section>
     </>

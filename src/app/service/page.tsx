@@ -143,13 +143,13 @@ export default function ServicePage() {
                   <p>お引き取り最終：17時</p>
                   <p className="mt-2">※早朝プランは事前にご連絡お願いします。</p>
                 </div>
-                <Link
-                  href="/booking"
+                <a
+                  href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full border border-[#C2C2C2] bg-white text-[#3C200F] py-4 hover:bg-[#F7F7F7] transition-colors rounded-[2px]"
                   style={{ fontSize: "18px", fontWeight: 400 }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg><span>このプランで予約する</span>
-                </Link>
+                </a>
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <Link href="/4h" className="text-[#3C200F] hover:text-[#B87942] transition-colors group" style={{ fontSize: "14px", fontWeight: 400 }}>
                     半日プラン詳細 <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
@@ -181,13 +181,13 @@ export default function ServicePage() {
                     箱根町に在住する方々に関しては、利用料金が¥5,500-となります。
                   </p>
                 </div>
-                <Link
-                  href="/booking"
+                <a
+                  href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full bg-[#3C200F] border border-[#C2C2C2] text-white py-4 hover:opacity-90 transition-opacity rounded-[2px]"
                   style={{ fontSize: "18px", fontWeight: 400 }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg><span>このプランで予約する</span>
-                </Link>
+                </a>
                 <div className="mt-4">
                   <Link href="/stay" className="text-[#3C200F] hover:text-[#B87942] transition-colors group" style={{ fontSize: "14px", fontWeight: 400 }}>
                     宿泊プラン詳細 <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
@@ -269,13 +269,13 @@ export default function ServicePage() {
         {/* Reservation */}
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
-            <Link
-              href="/booking"
+            <a
+              href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
               className="block w-full border border-[#3C200F] py-10 text-center hover:bg-[#F7F7F7] transition-colors"
             >
               <p className="text-[#3C200F] mb-2 flex items-center justify-center gap-3" style={{ fontSize: "clamp(24px,4vw,38.4px)", fontWeight: 400, letterSpacing: "2.7px" }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> RESERVATION</p>
               <p className="text-[#8F7B65]" style={{ fontSize: "clamp(14px,2vw,20px)", fontWeight: 400 }}>DogHub箱根仙石原ご予約はこちら</p>
-            </Link>
+            </a>
           </div>
         </section>
 

@@ -98,14 +98,14 @@ export default function EightHourPage() {
                 </div>
 
                 <div className="mt-8">
-                  <Link
-                    href="/booking"
+                  <a
+                    href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                     style={{ fontSize: "18px", fontWeight: 400 }}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                     1日プランを予約する
-                  </Link>
+                  </a>
                 </div>
               </div>
 

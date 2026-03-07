@@ -139,20 +139,24 @@ export function Header() {
                 )}
               </div>
             ))}
-            <Link
-              href="/booking"
+            <a
+              href="https://www.airrsv.net/doghubhakone/calendar"
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-[#3C200F] text-white text-sm font-medium px-6 py-3 text-center mt-3"
               onClick={() => setMenuOpen(false)}
             >
               ペットホテル予約
-            </Link>
+            </a>
           </div>
         )}
       </header>
 
       {/* Right fixed booking tab */}
-      <Link
-        href="/booking"
+      <a
+        href="https://www.airrsv.net/doghubhakone/calendar"
+        target="_blank"
+        rel="noopener noreferrer"
         className="fixed right-0 z-40 bg-[#3C200F] text-white flex flex-col items-center justify-center gap-3 hover:bg-[#5a3e28] transition-colors rounded-l-md"
         style={{ top: "76px", width: "74px", height: "296px" }}
       >
@@ -166,7 +170,7 @@ export function Header() {
         >
           ペットホテル予約
         </span>
-      </Link>
+      </a>
     </>
   );
 }

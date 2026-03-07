@@ -33,14 +33,14 @@ export function Pricing() {
             </div>
 
             <div className="mt-auto">
-              <Link
-                href="/booking"
+              <a
+                href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full border border-[#C2C2C2] bg-white text-[#3C200F] py-4 hover:bg-[#F7F7F7] transition-colors rounded-[2px]"
                 style={{ fontSize: "18px", fontWeight: 400 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 <span>このプランで予約する</span>
-              </Link>
+              </a>
               <div className="flex items-center justify-center gap-4 mt-4">
                 <Link href="/4h" className="text-[#3C200F] hover:text-[#B87942] transition-colors group" style={{ fontSize: "14px", fontWeight: 400 }}>
                   半日プラン詳細 <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
@@ -81,14 +81,14 @@ export function Pricing() {
             </div>
 
             <div className="mt-auto">
-              <Link
-                href="/booking"
+              <a
+                href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full bg-[#3C200F] border border-[#C2C2C2] text-white py-4 hover:opacity-90 transition-opacity rounded-[2px]"
                 style={{ fontSize: "18px", fontWeight: 400 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 <span>このプランで予約する</span>
-              </Link>
+              </a>
               <div className="mt-4">
                 <Link href="/stay" className="text-[#3C200F] hover:text-[#B87942] transition-colors group" style={{ fontSize: "14px", fontWeight: 400 }}>
                   宿泊プラン詳細 <span className="inline-block transition-transform group-hover:translate-x-1">→</span>

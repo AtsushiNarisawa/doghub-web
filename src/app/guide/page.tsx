@@ -150,13 +150,13 @@ export default function GuidePage() {
                       <h3 className="text-[#311908] mb-3" style={{ fontSize: "24px", fontWeight: 400 }}>{s.title}</h3>
                       {s.num === "Step01" && (
                         <div className="mb-4">
-                          <Link
-                            href="/booking"
+                          <a
+                            href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-6 py-2 hover:bg-[#3C200F] hover:text-white transition-colors"
                             style={{ fontSize: "14px", fontWeight: 400 }}
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> ご予約はこちら
-                          </Link>
+                          </a>
                         </div>
                       )}
                       <p className="text-[#8F7B65] whitespace-pre-line" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>{s.body}</p>
@@ -277,13 +277,13 @@ export default function GuidePage() {
               </div>
             </div>
             <div className="mt-6 flex justify-center">
-              <Link
-                href="/booking"
+              <a
+                href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                 style={{ fontSize: "18px", fontWeight: 400 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> ご予約はこちら
-              </Link>
+              </a>
             </div>
           </div>
         </section>
@@ -338,13 +338,13 @@ export default function GuidePage() {
         {/* Reservation */}
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
-            <Link
-              href="/booking"
+            <a
+              href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
               className="block w-full border border-[#3C200F] py-10 text-center hover:bg-[#F7F7F7] transition-colors"
             >
               <p className="text-[#3C200F] mb-2 flex items-center justify-center gap-3" style={{ fontSize: "clamp(24px,4vw,38.4px)", fontWeight: 400, letterSpacing: "2.7px" }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> RESERVATION</p>
               <p className="text-[#8F7B65]" style={{ fontSize: "clamp(14px,2vw,20px)", fontWeight: 400 }}>DogHub箱根仙石原ご予約はこちら</p>
-            </Link>
+            </a>
           </div>
         </section>
 

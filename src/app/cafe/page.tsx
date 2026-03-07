@@ -92,13 +92,13 @@ export default function CafePage() {
                     ※メニュー内容は予告なく変わることがあります。ご了承ください。
                   </p>
                 </div>
-                <Link
-                  href="/booking"
+                <a
+                  href="https://www.airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-6 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
                   style={{ fontSize: "14px", fontWeight: 400 }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> ペットホテル予約
-                </Link>
+                </a>
               </div>
               <div>
                 <img
