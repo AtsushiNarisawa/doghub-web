@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const slides = [
-  "https://static.wixstatic.com/media/a21f47_1265d1bf2e6241239bb3e1a9fde80253~mv2.jpg/v1/fill/w_1440,h_719,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
-  "https://static.wixstatic.com/media/a21f47_588d384e8c654684b4056e8329fbd34b~mv2.jpg/v1/fill/w_1440,h_719,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/IMGP3177_JPG.jpg",
-  "https://static.wixstatic.com/media/a21f47_6eb778624a864002b49dba1da0b996f1~mv2.jpg/v1/fill/w_1440,h_719,fp_0.50_0.62,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
-  "https://static.wixstatic.com/media/a21f47_f101ae93ae104f47b3e2a12a24d9c8f6~mv2.jpg/v1/fill/w_1440,h_719,fp_0.50_0.57,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+  "/images/img-009.jpg",
+  "/images/img-036.jpg",
+  "/images/img-044.jpg",
+  "/images/img-072.jpg",
 ];
 
 export function Hero() {

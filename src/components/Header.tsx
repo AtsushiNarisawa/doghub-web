@@ -43,7 +43,7 @@ export function Header() {
         <div className="w-full px-3 pr-[90px] h-[80px] flex items-center justify-between">
           <Link href="/" className="flex items-center">
             <img
-              src="https://static.wixstatic.com/media/a21f47_81c40c3955fe4490bf251cb04d7e4737~mv2.png/v1/crop/x_0,y_31,w_432,h_179/fill/w_144,h_60,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/a21f47_81c40c3955fe4490bf251cb04d7e4737~mv2.png"
+              src="/images/img-046.png"
               alt="DogHub箱根仙石原"
               className="h-[60px] w-auto"
             />

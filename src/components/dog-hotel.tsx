@@ -32,7 +32,7 @@ export function DogHotel() {
           {/* Room photo */}
           <div>
             <img
-              src="https://static.wixstatic.com/media/a21f47_57b05fba0d8d434b92c073193341c680~mv2.png/v1/fill/w_621,h_603,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png"
+              src="/images/img-035.png"
               alt="DogHub お預かりスペース"
               width={621}
               height={603}

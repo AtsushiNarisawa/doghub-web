@@ -68,7 +68,7 @@ export function Access() {
           <div className="space-y-4">
             <div className="overflow-hidden">
               <img
-                src="https://static.wixstatic.com/media/a21f47_f101ae93ae104f47b3e2a12a24d9c8f6~mv2.jpg/v1/fill/w_1440,h_719,fp_0.50_0.57,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/IMGP3141_JPG.jpg"
+                src="/images/img-071.jpg"
                 alt="DogHub箱根仙石原 外観"
                 className="w-full h-auto object-cover"
               />

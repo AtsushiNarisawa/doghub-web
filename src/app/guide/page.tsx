@@ -15,26 +15,26 @@ const steps = [
     num: "Step01",
     title: "オンライン予約",
     body: "ご希望の日時・コースをご選択の上、ご予約ください。ご予約時に、愛犬の名前・犬種・体重・年齢などをお伺いいたします。\n※ご予約完了後、お申し込み時のメールアドレスへご予約内容がメールで届きます。\n※お電話にてご予約を受け付けられる場合もございます。お急ぎの場合はご連絡ください。",
-    img: "https://static.wixstatic.com/media/a21f47_4b2fec3986af40be85fe6f5497fc10d4~mv2.webp/v1/fill/w_227,h_126,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.webp",
+    img: "/images/img-031.webp",
     note: "基本的に体重１５kgまでのお預かりとなっております。（1〜2kg程度のオーバーに関しては犬種により一部可能）超えている場合は、こちらからキャンセルのご連絡をさせていただく可能性がございます。",
   },
   {
     num: "Step02",
     title: "ご来店・チェックイン",
     body: "・ご予約時間にご来店ください。\n・受付にて同意書のご記入と愛犬の健康状態などを確認いたします。",
-    img: "https://static.wixstatic.com/media/a21f47_24dc2a93f2e54993ba1e3281d6e8a030~mv2.jpg/v1/crop/x_0,y_765,w_2250,h_1250/fill/w_227,h_126,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-017.jpg",
   },
   {
     num: "Step03",
     title: "お預かり",
     body: "・スタッフが24時間常駐し、安心してお出かけいただけるよう、スタッフが丁寧にお世話します。夜間も室内カメラで愛犬の様子を見守りします。\n・事前に相談した内容に沿って食事やお散歩（オプション）等を行います。",
-    img: "https://static.wixstatic.com/media/a21f47_287c390293424019a76e8072a3020a58~mv2.jpg/v1/fill/w_227,h_156,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-019.jpg",
   },
   {
     num: "Step04",
     title: "お迎え",
     body: "・お約束のお時間にお迎えくださいますようお願いいたします。\n・当日の様子や体調などをフィードバックさせていただきます。",
-    img: "https://static.wixstatic.com/media/a21f47_9052d1f6d0354053b488129eb3e2459f~mv2.jpg/v1/crop/x_0,y_2251,w_3024,h_1680/fill/w_227,h_126,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-050.jpg",
   },
 ];
 
@@ -97,7 +97,7 @@ export default function GuidePage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_fb6677d343f14e5888fc927e8fddd397~mv2.jpg/v1/fill/w_1440,h_249,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-078.jpg"
             alt="はじめてガイド"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}
@@ -221,7 +221,7 @@ export default function GuidePage() {
         <section className="px-6 bg-white">
           <div className="max-w-7xl mx-auto">
             <img
-              src="https://static.wixstatic.com/media/a21f47_1265d1bf2e6241239bb3e1a9fde80253~mv2.jpg/v1/fill/w_562,h_300,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+              src="/images/img-011.jpg"
               alt="DogHub箱根仙石原のドッグランで走る犬"
               width={562}
               height={300}

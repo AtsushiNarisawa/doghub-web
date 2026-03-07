@@ -7,7 +7,7 @@ export function CafeGoods() {
         {/* OMUSUBI & SOUP CAFE */}
         <div>
           <img
-            src="https://static.wixstatic.com/media/a21f47_eec4c70f358e4e06acee9df0e83fd96a~mv2.jpg/v1/fill/w_720,h_476,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-070.jpg"
             alt="OMUSUBI & SOUP CAFE"
             className="w-full h-auto block"
           />
@@ -28,7 +28,7 @@ export function CafeGoods() {
         {/* GOODS */}
         <div>
           <img
-            src="https://static.wixstatic.com/media/a21f47_daa029874bc6459ba1d444e83599bb60~mv2.jpg/v1/fill/w_720,h_476,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-068.jpg"
             alt="GOODS"
             className="w-full h-auto block"
           />

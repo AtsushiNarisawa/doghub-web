@@ -14,28 +14,28 @@ const features = [
     num: "01",
     title: "観光施設などの\u200b目的地に近い",
     body: "箱根の山を登った仙石原に位置しているので、目的地のすぐ近くまで愛犬と一緒に過ごせます。また、強羅や芦ノ湖など、人気の観光地へのアクセスも良好です。DogHub箱根仙石原は好立地を活かし、愛犬と一緒に箱根を思う存分楽しめる環境を提供しています。",
-    img: "https://static.wixstatic.com/media/a21f47_3ed9b14958dd4ff5a255f820f1e3f2ad~mv2.png/v1/fill/w_494,h_329,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png",
+    img: "/images/img-026.png",
     alt: "箱根の観光地マップ",
   },
   {
     num: "02",
     title: "２４時間スタッフ常駐",
     body: "当店では２４時間スタッフが常駐して、わんちゃんたちを見守ります。夜間も宿直のスタッフがおり、随時ライブカメラで様子を確認しておりますので、ご安心ください。",
-    img: "https://static.wixstatic.com/media/a21f47_24d9346c3bd149d186f9bdc6f068211e~mv2.png/v1/fill/w_494,h_329,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png",
+    img: "/images/img-015.png",
     alt: "24時間スタッフ常駐",
   },
   {
     num: "03",
     title: "ストレスフリーな完全個室",
     body: "わんちゃん用個室は壁に囲まれた部屋でお預かりします。ケージやサークルのように狭く息苦しい思いをさせたり、慣れない環境でのひっかき等、ケガの心配が極力ないよう過ごしてもらいます。",
-    img: "https://static.wixstatic.com/media/a21f47_83b3dead7b084aa3a8980879f5cadd9e~mv2.jpg/v1/fill/w_494,h_329,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-048.jpg",
     alt: "完全個室のお部屋",
   },
   {
     num: "04",
     title: "専用ドッグラン併設",
     body: "ペットホテルを利用する際は、ドッグランも併設しており、安全な敷地内でリフレッシュしてもらいます。雨の苦手なわんちゃんでも、ドッグランには屋根付きのエリアもございますので、安心してご利用可能となっております。",
-    img: "https://static.wixstatic.com/media/a21f47_2b218fae49a34d0b97ef9b0990fec251~mv2.jpg/v1/fill/w_494,h_329,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-021.jpg",
     alt: "専用ドッグラン",
   },
 ];
@@ -48,7 +48,7 @@ export default function ServicePage() {
         {/* Hero Banner */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_01966bb1dd164cfa83b63d4e1e3a3cd0~mv2.jpg/v1/fill/w_1440,h_424,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-003.jpg"
             alt="お預かりサービス"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
@@ -89,7 +89,7 @@ export default function ServicePage() {
               </div>
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_57b05fba0d8d434b92c073193341c680~mv2.png/v1/fill/w_621,h_603,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png"
+                  src="/images/img-035.png"
                   alt="DogHub お預かりスペース"
                   className="w-full h-auto"
                 />
@@ -207,7 +207,7 @@ export default function ServicePage() {
             <div className="grid sm:grid-cols-2 gap-8">
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_0c4d1725107f4997b41cfb2104c63821~mv2.jpg/v1/fill/w_365,h_259,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                  src="/images/img-008.jpg"
                   alt="お散歩"
                   className="w-full object-cover"
                   style={{ maxWidth: "365px", height: "auto", aspectRatio: "365/259" }}
@@ -219,7 +219,7 @@ export default function ServicePage() {
               </div>
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_9461ecf7cd244e1bb59d415aa83aea61~mv2.webp/v1/fill/w_366,h_259,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.webp"
+                  src="/images/img-052.webp"
                   alt="わんちゃんが利用するおもちゃや食べ物"
                   className="w-full object-cover"
                   style={{ maxWidth: "366px", height: "auto", aspectRatio: "366/259" }}
@@ -235,7 +235,7 @@ export default function ServicePage() {
             {/* Goods promo */}
             <div className="mt-12">
               <img
-                src="https://static.wixstatic.com/media/a21f47_a4040d8f3f8d47c8ae08475c7917b51a~mv2.jpg/v1/crop/x_0,y_180,w_4032,h_844/fill/w_1164,h_244,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                src="/images/img-057.jpg"
                 alt="DogHub箱根仙石原のグッズ一覧"
                 className="w-full object-cover"
                 style={{ maxWidth: "1164px", aspectRatio: "1164/244", margin: "0 auto" }}

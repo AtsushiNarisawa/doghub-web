@@ -5,19 +5,19 @@ const cards = [
     label: "FOR BEGINNER",
     ja: "初めての方へ",
     href: "/guide",
-    img: "https://static.wixstatic.com/media/a21f47_588d384e8c654684b4056e8329fbd34b~mv2.jpg/v1/fill/w_960,h_720,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-038.jpg",
   },
   {
     label: "ABOUT/ACCESS",
     ja: "店舗情報",
     href: "/access",
-    img: "https://static.wixstatic.com/media/a21f47_f101ae93ae104f47b3e2a12a24d9c8f6~mv2.jpg/v1/fill/w_960,h_720,fp_0.50_0.57,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-074.jpg",
   },
   {
     label: "RECCOMEND SPOT",
     ja: "箱根周辺おすすめスポット",
     href: "/spots",
-    img: "https://static.wixstatic.com/media/a21f47_1265d1bf2e6241239bb3e1a9fde80253~mv2.jpg/v1/fill/w_960,h_720,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-013.jpg",
   },
 ];
 

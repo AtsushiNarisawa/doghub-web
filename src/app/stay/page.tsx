@@ -56,7 +56,7 @@ export default function StayPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_83b3dead7b084aa3a8980879f5cadd9e~mv2.jpg/v1/fill/w_1440,h_424,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-047.jpg"
             alt="DogHub箱根仙石原 宿泊プラン"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
@@ -128,7 +128,7 @@ export default function StayPage() {
 
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_57b05fba0d8d434b92c073193341c680~mv2.png/v1/fill/w_621,h_603,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png"
+                  src="/images/img-035.png"
                   alt="DogHub箱根仙石原 宿泊用個室"
                   className="w-full h-auto"
                 />
@@ -179,7 +179,7 @@ export default function StayPage() {
               </div>
               <div className="p-6">
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_46c79369b63846749bda19bbcdf8bf6b~mv2.png/v1/fill/w_1051,h_515,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/Group%20478.png"
+                  src="/images/img-028.png"
                   alt="宿泊プラン モデルケース タイムライン"
                   className="w-full h-auto"
                 />

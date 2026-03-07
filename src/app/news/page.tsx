@@ -14,7 +14,7 @@ const posts = [
     category: "お知らせ",
     title: "ホームページをリニューアルいたしました",
     href: "/news/homepage-renewal",
-    img: "https://static.wixstatic.com/media/a21f47_4c73dadaccf643909f2c59715afee3d4~mv2.png/v1/fill/w_241,h_181,fp_0.50_0.50,q_95,enc_avif,quality_auto/image.png",
+    img: "/images/img-032.png",
     body: "DogHubのホームページをリニューアルいたしました。",
   },
 ];
@@ -29,7 +29,7 @@ export default function NewsPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_0c4d1725107f4997b41cfb2104c63821~mv2.jpg/v1/fill/w_1440,h_249,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-006.jpg"
             alt="お知らせ"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}

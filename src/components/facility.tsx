@@ -30,7 +30,7 @@ export function Facility() {
           <div className="relative order-2 md:order-1">
             <div className="overflow-hidden">
               <img
-                src="https://static.wixstatic.com/media/a21f47_588d384e8c654684b4056e8329fbd34b~mv2.jpg/v1/fill/w_1440,h_719,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/IMGP3177_JPG.jpg"
+                src="/images/img-036.jpg"
                 alt="DogHub 個室お部屋"
                 className="w-full h-auto object-cover"
               />

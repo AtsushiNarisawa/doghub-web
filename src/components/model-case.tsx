@@ -2,19 +2,19 @@ const plans = [
   {
     tag: "プレミアムホテルでゆったり宿泊 & 愛犬と箱根満喫プラン",
     description: "宿泊プラン＆半日お預かりコースを併用し、1泊2日で愛犬との旅行もゴルフも楽しめる",
-    img: "https://static.wixstatic.com/media/a21f47_46c79369b63846749bda19bbcdf8bf6b~mv2.png/v1/fill/w_1051,h_515,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/Group%20478.png",
+    img: "/images/img-028.png",
     imgAlt: "おすすめプラン タイムライン",
   },
   {
     tag: "1泊2日｜箱根小涌園ユネッサン & 美術館満喫プラン",
     description: "1日預かり＆半日預かりプランを併用し、愛犬との時間をホテルでゆっくり楽しむことも",
-    img: "https://static.wixstatic.com/media/a21f47_63af2590269d4652a5c2171542997f5f~mv2.png/v1/fill/w_1051,h_515,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/Group%20463.png",
+    img: "/images/img-043.png",
     imgAlt: "箱根ユネッサン プラン タイムライン",
   },
   {
     tag: "温泉もグルメもショッピングもそして愛犬も満足プラン",
     description: "温泉の間だけちょこっとお預かり。日帰り旅行も満喫できる",
-    img: "https://static.wixstatic.com/media/a21f47_591049f392ed437a9dcef22e55af5de2~mv2.png/v1/fill/w_1051,h_258,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Group%20462.png",
+    img: "/images/img-040.png",
     imgAlt: "日帰り温泉プラン タイムライン",
   },
 ];

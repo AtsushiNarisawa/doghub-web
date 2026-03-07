@@ -17,7 +17,7 @@ export default function AccessPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_d33337e039334333a9a4c6b03a025f7a~mv2.jpg/v1/fill/w_1440,h_249,fp_0.50_0.23,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-064.jpg"
             alt="店舗情報"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}
@@ -94,7 +94,7 @@ export default function AccessPage() {
                   />
                 </div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_4d6b447b190e49808ed16e5bd76bd1bc~mv2.jpg/v1/fill/w_687,h_489,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                  src="/images/img-033.jpg"
                   alt="DogHub箱根仙石原の外観"
                   className="w-full h-auto"
                 />
@@ -136,7 +136,7 @@ export default function AccessPage() {
               {/* 証明書 + スタッフ写真 */}
               <div className="space-y-6">
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_9dfc57001c124292a2cc892216ec5c62~mv2.png/v1/fill/w_441,h_607,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png"
+                  src="/images/img-053.png"
                   alt="証明書"
                   className="w-full max-w-xs h-auto mx-auto"
                 />
@@ -168,7 +168,7 @@ export default function AccessPage() {
               </div>
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_3090ee025a2e4d0689b546ad39e42a6f~mv2.png/v1/fill/w_583,h_439,al_c,lg_1,q_85,enc_avif,quality_auto/image.png"
+                  src="/images/img-024.png"
                   alt="DogHub箱根仙石原のスタッフたち"
                   className="w-full h-auto"
                 />

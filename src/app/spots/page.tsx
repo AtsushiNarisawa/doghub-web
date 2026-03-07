@@ -19,7 +19,7 @@ const spots = [
     gmaps: "https://maps.google.com/?q=箱根ガラスの森美術館",
     hp: "https://www.hakone-garasunomori.jp/",
     body: "箱根仙石原に位置する日本初のヴェネチアン・グラス専門美術館。15-19世紀の美しいガラス作品を展示するほか、現代作家の斬新な作品も。緑豊かな庭園では、ガラスのオブジェや季節の花々を楽しめ、カフェテラスからは景色を眺められます。ガラス工房では吹きガラスや切子の体験も。ガラスの芸術と自然が調和した心地よい空間です。",
-    img: "https://static.wixstatic.com/media/a21f47_9f78c882098b4dbca3c5184a73767247~mv2.png/v1/fill/w_342,h_228,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png",
+    img: "/images/img-054.png",
   },
   {
     name: "ポーラ美術館",
@@ -30,7 +30,7 @@ const spots = [
     gmaps: "https://maps.google.com/?q=ポーラ美術館",
     hp: "https://www.polamuseum.or.jp/",
     body: "ポーラ美術館は、神奈川県箱根町の国立公園内に位置する美術館です。約1万点の西洋絵画コレクションを有し、印象派から現代アートまでの作品を展示しています。企画展や常設展を開催し、アートを気軽に体験できる空間を提供しています。緑豊かな自然に囲まれた美術館では、絵画鑑賞と共に、カフェテラスからの景色を楽しめます。",
-    img: "https://static.wixstatic.com/media/a21f47_070e3db389ed407394bcd00630de59ae~mv2.png/v1/fill/w_342,h_228,al_c,lg_1,q_85,enc_avif,quality_auto/image.png",
+    img: "/images/img-005.png",
   },
   {
     name: "彫刻の森美術館",
@@ -41,7 +41,7 @@ const spots = [
     gmaps: "https://maps.google.com/?q=彫刻の森美術館",
     hp: "https://www.hakone-oam.or.jp/",
     body: "彫刻の森美術館は、自然と芸術の調和を目指して箱根に造られた国内初の野外美術館です。約7万平方メートルの広大な敷地には、ロダンをはじめとする近現代を代表する彫刻作品が120点以上常設展示されています。屋外展示のほか、緑陰ギャラリーやピカソ館など館内の展示も充実しており、自然の中でアートを楽しめます。",
-    img: "https://static.wixstatic.com/media/a21f47_aa87e31499354aaabc3bb851373276c7~mv2.png/v1/fill/w_342,h_228,al_c,lg_1,q_85,enc_avif,quality_auto/image.png",
+    img: "/images/img-060.png",
   },
   {
     name: "仙石原 すすき草原",
@@ -52,7 +52,7 @@ const spots = [
     gmaps: "https://maps.google.com/?q=仙石原すすき草原",
     hp: "https://www.hakone.or.jp/",
     body: "仙石原のすすき草原は、「かながわの景勝50選」「かながわの花100選」に選ばれた箱根の代表的な観光スポットです。春は緑、秋は黄金色に輝く広大な草原が広がり、金時山などの外輪山と調和した風景を楽しめます。毎年多くの観光客が訪れ、箱根の秋を代表する景色として知られています。",
-    img: "https://static.wixstatic.com/media/a21f47_92163b09cfe4470a875b48d873224fd4~mv2.png/v1/fill/w_342,h_228,al_c,lg_1,q_85,enc_avif,quality_auto/image.png",
+    img: "/images/img-051.png",
   },
   {
     name: "箱根強羅公園",
@@ -63,7 +63,7 @@ const spots = [
     gmaps: "https://maps.google.com/?q=箱根強羅公園",
     hp: "https://www.gora-park.com/",
     body: "箱根強羅公園は、1914年に開園した日本最古のフランス式整型庭園です。四季折々の美しい植物が楽しめ、桜、つつじ、あじさい、紅葉など、様々な花が咲き誇ります。園内にはクラフトハウスや点茶体験、陶芸・吹きガラス体験などの施設もあり、ただ眺めるだけでなく、ものづくり体験も楽しめます。",
-    img: "https://static.wixstatic.com/media/a21f47_3c1e5f256f204655bea755017733be11~mv2.png/v1/fill/w_342,h_228,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png",
+    img: "/images/img-025.png",
   },
   {
     name: "箱根湿生花園",
@@ -74,7 +74,7 @@ const spots = [
     gmaps: "https://maps.google.com/?q=箱根湿生花園",
     hp: "https://www.hakone-shisseikaen.jp/",
     body: "箱根湿生花園は、日本各地の湿地帯に生育する約1,700種もの植物を集めた植物園です。園内には、低地から高山まで、様々な湿地帯の植物が観察できます。湿原、川、湖沼などの水湿地に生育する植物を中心に、草原や林、高山の植物も楽しめます。四季折々の表情を見せる園内は、自然観察や写真撮影に最適で、箱根の自然を存分に堪能できます。",
-    img: "https://static.wixstatic.com/media/a21f47_d5aa6b1c28844eca8f8e2db51098ad71~mv2.png/v1/fill/w_342,h_228,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png",
+    img: "/images/img-065.png",
   },
   {
     name: "箱根ラリック美術館",
@@ -85,7 +85,7 @@ const spots = [
     gmaps: "https://maps.google.com/?q=箱根ラリック美術館",
     hp: "https://www.lalique-museum.com/",
     body: "箱根ラリック美術館は、フランスの宝飾・ガラス工芸の巨匠ルネ・ラリックの作品を展示する美術館です。アール・ヌーヴォーやアール・デコ時代の美麗なガラス作品や、大胆さと繊細さを兼ね備えたジュエリーなど、約1,500点の作品から230点を贅沢に展示しています。自然豊かな箱根の地に佇む美術館では、ラリックの芸術世界を心ゆくまで堪能できます。",
-    img: "https://static.wixstatic.com/media/a21f47_f2ff5b71b27d4cdbb2c696f2e8e3206a~mv2.jpg/v1/fill/w_342,h_228,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+    img: "/images/img-075.jpg",
   },
 ];
 
@@ -97,7 +97,7 @@ export default function SpotsPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_0c4d1725107f4997b41cfb2104c63821~mv2.jpg/v1/fill/w_1440,h_249,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-006.jpg"
             alt="おすすめスポット"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}

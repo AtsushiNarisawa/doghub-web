@@ -127,7 +127,7 @@ export default function FaqPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_d33337e039334333a9a4c6b03a025f7a~mv2.jpg/v1/fill/w_1440,h_249,fp_0.50_0.23,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-064.jpg"
             alt="よくある質問"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}

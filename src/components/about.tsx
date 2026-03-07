@@ -46,7 +46,7 @@ export function About() {
           <div className="relative">
             <div className="overflow-hidden relative bg-[#faf8f4]">
               <img
-                src="https://static.wixstatic.com/media/a21f47_f8d661d249284d19a6f0264043ed4b52~mv2.jpg/v1/fill/w_636,h_408,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/DogHubmap.jpg"
+                src="/images/img-077.jpg"
                 alt="箱根仙石原エリアマップ"
                 className="w-full h-auto object-cover"
               />

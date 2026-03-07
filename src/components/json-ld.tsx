@@ -32,7 +32,7 @@ export function JsonLd() {
     ],
     priceRange: "¥1,100〜¥7,700",
     image:
-      "https://static.wixstatic.com/media/a21f47_01966bb1dd164cfa83b63d4e1e3a3cd0~mv2.jpg/v1/fill/w_1200,h_630,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg",
+      "/images/img-002.jpg",
     sameAs: [
       "https://www.instagram.com/doghub_hakone/",
       "https://www.facebook.com/doghubhakone",

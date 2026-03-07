@@ -41,7 +41,7 @@ export default function FourHourPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_2b218fae49a34d0b97ef9b0990fec251~mv2.jpg/v1/fill/w_1440,h_424,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-020.jpg"
             alt="DogHub箱根仙石原 半日お預かり"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
@@ -110,12 +110,12 @@ export default function FourHourPage() {
 
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_3ed9b14958dd4ff5a255f820f1e3f2ad~mv2.png/v1/fill/w_621,h_413,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.png"
+                  src="/images/img-027.png"
                   alt="DogHub箱根仙石原からの周辺マップ"
                   className="w-full h-auto"
                 />
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_2b218fae49a34d0b97ef9b0990fec251~mv2.jpg/v1/fill/w_621,h_413,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                  src="/images/img-022.jpg"
                   alt="DogHub箱根仙石原 ドッグラン"
                   className="w-full h-auto mt-4"
                 />
@@ -149,7 +149,7 @@ export default function FourHourPage() {
               </div>
               <div className="p-6">
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_591049f392ed437a9dcef22e55af5de2~mv2.png/v1/fill/w_1051,h_258,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Group%20462.png"
+                  src="/images/img-040.png"
                   alt="半日お預かり モデルケース タイムライン"
                   className="w-full h-auto"
                 />

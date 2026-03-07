@@ -49,7 +49,7 @@ export default function CafePage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="https://static.wixstatic.com/media/a21f47_d81c7294261a4ab4b3a4f0e143e59343~mv2.jpg/v1/fill/w_1440,h_423,fp_0.34_0.66,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+            src="/images/img-066.jpg"
             alt="カフェ・グッズ販売"
             className="w-full object-cover"
             style={{ height: "clamp(160px, 30vw, 423px)" }}
@@ -102,7 +102,7 @@ export default function CafePage() {
               </div>
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_c3beea3dc6794748b3f83ee861fd7a4b~mv2.webp/v1/fill/w_630,h_480,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.webp"
+                  src="/images/img-063.webp"
                   alt="DogHub箱根仙石原のおにぎりと手作りスープ"
                   width={630}
                   height={480}
@@ -181,7 +181,7 @@ export default function CafePage() {
             <div className="grid md:grid-cols-2 gap-10">
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_7ba4367e682643d2883265bb1b8021d2~mv2.jpg/v1/fill/w_524,h_270,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                  src="/images/img-045.jpg"
                   alt="DogHub箱根仙石原のおむすびセット"
                   className="w-full h-auto object-cover"
                   style={{ maxWidth: "524px", aspectRatio: "524/270" }}
@@ -195,7 +195,7 @@ export default function CafePage() {
               </div>
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_47a6a38c825f4dad9a2e8800e043e188~mv2.jpg/v1/fill/w_523,h_270,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                  src="/images/img-030.jpg"
                   alt="DogHub箱根仙石原の手作りスープ"
                   className="w-full h-auto object-cover"
                   style={{ maxWidth: "523px", aspectRatio: "523/270" }}
@@ -230,7 +230,7 @@ export default function CafePage() {
               </div>
               <div>
                 <img
-                  src="https://static.wixstatic.com/media/a21f47_8bd9168b58d14fdbb90515dd503bbb6a~mv2.jpg/v1/crop/x_651,y_671,w_3086,h_2353/fill/w_630,h_480,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                  src="/images/img-049.jpg"
                   alt="DogHub箱根仙石原のグッズ一覧"
                   width={630}
                   height={480}
@@ -243,14 +243,14 @@ export default function CafePage() {
             {/* Items photos */}
             <div className="mt-10 flex gap-4">
               <img
-                src="https://static.wixstatic.com/media/a21f47_1ac22aaa326d48d692ca40479f06bc0b~mv2.jpg/v1/fill/w_237,h_178,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                src="/images/img-014.jpg"
                 alt="グッズ商品"
                 width={237}
                 height={178}
                 className="object-cover"
               />
               <img
-                src="https://static.wixstatic.com/media/a21f47_0183f072a066406fba6cca5ebf419b73~mv2.jpg/v1/fill/w_237,h_178,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/image.jpg"
+                src="/images/img-001.jpg"
                 alt="グッズ商品"
                 width={237}
                 height={178}
