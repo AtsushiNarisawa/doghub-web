@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
       { source: "/home", destination: "/booking", permanent: true },
       { source: "/service-page", destination: "/service", permanent: true },
       { source: "/service-page/:path*", destination: "/service", permanent: true },
+      { source: "/blog", destination: "/news", permanent: true },
+      { source: "/post/:path*", destination: "/news", permanent: true },
     ];
   },
 };
