@@ -1,40 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  /* DogHub Brand Colors */
-  --color-primary: #2A5C45;
-  --color-primary-light: #3a7a5c;
-  --color-primary-pale: #E8F3EF;
-  --color-base: #F7F5F0;
-  --color-gold: #C49A3C;
-  --color-gold-light: #d4aa4c;
-  --color-text: #1A1A1A;
-  --color-text-sub: #6B6B6B;
-  --color-border: #DDD8D0;
-  --color-white: #FFFFFF;
+  /* Current site color palette – warm brown */
+  --color-bg: #FFFFFF;
+  --color-bg-section: #F8F5F0;
+  --color-bg-dark: #2C1F14;
+  --color-text: #3C200F;
+  --color-text-sub: #888888;
+  --color-accent: #B87942;
+  --color-border: #E5DDD8;
 
   /* Fonts */
   --font-sans: var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
   --font-dm: var(--font-dm-sans), "Arial", sans-serif;
+  --font-playfair: var(--font-playfair-display), "Playfair Display", "Georgia", serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background-color: var(--color-base);
-  color: var(--color-text);
+  background-color: #FFFFFF;
+  color: #3C200F;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Utility: English/number text uses DM Sans */
-.font-dm {
-  font-family: var(--font-dm);
-}
+.font-dm { font-family: var(--font-dm); }
+.font-playfair { font-family: var(--font-playfair); }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #E5DDD8; border-radius: 2px; }

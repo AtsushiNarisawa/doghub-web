@@ -1,0 +1,86 @@
+export function Access() {
+  return (
+    <section className="py-32 px-6 bg-[#1A1A1A]">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-20 items-start">
+          <div>
+            <p className="font-dm text-[#C49A3C] text-xs tracking-[0.4em] uppercase mb-8">
+              ACCESS
+            </p>
+            <h2 className="font-playfair text-4xl font-bold text-white mb-14">
+              アクセス
+            </h2>
+
+            <div className="space-y-10">
+              <div>
+                <p className="font-dm text-[#6B6B6B] text-xs uppercase tracking-[0.3em] mb-3">
+                  住所
+                </p>
+                <p className="text-[#DDD8D0] text-sm leading-[1.9]">
+                  〒250-0631<br />
+                  神奈川県足柄下郡箱根町仙石原928-15
+                </p>
+              </div>
+
+              <div>
+                <p className="font-dm text-[#6B6B6B] text-xs uppercase tracking-[0.3em] mb-3">
+                  電話 / メール
+                </p>
+                <a
+                  href="tel:0460800290"
+                  className="text-[#DDD8D0] text-sm hover:text-white transition-colors block"
+                >
+                  0460-80-0290
+                </a>
+                <a
+                  href="mailto:info@dog-hub.shop"
+                  className="text-[#6B6B6B] text-xs hover:text-white transition-colors mt-1 block"
+                >
+                  info@dog-hub.shop
+                </a>
+              </div>
+
+              <div>
+                <p className="font-dm text-[#6B6B6B] text-xs uppercase tracking-[0.3em] mb-3">
+                  営業時間
+                </p>
+                <p className="text-[#DDD8D0] text-sm leading-[1.9]">
+                  ドッグホテル：9:00〜17:00<br />
+                  カフェ：11:00〜17:00
+                </p>
+                <p className="text-[#6B6B6B] text-xs mt-1">定休日：水曜・木曜</p>
+                <p className="text-[#C49A3C] text-xs mt-2">早朝7:00〜お預かり対応（要事前連絡）</p>
+              </div>
+
+              <div>
+                <p className="font-dm text-[#6B6B6B] text-xs uppercase tracking-[0.3em] mb-3">
+                  交通アクセス
+                </p>
+                <p className="text-[#DDD8D0] text-sm leading-[1.9]">
+                  箱根登山バス「仙石原」停より徒歩5分<br />
+                  東名高速「御殿場IC」より車で約30分
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Building exterior photo */}
+          <div className="space-y-4">
+            <div className="overflow-hidden">
+              <img
+                src="https://static.wixstatic.com/media/a21f47_f101ae93ae104f47b3e2a12a24d9c8f6~mv2.jpg/v1/fill/w_1440,h_719,fp_0.50_0.57,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/IMGP3141_JPG.jpg"
+                alt="DogHub箱根仙石原 外観"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <div className="aspect-[4/3] bg-white/5 border border-white/8 flex items-center justify-center">
+              <p className="text-white/15 text-sm font-dm tracking-widest uppercase">
+                Google Map
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

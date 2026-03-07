@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  devIndicators: false,
+  async redirects() {
+    return [
+      // Wix旧URL → 新URL 301リダイレクト
+      { source: "/beginner", destination: "/guide", permanent: true },
+      { source: "/hakone", destination: "/spots", permanent: true },
+      { source: "/dog-run", destination: "/spots", permanent: true },
+      { source: "/home", destination: "/booking", permanent: true },
+      { source: "/service-page", destination: "/service", permanent: true },
+      { source: "/service-page/:path*", destination: "/service", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
