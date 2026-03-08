@@ -53,8 +53,8 @@ export function ModelCase() {
         <div className="mt-10 md:mt-16">
           <p className="text-[#3C200F] text-center" style={{ fontSize: "clamp(16px, 2vw, 24px)", fontWeight: 400, lineHeight: "1.8" }}>
             組み合わせは自由自在で、あなたと愛犬の旅が何倍にも楽しくなる。<br />
-            そんな愛犬家のみなさんが心ゆくまで箱根を満喫するための、<br />
-            ハブとなるDOG HOTELです。
+            わんちゃんと入れる場所と入れない場所をつなぐ、<br />
+            愛犬家のためのハブとなるDOG HOTELです。
           </p>
         </div>
       </div>

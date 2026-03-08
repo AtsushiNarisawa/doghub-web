@@ -3,9 +3,11 @@ import { Hero } from "@/components/hero";
 import { Concept } from "@/components/concept";
 import { DogHotel } from "@/components/dog-hotel";
 import { Pricing } from "@/components/pricing";
+import { Testimonials } from "@/components/testimonials";
+import { TrustSignals } from "@/components/trust-signals";
+import { ModelCase } from "@/components/model-case";
 import { CafeGoods } from "@/components/cafe-goods";
 import { PhotoGallery } from "@/components/photo-gallery";
-import { ModelCase } from "@/components/model-case";
 import { News } from "@/components/news";
 import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
@@ -20,9 +22,11 @@ export default function HomePage() {
         <Concept />
         <DogHotel />
         <Pricing />
+        <Testimonials />
+        <TrustSignals />
+        <ModelCase />
         <CafeGoods />
         <PhotoGallery />
-        <ModelCase />
         <News />
         <Reservation />
         <QuickNav />
