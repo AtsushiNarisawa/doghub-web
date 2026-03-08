@@ -81,16 +81,20 @@ export default function CafePage() {
                   箱根散策のお供にぴったりな<br />テイクアウトメニューをご用意
                 </h3>
                 <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  5つ星のお米マイスターが生産した特別栽培米を使い,こだわりのおむすびで提供しております。
+                  5つ星のお米マイスターが生産した特別栽培米を使い、こだわりのおむすびで提供しております。
+                  テイクアウトメインのお店ですが、わんちゃんと一緒に食べられる室内イートインスペースも完備しております。
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  わんちゃんと食べれる室内イートインスペースも完備しております。
+                  カフェのご利用にご予約は不要です。わんちゃんの頭数制限もございません。
+                  飼い主様同伴であればリードの着用も不要ですので、のびのびとお過ごしいただけます。
                 </p>
                 <div className="bg-[#F7F7F7] p-6 mb-6">
-                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>カフェ営業時間：午前１１時〜午後５時</p>
+                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>カフェ営業時間：午前11時〜午後5時</p>
+                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>定休日：水曜・木曜</p>
                   <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
                     テイクアウトメインのお店ですが、<br />
                     一部わんちゃんと入れるイートインスペースを準備しております。<br />
+                    ※おにぎりのテイクアウト予約も承っております。<br />
                     ※メニュー内容は予告なく変わることがあります。ご了承ください。
                   </p>
                 </div>

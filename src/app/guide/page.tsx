@@ -249,8 +249,8 @@ export default function GuidePage() {
                   スポット：¥1,100/1時間
                 </p>
                 <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400, lineHeight: "1.8" }}>
-                  通常プランのお預かり時間：9時-17時<br />
-                  早朝プランのお預かり時間：7時-15時<br />
+                  通常プランのお預かり時間：午前9時〜午後5時<br />
+                  早朝プランのお預かり時間：午前7時〜午後3時<br />
                   お預かり最終受付：15時<br />
                   お引き取り最終：17時
                 </p>

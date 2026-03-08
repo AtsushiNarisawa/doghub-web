@@ -34,8 +34,8 @@ export function Concept() {
               </p>
               <p>
                 DogHub箱根仙石原は、<br />
-                そんな愛犬家のみなさんが心ゆくまで箱根を満喫するための、<br />
-                ハブとなるDOG HOTEL。
+                わんちゃんと入れる場所と入れない場所をつなぐ、<br />
+                愛犬家のためのハブとなるDOG HOTEL。
               </p>
             </div>
           </div>

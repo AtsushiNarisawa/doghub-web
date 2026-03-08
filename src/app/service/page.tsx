@@ -155,8 +155,8 @@ export default function ServicePage() {
                 </p>
                 <p className="text-[#8F7B65] mb-4" style={{ fontSize: "13px", fontWeight: 400 }}>※表示料金はすべて税込です。</p>
                 <div className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  <p>通常プランのお預かり時間：9時-17時</p>
-                  <p>早朝プランのお預かり時間：7時-15時</p>
+                  <p>通常プランのお預かり時間：午前9時〜午後5時</p>
+                  <p>早朝プランのお預かり時間：午前7時〜午後3時</p>
                   <p>お預かり最終受付：15時</p>
                   <p>お引き取り最終：17時</p>
                   <p className="mt-2">※早朝プランは事前にご連絡お願いします。</p>
