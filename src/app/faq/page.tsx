@@ -5,6 +5,7 @@ import { FaqAccordion } from "@/components/faq-accordion";
 import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "よくある質問（FAQ）｜DogHub箱根仙石原 ペットホテル",
@@ -29,7 +30,7 @@ const faqCategories = [
       },
       {
         q: "キャンセルはできますか？",
-        a: "キャンセルは可能です。キャンセルポリシーについてはご予約時にご案内いたします。詳しくはお電話（0460-80-0290）またはメール（info@dog-hub.shop）でお問い合わせください。",
+        a: "キャンセルは可能です。Air Reserve（予約システム）上からお手続きいただけます。前日までのキャンセルはキャンセル料がかかりません。当日キャンセルはキャンセル料が発生する場合がございます。ご不明な点はお電話（0460-80-0290）またはメール（info@dog-hub.shop）でお問い合わせください。",
       },
       {
         q: "定休日はいつですか？",
@@ -42,7 +43,7 @@ const faqCategories = [
     items: [
       {
         q: "大型犬も預けられますか？",
-        a: "体重15kg未満のわんちゃんは即時確定でお預かり可能です。15kg以上の場合はスタッフ確認の上、仮予約として対応させていただきます。まずはお気軽にご相談ください。",
+        a: "基本的に体重15kgまでのわんちゃんをお預かりしております。ただし、落ち着きのある犬種であれば若干のオーバーでも受け入れ可能な場合がございます。15kg以上の場合は仮予約となり、24時間以内にスタッフよりご連絡いたします。まずはお気軽にご予約・ご相談ください。",
       },
       {
         q: "複数頭の預かりはできますか？",
@@ -67,7 +68,7 @@ const faqCategories = [
     items: [
       {
         q: "料金プランを教えてください",
-        a: "半日お預かり（4時間）¥3,300、1日お預かり（8時間）¥5,500、宿泊（1泊）¥7,700〜、スポット利用（1時間）¥1,100です。営業時間外は追加1時間あたり¥1,100の時間料金をいただきます。",
+        a: "半日お預かり（4時間）¥3,300、1日お預かり（8時間）¥5,500、宿泊（1泊）¥7,700〜、スポット利用（1時間）¥1,100です。営業時間外は追加1時間あたり¥1,100の時間料金をいただきます。表示料金はすべて税込です。",
       },
       {
         q: "オプションサービスはありますか？",
@@ -119,11 +120,32 @@ const faqCategories = [
   },
 ];
 
+function FaqJsonLd() {
+  const allItems = faqCategories.flatMap((cat) => cat.items);
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: allItems.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
+}
+
 export default function FaqPage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"よくある質問",href:"/faq"}]} />
+        <FaqJsonLd />
         {/* Hero */}
         <div className="relative">
           <img
@@ -159,7 +181,7 @@ export default function FaqPage() {
             <div className="space-y-12">
               {faqCategories.map((cat) => (
                 <div key={cat.title}>
-                  <h2 className="text-[#3C200F] mb-6 pb-3 border-b-2 border-[#3C200F]" style={{ fontSize: "24px", fontWeight: 400 }}>{cat.title}</h2>
+                  <h2 className="text-[#3C200F] mb-6 pb-3 border-b-2 border-[#3C200F]" style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: 400 }}>{cat.title}</h2>
                   <FaqAccordion faqs={cat.items} />
                 </div>
               ))}
@@ -170,7 +192,7 @@ export default function FaqPage() {
         {/* Contact CTA */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "24px", fontWeight: 400 }}>解決しない場合は</h2>
+            <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: 400 }}>解決しない場合は</h2>
             <p className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
               お気軽にお電話またはメールでお問い合わせください。<br />
               公式LINEからもお問い合わせいただけます。
@@ -178,14 +200,14 @@ export default function FaqPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href="tel:0460800290"
-                className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-4 min-h-11 hover:bg-[#3C200F] hover:text-white transition-colors"
                 style={{ fontSize: "18px", fontWeight: 400 }}
               >
                 0460-80-0290
               </a>
               <a
                 href="mailto:info@dog-hub.shop"
-                className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-4 min-h-11 hover:bg-[#3C200F] hover:text-white transition-colors"
                 style={{ fontSize: "16px", fontWeight: 400 }}
               >
                 info@dog-hub.shop

@@ -1,5 +1,140 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import type { BookingStep, BookingFormData } from "@/types/booking";
+import { INITIAL_FORM } from "@/types/booking";
+import { StepIndicator } from "@/components/booking/step-indicator";
+import { Step1Plan } from "@/components/booking/step1-plan";
+import { Step2Dogs } from "@/components/booking/step2-dogs";
+import { Step3Customer } from "@/components/booking/step3-customer";
+import { Step4Confirm } from "@/components/booking/step4-confirm";
 
 export default function BookingPage() {
-  redirect("https://airrsv.net/doghubhakone/calendar");
+  const [step, setStep] = useState<BookingStep>(1);
+  const [form, setForm] = useState<BookingFormData>({ ...INITIAL_FORM });
+  const [result, setResult] = useState<"success" | "error" | null>(null);
+
+  const goNext = () => {
+    setStep((s) => Math.min(s + 1, 4) as BookingStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goBack = () => {
+    setStep((s) => Math.max(s - 1, 1) as BookingStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setResult("success");
+      } else {
+        setResult("error");
+      }
+    } catch {
+      setResult("error");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 送信完了画面
+  if (result === "success") {
+    const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) >= 15);
+    return (
+      <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-medium">
+            {hasHeavyDog ? "予約リクエストを受付しました" : "ご予約ありがとうございます"}
+          </h1>
+          <p className="text-sm text-[#888] leading-relaxed">
+            {hasHeavyDog
+              ? "スタッフが確認後、メールにてご連絡いたします。しばらくお待ちください。"
+              : "確認メールをお送りしました。当日お気をつけてお越しください。"}
+          </p>
+          <p className="text-sm text-[#888]">
+            ワクチン証明書を当日ご持参ください。
+          </p>
+          <Link
+            href="/"
+            className="inline-block mt-4 px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
+          >
+            トップページへ戻る
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // エラー画面
+  if (result === "error") {
+    return (
+      <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-medium">送信に失敗しました</h1>
+          <p className="text-sm text-[#888] leading-relaxed">
+            通信エラーが発生しました。もう一度お試しいただくか、お電話にてご予約ください。
+          </p>
+          <p className="text-sm font-medium">TEL: 0460-83-8223</p>
+          <button
+            onClick={() => setResult(null)}
+            className="inline-block mt-4 px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
+          >
+            戻って再試行
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-dvh bg-[#F8F5F0]">
+      {/* ヘッダー */}
+      <header className="bg-white border-b border-[#E5DDD8] sticky top-0 z-10">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+          <Link href="/" className="text-sm text-[#888]">
+            ← トップへ
+          </Link>
+          <h1 className="font-medium text-[15px]">ご予約</h1>
+          <div className="w-16" />
+        </div>
+      </header>
+
+      {/* ステップインジケーター */}
+      <div className="max-w-lg mx-auto px-4">
+        <StepIndicator current={step} />
+      </div>
+
+      {/* フォーム */}
+      <main className="max-w-lg mx-auto px-4 pb-8">
+        {step === 1 && (
+          <Step1Plan form={form} onChange={setForm} onNext={goNext} />
+        )}
+        {step === 2 && (
+          <Step2Dogs form={form} onChange={setForm} onNext={goNext} onBack={goBack} />
+        )}
+        {step === 3 && (
+          <Step3Customer form={form} onChange={setForm} onNext={goNext} onBack={goBack} />
+        )}
+        {step === 4 && (
+          <Step4Confirm form={form} onChange={setForm} onSubmit={handleSubmit} onBack={goBack} />
+        )}
+      </main>
+    </div>
+  );
 }

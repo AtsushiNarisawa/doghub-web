@@ -15,6 +15,18 @@ const navItems = [
       { label: "宿泊プラン", href: "/stay" },
     ],
   },
+  {
+    label: "シーン別ガイド",
+    href: "/golf",
+    children: [
+      { label: "ゴルフ × ペットホテル", href: "/golf" },
+      { label: "ユネッサン × ペット預かり", href: "/yunessun" },
+      { label: "温泉 × ペット預かり", href: "/onsen" },
+      { label: "美術館 × ペット預かり", href: "/museum" },
+      { label: "高級旅館 × ペットホテル", href: "/ryokan" },
+      { label: "ドッグラン", href: "/dogrun" },
+    ],
+  },
   { label: "おすすめスポット", href: "/spots" },
   { label: "カフェ・グッズ販売", href: "/cafe" },
   { label: "店舗情報", href: "/access" },
@@ -24,23 +36,13 @@ const navItems = [
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E5DDD8]">
-        <div className="w-full px-3 pr-[90px] h-[80px] flex items-center justify-between">
+        <div className="w-full px-3 pr-4 lg:pr-[90px] h-[60px] lg:h-[80px] flex items-center justify-between">
           <Link href="/" className="flex items-center">
             <img
               src="/images/img-046.png"
@@ -54,10 +56,9 @@ export function Header() {
               item.children ? (
                 <div
                   key={item.href}
-                  ref={dropdownRef}
                   className="relative"
-                  onMouseEnter={() => setDropdownOpen(true)}
-                  onMouseLeave={() => setDropdownOpen(false)}
+                  onMouseEnter={() => setOpenDropdown(item.label)}
+                  onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <Link
                     href={item.href}
@@ -69,7 +70,7 @@ export function Header() {
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </Link>
-                  {dropdownOpen && (
+                  {openDropdown === item.label && (
                     <div className="absolute top-full left-0 pt-2">
                       <div className="bg-white border border-[#E5DDD8] shadow-md min-w-[200px]">
                         {item.children.map((child) => (
@@ -100,7 +101,7 @@ export function Header() {
           </nav>
 
           <button
-            className="lg:hidden p-2 text-[#3C200F]"
+            className="lg:hidden p-3 min-h-11 min-w-11 flex items-center justify-center text-[#3C200F]"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="メニュー"
           >
@@ -113,29 +114,53 @@ export function Header() {
         </div>
 
         {menuOpen && (
-          <div className="lg:hidden bg-white border-t border-[#E5DDD8] px-6 py-4 flex flex-col">
+          <div className="lg:hidden bg-white border-t border-[#E5DDD8] px-6 py-4 flex flex-col overflow-y-auto" style={{ maxHeight: "calc(100dvh - 60px)" }}>
             {navItems.map((item) => (
               <div key={item.href}>
-                <Link
-                  href={item.href}
-                  className="text-sm text-[#3C200F] py-3 border-b border-[#E5DDD8] hover:text-[#B87942] transition-colors block"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-                {item.children && (
-                  <div className="pl-4">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        className="text-sm text-[#8F7B65] py-2 border-b border-[#E5DDD8] hover:text-[#B87942] transition-colors block"
-                        onClick={() => setMenuOpen(false)}
+                {item.children ? (
+                  <>
+                    <button
+                      className="text-sm text-[#3C200F] py-4 border-b border-[#E5DDD8] hover:text-[#B87942] transition-colors w-full text-left flex items-center justify-between"
+                      onClick={() => setMobileDropdown(mobileDropdown === item.label ? null : item.label)}
+                    >
+                      {item.label}
+                      <svg
+                        width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                        className={`transition-transform ${mobileDropdown === item.label ? "rotate-180" : ""}`}
                       >
-                        └ {child.label}
-                      </Link>
-                    ))}
-                  </div>
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    {mobileDropdown === item.label && (
+                      <div className="pl-4">
+                        <Link
+                          href={item.href}
+                          className="text-sm text-[#8F7B65] py-3 border-b border-[#E5DDD8] hover:text-[#B87942] transition-colors block"
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          └ {item.label}（一覧）
+                        </Link>
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className="text-sm text-[#8F7B65] py-3 border-b border-[#E5DDD8] hover:text-[#B87942] transition-colors block"
+                            onClick={() => setMenuOpen(false)}
+                          >
+                            └ {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className="text-sm text-[#3C200F] py-4 border-b border-[#E5DDD8] hover:text-[#B87942] transition-colors block"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
                 )}
               </div>
             ))}
@@ -143,7 +168,7 @@ export function Header() {
               href="https://airrsv.net/doghubhakone/calendar"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#3C200F] text-white text-sm font-medium px-6 py-3 text-center mt-3"
+              className="bg-[#3C200F] text-white text-sm font-medium px-6 py-4 text-center mt-3 min-h-11"
               onClick={() => setMenuOpen(false)}
             >
               ペットホテル予約
@@ -157,7 +182,7 @@ export function Header() {
         href="https://airrsv.net/doghubhakone/calendar"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed right-0 z-40 bg-[#3C200F] text-white flex flex-col items-center justify-center gap-3 hover:bg-[#5a3e28] transition-colors rounded-l-md"
+        className="hidden sm:flex fixed right-0 z-40 bg-[#3C200F] text-white flex-col items-center justify-center gap-3 hover:bg-[#5a3e28] transition-colors rounded-l-md"
         style={{ top: "76px", width: "74px", height: "296px" }}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

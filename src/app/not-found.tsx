@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
         <section className="py-32 px-6 bg-white text-center">
           <div className="max-w-2xl mx-auto">
             <p className="text-[#B87942] mb-4" style={{ fontSize: "64px", fontWeight: 400 }}>404</p>

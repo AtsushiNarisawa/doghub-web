@@ -73,10 +73,17 @@ export function Access() {
                 className="w-full h-auto object-cover"
               />
             </div>
-            <div className="aspect-[4/3] bg-white/5 border border-white/8 flex items-center justify-center">
-              <p className="text-white/15 text-sm font-dm tracking-widest uppercase">
-                Google Map
-              </p>
+            <div className="aspect-[4/3]">
+              <iframe
+                src="https://www.google.com/maps?q=DogHub%E7%AE%B1%E6%A0%B9%E4%BB%99%E7%9F%B3%E5%8E%9F&ll=35.265472,139.011744&z=16&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="DogHub箱根仙石原 地図"
+              />
             </div>
           </div>
         </div>

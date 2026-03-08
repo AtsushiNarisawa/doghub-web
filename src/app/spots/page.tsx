@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "箱根 犬連れ観光おすすめスポット｜DogHub箱根仙石原",
@@ -93,7 +94,8 @@ export default function SpotsPage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"おすすめスポット",href:"/spots"}]} />
         {/* Hero */}
         <div className="relative">
           <img
@@ -137,7 +139,7 @@ export default function SpotsPage() {
           <div className="max-w-7xl mx-auto space-y-12">
             {spots.map((spot) => (
               <div key={spot.name} className="border-t border-[#E5DDD8] pt-10">
-                <div className="grid md:grid-cols-[340px_1fr] gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-6 md:gap-8">
                   <div className="flex-shrink-0">
                     <img src={spot.img} alt={spot.name} className="w-full h-auto object-cover" />
                   </div>
@@ -148,13 +150,13 @@ export default function SpotsPage() {
                         {spot.canBring ? "愛犬と一緒" : "愛犬をお預り"}
                       </span>
                     </div>
-                    <h3 className="text-[#311908] mb-2" style={{ fontSize: "24px", fontWeight: 400 }}>{spot.name}</h3>
-                    <p className="text-[#3C200F] mb-3" style={{ fontSize: "18px", fontWeight: 400 }}>{spot.address}</p>
+                    <h3 className="text-[#311908] mb-2" style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: 400 }}>{spot.name}</h3>
+                    <p className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(14px, 3vw, 18px)", fontWeight: 400 }}>{spot.address}</p>
                     <div className="flex gap-4 mb-4">
-                      <a href={spot.gmaps} target="_blank" rel="noopener noreferrer" className="text-sm text-[#3C200F] border-b border-[#3C200F] hover:text-[#B87942] hover:border-[#B87942]">
+                      <a href={spot.gmaps} target="_blank" rel="noopener noreferrer" className="text-sm text-[#3C200F] border-b border-[#3C200F] hover:text-[#B87942] hover:border-[#B87942] py-2">
                         Google maps
                       </a>
-                      <a href={spot.hp} target="_blank" rel="noopener noreferrer" className="text-sm text-[#3C200F] border-b border-[#3C200F] hover:text-[#B87942] hover:border-[#B87942]">
+                      <a href={spot.hp} target="_blank" rel="noopener noreferrer" className="text-sm text-[#3C200F] border-b border-[#3C200F] hover:text-[#B87942] hover:border-[#B87942] py-2">
                         ホームページ
                       </a>
                     </div>

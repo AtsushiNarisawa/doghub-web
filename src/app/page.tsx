@@ -15,7 +15,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
         <Hero />
         <Concept />
         <DogHotel />

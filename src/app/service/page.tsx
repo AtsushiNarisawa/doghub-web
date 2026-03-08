@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "犬の一時預かり・宿泊サービス｜DogHub箱根仙石原 ペットホテル",
@@ -44,7 +45,23 @@ export default function ServicePage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"お預かりサービス",href:"/service"}]} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            name: "犬の一時預かり・宿泊サービス",
+            description: "箱根仙石原のドッグホテル。一時預かり¥1,100〜/1時間・宿泊¥7,700〜。24時間スタッフ常駐、完全個室、ドッグラン併設。",
+            provider: {
+              "@type": "LocalBusiness",
+              name: "DogHub箱根仙石原",
+              url: "https://dog-hub.shop",
+            },
+            areaServed: { "@type": "Place", name: "箱根町, 神奈川県" },
+          }) }}
+        />
         {/* Hero Banner */}
         <div className="relative">
           <img
@@ -71,10 +88,10 @@ export default function ServicePage() {
         {/* DOG HOTEL intro */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
+            <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-start">
               <div>
-                <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "32px", fontWeight: 400 }}>DOG HOTEL</h2>
-                <h3 className="text-[#3C200F] mb-6" style={{ fontSize: "26px", fontWeight: 400, lineHeight: "1.6" }}>
+                <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>DOG HOTEL</h2>
+                <h3 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 400, lineHeight: "1.6" }}>
                   一時預かりも、宿泊も対応できる<br />ドッグホテル
                 </h3>
                 <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400 }}>箱根町で唯一のドッグホテル となります。</p>
@@ -102,16 +119,16 @@ export default function ServicePage() {
         <section className="py-16 px-6 bg-white">
           <div className="max-w-[1050px] mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-[#3C200F] mb-3" style={{ fontSize: "36px", fontWeight: 400, letterSpacing: "1.8px" }}>KOWADARI</h2>
-              <p className="text-[#311908]" style={{ fontSize: "24px", fontWeight: 400 }}>DogHubの4つのこだわり</p>
+              <h2 className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(28px, 5vw, 36px)", fontWeight: 400, letterSpacing: "1.8px" }}>KOWADARI</h2>
+              <p className="text-[#311908]" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>DogHubの4つのこだわり</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 md:gap-y-10">
               {features.map((f) => (
                 <div key={f.num}>
                   <img src={f.img} alt={f.alt} className="w-full h-auto object-cover" />
                   <div className="mt-4">
-                    <p className="text-[#3C200F] mb-1" style={{ fontSize: "32px", fontWeight: 400 }}>{f.num}</p>
-                    <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "24px", fontWeight: 400, lineHeight: "1.5" }}>{f.title}</h3>
+                    <p className="text-[#3C200F] mb-1" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>{f.num}</p>
+                    <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: 400, lineHeight: "1.5" }}>{f.title}</h3>
                     <p className="text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "1.8" }}>{f.body}</p>
                   </div>
                 </div>
@@ -125,9 +142,9 @@ export default function ServicePage() {
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-2 gap-5">
               {/* TEMPORARY SERVICE */}
-              <div className="bg-white px-8 py-10 text-center">
-                <h3 className="text-[#311908] mb-2" style={{ fontSize: "38.4px", fontWeight: 400, letterSpacing: "2.7px" }}>TEMPORARY SERVICE</h3>
-                <h4 className="text-[#311908] mb-4" style={{ fontSize: "24px", fontWeight: 400 }}>一時お預かり</h4>
+              <div className="bg-white px-4 sm:px-8 py-8 sm:py-10 text-center">
+                <h3 className="text-[#311908] mb-2" style={{ fontSize: "clamp(24px, 5vw, 38.4px)", fontWeight: 400, letterSpacing: "2.7px" }}>TEMPORARY SERVICE</h3>
+                <h4 className="text-[#311908] mb-4" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>一時お預かり</h4>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "1.8" }}>
                   旅行プランの中に組み合わせて、<br />箱根旅行をもっと自由に。
                 </p>
@@ -136,6 +153,7 @@ export default function ServicePage() {
                   半日：¥3,300/4時間<br />
                   スポット：¥1,100/1時間
                 </p>
+                <p className="text-[#8F7B65] mb-4" style={{ fontSize: "13px", fontWeight: 400 }}>※表示料金はすべて税込です。</p>
                 <div className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   <p>通常プランのお預かり時間：9時-17時</p>
                   <p>早朝プランのお預かり時間：7時-15時</p>
@@ -161,9 +179,9 @@ export default function ServicePage() {
               </div>
 
               {/* PET HOTEL */}
-              <div className="bg-white px-8 py-10 text-center">
-                <h3 className="text-[#311908] mb-2" style={{ fontSize: "38.4px", fontWeight: 400, letterSpacing: "2.7px" }}>PET HOTEL</h3>
-                <h4 className="text-[#311908] mb-4" style={{ fontSize: "24px", fontWeight: 400 }}>宿泊プラン</h4>
+              <div className="bg-white px-4 sm:px-8 py-8 sm:py-10 text-center">
+                <h3 className="text-[#311908] mb-2" style={{ fontSize: "clamp(24px, 5vw, 38.4px)", fontWeight: 400, letterSpacing: "2.7px" }}>PET HOTEL</h3>
+                <h4 className="text-[#311908] mb-4" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>宿泊プラン</h4>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "1.8" }}>
                   愛犬と泊まれる宿に空きがない。<br />
                   宿泊する宿は愛犬と泊まれない<br />
@@ -173,6 +191,7 @@ export default function ServicePage() {
                   1泊：¥7,700-<br />
                   追加1時間あたり：¥1,100-
                 </p>
+                <p className="text-[#8F7B65] mb-4" style={{ fontSize: "13px", fontWeight: 400 }}>※表示料金はすべて税込です。</p>
                 <div className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   <p>チェックイン：14時〜17時</p>
                   <p>チェックアウト：9時〜11時</p>
@@ -201,7 +220,7 @@ export default function ServicePage() {
         {/* OPTION MENU */}
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "32px", fontWeight: 400, letterSpacing: "1.6px" }}>OPTION MENU</h2>
+            <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400, letterSpacing: "1.6px" }}>OPTION MENU</h2>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "18px", fontWeight: 400 }}>オプション</p>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "14px", fontWeight: 400 }}>※一時預かり、宿泊をご利用時に追加可能</p>
             <div className="grid sm:grid-cols-2 gap-8">
@@ -256,10 +275,10 @@ export default function ServicePage() {
           <div className="max-w-7xl mx-auto text-center text-white">
             <p className="mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>はじめてご利用の方はご予約前に必ずこちらをご覧ください</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/guide" className="inline-flex items-center gap-2 border border-white text-white px-8 py-3 hover:bg-white hover:text-[#3C200F] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
+              <Link href="/guide" className="inline-flex items-center gap-2 border border-white text-white px-4 sm:px-8 py-4 hover:bg-white hover:text-[#3C200F] transition-colors min-h-11" style={{ fontSize: "clamp(14px, 3vw, 16px)", fontWeight: 400 }}>
                 ご利用ガイド・注意事項はこちら →
               </Link>
-              <Link href="/faq" className="inline-flex items-center gap-2 border border-white text-white px-8 py-3 hover:bg-white hover:text-[#3C200F] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
+              <Link href="/faq" className="inline-flex items-center gap-2 border border-white text-white px-4 sm:px-8 py-4 hover:bg-white hover:text-[#3C200F] transition-colors min-h-11" style={{ fontSize: "clamp(14px, 3vw, 16px)", fontWeight: 400 }}>
                 よくある質問 →
               </Link>
             </div>

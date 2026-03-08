@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "アクセス・店舗情報｜DogHub箱根仙石原 ペットホテル＆カフェ",
@@ -13,7 +14,8 @@ export default function AccessPage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"店舗情報・アクセス",href:"/access"}]} />
         {/* Hero */}
         <div className="relative">
           <img
@@ -40,9 +42,9 @@ export default function AccessPage() {
         {/* Basic info */}
         <section className="py-16 px-6 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12">
+            <div className="grid md:grid-cols-2 gap-6 md:gap-12">
               <div>
-                <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "26px", fontWeight: 400, lineHeight: "1.6" }}>
+                <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(22px, 4vw, 26px)", fontWeight: 400, lineHeight: "1.6" }}>
                   DogHub箱根仙石原<br />ペットホテル<br />おむすび＆スープカフェ
                 </h2>
 
@@ -70,7 +72,7 @@ export default function AccessPage() {
                 <div className="mt-8">
                   <a
                     href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
+                    className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-4 hover:bg-[#3C200F] hover:text-white transition-colors min-h-11"
                     style={{ fontSize: "16px", fontWeight: 400 }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> ペットホテル予約
@@ -83,7 +85,7 @@ export default function AccessPage() {
                 {/* Google Maps embed */}
                 <div className="w-full" style={{ height: "300px" }}>
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1625.7!2d139.0253!3d35.2667!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x601f9fa331828267%3A0x99920975f0f164f5!2sDogHub%E7%AE%B1%E6%A0%B9%E4%BB%99%E7%9F%B3%E5%8E%9F!5e0!3m2!1sja!2sjp!4v1"
+                    src="https://www.google.com/maps?q=DogHub%E7%AE%B1%E6%A0%B9%E4%BB%99%E7%9F%B3%E5%8E%9F&ll=35.265472,139.011744&z=16&output=embed"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -108,10 +110,10 @@ export default function AccessPage() {
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12">
               <div>
-                <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "36px", fontWeight: 400, letterSpacing: "1.8px" }}>ABOUT</h2>
-                <p className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>事業所について</p>
+                <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(28px, 5vw, 36px)", fontWeight: 400, letterSpacing: "1.8px" }}>ABOUT</h2>
+                <p className="text-[#3C200F] mb-8" style={{ fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 400 }}>事業所について</p>
 
-                <div className="bg-white p-8">
+                <div className="bg-white p-4 sm:p-8">
                   <table className="w-full" style={{ fontSize: "14px", fontWeight: 400 }}>
                     <tbody className="space-y-0">
                       {[
@@ -160,7 +162,7 @@ export default function AccessPage() {
                 </p>
                 <a
                   href="mailto:info@dog-hub.shop?subject=スタッフ応募について"
-                  className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
+                  className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-4 hover:bg-[#3C200F] hover:text-white transition-colors min-h-11"
                   style={{ fontSize: "16px", fontWeight: 400 }}
                 >
                   お問い合わせ

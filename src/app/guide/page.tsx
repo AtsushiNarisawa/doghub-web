@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { FaqAccordion } from "@/components/faq-accordion";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "ご利用ガイド・ご予約方法｜DogHub箱根仙石原 ペットホテル",
@@ -16,7 +17,7 @@ const steps = [
     title: "オンライン予約",
     body: "ご希望の日時・コースをご選択の上、ご予約ください。ご予約時に、愛犬の名前・犬種・体重・年齢などをお伺いいたします。\n※ご予約完了後、お申し込み時のメールアドレスへご予約内容がメールで届きます。\n※お電話にてご予約を受け付けられる場合もございます。お急ぎの場合はご連絡ください。",
     img: "/images/img-031.webp",
-    note: "基本的に体重１５kgまでのお預かりとなっております。（1〜2kg程度のオーバーに関しては犬種により一部可能）超えている場合は、こちらからキャンセルのご連絡をさせていただく可能性がございます。",
+    note: "基本的に体重15kgまでのお預かりとなっております。ただし、落ち着きのある犬種であれば若干のオーバーでも受け入れ可能な場合がございます。15kgを超える場合は仮予約となり、24時間以内にスタッフよりご連絡いたします。",
   },
   {
     num: "Step02",
@@ -76,7 +77,7 @@ const faqs = [
     a: "ペットホテルを利用する際は、1年以内のワクチン接種や狂犬病予防接種の証明書が必要です。ただし、健康面などのご事情により接種が難しい場合には予約の際に、備考欄にその旨を記載お願いいたします。必要に応じてご連絡させていただきます。また、ご利用当日に普段の食事や習慣、健康状態などのお話をお伺いさせていただきます。",
   },
   { q: "わんちゃんの年齢制限はありますか?", a: "特に年齢制限は設けておりませんが、体調やワクチン接種状況によりお断りする場合がございます。ご不明な点はお問い合わせください。" },
-  { q: "ペットホテルでは、犬種や体重による預かり制限はありますか?", a: "基本的に体重15kgまでのわんちゃんをお預かりしております。1〜2kg程度のオーバーに関しては犬種により一部可能な場合もございます。" },
+  { q: "ペットホテルでは、犬種や体重による預かり制限はありますか?", a: "基本的に体重15kgまでのわんちゃんをお預かりしております。ただし、落ち着きのある犬種であれば若干のオーバーでも受け入れ可能な場合がございます。15kg以上の場合は仮予約となり、24時間以内にスタッフよりご連絡いたします。" },
   { q: "ワクチン接種をしていないわんちゃんも預かってもらえますか？", a: "ワクチン未接種のわんちゃんはお預かりできない場合があります。健康上の理由で接種が困難な場合はご予約時の備考欄にご記載ください。" },
   { q: "宿泊のチェックアウト時間の延長は可能ですか？", a: "チェックアウト時間の延長は追加料金（¥1,100/時間）にて承ります。事前にご相談ください。" },
   { q: "宿泊のチェックインが19時などと受付時間を過ぎてしまいそうなのですが・・・", a: "営業時間外のお預かりは別途時間料金（¥1,100/時間）が発生いたします。事前にご連絡いただければ対応可能な場合がございます。" },
@@ -84,7 +85,7 @@ const faqs = [
   { q: "ペットホテルの予約はどのように行えばよいですか?", a: "オンライン予約フォームよりご予約ください。お急ぎの場合はお電話（0460-80-0290）でも承ります。" },
   { q: "予約無しで当日に行っても、利用可能でしょうか?", a: "空き状況によっては当日のご利用が可能な場合もございますが、ご予約のうえご来店いただくことを推奨しております。" },
   { q: "お部屋のサイズを教えてください。", a: "完全個室にてお預かりしております。詳しいサイズはお問い合わせください。" },
-  { q: "予約キャンセルについて", a: "キャンセルはご予約の前日までにご連絡ください。当日キャンセルはキャンセル料が発生する場合がございます。" },
+  { q: "予約キャンセルについて", a: "キャンセルはAir Reserve（予約システム）上からお手続きいただけます。前日までのキャンセルはキャンセル料がかかりません。当日キャンセルはキャンセル料が発生する場合がございます。" },
   { q: "ペットホテルでは、遊び場はありますか?", a: "専用のドッグランを併設しており、お預かり中は朝・夕の2回以上、ドッグランで遊んでいただきます。屋根付きエリアもございます。" },
   { q: "ペットホテルでは、預かり期間に制限はありますか?", a: "特に制限はございません。長期のお預かりも承っておりますので、まずはご相談ください。" },
 ];
@@ -93,7 +94,8 @@ export default function GuidePage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"はじめてガイド",href:"/guide"}]} />
         {/* Hero */}
         <div className="relative">
           <img
@@ -118,9 +120,9 @@ export default function GuidePage() {
         </div>
 
         {/* Navigation tabs */}
-        <nav className="bg-white border-b border-[#E5DDD8] sticky top-[80px] z-40">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex overflow-x-auto gap-0">
+        <nav className="bg-white border-b border-[#E5DDD8] sticky top-15 lg:top-20 z-40">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6">
+            <div className="flex overflow-x-auto gap-0 -mx-1">
               {[
                 { label: "ご利用の流れ", id: "flow" },
                 { label: "必要なもの", id: "items" },
@@ -128,7 +130,7 @@ export default function GuidePage() {
                 { label: "注意事項", id: "precautions" },
                 { label: "よくある質問", id: "faq" },
               ].map((tab) => (
-                <a key={tab.id} href={`#${tab.id}`} className="flex-shrink-0 px-4 py-4 text-[#3C200F] border-b-2 border-transparent hover:border-[#B87942] whitespace-nowrap" style={{ fontSize: "18px", fontWeight: 400 }}>
+                <a key={tab.id} href={`#${tab.id}`} className="flex-shrink-0 px-3 sm:px-4 py-4 text-[#3C200F] border-b-2 border-transparent hover:border-[#B87942] whitespace-nowrap min-h-11" style={{ fontSize: "clamp(13px, 3vw, 18px)", fontWeight: 400 }}>
                   {tab.label}
                 </a>
               ))}
@@ -142,17 +144,17 @@ export default function GuidePage() {
             <h2 className="text-[#3C200F] mb-12" style={{ fontSize: "26px", fontWeight: 400 }}>ご利用〜お預かりまでの流れ</h2>
             <div className="space-y-6">
               {steps.map((s) => (
-                <div key={s.num} className="bg-white p-8">
-                  <div className="flex gap-6">
-                    <img src={s.img} alt={s.title} width={227} height={126} className="object-cover flex-shrink-0" style={{ width: "227px", height: "126px" }} />
+                <div key={s.num} className="bg-white p-4 sm:p-8">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                    <img src={s.img} alt={s.title} width={227} height={126} className="object-cover flex-shrink-0 w-full sm:w-[227px] h-auto sm:h-[126px]" />
                     <div>
-                      <p className="text-[#311908] mb-1" style={{ fontSize: "24px", fontWeight: 400 }}>{s.num}</p>
-                      <h3 className="text-[#311908] mb-3" style={{ fontSize: "24px", fontWeight: 400 }}>{s.title}</h3>
+                      <p className="text-[#311908] mb-1" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>{s.num}</p>
+                      <h3 className="text-[#311908] mb-3" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>{s.title}</h3>
                       {s.num === "Step01" && (
                         <div className="mb-4">
                           <a
                             href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-6 py-2 hover:bg-[#3C200F] hover:text-white transition-colors"
+                            className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-6 py-3 hover:bg-[#3C200F] hover:text-white transition-colors min-h-11"
                             style={{ fontSize: "14px", fontWeight: 400 }}
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> ご予約はこちら
@@ -181,7 +183,7 @@ export default function GuidePage() {
             <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "26px", fontWeight: 400 }}>必要なもの</h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div>
-                <h3 className="text-[#311908] mb-4 pb-2 border-b border-[#E5DDD8]" style={{ fontSize: "24px", fontWeight: 400 }}>必ずご持参いただくもの</h3>
+                <h3 className="text-[#311908] mb-4 pb-2 border-b border-[#E5DDD8]" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>必ずご持参いただくもの</h3>
                 <ul className="space-y-3">
                   {requiredItems.map((item, i) => (
                     <li key={i} className="flex gap-2">
@@ -192,7 +194,7 @@ export default function GuidePage() {
                 </ul>
               </div>
               <div>
-                <h3 className="text-[#311908] mb-4 pb-2 border-b border-[#E5DDD8]" style={{ fontSize: "24px", fontWeight: 400 }}>あると愛犬が安心するもの</h3>
+                <h3 className="text-[#311908] mb-4 pb-2 border-b border-[#E5DDD8]" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>あると愛犬が安心するもの</h3>
                 <ul className="space-y-3">
                   {optionalItems.map((item, i) => (
                     <li key={i} className="flex gap-2">
@@ -203,7 +205,7 @@ export default function GuidePage() {
                 </ul>
               </div>
               <div>
-                <h3 className="text-[#311908] mb-4 pb-2 border-b border-[#E5DDD8]" style={{ fontSize: "24px", fontWeight: 400 }}>ご持参を推奨しているもの</h3>
+                <h3 className="text-[#311908] mb-4 pb-2 border-b border-[#E5DDD8]" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>ご持参を推奨しているもの</h3>
                 <ul className="space-y-3">
                   {recommendedItems.map((item, i) => (
                     <li key={i} className="flex gap-2">
@@ -302,7 +304,7 @@ export default function GuidePage() {
             </ul>
 
             {/* 免責事項 */}
-            <div className="mt-12 bg-[#F7F7F7] p-8">
+            <div className="mt-12 bg-[#F7F7F7] p-4 sm:p-8">
               <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>免責事項</h3>
               <div className="text-[#8F7B65] space-y-2" style={{ fontSize: "13px", fontWeight: 400, lineHeight: "1.8" }}>
                 <p>当店の判断の下、万が一、ペットの体調不良などの異変・異常が見られた場合は、お客様への緊急連絡（深夜でもご了承下さい。）をさせていただきます。</p>

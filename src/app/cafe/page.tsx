@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "犬連れOK おむすびカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
@@ -45,7 +46,8 @@ export default function CafePage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"カフェ・グッズ",href:"/cafe"}]} />
         {/* Hero */}
         <div className="relative">
           <img
@@ -72,10 +74,10 @@ export default function CafePage() {
         {/* CAFE section */}
         <section className="py-16 px-6 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
+            <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-start">
               <div>
-                <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "32px", fontWeight: 400 }}>CAFE</h2>
-                <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400, lineHeight: "1.6" }}>
+                <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>CAFE</h2>
+                <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 400, lineHeight: "1.6" }}>
                   箱根散策のお供にぴったりな<br />テイクアウトメニューをご用意
                 </h3>
                 <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
@@ -117,7 +119,7 @@ export default function CafePage() {
         {/* MENU */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "32px", fontWeight: 400 }}>MENU</h2>
+            <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>MENU</h2>
             <div className="grid sm:grid-cols-2 gap-8">
               {/* おむすび */}
               <div>
@@ -177,7 +179,7 @@ export default function CafePage() {
         {/* RECOMMEND MENU */}
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "32px", fontWeight: 400 }}>RECCOMMEND MENU</h2>
+            <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>RECCOMMEND MENU</h2>
             <div className="grid md:grid-cols-2 gap-10">
               <div>
                 <img
@@ -214,9 +216,9 @@ export default function CafePage() {
         {/* GOODS */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
+            <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-start">
               <div>
-                <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "32px", fontWeight: 400 }}>GOODS</h2>
+                <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>GOODS</h2>
                 <h3 className="text-[#3C200F] mb-6" style={{ fontSize: "20px", fontWeight: 400, lineHeight: "1.6" }}>
                   愛犬家の暮らしをより豊かにする<br />アイテムを厳選して販売しています
                 </h3>
@@ -241,20 +243,16 @@ export default function CafePage() {
             </div>
 
             {/* Items photos */}
-            <div className="mt-10 flex gap-4">
+            <div className="mt-10 grid grid-cols-2 gap-4">
               <img
                 src="/images/img-014.jpg"
                 alt="グッズ商品"
-                width={237}
-                height={178}
-                className="object-cover"
+                className="w-full h-auto object-cover"
               />
               <img
                 src="/images/img-001.jpg"
                 alt="グッズ商品"
-                width={237}
-                height={178}
-                className="object-cover"
+                className="w-full h-auto object-cover"
               />
             </div>
           </div>

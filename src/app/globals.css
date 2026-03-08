@@ -35,3 +35,39 @@ body {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #E5DDD8; border-radius: 2px; }
+
+/* Google Docs記事本文スタイル */
+.prose-doghub {
+  color: #3C200F;
+  font-size: 15px;
+  line-height: 1.8;
+}
+@media (min-width: 640px) {
+  .prose-doghub {
+    font-size: 16px;
+    line-height: 2;
+  }
+}
+.prose-doghub h1, .prose-doghub h2, .prose-doghub h3 {
+  color: #3C200F;
+  font-weight: 400;
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+}
+@media (min-width: 640px) {
+  .prose-doghub h1, .prose-doghub h2, .prose-doghub h3 {
+    margin-top: 2em;
+    margin-bottom: 0.8em;
+  }
+}
+.prose-doghub h2 { font-size: clamp(20px, 4vw, 24px); }
+.prose-doghub h3 { font-size: clamp(18px, 3.5vw, 20px); }
+.prose-doghub p { margin-bottom: 1.2em; }
+.prose-doghub ul, .prose-doghub ol {
+  padding-left: 1.5em;
+  margin-bottom: 1.2em;
+}
+.prose-doghub li { margin-bottom: 0.4em; }
+.prose-doghub a { color: #B87942; text-decoration: underline; }
+.prose-doghub img { max-width: 100%; height: auto; margin: 1em 0; }
+.prose-doghub span { font-size: inherit !important; font-family: inherit !important; }

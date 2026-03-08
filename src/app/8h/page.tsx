@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "箱根 犬 1日預かり 8時間プラン｜DogHub箱根仙石原 ペットホテル",
@@ -37,7 +38,29 @@ export default function EightHourPage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"お預かりサービス",href:"/service"},{name:"1日お預かり",href:"/8h"}]} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            name: "犬の1日お預かり（8時間）",
+            description: "箱根仙石原の犬の1日お預かりプラン。8時間¥5,500。ゴルフ、観光、日帰り旅行の間に愛犬を安心してお預け。早朝7時からお預かり対応。24時間スタッフ常駐・ドッグラン併設。",
+            provider: {
+              "@type": "LocalBusiness",
+              name: "DogHub箱根仙石原",
+              url: "https://dog-hub.shop",
+            },
+            areaServed: { "@type": "Place", name: "箱根町, 神奈川県" },
+            offers: {
+              "@type": "Offer",
+              price: "5500",
+              priceCurrency: "JPY",
+              url: "https://dog-hub.shop/8h",
+            },
+          }) }}
+        />
         {/* Hero */}
         <div className="relative">
           <img
@@ -94,6 +117,7 @@ export default function EightHourPage() {
                     <p>早朝プラン：7時〜15時</p>
                     <p>お預かり最終受付：15時 ／ お引き取り最終：17時</p>
                     <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※早朝プランは事前にご連絡お願いします。</p>
+                    <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
                   </div>
                 </div>
 

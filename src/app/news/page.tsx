@@ -2,30 +2,22 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { getArticles } from "@/lib/cms";
+import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "お知らせ | DogHub箱根仙石原",
   description: "DogHub箱根仙石原からのお知らせ・ブログ記事一覧。",
 };
 
-const posts = [
-  {
-    date: "2025年9月12日",
-    category: "お知らせ",
-    title: "ホームページをリニューアルいたしました",
-    href: "/news/homepage-renewal",
-    img: "/images/img-032.png",
-    body: "DogHubのホームページをリニューアルいたしました。",
-  },
-];
+export default async function NewsPage() {
+  const articles = await getArticles();
 
-const categories = ["All Posts", "お知らせ", "お客様の声", "コラム"];
-
-export default function NewsPage() {
   return (
     <>
       <Header />
-      <main className="pt-[80px]">
+      <main className="pt-15 lg:pt-20">
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"お知らせ",href:"/news"}]} />
         {/* Hero */}
         <div className="relative">
           <img
@@ -39,34 +31,20 @@ export default function NewsPage() {
           </div>
         </div>
 
-        {/* Category filter */}
-        <div className="bg-white border-b border-[#E5DDD8] px-6">
-          <div className="max-w-7xl mx-auto flex overflow-x-auto gap-0">
-            {categories.map((cat, i) => (
-              <span
-                key={cat}
-                className={`flex-shrink-0 px-5 py-4 text-sm cursor-pointer whitespace-nowrap border-b-2 ${i === 0 ? "border-[#3C200F] text-[#3C200F]" : "border-transparent text-[#8F7B65] hover:text-[#3C200F]"}`}
-              >
-                {cat}
-              </span>
-            ))}
-          </div>
-        </div>
-
         {/* Posts */}
         <section className="py-16 px-6 bg-white min-h-[400px]">
           <div className="max-w-7xl mx-auto">
-            {posts.length === 0 ? (
+            {articles.length === 0 ? (
               <p className="text-[#8F7B65] text-center py-20" style={{ fontSize: "18px", fontWeight: 400 }}>
                 現在投稿はありません。
               </p>
             ) : (
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-                {posts.map((post) => (
-                  <Link key={post.href} href={post.href} className="group block">
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+                {articles.map((post) => (
+                  <Link key={post.slug} href={`/news/${post.slug}`} className="group block">
                     <div className="overflow-hidden mb-4">
                       <img
-                        src={post.img}
+                        src={post.thumbnail}
                         alt={post.title}
                         className="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105"
                       />
@@ -83,7 +61,7 @@ export default function NewsPage() {
                     >
                       {post.title}
                     </h2>
-                    <p className="text-[#8F7B65] mt-2" style={{ fontSize: "13px", fontWeight: 400 }}>{post.body}</p>
+                    <p className="text-[#8F7B65] mt-2" style={{ fontSize: "13px", fontWeight: 400 }}>{post.summary}</p>
                   </Link>
                 ))}
               </div>
