@@ -2,6 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "jkpenklhrlbctebkpvax.supabase.co" },
+      { protocol: "https", hostname: "sspark.genspark.ai" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
+  },
   async redirects() {
     return [
       // Wix旧URL → 新URL 301リダイレクト
