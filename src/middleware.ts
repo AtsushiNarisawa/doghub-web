@@ -4,7 +4,7 @@ const PREVIEW_COOKIE = "doghub-preview-auth";
 const ADMIN_COOKIE = "doghub-admin-session";
 
 // プレビュー保護パス（/walks）
-const PREVIEW_PROTECTED: string[] = ["/walks"];
+const PREVIEW_PROTECTED: string[] = [];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
