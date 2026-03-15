@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
-const navItems = [
+// Hotel & Cafe 系メニュー
+const hotelNavItems = [
   { label: "HOME", href: "/" },
   { label: "はじめてガイド", href: "/guide" },
   {
@@ -27,13 +28,15 @@ const navItems = [
       { label: "ドッグラン", href: "/dogrun" },
     ],
   },
-  { label: "散歩コース", href: "/walks" },
   { label: "おすすめスポット", href: "/spots" },
   { label: "カフェ・グッズ販売", href: "/cafe" },
   { label: "店舗情報", href: "/access" },
   { label: "よくある質問", href: "/faq" },
   { label: "お知らせ", href: "/news" },
 ];
+
+// WanWalk（独立サービス）
+const wanwalkNavItem = { label: "散歩コース", href: "/walks" };
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -53,7 +56,7 @@ export function Header() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-5">
-            {navItems.map((item) =>
+            {hotelNavItems.map((item) =>
               item.children ? (
                 <div
                   key={item.href}
@@ -99,6 +102,19 @@ export function Header() {
                 </Link>
               )
             )}
+            {/* WanWalk（独立サービス） - セパレーター付き */}
+            <span className="h-5 w-px bg-[#E5DDD8]" />
+            <Link
+              href={wanwalkNavItem.href}
+              className="text-amber-700 hover:text-amber-900 transition-colors whitespace-nowrap flex items-center gap-1 font-medium"
+              style={{ fontSize: "14px" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              {wanwalkNavItem.label}
+            </Link>
             <div className="flex items-center gap-1 ml-2">
               <a
                 href="https://www.instagram.com/doghub.hakone__/"
@@ -164,7 +180,7 @@ export function Header() {
 
         {menuOpen && (
           <div className="lg:hidden bg-white border-t border-[#E5DDD8] px-6 py-4 flex flex-col overflow-y-auto" style={{ maxHeight: "calc(100dvh - 60px)" }}>
-            {navItems.map((item) => (
+            {hotelNavItems.map((item) => (
               <div key={item.href}>
                 {item.children ? (
                   <>
@@ -222,6 +238,21 @@ export function Header() {
             >
               ペットホテル予約
             </a>
+            {/* WanWalk（独立サービス） */}
+            <div className="border-t-2 border-amber-200 mt-4 pt-4">
+              <p className="text-xs text-amber-600 font-medium mb-2 tracking-wide">WanWalk - 散歩ルート情報</p>
+              <Link
+                href="/walks"
+                className="flex items-center gap-2 text-sm text-amber-700 font-medium py-3 hover:text-amber-900 transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                散歩コースを探す
+              </Link>
+            </div>
           </div>
         )}
       </header>

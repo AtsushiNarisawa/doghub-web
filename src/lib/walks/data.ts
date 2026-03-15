@@ -1,4 +1,4 @@
-import { supabase } from "../supabase";
+import { wanwalkSupabase as supabase } from "./supabase";
 import type { Area, OfficialRoute, RouteSpot, RouteWithArea } from "@/types/walks";
 
 export async function getAreas(): Promise<Area[]> {

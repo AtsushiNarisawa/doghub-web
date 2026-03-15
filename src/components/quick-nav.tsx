@@ -14,7 +14,7 @@ const cards = [
     img: "/images/img-074.jpg",
   },
   {
-    label: "RECCOMEND SPOT",
+    label: "RECOMMEND SPOT",
     ja: "箱根周辺おすすめスポット",
     href: "/spots",
     img: "/images/img-013.jpg",
