@@ -27,7 +27,6 @@ const navItems = [
       { label: "ドッグラン", href: "/dogrun" },
     ],
   },
-  { label: "散歩コース", href: "/walks" },
   { label: "おすすめスポット", href: "/spots" },
   { label: "カフェ・グッズ販売", href: "/cafe" },
   { label: "店舗情報", href: "/access" },

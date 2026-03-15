@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 
 // テスト期間中のパスワード保護
 // 公開時にこのファイルを削除するだけでOK
-const PROTECTED_PATHS = ["/booking", "/admin"];
+const PROTECTED_PATHS: string[] = ["/walks"];
 const COOKIE_NAME = "doghub-preview-auth";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // 旧Wix /blog パスを /news へ301リダイレクト
+  if (pathname === "/blog" || pathname.startsWith("/blog/")) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/news";
+    return NextResponse.redirect(url, 301);
+  }
 
   // 保護対象パスかチェック
   const isProtected = PROTECTED_PATHS.some(
@@ -90,5 +97,5 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/booking/:path*", "/admin/:path*"],
+  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks"],
 };
