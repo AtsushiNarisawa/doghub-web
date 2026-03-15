@@ -14,8 +14,8 @@ export function Concept() {
               className="text-[#3C200F] mb-6 md:mb-10"
               style={{ fontSize: "clamp(20px, 2.5vw, 28.3px)", fontWeight: 400, lineHeight: "1.65" }}
             >
-              わんちゃんといる幸せも、<br />
-              箱根を満喫したいきもちも、<br />
+              わんちゃんといる幸せも、<br className="hidden sm:inline" />
+              箱根を満喫したいきもちも、<br className="hidden sm:inline" />
               同時に叶えたい。
             </h3>
             <div className="space-y-6 text-[#311908]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
@@ -33,9 +33,7 @@ export function Concept() {
                 車の中で待機させたりするなんて、考えられない。
               </p>
               <p>
-                DogHub箱根仙石原は、<br />
-                わんちゃんと入れる場所と入れない場所をつなぐ、<br />
-                愛犬家のためのハブとなるDOG HOTEL。
+                DogHub箱根仙石原は、わんちゃんと入れる場所と入れない場所をつなぐ、愛犬家のためのハブとなるDOG HOTEL。
               </p>
             </div>
           </div>

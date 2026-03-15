@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// テスト期間中のパスワード保護
-// 公開時にこのファイルを削除するだけでOK
-const PROTECTED_PATHS: string[] = ["/walks"];
-const COOKIE_NAME = "doghub-preview-auth";
+const PREVIEW_COOKIE = "doghub-preview-auth";
+const ADMIN_COOKIE = "doghub-admin-session";
+
+// プレビュー保護パス（/walks）
+const PREVIEW_PROTECTED: string[] = ["/walks"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -15,41 +16,44 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
-  // 保護対象パスかチェック
-  const isProtected = PROTECTED_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
-  );
-  if (!isProtected) return NextResponse.next();
+  // ── 管理画面の認証保護 ──
+  const isAdminPath =
+    pathname === "/admin" || pathname.startsWith("/admin/");
+  const isLoginPage = pathname === "/admin/login";
+  const isAdminApi = pathname.startsWith("/api/admin/");
 
-  // API routeは除外（booking APIは保護しない）
-  if (pathname.startsWith("/api/")) return NextResponse.next();
-
-  // 認証済みクッキーがあればスルー
-  const authCookie = req.cookies.get(COOKIE_NAME);
-  if (authCookie?.value === "authorized") return NextResponse.next();
-
-  // パスワード送信の処理
-  if (req.method === "POST") {
-    // POSTボディは middleware では読めないので、URLパラメータで代用
+  if (isAdminPath && !isLoginPage && !isAdminApi) {
+    const adminCookie = req.cookies.get(ADMIN_COOKIE);
+    if (adminCookie?.value !== "authorized") {
+      const loginUrl = new URL("/admin/login", req.url);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
-  // ?pw= パラメータでパスワードチェック
+  // ── プレビュー保護（/walks） ──
+  const isPreviewProtected = PREVIEW_PROTECTED.some(
+    (p) => pathname === p || pathname.startsWith(p + "/")
+  );
+  if (!isPreviewProtected) return NextResponse.next();
+
+  const previewCookie = req.cookies.get(PREVIEW_COOKIE);
+  if (previewCookie?.value === "authorized") return NextResponse.next();
+
   const pw = req.nextUrl.searchParams.get("pw");
   const correctPw = process.env.PREVIEW_PASSWORD || "doghub2026";
 
   if (pw === correctPw) {
     const url = new URL(pathname, req.url);
     const res = NextResponse.redirect(url);
-    res.cookies.set(COOKIE_NAME, "authorized", {
+    res.cookies.set(PREVIEW_COOKIE, "authorized", {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30, // 30日間有効
+      maxAge: 60 * 60 * 24 * 30,
     });
     return res;
   }
 
-  // パスワード入力画面を返す
   return new NextResponse(getPasswordPage(pathname), {
     status: 200,
     headers: { "Content-Type": "text/html; charset=utf-8" },

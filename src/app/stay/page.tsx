@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根 犬 ホテル 宿泊プラン｜DogHub箱根仙石原 ペットホテル",
   description: "箱根仙石原の犬の宿泊ペットホテル。1泊¥7,700〜。24時間スタッフ常駐・完全個室・ドッグラン併設。愛犬と泊まれる宿に空きがない時、宿泊する宿がペット不可の時に。チェックイン14時〜、チェックアウト〜11時。",
+  alternates: { canonical: "/stay" },
 };
 
 const points = [
@@ -45,7 +46,7 @@ const scenes = [
   },
   {
     title: "翌日もゴルフや観光を楽しみたい時",
-    body: "1泊お預けして、翌日チェックアウト後にゴルフや美術館へ。連泊にも対応していますので、2泊3日の箱根旅行でも安心です。",
+    body: "1泊お預けして、翌日チェックアウト（11時）後もそのまま預けたい場合、超過料金での延長も可能ですが、半日や1日のお預かりプランを組み合わせた方がお得になる場合があります。連泊にも対応していますので、2泊3日の箱根旅行でも安心です。",
   },
 ];
 
@@ -79,13 +80,12 @@ export default function StayPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-047.jpg"
+            src="/images/img-096.jpg"
             alt="DogHub箱根仙石原 宿泊プラン"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ 宿泊プラン</p>
             <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>宿泊プラン</h1>
           </div>
         </div>

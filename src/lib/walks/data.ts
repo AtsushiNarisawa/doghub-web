@@ -9,7 +9,7 @@ export async function getAreas(): Promise<Area[]> {
     .order("prefecture")
     .order("name");
 
-  if (error) throw error;
+  if (error) return [];
   return data ?? [];
 }
 
@@ -36,7 +36,7 @@ export async function getRoutesByAreaId(
     .eq("is_published", true)
     .order("name");
 
-  if (error) throw error;
+  if (error) return [];
   return (data ?? []).map(parseRouteLocation);
 }
 
@@ -49,7 +49,7 @@ export async function getAllPublishedRoutes(): Promise<RouteWithArea[]> {
     .eq("is_published", true)
     .order("name");
 
-  if (error) throw error;
+  if (error) return [];
   return (data ?? []).map((r) => ({
     ...parseRouteLocation(r),
     areas: r.areas as unknown as Area,
@@ -82,7 +82,7 @@ export async function getRouteSpots(routeId: string): Promise<RouteSpot[]> {
     .eq("route_id", routeId)
     .order("spot_order");
 
-  if (error) throw error;
+  if (error) return [];
   return data ?? [];
 }
 
@@ -134,7 +134,7 @@ export async function getAreasWithRouteCount(): Promise<
     .not("slug", "is", null)
     .order("name");
 
-  if (error) throw error;
+  if (error) return [];
 
   return (data ?? []).map((a) => {
     const routes = a.official_routes as unknown as { count: number }[];

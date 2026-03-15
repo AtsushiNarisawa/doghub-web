@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "仙石原 犬 散歩ガイド｜愛犬と歩く箱根仙石原のおすすめコース｜DogHub箱根仙石原",
   description: "箱根仙石原で愛犬と散歩するならここ。すすき草原、湿生花園、仙石原自然探勝歩道など犬OKの散策コースを紹介。DogHub箱根仙石原スタッフおすすめのお散歩マップ。",
+  alternates: { canonical: "/guide/sengokuhara" },
 };
 
 const courses = [
@@ -61,7 +62,6 @@ export default function SengokuharaGuidePage() {
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
-            <p className="text-sm mb-2 opacity-80">/ 仙石原 お散歩ガイド</p>
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               仙石原 犬の散歩ガイド
             </h1>

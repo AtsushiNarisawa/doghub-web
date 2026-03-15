@@ -19,11 +19,11 @@ export interface DogFormData {
   name: string;
   breed: string;
   weight: string;
-  age: string;
+  age: string;        // 年齢（0歳の場合はage_monthsを使用）
+  age_months: string; // 月齢（age="0"の時のみ使用）
   sex: "male" | "female" | "";
-  neutered: boolean;
-  rabies_vaccine_expires_at: string; // 狂犬病ワクチン
-  mixed_vaccine_expires_at: string;  // 混合ワクチン
+  has_rabies_vaccine: boolean; // 狂犬病ワクチン接種済み
+  has_mixed_vaccine: boolean;  // 混合ワクチン接種済み
   allergies: string;
   meal_notes: string;
   medication_notes: string;
@@ -47,6 +47,10 @@ export interface BookingFormData {
   date: string;
   checkin_time: string;
   checkout_date: string;
+  checkin_extension: boolean;        // 宿泊チェックイン前の早預かり
+  checkin_extension_from: string;    // 早預かり開始時間
+  checkout_extension: boolean;       // 宿泊チェックアウト後の延長預かり
+  checkout_extension_until: string;  // 延長終了時間
   early_morning: boolean; // 早朝プラン希望
   destination: string;    // お客様の行き先（マーケティング用）
   // STEP2
@@ -58,28 +62,21 @@ export interface BookingFormData {
   walk_option: boolean;
   notes: string;
   agreed: boolean;
+  // LINE連携（LIFFから取得）
+  line_id?: string;
+  // 受付チャネル（省略時はweb）
+  source?: "web" | "line" | "phone" | "walk_in";
 }
 
 export const PLANS: PlanInfo[] = [
   {
-    id: "spot",
-    name: "スポットお預かり（1時間〜）",
-    description: "ちょっとした用事に。1時間単位でお預かりします。",
-    basePrice: 1100,
-    priceUnit: "/時間",
-    checkinRange: { start: "09:00", end: "16:00" },
-    maxHours: null,
-    earlyMorning: true,
-  },
-  {
     id: "4h",
     name: "半日お預かり（4時間）",
-    description: "ユネッサンやゴルフの間にぴったり。",
+    description: "ユネッサンや観光の間にぴったり。",
     basePrice: 3300,
     priceUnit: "",
     checkinRange: { start: "09:00", end: "13:00" },
     maxHours: 4,
-    earlyMorning: true,
   },
   {
     id: "8h",
@@ -106,14 +103,78 @@ export const PLANS: PlanInfo[] = [
 export const EXTRA_HOUR_FEE = 1100;
 export const WALK_OPTION_FEE = 550;
 
-export const DESTINATIONS = [
-  "ゴルフ（大箱根CC等）",
-  "ユネッサン",
-  "温泉旅館・ホテル",
-  "美術館・博物館",
-  "観光・散策",
-  "お買い物",
-  "その他",
+// 日中預かり（4h/8h）向け行き先
+// 1日お預かり（8h）向け行き先（ゴルフ含む）
+export const DAY_DESTINATIONS = [
+  // ゴルフ
+  "大箱根カントリークラブ",
+  "箱根カントリー仙石",
+  "箱根湯の花ゴルフ場",
+  "その他ゴルフ場",
+  // 温泉・スパ
+  "ユネッサン（小涌園）",
+  "天山湯治郷",
+  "日帰り温泉・その他",
+  // 美術館・観光
+  "ポーラ美術館",
+  "箱根彫刻の森美術館",
+  "岡田美術館",
+  "成川美術館",
+  "ラリック美術館",
+  "大涌谷・ロープウェイ",
+  "芦ノ湖・箱根関所",
+  "仙石原ススキ草原",
+  // その他
+  "未定",
+  "その他（自由記入）",
+] as const;
+
+// 半日お預かり（4h）向け行き先（ゴルフなし）
+export const DAY_DESTINATIONS_4H = [
+  // 温泉・スパ
+  "ユネッサン（小涌園）",
+  "天山湯治郷",
+  "日帰り温泉・その他",
+  // 美術館・観光
+  "ポーラ美術館",
+  "箱根彫刻の森美術館",
+  "岡田美術館",
+  "成川美術館",
+  "ラリック美術館",
+  "大涌谷・ロープウェイ",
+  "芦ノ湖・箱根関所",
+  "仙石原ススキ草原",
+  // その他
+  "未定",
+  "その他（自由記入）",
+] as const;
+
+// 宿泊預かり（stay）向け行き先
+export const STAY_DESTINATIONS = [
+  // 仙石原・強羅エリア
+  "仙石原プリンスホテル",
+  "エクシブ箱根離宮",
+  "強羅花壇",
+  "界箱根 / 界仙石原",
+  "東急ハーヴェスト箱根",
+  "箱根翡翠",
+  "金乃竹 仙石原",
+  "雲外荘",
+  "ゆるり箱根",
+  "きたの風茶寮",
+  "モリトソラ",
+  // その他箱根エリア
+  "富士屋ホテル（宮ノ下）",
+  "箱根吟遊",
+  "はつはな",
+  "白檀",
+  "金乃竹 塔ノ沢",
+  "ザ・プリンス箱根芦ノ湖",
+  "エクシブ湯河原離宮",
+  "箱根湯本の旅館",
+  // その他
+  "未定",
+  "その他（自由記入）",
 ] as const;
 
 export const REFERRAL_SOURCES = [
@@ -132,10 +193,10 @@ export const INITIAL_DOG: DogFormData = {
   breed: "",
   weight: "",
   age: "",
+  age_months: "",
   sex: "",
-  neutered: false,
-  rabies_vaccine_expires_at: "",
-  mixed_vaccine_expires_at: "",
+  has_rabies_vaccine: false,
+  has_mixed_vaccine: false,
   allergies: "",
   meal_notes: "",
   medication_notes: "",
@@ -157,6 +218,10 @@ export const INITIAL_FORM: BookingFormData = {
   date: "",
   checkin_time: "",
   checkout_date: "",
+  checkin_extension: false,
+  checkin_extension_from: "",
+  checkout_extension: false,
+  checkout_extension_until: "",
   early_morning: false,
   destination: "",
   dogs: [{ ...INITIAL_DOG }],

@@ -37,26 +37,19 @@ export function Hero() {
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/40" style={{ zIndex: 5 }} />
 
-        {/* Text overlay - centered */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6" style={{ zIndex: 10 }}>
-          <p
-            className="text-white font-[var(--font-playfair-display)]"
-            style={{ fontSize: "clamp(48px, 8vw, 96px)", fontWeight: 400, lineHeight: "1.2", letterSpacing: "0.02em" }}
-          >
-            DogHub
-          </p>
+        {/* Text overlay - bottom left */}
+        <div className="absolute bottom-8 sm:bottom-12 left-6 sm:left-12 text-left" style={{ zIndex: 10 }}>
           <h1
-            className="text-white mt-4 mb-4"
-            style={{ fontSize: "clamp(16px, 2.5vw, 24px)", fontWeight: 400, lineHeight: "1.8" }}
+            className="text-white mb-3"
+            style={{ fontSize: "clamp(20px, 3vw, 32px)", fontWeight: 400, lineHeight: "1.6", letterSpacing: "0.05em" }}
           >
-            愛犬と箱根旅を<br />つなぐ場所
+            愛犬と箱根旅をつなぐ場所
           </h1>
           <p
-            className="text-white max-w-2xl hidden sm:block"
-            style={{ fontSize: "clamp(13px, 1.3vw, 16px)", fontWeight: 400, lineHeight: "1.8" }}
+            className="text-white/80 max-w-lg"
+            style={{ fontSize: "clamp(12px, 1.3vw, 15px)", fontWeight: 400, lineHeight: "1.8" }}
           >
-            愛犬と一緒に箱根を楽しむ際に、愛犬と入れる場所と入れない場所を繋ぐ<br />
-            HUB（ハブ）としてご利用いただければと思っております。
+            愛犬と一緒に箱根を楽しむ際に、愛犬と入れる場所と<br className="hidden md:inline" />入れない場所を繋ぐHUBとしてご利用ください。
           </p>
         </div>
       </section>

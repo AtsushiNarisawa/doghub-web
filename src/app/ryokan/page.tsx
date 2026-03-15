@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根 高級旅館 × ペットホテル｜ペット不可の宿でも愛犬と箱根旅行｜DogHub箱根仙石原",
   description: "箱根吟遊、富士屋ホテル、強羅花壇など憧れの高級旅館はペット不可。DogHub箱根仙石原なら愛犬を安心して預けて特別な宿に宿泊。1泊¥7,700〜。24時間スタッフ常駐・完全個室。",
+  alternates: { canonical: "/ryokan" },
 };
 
 const ryokans = [
@@ -31,13 +32,12 @@ export default function RyokanPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-003.jpg"
+            src="/images/img-071.jpg"
             alt="箱根高級旅館 × ペットホテル"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ 高級旅館 × ペットホテル</p>
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               憧れの宿に泊まりながら、愛犬も安心
             </h1>
@@ -192,7 +192,7 @@ export default function RyokanPage() {
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根でこんな過ごし方も</h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Link href="/onsen" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>温泉 × ペット預かり</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>日帰り温泉を満喫</p>
@@ -206,6 +206,11 @@ export default function RyokanPage() {
               <Link href="/museum" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>美術館 × ペット預かり</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>仙石原の美術館めぐり</p>
+                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+              <Link href="/pethotel" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ペット可ホテル × 日中預かり</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>チェックイン前後の観光に</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
             </div>

@@ -8,6 +8,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "アクセス・店舗情報｜DogHub箱根仙石原 ペットホテル＆カフェ",
   description: "DogHub箱根仙石原の店舗情報・アクセス。神奈川県足柄下郡箱根町仙石原928-15。ドッグホテル営業時間9時〜17時、カフェ11時〜17時、定休日水木。",
+  alternates: { canonical: "/access" },
 };
 
 export default function AccessPage() {
@@ -25,7 +26,6 @@ export default function AccessPage() {
             style={{ height: "clamp(140px, 18vw, 249px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ 店舗情報</p>
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>店舗情報／アクセス</h1>
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function AccessPage() {
             <div className="grid md:grid-cols-2 gap-6 md:gap-12">
               <div>
                 <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(22px, 4vw, 26px)", fontWeight: 400, lineHeight: "1.6" }}>
-                  DogHub箱根仙石原<br />ペットホテル<br />おむすび＆スープカフェ
+                  DogHub箱根仙石原<br className="sm:hidden" />ペットホテル ／ おむすび＆スープカフェ
                 </h2>
 
                 <div className="space-y-4 text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400 }}>
@@ -100,6 +100,65 @@ export default function AccessPage() {
                   alt="DogHub箱根仙石原の外観"
                   className="w-full h-auto"
                 />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Access details */}
+        <section className="py-16 px-6 bg-[#F7F7F7]">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 400, letterSpacing: "1.6px" }}>ACCESS</h2>
+            <p className="text-[#3C200F] mb-10" style={{ fontSize: "clamp(16px, 2vw, 20px)", fontWeight: 400 }}>アクセス方法</p>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Route 1: Odawara */}
+              <div className="bg-white p-6 sm:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3C200F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                  <h3 className="text-[#3C200F]" style={{ fontSize: "18px", fontWeight: 400 }}>小田原方面から</h3>
+                </div>
+                <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.9" }}>
+                  <p>小田原駅 → 国道1号線を箱根方面へ → 宮ノ下交差点を右折（国道138号線）→ 強羅・仙石原方面へ直進 → 仙石原交差点を通過し約500m</p>
+                  <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>所要時間：小田原駅から約40分</p>
+                </div>
+              </div>
+
+              {/* Route 2: Gotemba IC */}
+              <div className="bg-white p-6 sm:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3C200F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                  <h3 className="text-[#3C200F]" style={{ fontSize: "18px", fontWeight: 400 }}>東名高速 御殿場ICから</h3>
+                </div>
+                <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.9" }}>
+                  <p>御殿場IC → 国道138号線を箱根方面へ → 乙女峠を越え仙石原方面へ直進 → 仙石原交差点を通過し約500m</p>
+                  <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>所要時間：御殿場ICから約30分</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bus */}
+            <div className="bg-white p-6 sm:p-8 mt-8">
+              <div className="flex items-center gap-3 mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3C200F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="14" rx="2" /><path d="M3 10h18" /><path d="M7 21v-4" /><path d="M17 21v-4" /></svg>
+                <h3 className="text-[#3C200F]" style={{ fontSize: "18px", fontWeight: 400 }}>バスでお越しの場合</h3>
+              </div>
+              <div className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.9" }}>
+                <p>箱根登山バス「仙石原」バス停より徒歩約5分</p>
+                <p className="text-[#8F7B65] mt-1" style={{ fontSize: "14px" }}>小田原駅・箱根湯本駅から箱根登山バス（桃源台行き）をご利用ください。</p>
+              </div>
+            </div>
+
+            {/* Parking */}
+            <div className="bg-white p-6 sm:p-8 mt-8">
+              <div className="flex items-center gap-3 mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3C200F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 17V7h4a3 3 0 0 1 0 6H9" /></svg>
+                <h3 className="text-[#3C200F]" style={{ fontSize: "18px", fontWeight: 400 }}>駐車場のご案内</h3>
+              </div>
+              <div className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.9" }}>
+                <p>店舗横に2台分、その手前に1台分の計3台分の無料駐車場をご用意しています。</p>
+                <p>当店の案内看板がございますので、看板をご確認の上、駐車をお願いいたします。</p>
+                <p className="text-[#B87942] mt-2" style={{ fontSize: "14px" }}>※店舗前の駐車場は当店の駐車場ではございませんのでご注意ください。</p>
               </div>
             </div>
           </div>

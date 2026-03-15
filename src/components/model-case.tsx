@@ -171,7 +171,9 @@ function MobileTimeline({ days }: { days: Plan["days"] }) {
   );
 }
 
-export function ModelCase() {
+export function ModelCase({ limit }: { limit?: number } = {}) {
+  const displayPlans = limit ? plans.slice(0, limit) : plans;
+
   return (
     <section id="model-case" className="py-12 md:py-20 px-6 bg-white border-t border-[#E5DDD8]">
       <div className="max-w-7xl mx-auto">
@@ -181,7 +183,7 @@ export function ModelCase() {
         </h3>
 
         <div className="space-y-8 md:space-y-12">
-          {plans.map((plan, i) => (
+          {displayPlans.map((plan, i) => (
             <div key={i} className="border border-[#E5DDD8]">
               {/* Tag header */}
               <div className="bg-[#3C200F] px-5 md:px-8 py-3">
@@ -205,11 +207,22 @@ export function ModelCase() {
           ))}
         </div>
 
+        {limit && limit < plans.length && (
+          <div className="mt-8 text-center">
+            <a
+              href="/service#model-case"
+              className="text-[#3C200F] hover:text-[#B87942] transition-colors group border-b border-[#3C200F] pb-1"
+              style={{ fontSize: "16px", fontWeight: 400 }}
+            >
+              他のモデルケースを見る <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+            </a>
+          </div>
+        )}
+
         <div className="mt-10 md:mt-16">
           <p className="text-[#3C200F] text-center" style={{ fontSize: "clamp(16px, 2vw, 24px)", fontWeight: 400, lineHeight: "1.8" }}>
-            組み合わせは自由自在で、あなたと愛犬の旅が何倍にも楽しくなる。<br />
-            わんちゃんと入れる場所と入れない場所をつなぐ、<br />
-            愛犬家のためのハブとなるDOG HOTELです。
+            組み合わせは自由自在で、あなたと愛犬の旅が何倍にも楽しくなる。<br className="hidden sm:inline" />
+            わんちゃんと入れる場所と入れない場所をつなぐ、愛犬家のためのハブとなるDOG HOTELです。
           </p>
         </div>
       </div>

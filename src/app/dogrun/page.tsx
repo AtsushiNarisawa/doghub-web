@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根 ドッグラン｜DogHub箱根仙石原 専用ドッグラン併設ペットホテル",
   description: "DogHub箱根仙石原は専用ドッグラン併設のペットホテル。屋根付きエリアあり、雨の日でもOK。お預かり中は1日2回以上ドッグランで遊べます。仙石原の自然の中で愛犬ものびのび。",
+  alternates: { canonical: "/dogrun" },
 };
 
 export default function DogrunPage() {
@@ -26,7 +27,6 @@ export default function DogrunPage() {
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ ドッグラン</p>
             <h1 style={{ fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 400 }}>
               専用ドッグラン併設
             </h1>
@@ -138,31 +138,20 @@ export default function DogrunPage() {
           </div>
         </section>
 
-        {/* Plans */}
-        <section className="py-16 px-6 bg-[#F7F7F7] border-t border-[#E5DDD8]">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "26px", fontWeight: 400 }}>お預かりプラン</h2>
-            <p className="text-[#8F7B65] mb-8" style={{ fontSize: "13px", fontWeight: 400 }}>※表示料金はすべて税込です。</p>
-            <div className="grid md:grid-cols-3 gap-6">
-              <Link href="/4h" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
-                <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>半日お預かり</p>
-                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥3,300 / 4時間</h3>
-                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>温泉や美術館の間にちょこっとお預け</p>
-                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
-              </Link>
-              <Link href="/8h" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
-                <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>1日お預かり</p>
-                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥5,500 / 8時間</h3>
-                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>ゴルフや観光にぴったり</p>
-                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
-              </Link>
-              <Link href="/stay" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
-                <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊プラン</p>
-                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥7,700〜 / 1泊</h3>
-                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>24時間スタッフ常駐で安心</p>
-                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
-              </Link>
-            </div>
+        {/* お預かりプランへのリンク */}
+        <section className="py-12 px-6 bg-[#F7F7F7] border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto text-center">
+            <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400 }}>お預かりプラン</h2>
+            <p className="text-[#8F7B65] mb-6" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
+              半日お預かり ¥3,300〜 ／ 1日お預かり ¥5,500〜 ／ 宿泊 ¥7,700〜
+            </p>
+            <Link
+              href="/service"
+              className="text-[#3C200F] hover:text-[#B87942] transition-colors group border-b border-[#3C200F] pb-1"
+              style={{ fontSize: "16px", fontWeight: 400 }}
+            >
+              料金・サービスの詳細はこちら <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+            </Link>
           </div>
         </section>
 

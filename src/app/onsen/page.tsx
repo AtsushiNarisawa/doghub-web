@@ -9,18 +9,59 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根温泉 × ペット預かり｜日帰り温泉の間に愛犬をお預け｜DogHub箱根仙石原",
   description: "箱根の日帰り温泉を楽しむ間、愛犬をDogHubにお預け。半日4時間¥3,300〜。仙石原・強羅・箱根湯本の温泉施設へ好アクセス。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+  alternates: { canonical: "/onsen" },
 };
 
 const onsens = [
+  {
+    name: "一の湯 仙石原品の木",
+    distance: "車で約3分",
+    area: "仙石原",
+  },
+  {
+    name: "一の湯 仙石原新館",
+    distance: "車で約5分",
+    area: "仙石原",
+  },
+  {
+    name: "龍宮殿本館",
+    distance: "車で約10分",
+    area: "芦ノ湖",
+  },
+  {
+    name: "箱根高原ホテル",
+    distance: "車で約10分",
+    area: "仙石原",
+  },
+  {
+    name: "森の湯（箱根小涌園）",
+    distance: "車で約15分",
+    area: "小涌谷",
+  },
   {
     name: "箱根小涌園ユネッサン",
     distance: "車で約15分",
     area: "小涌谷",
   },
   {
-    name: "箱根湯本 天成園",
-    distance: "車で約25分",
-    area: "箱根湯本",
+    name: "一の湯 塔ノ沢キャトルセゾン",
+    distance: "車で約20分",
+    area: "塔之沢",
+  },
+  {
+    name: "一の湯 塔ノ沢本館",
+    distance: "車で約20分",
+    area: "塔之沢",
+  },
+  {
+    name: "強羅 翠光館",
+    distance: "車で約10分",
+    area: "強羅",
+  },
+  {
+    name: "箱根小涌谷温泉 三河屋旅館",
+    distance: "車で約12分",
+    area: "小涌谷",
   },
   {
     name: "箱根の湯",
@@ -33,14 +74,9 @@ const onsens = [
     area: "塔之沢",
   },
   {
-    name: "箱根小涌谷温泉 三河屋旅館",
-    distance: "車で約12分",
-    area: "小涌谷",
-  },
-  {
-    name: "強羅 翠光館",
-    distance: "車で約10分",
-    area: "強羅",
+    name: "箱根湯本 天成園",
+    distance: "車で約25分",
+    area: "箱根湯本",
   },
 ];
 
@@ -53,13 +89,12 @@ export default function OnsenPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-047.jpg"
+            src="/images/img-019.jpg"
             alt="箱根温泉 × ペット預かり"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ 温泉 × ペット預かり</p>
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               温泉を満喫する間、愛犬をお預け
             </h1>
@@ -190,7 +225,7 @@ export default function OnsenPage() {
         <section className="py-16 px-6 bg-[#F7F7F7] border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根でこんな過ごし方も</h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Link href="/yunessun" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ユネッサン × ペット預かり</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>車で約15分。半日¥3,300〜</p>
@@ -204,6 +239,11 @@ export default function OnsenPage() {
               <Link href="/ryokan" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>高級旅館 × ペットホテル</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>憧れの宿に泊まりながら</p>
+                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+              <Link href="/pethotel" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ペット可ホテル × 日中預かり</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>チェックイン前後の観光に</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
             </div>

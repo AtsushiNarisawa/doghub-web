@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { BookingFormData, CustomerFormData, DogFormData } from "@/types/booking";
+import type { BookingFormData } from "@/types/booking";
 import { REFERRAL_SOURCES } from "@/types/booking";
-import { supabase } from "@/lib/supabase";
 
 interface Props {
   form: BookingFormData;
@@ -12,76 +11,9 @@ interface Props {
   onBack: () => void;
 }
 
-type LookupState = "idle" | "loading" | "found" | "not_found";
-
 export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
-  const [lookupState, setLookupState] = useState<LookupState>("idle");
-  const [phoneInput, setPhoneInput] = useState(form.customer.phone);
-
-  // リピーター検索
-  const lookupCustomer = async () => {
-    if (!phoneInput || phoneInput.length < 10) return;
-    setLookupState("loading");
-
-    // 電話番号でハイフン除去して正規化
-    const normalized = phoneInput.replace(/[-\s]/g, "");
-
-    const { data: customer } = await supabase
-      .from("customers")
-      .select("*")
-      .eq("phone", normalized)
-      .maybeSingle();
-
-    if (customer) {
-      // 犬情報も取得
-      const { data: dogs } = await supabase
-        .from("dogs")
-        .select("*")
-        .eq("customer_id", customer.id);
-
-      const customerData: CustomerFormData = {
-        id: customer.id,
-        last_name: customer.last_name,
-        first_name: customer.first_name,
-        last_name_kana: customer.last_name_kana,
-        first_name_kana: customer.first_name_kana,
-        phone: customer.phone,
-        email: customer.email,
-        postal_code: customer.postal_code || "",
-        address: customer.address || "",
-      };
-
-      const dogData: DogFormData[] = dogs && dogs.length > 0
-        ? dogs.map((d) => ({
-            id: d.id,
-            name: d.name,
-            breed: d.breed,
-            weight: String(d.weight),
-            age: d.age ? String(d.age) : "",
-            sex: d.sex as "male" | "female",
-            neutered: d.neutered,
-            rabies_vaccine_expires_at: d.rabies_vaccine_expires_at || "",
-            mixed_vaccine_expires_at: d.mixed_vaccine_expires_at || "",
-            allergies: d.allergies || "",
-            meal_notes: d.meal_notes || "",
-            medication_notes: d.medication_notes || "",
-          }))
-        : form.dogs;
-
-      onChange({
-        ...form,
-        customer: customerData,
-        dogs: dogData,
-      });
-      setLookupState("found");
-    } else {
-      onChange({
-        ...form,
-        customer: { ...form.customer, phone: normalized },
-      });
-      setLookupState("not_found");
-    }
-  };
+  const isReturning = !!form.customer.id;
+  const [editMode, setEditMode] = useState(!isReturning);
 
   // 郵便番号から住所自動入力
   const fetchAddress = async (postalCode: string) => {
@@ -103,7 +35,6 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
     }
   };
 
-  const isReturning = lookupState === "found";
   const c = form.customer;
 
   const isValid =
@@ -113,48 +44,15 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* 電話番号でリピーター検索 */}
-      <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-3">
-        <p className="text-sm font-medium">
-          まず電話番号を入力してください
-        </p>
-        <p className="text-[12px] text-[#888]">
-          2回目以降のお客様は、お客様情報が自動入力されます
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="tel"
-            inputMode="tel"
-            value={phoneInput}
-            onChange={(e) => setPhoneInput(e.target.value)}
-            placeholder="090-1234-5678"
-            className="flex-1 p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={lookupCustomer}
-            disabled={!phoneInput || phoneInput.length < 10 || lookupState === "loading"}
-            className="px-5 py-3 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830] disabled:bg-[#E5DDD8] disabled:text-[#888] whitespace-nowrap"
-          >
-            {lookupState === "loading" ? "..." : "検索"}
-          </button>
-        </div>
-        {lookupState === "found" && (
-          <p className="text-sm text-green-600 bg-green-50 p-3 rounded-lg">
-            お客様情報が見つかりました。内容をご確認ください。
-          </p>
-        )}
-        {lookupState === "not_found" && (
-          <p className="text-sm text-[#888]">
-            初めてのご利用ですね。以下の情報をご入力ください。
-          </p>
-        )}
-      </div>
-
       {/* リピーター：確認モード */}
-      {isReturning && (
+      {isReturning && !editMode && (
         <div className="p-4 rounded-xl border-2 border-[#B87942]/20 bg-white space-y-3">
-          <h3 className="font-medium text-sm">登録済みのお客様情報</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="font-medium text-sm">登録済みのお客様情報</h3>
+            <span className="text-[11px] bg-[#B87942]/10 text-[#B87942] px-2 py-1 rounded-full font-medium">
+              リピーター
+            </span>
+          </div>
           <div className="space-y-2 text-sm">
             <p>
               <span className="text-[#888] inline-block w-20">お名前</span>
@@ -177,7 +75,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
           </div>
           <button
             type="button"
-            onClick={() => setLookupState("not_found")}
+            onClick={() => setEditMode(true)}
             className="text-sm text-[#B87942] underline"
           >
             情報を変更する
@@ -185,9 +83,22 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
         </div>
       )}
 
-      {/* 新規 or 変更モード */}
-      {(lookupState === "not_found" || lookupState === "idle") && (
+      {/* 入力フォーム（新規 or 編集モード） */}
+      {(!isReturning || editMode) && (
         <div className="space-y-4">
+          {isReturning && editMode && (
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-[#888]">情報を修正できます</p>
+              <button
+                type="button"
+                onClick={() => setEditMode(false)}
+                className="text-sm text-[#888] underline"
+              >
+                戻る
+              </button>
+            </div>
+          )}
+
           {/* 氏名 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -252,7 +163,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
             </div>
           </div>
 
-          {/* 電話番号（すでに入力済み） */}
+          {/* 電話番号 */}
           <div>
             <label className="text-sm text-[#888] block mb-1">
               電話番号 <span className="text-red-400">*</span>
@@ -317,28 +228,28 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
         </div>
       )}
 
-      {/* きっかけ */}
-      <div>
-        <label className="text-sm text-[#888] block mb-2">
-          ご利用のきっかけ
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          {REFERRAL_SOURCES.map((src) => (
-            <button
-              key={src}
-              type="button"
-              onClick={() => onChange({ ...form, referral_source: src })}
-              className={`py-2.5 px-3 rounded-lg text-[13px] transition-all text-left ${
-                form.referral_source === src
-                  ? "bg-[#B87942] text-white"
-                  : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
-              }`}
-            >
-              {src}
-            </button>
-          ))}
+      {/* きっかけ（初回のみ） */}
+      {!isReturning && (
+        <div>
+          <label className="text-sm text-[#888] block mb-2">ご利用のきっかけ</label>
+          <div className="grid grid-cols-2 gap-2">
+            {REFERRAL_SOURCES.map((src) => (
+              <button
+                key={src}
+                type="button"
+                onClick={() => onChange({ ...form, referral_source: src })}
+                className={`py-2.5 px-3 rounded-lg text-[13px] transition-all text-left ${
+                  form.referral_source === src
+                    ? "bg-[#B87942] text-white"
+                    : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                }`}
+              >
+                {src}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ナビゲーション */}
       <div className="flex gap-3">

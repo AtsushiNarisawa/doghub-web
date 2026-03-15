@@ -8,6 +8,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "犬連れOK おむすびカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
   description: "DogHub箱根仙石原のカフェ・グッズ販売。5つ星のお米マイスター厳選のおむすびとスープ。愛犬と入れるイートインスペースあり。カフェ営業時間11時〜17時。",
+  alternates: { canonical: "/cafe" },
 };
 
 const menuItems = {
@@ -51,13 +52,12 @@ export default function CafePage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-066.jpg"
+            src="/images/img-044.jpg"
             alt="カフェ・グッズ販売"
             className="w-full object-cover"
             style={{ height: "clamp(160px, 30vw, 423px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ カフェ・グッズ販売</p>
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>その他サービス</h1>
           </div>
         </div>
@@ -85,8 +85,8 @@ export default function CafePage() {
                   テイクアウトメインのお店ですが、わんちゃんと一緒に食べられる室内イートインスペースも完備しております。
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  カフェのご利用にご予約は不要です。わんちゃんの頭数制限もございません。
-                  飼い主様同伴であればリードの着用も不要ですので、のびのびとお過ごしいただけます。
+                  カフェのご利用は予約制ではございません。わんちゃんの頭数制限もございません。
+                  店内ではリードの着用をお願いしておりますが、併設のドッグランでは飼い主様同伴であればリード不要でのびのびとお過ごしいただけます。
                 </p>
                 <div className="bg-[#F7F7F7] p-6 mb-6">
                   <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>カフェ営業時間：午前11時〜午後5時</p>

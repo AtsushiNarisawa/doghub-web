@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { fetchSiteSettings } from "@/lib/site-settings";
 
 interface DayData {
   date: string;
@@ -18,6 +19,11 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(new Date().getMonth());
   const [dayMap, setDayMap] = useState<Record<string, DayData>>({});
   const [loading, setLoading] = useState(true);
+  const [closedWeekdays, setClosedWeekdays] = useState<number[]>([3, 4]);
+
+  useEffect(() => {
+    fetchSiteSettings().then((s) => setClosedWeekdays(s.closedWeekdays));
+  }, []);
 
   useEffect(() => {
     fetchMonth();
@@ -66,7 +72,7 @@ export default function CalendarPage() {
   };
 
   const getDayColor = (dateStr: string, dayOfWeek: number) => {
-    if (dayOfWeek === 3 || dayOfWeek === 4) return "bg-gray-100 text-gray-300"; // 定休日
+    if (closedWeekdays.includes(dayOfWeek)) return "bg-gray-100 text-gray-300"; // 定休日
     const d = dayMap[dateStr];
     if (!d) return "bg-white";
     if (d.closed) return "bg-gray-100 text-gray-300";
@@ -96,7 +102,7 @@ export default function CalendarPage() {
       </div>
 
       {/* 凡例 */}
-      <div className="flex gap-3 text-[11px] text-gray-500 px-1">
+      <div className="flex flex-wrap gap-2 text-xs text-gray-500 px-1">
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200" />空きあり</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-orange-200" />残りわずか</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-200" />満室</span>
@@ -108,7 +114,7 @@ export default function CalendarPage() {
         {/* 曜日ヘッダー */}
         <div className="grid grid-cols-7 mb-2">
           {["日", "月", "火", "水", "木", "金", "土"].map((d, i) => (
-            <div key={d} className={`text-center text-[11px] font-medium py-1 ${
+            <div key={d} className={`text-center text-xs font-medium py-1 ${
               i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"
             }`}>
               {d}
@@ -129,13 +135,13 @@ export default function CalendarPage() {
               const dayOfWeek = new Date(year, month, day).getDay();
               const isToday = dateStr === today;
               const d = dayMap[dateStr];
-              const isClosed = dayOfWeek === 3 || dayOfWeek === 4 || d?.closed;
+              const isClosed = closedWeekdays.includes(dayOfWeek) || d?.closed;
 
               return (
                 <Link
                   key={i}
                   href={`/admin?date=${dateStr}`}
-                  className={`aspect-square rounded-lg border flex flex-col items-center justify-center text-[12px] transition-all active:opacity-70 ${getDayColor(dateStr, dayOfWeek)} ${isToday ? "ring-2 ring-[#B87942]" : ""}`}
+                  className={`aspect-square rounded-lg border flex flex-col items-center justify-center text-xs transition-all active:opacity-70 ${getDayColor(dateStr, dayOfWeek)} ${isToday ? "ring-2 ring-[#B87942]" : ""}`}
                 >
                   <span className={`font-medium ${
                     dayOfWeek === 0 ? "text-red-500" : dayOfWeek === 6 ? "text-blue-500" : ""
@@ -143,12 +149,12 @@ export default function CalendarPage() {
                     {day}
                   </span>
                   {!isClosed && d && (
-                    <span className="text-[9px] text-gray-400 mt-0.5">
+                    <span className="text-[10px] text-gray-400 mt-0.5">
                       {d.day_booked + d.stay_booked}
                     </span>
                   )}
                   {isClosed && (
-                    <span className="text-[9px] text-gray-300">休</span>
+                    <span className="text-[10px] text-gray-300">休</span>
                   )}
                 </Link>
               );

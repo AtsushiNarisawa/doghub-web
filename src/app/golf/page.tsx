@@ -9,27 +9,58 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根ゴルフ × ペットホテル｜愛犬を預けてプレーを満喫｜DogHub箱根仙石原",
   description: "箱根でゴルフを楽しむ間、愛犬をDogHubにお預け。早朝7時からお預かり対応。大箱根カントリークラブ提携。1日8時間¥5,500。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+  alternates: { canonical: "/golf" },
 };
 
 const courses = [
-  {
-    name: "大箱根カントリークラブ",
-    distance: "車で約10分",
-    note: "DogHub提携コース",
-  },
-  {
-    name: "箱根湖畔ゴルフコース",
-    distance: "車で約15分",
-    note: "",
-  },
   {
     name: "富士屋ホテル仙石ゴルフコース",
     distance: "車で約5分",
     note: "",
   },
   {
+    name: "大箱根カントリークラブ",
+    distance: "車で約5分",
+    note: "DogHub提携コース",
+  },
+  {
+    name: "箱根カントリー倶楽部",
+    distance: "車で約5分",
+    note: "",
+  },
+  {
+    name: "箱根くらかけゴルフ場",
+    distance: "車で約10分",
+    note: "",
+  },
+  {
+    name: "箱根湖畔ゴルフコース",
+    distance: "車で約10分",
+    note: "",
+  },
+  {
+    name: "箱根湯の花ゴルフ場",
+    distance: "車で約15分",
+    note: "",
+  },
+  {
     name: "箱根園ゴルフ場",
     distance: "車で約20分",
+    note: "",
+  },
+  {
+    name: "レイクウッドゴルフクラブ（東コース）",
+    distance: "車で約25分",
+    note: "",
+  },
+  {
+    name: "小田原ゴルフ倶楽部（松田コース）",
+    distance: "車で約30分",
+    note: "",
+  },
+  {
+    name: "大富士ゴルフクラブ",
+    distance: "車で約30分",
     note: "",
   },
 ];
@@ -49,7 +80,6 @@ export default function GolfPage() {
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ ゴルフ × ペットホテル</p>
             <h1 style={{ fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 400 }}>
               愛犬を預けて箱根ゴルフを満喫
             </h1>
@@ -88,12 +118,17 @@ export default function GolfPage() {
                   <h4 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>おすすめプラン</h4>
                   <div className="space-y-4 text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                     <div className="pb-3 border-b border-[#E5DDD8]">
-                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>1日お預かり（8時間）</p>
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>日帰りゴルフ｜1日お預かり（8時間）</p>
                       <p style={{ fontSize: "24px" }}>¥5,500</p>
                       <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>通常 9時〜17時 ／ 早朝 7時〜15時</p>
                     </div>
+                    <div className="pb-3 border-b border-[#E5DDD8]">
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>1泊2日ゴルフ旅行｜宿泊 + 半日お預かり</p>
+                      <p style={{ fontSize: "24px" }}>¥11,000〜</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>宿泊¥7,700〜 + チェックアウト後・半日¥3,300（〜15時）</p>
+                    </div>
                     <div>
-                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>宿泊プラン（ゴルフ旅行に）</p>
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>宿泊のみ（前日入り・当日帰り）</p>
                       <p style={{ fontSize: "24px" }}>¥7,700〜</p>
                       <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>チェックイン 14時〜 ／ チェックアウト 〜11時</p>
                     </div>
@@ -145,14 +180,16 @@ export default function GolfPage() {
               </div>
               <div className="bg-white border border-[#E5DDD8] p-8">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>1泊2日ゴルフ旅行プラン</h3>
-                <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊 + 1日お預かり</p>
+                <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊（¥7,700〜）+ 半日お預かり（チェックアウト後・¥3,300）</p>
                 <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
-                  <p>【1日目】14:00 DogHubにチェックイン</p>
+                  <p>【1日目】14:00 DogHubにチェックイン（宿泊）</p>
                   <p>15:00 温泉旅館でゆっくり</p>
                   <p>【2日目】7:00 ゴルフ場へ出発</p>
-                  <p>12:00 ラウンド終了</p>
-                  <p>13:00 DogHubでお迎え・帰宅</p>
+                  <p>11:00 DogHub宿泊チェックアウト → 半日プランに切替</p>
+                  <p>12:00 ラウンド終了・ランチ</p>
+                  <p>15:00 DogHubでお迎え・帰宅</p>
                 </div>
+                <p className="text-[#8F7B65] mt-4" style={{ fontSize: "13px" }}>※チェックアウト後〜15時まで半日プラン（¥3,300）が適用。スポット延長（¥1,100/h）より¥1,100お得です。</p>
               </div>
             </div>
           </div>

@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "ペットホテル 初めて 不安解消ガイド｜預ける前に知っておきたいこと｜DogHub箱根仙石原",
   description: "はじめてペットホテルを利用する方へ。ペットホテル選びのポイント、預ける前の準備、当日の流れ、愛犬のストレス対策まで。DogHub箱根仙石原が初めての不安を解消します。",
+  alternates: { canonical: "/guide/pet-hotel-tips" },
 };
 
 export default function PetHotelTipsPage() {
@@ -26,7 +27,6 @@ export default function PetHotelTipsPage() {
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
-            <p className="text-sm mb-2 opacity-80">/ ペットホテルガイド</p>
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               はじめてのペットホテル 不安解消ガイド
             </h1>

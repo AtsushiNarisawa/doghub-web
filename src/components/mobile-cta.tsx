@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export function MobileCta() {
   const [visible, setVisible] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => {
@@ -12,6 +14,8 @@ export function MobileCta() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  if (pathname === "/booking") return null;
 
   return (
     <div
@@ -25,7 +29,7 @@ export function MobileCta() {
             Google ★4.8（32件）
           </p>
           <p style={{ fontSize: "13px", fontWeight: 400, lineHeight: "1.4" }}>
-            箱根町唯一のドッグホテル
+            DogHub箱根仙石原
           </p>
         </div>
         <a

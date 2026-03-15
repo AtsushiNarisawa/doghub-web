@@ -28,7 +28,7 @@ export function QuickNav() {
         <Link
           key={card.href}
           href={card.href}
-          className="relative h-56 md:h-72 overflow-hidden group"
+          className="relative h-36 md:h-44 overflow-hidden group"
         >
           <img
             src={card.img}
@@ -37,8 +37,8 @@ export function QuickNav() {
           />
           <div className="absolute inset-0 bg-black/45 group-hover:bg-black/55 transition-colors" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4 text-center">
-            <p className="mb-2" style={{ fontSize: "clamp(20px, 3vw, 38.4px)", fontWeight: 400, letterSpacing: "2.7px" }}>{card.label}</p>
-            <p style={{ fontSize: "clamp(13px, 1.5vw, 20px)", fontWeight: 400 }}>{card.ja}</p>
+            <p className="mb-1" style={{ fontSize: "clamp(16px, 2vw, 24px)", fontWeight: 400, letterSpacing: "2px" }}>{card.label}</p>
+            <p style={{ fontSize: "clamp(12px, 1.3vw, 15px)", fontWeight: 400 }}>{card.ja}</p>
           </div>
         </Link>
       ))}

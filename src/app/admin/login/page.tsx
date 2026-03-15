@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -16,16 +15,18 @@ export default function AdminLoginPage() {
     setError("");
     setLoading(true);
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
 
-    if (authError) {
-      setError("メールアドレスまたはパスワードが正しくありません");
-      setLoading(false);
-    } else {
+    if (res.ok) {
       router.replace("/admin");
+    } else {
+      const json = await res.json().catch(() => ({}));
+      setError(json.error || "ログインに失敗しました");
+      setLoading(false);
     }
   };
 

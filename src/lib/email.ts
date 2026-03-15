@@ -1,0 +1,240 @@
+import nodemailer from "nodemailer";
+import type { BookingFormData } from "@/types/booking";
+import { PLANS } from "@/types/booking";
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
+
+const PLAN_NAMES: Record<string, string> = {
+  spot: "スポットお預かり（1時間〜）",
+  "4h": "半日お預かり（4時間）",
+  "8h": "1日お預かり（8時間）",
+  stay: "宿泊お預かり",
+};
+
+function formatDate(d: string) {
+  if (!d) return "";
+  const date = new Date(d);
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日（${days[date.getDay()]}）`;
+}
+
+function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, status: string): string {
+  const isPending = status === "pending";
+  const plan = PLANS.find((p) => p.id === form.plan);
+  const stayNights =
+    form.plan === "stay" && form.checkout_date && form.date
+      ? Math.max(1, Math.round((new Date(form.checkout_date).getTime() - new Date(form.date).getTime()) / 86400000))
+      : 0;
+
+  const dogsHtml = form.dogs.map((dog) => {
+    const ageStr = dog.age === "0" && dog.age_months ? `${dog.age_months}ヶ月` : dog.age ? `${dog.age}歳` : "";
+    return `
+    <tr>
+      <td style="padding:6px 0;border-bottom:1px solid #f0ebe5;">
+        <strong>${dog.name}</strong>（${dog.breed}）
+        <span style="color:#888;font-size:13px;"> ${dog.weight}kg${ageStr ? ` / ${ageStr}` : ""} / ${dog.sex === "male" ? "オス" : "メス"}</span>
+      </td>
+    </tr>`;
+  }).join("");
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f7f5f0;font-family:-apple-system,sans-serif;">
+<div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+
+  <!-- ヘッダー -->
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="display:inline-block;background:#3C200F;border-radius:10px;padding:10px 24px;">
+      <span style="color:white;font-size:20px;font-weight:700;letter-spacing:2px;">DogHub</span>
+    </div>
+    <p style="color:#8F7B65;font-size:13px;margin:8px 0 0;">箱根仙石原</p>
+  </div>
+
+  <!-- メインカード -->
+  <div style="background:white;border-radius:16px;padding:28px 24px;margin-bottom:16px;">
+    ${isPending ? `
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+      <p style="margin:0;color:#c2410c;font-size:14px;font-weight:600;">&#9888; スタッフ確認中</p>
+      <p style="margin:6px 0 0;color:#c2410c;font-size:13px;">体重15kg以上のワンちゃんがいるため、スタッフが確認後にご予約を確定いたします。確定メールをお待ちください。</p>
+    </div>` : `
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+      <p style="margin:0;color:#15803d;font-size:14px;font-weight:600;">&#10003; ご予約を承りました</p>
+    </div>`}
+
+    <h1 style="font-size:18px;font-weight:600;color:#3C200F;margin:0 0 20px;">
+      ${form.customer.last_name} ${form.customer.first_name} 様
+    </h1>
+
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;width:100px;">プラン</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${PLAN_NAMES[form.plan] || form.plan}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックイン</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(form.date)} ${form.checkin_time}</td>
+      </tr>
+      ${form.plan === "stay" && form.checkout_date ? `
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックアウト</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(form.checkout_date)}（${stayNights}泊） / 9:00〜11:00</td>
+      </tr>` : ""}
+      ${form.early_morning ? `
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;"></td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:13px;color:#B87942;">早朝プラン（7:00〜）</td>
+      </tr>` : ""}
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">基本料金</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">¥${((plan?.basePrice ?? 0) * form.dogs.length * Math.max(stayNights || 1, 1)).toLocaleString()}〜</td>
+      </tr>
+      ${form.walk_option ? `
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">散歩オプション</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">あり（¥550/回）</td>
+      </tr>` : ""}
+    </table>
+
+    <h3 style="font-size:14px;color:#888;margin:20px 0 10px;">ワンちゃん情報</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      ${dogsHtml}
+    </table>
+
+    <div style="margin-top:20px;background:#f7f5f0;border-radius:10px;padding:14px 16px;">
+      <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:#3C200F;">ご来店時のお願い</p>
+      <ul style="margin:0;padding:0 0 0 18px;color:#888;font-size:13px;line-height:1.8;">
+        <li>ワクチン証明書（狂犬病・混合）をご持参ください</li>
+        <li>お支払いは現地にて（現金・カード対応）</li>
+        <li>引き取り最終時間は17:00です（超過¥1,100/時間）</li>
+      </ul>
+    </div>
+
+    ${form.notes ? `
+    <div style="margin-top:16px;padding:12px 14px;border:1px solid #f0ebe5;border-radius:8px;">
+      <p style="margin:0 0 4px;font-size:12px;color:#888;">備考</p>
+      <p style="margin:0;font-size:13px;color:#3C200F;">${form.notes}</p>
+    </div>` : ""}
+  </div>
+
+  <!-- フッター -->
+  <div style="text-align:center;padding:16px 0;">
+    <p style="margin:0 0 4px;font-size:13px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原817-7</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460838223" style="color:#B87942;">0460-83-8223</a></p>
+    <p style="margin:0;font-size:12px;color:#888;">営業時間: 金〜火 9:00〜17:00（水・木定休）</p>
+    <p style="margin:12px 0 0;font-size:11px;color:#bbb;">予約番号: ${reservationId.slice(0, 8).toUpperCase()}</p>
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+function buildStaffEmailHtml(form: BookingFormData, reservationId: string, status: string): string {
+  const isPending = status === "pending";
+  const stayNights =
+    form.plan === "stay" && form.checkout_date && form.date
+      ? Math.max(1, Math.round((new Date(form.checkout_date).getTime() - new Date(form.date).getTime()) / 86400000))
+      : 0;
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="utf-8"></head>
+<body style="font-family:-apple-system,sans-serif;padding:20px;background:#f7f5f0;">
+<div style="max-width:560px;margin:0 auto;background:white;border-radius:12px;padding:24px;">
+
+  <h2 style="margin:0 0 16px;font-size:18px;color:${isPending ? "#c2410c" : "#15803d"};">
+    ${isPending ? "⚠️ 新規予約（要確認）" : "✅ 新規予約が入りました"}
+  </h2>
+
+  ${isPending ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;margin-bottom:16px;color:#c2410c;font-size:13px;">体重15kg以上のワンちゃんがいます。確認後にステータスを「確定」に変更してください。</div>` : ""}
+
+  <table style="width:100%;border-collapse:collapse;font-size:14px;">
+    <tr><td style="padding:6px 0;color:#888;width:110px;">予約番号</td><td style="padding:6px 0;">${reservationId.slice(0, 8).toUpperCase()}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">プラン</td><td style="padding:6px 0;">${PLAN_NAMES[form.plan] || form.plan}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">日付</td><td style="padding:6px 0;">${formatDate(form.date)} ${form.checkin_time}〜${form.plan === "stay" ? `（${stayNights}泊 / CO: ${formatDate(form.checkout_date || "")}）` : ""}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">お客様</td><td style="padding:6px 0;">${form.customer.last_name} ${form.customer.first_name}（${form.customer.last_name_kana} ${form.customer.first_name_kana}）</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">電話</td><td style="padding:6px 0;"><a href="tel:${form.customer.phone}" style="color:#B87942;">${form.customer.phone}</a></td></tr>
+    <tr><td style="padding:6px 0;color:#888;">メール</td><td style="padding:6px 0;">${form.customer.email}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">行き先</td><td style="padding:6px 0;">${form.destination || "—"}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">きっかけ</td><td style="padding:6px 0;">${form.referral_source || "—"}</td></tr>
+    ${form.walk_option ? `<tr><td style="padding:6px 0;color:#888;">散歩</td><td style="padding:6px 0;color:#B87942;">あり</td></tr>` : ""}
+    ${form.notes ? `<tr><td style="padding:6px 0;color:#888;">備考</td><td style="padding:6px 0;">${form.notes}</td></tr>` : ""}
+  </table>
+
+  <h3 style="margin:20px 0 10px;font-size:14px;color:#888;">ワンちゃん</h3>
+  ${form.dogs.map((dog) => `
+  <div style="background:#f7f5f0;border-radius:8px;padding:12px;margin-bottom:8px;font-size:13px;">
+    <strong>${dog.name}</strong>（${dog.breed}）
+    ${parseFloat(dog.weight) >= 15 ? `<span style="color:#c2410c;font-weight:600;"> ⚠️ ${dog.weight}kg</span>` : ` ${dog.weight}kg`}
+    / ${dog.age === "0" && dog.age_months ? `${dog.age_months}ヶ月` : dog.age ? `${dog.age}歳` : ""} / ${dog.sex === "male" ? "オス" : "メス"}
+    / 狂犬病: ${dog.has_rabies_vaccine ? "接種済" : "未接種"} / 混合: ${dog.has_mixed_vaccine ? "接種済" : "未接種"}
+    ${dog.allergies ? `<br><span style="color:#888;">アレルギー: ${dog.allergies}</span>` : ""}
+    ${dog.meal_notes ? `<br><span style="color:#888;">食事: ${dog.meal_notes}</span>` : ""}
+    ${dog.medication_notes ? `<br><span style="color:#888;">投薬: ${dog.medication_notes}</span>` : ""}
+  </div>`).join("")}
+
+  <div style="margin-top:16px;text-align:center;">
+    <a href="https://dog-hub.shop/admin/reservations/${reservationId}" style="display:inline-block;padding:12px 24px;background:#B87942;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">管理画面で確認する</a>
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+export async function sendBookingEmails(
+  form: BookingFormData,
+  reservationId: string,
+  status: string
+) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn("Email not configured: GMAIL_USER or GMAIL_APP_PASSWORD missing");
+    return;
+  }
+
+  const isPending = status === "pending";
+  const customerSubject = isPending
+    ? `【DogHub箱根】予約リクエストを受け付けました（${formatDate(form.date)}）`
+    : `【DogHub箱根】ご予約ありがとうございます（${formatDate(form.date)}）`;
+
+  const staffSubject = isPending
+    ? `【要確認】新規予約 ${form.customer.last_name}様 ${formatDate(form.date)}`
+    : `【新規予約】${form.customer.last_name}様 ${formatDate(form.date)} ${form.checkin_time}`;
+
+  const results = await Promise.allSettled([
+    // お客様への確認メール
+    transporter.sendMail({
+      from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
+      replyTo: "info@dog-hub.shop",
+      to: form.customer.email,
+      subject: customerSubject,
+      html: buildCustomerEmailHtml(form, reservationId, status),
+    }),
+    // スタッフへの通知メール
+    transporter.sendMail({
+      from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
+      to: "narisawa@dog-hub.shop",
+      subject: staffSubject,
+      html: buildStaffEmailHtml(form, reservationId, status),
+    }),
+  ]);
+
+  results.forEach((result, i) => {
+    const label = i === 0 ? "customer" : "staff";
+    if (result.status === "rejected") {
+      const err = result.reason as Error & { code?: string; responseCode?: number; response?: string };
+      console.error(`Email failed [${label}] code=${err.code}`);
+      console.error(`Email failed [${label}] message=${err.message?.slice(0, 200)}`);
+    } else {
+      console.log(`Email sent [${label}]:`, result.value?.messageId ?? "ok");
+    }
+  });
+}

@@ -45,7 +45,8 @@ export type Database = {
           birth_date: string | null;
           sex: "male" | "female";
           neutered: boolean;
-          vaccine_expires_at: string | null;
+          rabies_vaccine_expires_at: string | null;
+          mixed_vaccine_expires_at: string | null;
           allergies: string | null;
           meal_notes: string | null;
           medication_notes: string | null;
@@ -63,7 +64,8 @@ export type Database = {
           birth_date?: string | null;
           sex: "male" | "female";
           neutered?: boolean;
-          vaccine_expires_at?: string | null;
+          rabies_vaccine_expires_at?: string | null;
+          mixed_vaccine_expires_at?: string | null;
           allergies?: string | null;
           meal_notes?: string | null;
           medication_notes?: string | null;
@@ -75,7 +77,7 @@ export type Database = {
         Row: {
           id: string;
           customer_id: string;
-          plan: "4h" | "8h" | "stay";
+          plan: "spot" | "4h" | "8h" | "stay";
           date: string;
           checkin_time: string;
           checkout_date: string | null;
@@ -83,6 +85,8 @@ export type Database = {
           total_price: number | null;
           extra_hours_fee: number;
           walk_option: boolean;
+          destination: string | null;
+          early_morning: boolean;
           referral_source: string | null;
           notes: string | null;
           admin_notes: string | null;
@@ -93,7 +97,7 @@ export type Database = {
         Insert: {
           id?: string;
           customer_id: string;
-          plan: "4h" | "8h" | "stay";
+          plan: "spot" | "4h" | "8h" | "stay";
           date: string;
           checkin_time: string;
           checkout_date?: string | null;
@@ -101,6 +105,8 @@ export type Database = {
           total_price?: number | null;
           extra_hours_fee?: number;
           walk_option?: boolean;
+          destination?: string | null;
+          early_morning?: boolean;
           referral_source?: string | null;
           notes?: string | null;
           admin_notes?: string | null;

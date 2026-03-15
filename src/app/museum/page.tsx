@@ -9,32 +9,69 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根美術館 × ペット預かり｜美術館めぐりの間に愛犬をお預け｜DogHub箱根仙石原",
   description: "箱根の美術館はペット入館不可。DogHub箱根仙石原はポーラ美術館から車4分、ガラスの森から車3分。半日4時間¥3,300。美術館めぐりの間に愛犬を安心してお預けください。",
+  alternates: { canonical: "/museum" },
 };
 
 const museums = [
   {
     name: "箱根ラリック美術館",
-    distance: "車で2分",
-    body: "フランスの宝飾・ガラス工芸の巨匠ルネ・ラリックの作品を展示。",
-    img: "/images/img-075.jpg",
+    distance: "車で約2分",
+    area: "仙石原",
+    note: "",
   },
   {
     name: "箱根ガラスの森美術館",
-    distance: "車で3分",
-    body: "日本初のヴェネチアン・グラス専門美術館。庭園のガラスオブジェも必見。",
-    img: "/images/img-054.png",
+    distance: "車で約3分",
+    area: "仙石原",
+    note: "",
   },
   {
     name: "ポーラ美術館",
-    distance: "車で4分",
-    body: "印象派から現代アートまで約1万点。森の遊歩道も楽しめる。",
-    img: "/images/img-005.png",
+    distance: "車で約4分",
+    area: "仙石原",
+    note: "",
+  },
+  {
+    name: "箱根湿生花園",
+    distance: "車で約5分",
+    area: "仙石原",
+    note: "",
+  },
+  {
+    name: "箱根美術館",
+    distance: "車で約10分",
+    area: "強羅",
+    note: "",
+  },
+  {
+    name: "箱根写真美術館",
+    distance: "車で約10分",
+    area: "強羅",
+    note: "",
   },
   {
     name: "彫刻の森美術館",
-    distance: "車で13分",
-    body: "国内初の野外美術館。7万平方メートルに120点以上の彫刻作品。",
-    img: "/images/img-060.png",
+    distance: "車で約13分",
+    area: "強羅",
+    note: "",
+  },
+  {
+    name: "岡田美術館",
+    distance: "車で約15分",
+    area: "小涌谷",
+    note: "",
+  },
+  {
+    name: "成川美術館",
+    distance: "車で約20分",
+    area: "元箱根",
+    note: "わんちゃん同伴可",
+  },
+  {
+    name: "箱根関所・箱根関所資料館",
+    distance: "車で約20分",
+    area: "箱根町",
+    note: "",
   },
 ];
 
@@ -47,13 +84,12 @@ export default function MuseumPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-006.jpg"
+            src="/images/img-055.jpg"
             alt="箱根美術館 × ペット預かり"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ 美術館 × ペット預かり</p>
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               美術館めぐりの間、愛犬をお預け
             </h1>
@@ -80,7 +116,8 @@ export default function MuseumPage() {
                 </h3>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   箱根仙石原は美術館の宝庫。ポーラ美術館、箱根ガラスの森美術館、
-                  箱根ラリック美術館が集まるエリアですが、いずれもペット入館はできません。
+                  箱根ラリック美術館が集まるエリアですが、ほとんどの美術館はペット入館不可です。
+                  唯一、成川美術館はわんちゃん同伴で入館できます。
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   DogHub箱根仙石原はこれらの美術館から車でわずか2〜4分。
@@ -130,16 +167,14 @@ export default function MuseumPage() {
         {/* Nearby museums */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>DogHub周辺の美術館</h2>
-            <div className="grid sm:grid-cols-2 gap-8">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>DogHub周辺の美術館・施設</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {museums.map((m) => (
-                <div key={m.name} className="bg-white border border-[#E5DDD8]">
-                  <img src={m.img} alt={m.name} className="w-full h-48 object-cover" />
-                  <div className="p-6">
-                    <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "18px", fontWeight: 400 }}>{m.name}</h3>
-                    <p className="text-[#B87942] mb-3" style={{ fontSize: "14px", fontWeight: 400 }}>DogHubから{m.distance}</p>
-                    <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>{m.body}</p>
-                  </div>
+                <div key={m.name} className="border border-[#E5DDD8] p-6 bg-white">
+                  <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>{m.name}</h3>
+                  <p className="text-[#B87942]" style={{ fontSize: "14px", fontWeight: 400 }}>{m.distance}</p>
+                  <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>{m.area}エリア</p>
+                  {m.note && <p className="text-[#2A7B4F] mt-2" style={{ fontSize: "13px", fontWeight: 400 }}>{m.note}</p>}
                 </div>
               ))}
             </div>
@@ -181,7 +216,7 @@ export default function MuseumPage() {
         <section className="py-16 px-6 bg-[#F7F7F7] border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根でこんな過ごし方も</h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Link href="/onsen" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>温泉 × ペット預かり</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>日帰り温泉を満喫</p>
@@ -195,6 +230,11 @@ export default function MuseumPage() {
               <Link href="/golf" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ゴルフ × ペットホテル</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>早朝7時からお預かり</p>
+                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+              <Link href="/pethotel" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ペット可ホテル × 日中預かり</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>チェックイン前後の観光に</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
             </div>

@@ -8,6 +8,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根 犬連れ観光おすすめスポット｜DogHub箱根仙石原",
   description: "DogHub箱根仙石原おすすめの周辺観光スポット。箱根ガラスの森、ポーラ美術館、仙石原すすき草原など、愛犬と一緒に楽しめるスポットをご紹介。",
+  alternates: { canonical: "/spots" },
 };
 
 const spots = [
@@ -105,7 +106,6 @@ export default function SpotsPage() {
             style={{ height: "clamp(140px, 18vw, 249px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ おすすめスポット</p>
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>おすすめスポット</h1>
           </div>
         </div>

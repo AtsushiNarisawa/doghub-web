@@ -8,6 +8,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "お知らせ | DogHub箱根仙石原",
   description: "DogHub箱根仙石原からのお知らせ・ブログ記事一覧。",
+  alternates: { canonical: "/news" },
 };
 
 export default async function NewsPage() {
@@ -21,7 +22,7 @@ export default async function NewsPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-006.jpg"
+            src="/images/img-056.jpg"
             alt="お知らせ"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}

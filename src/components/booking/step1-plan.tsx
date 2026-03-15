@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { BookingFormData } from "@/types/booking";
-import { PLANS, DESTINATIONS } from "@/types/booking";
+import { PLANS, DAY_DESTINATIONS, DAY_DESTINATIONS_4H, STAY_DESTINATIONS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
+import { fetchSiteSettings } from "@/lib/site-settings";
 
 interface Props {
   form: BookingFormData;
@@ -20,6 +21,16 @@ interface CapacityInfo {
 export function Step1Plan({ form, onChange, onNext }: Props) {
   const [capacity, setCapacity] = useState<CapacityInfo | null>(null);
   const [loadingCapacity, setLoadingCapacity] = useState(false);
+  const [bookingWindowDays, setBookingWindowDays] = useState(180);
+  const [closedWeekdays, setClosedWeekdays] = useState<number[]>([3, 4]);
+
+  // 設定を取得
+  useEffect(() => {
+    fetchSiteSettings().then((s) => {
+      setBookingWindowDays(s.bookingWindowDays);
+      setClosedWeekdays(s.closedWeekdays);
+    });
+  }, []);
 
   // 受付期限チェック: 前日17時まで
   const getMinDate = () => {
@@ -33,11 +44,23 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     return today.toISOString().split("T")[0];
   };
 
-  // 定休日チェック（水曜・木曜）
+  // 受付上限日
+  const getMaxDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + bookingWindowDays);
+    return d.toISOString().split("T")[0];
+  };
+
+  // 定休日チェック（設定から取得）
   const isClosedDay = (dateStr: string) => {
     const d = new Date(dateStr);
-    const day = d.getDay();
-    return day === 3 || day === 4;
+    return closedWeekdays.includes(d.getDay());
+  };
+
+  // 定休日の曜日名を表示用に変換
+  const closedWeekdayNames = () => {
+    const labels = ["日", "月", "火", "水", "木", "金", "土"];
+    return closedWeekdays.map((d) => labels[d]).join("・");
   };
 
   useEffect(() => {
@@ -81,9 +104,17 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     const options: string[] = [];
     for (let h = startHour; h <= actualEnd; h++) {
       options.push(`${String(h).padStart(2, "0")}:00`);
-      if (h < actualEnd) options.push(`${String(h).padStart(2, "0")}:30`);
     }
     return options;
+  };
+
+  // 延長時間から料金を計算
+  const calcExtension = (fromTime: string, toTime: string) => {
+    const [fh] = fromTime.split(":").map(Number);
+    const [th] = toTime.split(":").map(Number);
+    const hours = Math.max(0, th - fh);
+    const fee = hours * 1100;
+    return { hours, fee };
   };
 
   const canProceed =
@@ -94,7 +125,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     !isClosedDay(form.date) &&
     capacity &&
     !capacity.closed &&
-    (form.plan === "stay" ? capacity.stay_remaining > 0 && form.checkout_date : true) &&
+    (form.plan === "stay"
+      ? capacity.stay_remaining > 0 &&
+        form.checkout_date &&
+        (!form.checkin_extension || form.checkin_extension_from) &&
+        (!form.checkout_extension || form.checkout_extension_until)
+      : true) &&
     (form.plan !== "stay" ? capacity.day_remaining > 0 : true);
 
   return (
@@ -103,7 +139,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       <div>
         <h2 className="text-lg font-medium mb-3">プランを選択</h2>
         <div className="space-y-3">
-          {PLANS.map((plan) => (
+          {PLANS.filter((p) => p.id !== "spot").map((plan) => (
             <button
               key={plan.id}
               type="button"
@@ -113,7 +149,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   plan: plan.id,
                   checkin_time: "",
                   checkout_date: "",
+                  checkin_extension: false,
+                  checkin_extension_from: "",
+                  checkout_extension: false,
+                  checkout_extension_until: "",
                   early_morning: false,
+                  destination: "",
                 })
               }
               className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
@@ -139,46 +180,21 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         </div>
       </div>
 
-      {/* 行き先（マーケティング用） */}
-      {form.plan && (
-        <div>
-          <h2 className="text-lg font-medium mb-2">お預かり中の行き先</h2>
-          <p className="text-[12px] text-[#888] mb-3">
-            おすすめ情報のご案内に活用させていただきます
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {DESTINATIONS.map((dest) => (
-              <button
-                key={dest}
-                type="button"
-                onClick={() => onChange({ ...form, destination: dest })}
-                className={`py-2.5 px-3 rounded-lg text-[13px] transition-all text-left ${
-                  form.destination === dest
-                    ? "bg-[#B87942] text-white"
-                    : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
-                }`}
-              >
-                {dest}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 日付選択 */}
-      {form.plan && form.destination && (
+      {form.plan && (
         <div>
           <h2 className="text-lg font-medium mb-3">日程を選択</h2>
           <input
             type="date"
             value={form.date}
             min={getMinDate()}
+            max={getMaxDate()}
             onChange={(e) => onChange({ ...form, date: e.target.value })}
             className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
           />
           {form.date && isClosedDay(form.date) && (
             <p className="text-red-500 text-sm mt-2">
-              水曜・木曜は定休日です。別の日程をお選びください。
+              {closedWeekdayNames()}曜日は定休日です。別の日程をお選びください。
             </p>
           )}
           {capacity?.closed && (
@@ -257,6 +273,49 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         </div>
       )}
 
+      {/* 行き先（チェックイン時間選択後） */}
+      {form.plan && form.checkin_time && (() => {
+        const destinations =
+          form.plan === "stay" ? STAY_DESTINATIONS :
+          form.plan === "4h" ? DAY_DESTINATIONS_4H : DAY_DESTINATIONS;
+        const isOther = form.destination === "その他（自由記入）" ||
+          (form.destination !== "" && !(destinations as readonly string[]).includes(form.destination));
+        const selectValue = isOther ? "その他（自由記入）" : form.destination;
+        return (
+          <div>
+            <h2 className="text-lg font-medium mb-2">お預かり中の行き先</h2>
+            <p className="text-[12px] text-[#888] mb-3">
+              具体的な施設名がわかると助かります
+            </p>
+            <select
+              value={selectValue}
+              onChange={(e) => {
+                if (e.target.value === "その他（自由記入）") {
+                  onChange({ ...form, destination: "" });
+                } else {
+                  onChange({ ...form, destination: e.target.value });
+                }
+              }}
+              className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+            >
+              <option value="">選択してください</option>
+              {destinations.map((dest) => (
+                <option key={dest} value={dest}>{dest}</option>
+              ))}
+            </select>
+            {(selectValue === "その他（自由記入）" || isOther) && (
+              <input
+                type="text"
+                value={isOther && form.destination !== "その他（自由記入）" ? form.destination : ""}
+                onChange={(e) => onChange({ ...form, destination: e.target.value })}
+                placeholder="行き先を入力してください"
+                className="mt-2 w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+              />
+            )}
+          </div>
+        );
+      })()}
+
       {/* チェックアウト日（宿泊のみ） */}
       {form.plan === "stay" && form.date && form.checkin_time && (
         <div>
@@ -275,6 +334,121 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             onChange={(e) => onChange({ ...form, checkout_date: e.target.value })}
             className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
           />
+        </div>
+      )}
+
+      {/* チェックイン前の早預かり（宿泊のみ） */}
+      {form.plan === "stay" && form.checkout_date && (
+        <div className="space-y-3">
+          <label className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
+            <input
+              type="checkbox"
+              checked={form.checkin_extension}
+              onChange={(e) =>
+                onChange({
+                  ...form,
+                  checkin_extension: e.target.checked,
+                  checkin_extension_from: "",
+                })
+              }
+              className="w-5 h-5 rounded accent-[#B87942] mt-0.5"
+            />
+            <div>
+              <span className="text-sm font-medium">チェックイン（14:00）前から預ける</span>
+              <p className="text-[12px] text-[#888] mt-0.5">
+                午前中に箱根へ到着し、そのまま観光を楽しみたい方に（¥1,100/時間）
+              </p>
+            </div>
+          </label>
+
+          {form.checkin_extension && (
+            <div>
+              <h2 className="text-lg font-medium mb-2">何時頃お預けしますか？</h2>
+              <div className="grid grid-cols-4 gap-2">
+                {["09:00", "10:00", "11:00", "12:00", "13:00"].map((time) => {
+                  const ext = calcExtension(time, "14:00");
+                  return (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => onChange({ ...form, checkin_extension_from: time })}
+                      className={`py-3 rounded-lg text-sm font-medium transition-all ${
+                        form.checkin_extension_from === time
+                          ? "bg-[#B87942] text-white"
+                          : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  );
+                })}
+              </div>
+              {form.checkin_extension_from && (() => {
+                const ext = calcExtension(form.checkin_extension_from, "14:00");
+                return (
+                  <p className="mt-2 text-[13px] text-[#888]">
+                    早預かり料金目安: {ext.hours}時間 × ¥1,100 ＝ ¥{ext.fee.toLocaleString()}
+                  </p>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* チェックアウト後の延長預かり（宿泊のみ） */}
+      {form.plan === "stay" && form.checkout_date && (
+        <div className="space-y-3">
+          <label className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
+            <input
+              type="checkbox"
+              checked={form.checkout_extension}
+              onChange={(e) =>
+                onChange({
+                  ...form,
+                  checkout_extension: e.target.checked,
+                  checkout_extension_until: "",
+                })
+              }
+              className="w-5 h-5 rounded accent-[#B87942] mt-0.5"
+            />
+            <div>
+              <span className="text-sm font-medium">チェックアウト後もそのまま預かりを延長する</span>
+              <p className="text-[12px] text-[#888] mt-0.5">
+                帰る前にランチや温泉をゆっくり楽しんでから迎えに来たい方に（¥1,100/時間）
+              </p>
+            </div>
+          </label>
+
+          {form.checkout_extension && (
+            <div>
+              <h2 className="text-lg font-medium mb-2">何時頃お迎えに来ますか？</h2>
+              <div className="grid grid-cols-4 gap-2">
+                {["12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map((time) => (
+                  <button
+                    key={time}
+                    type="button"
+                    onClick={() => onChange({ ...form, checkout_extension_until: time })}
+                    className={`py-3 rounded-lg text-sm font-medium transition-all ${
+                      form.checkout_extension_until === time
+                        ? "bg-[#B87942] text-white"
+                        : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+              {form.checkout_extension_until && (() => {
+                const ext = calcExtension("11:00", form.checkout_extension_until);
+                return (
+                  <p className="mt-2 text-[13px] text-[#888]">
+                    延長料金目安: {ext.hours}時間 × ¥1,100 ＝ ¥{ext.fee.toLocaleString()}
+                  </p>
+                );
+              })()}
+            </div>
+          )}
         </div>
       )}
 

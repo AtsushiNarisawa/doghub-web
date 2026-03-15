@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根 犬 1日預かり 8時間プラン｜DogHub箱根仙石原 ペットホテル",
   description: "箱根仙石原の犬の1日お預かりプラン。8時間¥5,500。ゴルフ、観光、日帰り旅行の間に愛犬を安心してお預け。早朝7時からお預かり対応。24時間スタッフ常駐・ドッグラン併設。",
+  alternates: { canonical: "/8h" },
 };
 
 const scenes = [
@@ -28,9 +29,14 @@ const scenes = [
     note: "",
   },
   {
-    title: "連泊の合間にも",
-    body: "宿泊プランと組み合わせて、2日目の日中も預けることが可能です。例えば宿泊＋1日お預かりで、2泊3日のうち丸1日を観光に充てられます。",
+    title: "宿泊プランの前後に組み合わせ",
+    body: "宿泊のチェックアウト（11時）後もそのまま夕方まで預けたい場合、超過料金での延長も可能ですが、1日お預かりプランを組み合わせた方がお得になる場合があります。チェックイン（14時）前に朝から預けたい場合も同様です。",
     note: "",
+  },
+  {
+    title: "ペット可の宿に泊まりながら、日中は観光したい",
+    body: "レジーナリゾート箱根仙石原など近隣のペット可宿泊施設に泊まっているお客様で、チェックイン前・チェックアウト後の観光中にDogHubをご利用いただくケースが増えています。近隣の施設からもDogHubをご案内いただいており、「わんちゃんを預けて1日たっぷり観光したい」方に特に喜ばれています。",
+    note: "近隣のペット可宿泊施設からもご紹介いただいています",
   },
 ];
 
@@ -64,13 +70,12 @@ export default function EightHourPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-007.jpg"
+            src="/images/img-013.jpg"
             alt="DogHub箱根仙石原 1日お預かり"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ 1日お預かり</p>
             <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>1日お預かりプラン</h1>
           </div>
         </div>
@@ -116,8 +121,7 @@ export default function EightHourPage() {
                     <p>通常プラン：9時〜17時</p>
                     <p>早朝プラン：7時〜15時</p>
                     <p>お預かり最終受付：15時 ／ お引き取り最終：17時</p>
-                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※早朝プランは事前にご連絡お願いします。</p>
-                    <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
+                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
                   </div>
                 </div>
 

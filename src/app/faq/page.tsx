@@ -10,6 +10,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "よくある質問（FAQ）｜DogHub箱根仙石原 ペットホテル",
   description: "DogHub箱根仙石原のよくある質問。予約方法、料金、持ち物、キャンセルポリシー、犬種制限、営業時間など。初めてご利用の方はこちらをご確認ください。",
+  alternates: { canonical: "/faq" },
 };
 
 const faqCategories = [
@@ -18,7 +19,7 @@ const faqCategories = [
     items: [
       {
         q: "予約は必要ですか？",
-        a: "はい、事前予約制です。前日17時までにオンラインまたはお電話（0460-80-0290）でご予約ください。当日予約はお受けできません。",
+        a: "はい、事前予約制です。前日17時までにオンラインまたはお電話（0460-80-0290）でご予約ください。当日に空き枠があればご案内も可能ですが、ご予約者様優先となります。",
       },
       {
         q: "何時から何時まで預けられますか？",
@@ -30,7 +31,7 @@ const faqCategories = [
       },
       {
         q: "キャンセルはできますか？",
-        a: "キャンセルは可能です。Air Reserve（予約システム）上からお手続きいただけます。前日までのキャンセルはキャンセル料がかかりません。当日キャンセルはキャンセル料が発生する場合がございます。ご不明な点はお電話（0460-80-0290）またはメール（info@dog-hub.shop）でお問い合わせください。",
+        a: "キャンセルは可能です。前日キャンセルは予約日数の50%、当日キャンセルは予約日数の100%のキャンセル料が発生いたします。なお、ペットの体調不良・ケガ・病気、飼い主様の病気、台風や大雪などの場合はキャンセル料をいただかない場合もございます。キャンセル・変更の際はできるだけ速やかにご連絡ください。お電話（0460-80-0290）またはメール（info@dog-hub.shop）でお問い合わせいただけます。",
       },
       {
         q: "定休日はいつですか？",
@@ -97,7 +98,7 @@ const faqCategories = [
       },
       {
         q: "駐車場はありますか？",
-        a: "はい、店舗前に無料駐車場をご用意しています。",
+        a: "はい、店舗横に2台分、その手前に1台分の計3台分の無料駐車場をご用意しています。当店の案内看板がございますので、看板をご確認の上、駐車をお願いいたします。なお、店舗前の駐車場は当店の駐車場ではございませんのでご注意ください。",
       },
       {
         q: "カフェも併設していると聞きましたが？",
@@ -149,13 +150,12 @@ export default function FaqPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-064.jpg"
+            src="/images/img-067.jpg"
             alt="よくある質問"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ よくある質問</p>
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>よくある質問</h1>
           </div>
         </div>

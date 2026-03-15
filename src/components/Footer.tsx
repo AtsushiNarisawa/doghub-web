@@ -26,7 +26,7 @@ export function Footer() {
               <a href="mailto:info@dog-hub.shop" className="block text-[#8F7B65] hover:text-[#3C200F] transition-colors">
                 info@dog-hub.shop
               </a>
-              <p className="text-[#8F7B65]">神奈川県足柄下郡箱根町仙石原928-15（1）</p>
+              <p className="text-[#8F7B65]">神奈川県足柄下郡箱根町仙石原928-15</p>
               <p className="text-[#8F7B65]">
                 ドッグホテル営業時間：午前9時〜午後5時<br />
                 カフェ営業時間：午前11時〜午後5時<br />

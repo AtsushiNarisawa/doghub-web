@@ -3,12 +3,12 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
-import { FaqAccordion } from "@/components/faq-accordion";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: "ご利用ガイド・ご予約方法｜DogHub箱根仙石原 ペットホテル",
   description: "DogHub箱根仙石原のご利用ガイド。ご予約方法・必要なもの・料金プラン・注意事項・よくある質問をまとめています。",
+  alternates: { canonical: "/guide" },
 };
 
 const steps = [
@@ -71,24 +71,6 @@ const precautions = [
   "表示料金は全て税込価格です。",
 ];
 
-const faqs = [
-  {
-    q: "ペットホテルを利用する際、事前に何か準備が必要ですか?",
-    a: "ペットホテルを利用する際は、1年以内のワクチン接種や狂犬病予防接種の証明書が必要です。ただし、健康面などのご事情により接種が難しい場合には予約の際に、備考欄にその旨を記載お願いいたします。必要に応じてご連絡させていただきます。また、ご利用当日に普段の食事や習慣、健康状態などのお話をお伺いさせていただきます。",
-  },
-  { q: "わんちゃんの年齢制限はありますか?", a: "特に年齢制限は設けておりませんが、体調やワクチン接種状況によりお断りする場合がございます。ご不明な点はお問い合わせください。" },
-  { q: "ペットホテルでは、犬種や体重による預かり制限はありますか?", a: "基本的に体重15kgまでのわんちゃんをお預かりしております。ただし、落ち着きのある犬種であれば若干のオーバーでも受け入れ可能な場合がございます。15kg以上の場合は仮予約となり、24時間以内にスタッフよりご連絡いたします。" },
-  { q: "ワクチン接種をしていないわんちゃんも預かってもらえますか？", a: "ワクチン未接種のわんちゃんはお預かりできない場合があります。健康上の理由で接種が困難な場合はご予約時の備考欄にご記載ください。" },
-  { q: "宿泊のチェックアウト時間の延長は可能ですか？", a: "チェックアウト時間の延長は追加料金（¥1,100/時間）にて承ります。事前にご相談ください。" },
-  { q: "宿泊のチェックインが19時などと受付時間を過ぎてしまいそうなのですが・・・", a: "営業時間外のお預かりは別途時間料金（¥1,100/時間）が発生いたします。事前にご連絡いただければ対応可能な場合がございます。" },
-  { q: "ペットホテルに預ける際、持参するものはありますか?", a: "ワクチン証明書・身分証明書・首輪・リード・普段のフード（必要日数分）が必須です。その他、お気に入りのおもちゃや毛布なども持ち込み可能です。" },
-  { q: "ペットホテルの予約はどのように行えばよいですか?", a: "オンライン予約フォームよりご予約ください。お急ぎの場合はお電話（0460-80-0290）でも承ります。" },
-  { q: "予約無しで当日に行っても、利用可能でしょうか?", a: "空き状況によっては当日のご利用が可能な場合もございますが、ご予約のうえご来店いただくことを推奨しております。" },
-  { q: "お部屋のサイズを教えてください。", a: "完全個室にてお預かりしております。詳しいサイズはお問い合わせください。" },
-  { q: "予約キャンセルについて", a: "キャンセルはAir Reserve（予約システム）上からお手続きいただけます。前日までのキャンセルはキャンセル料がかかりません。当日キャンセルはキャンセル料が発生する場合がございます。" },
-  { q: "ペットホテルでは、遊び場はありますか?", a: "専用のドッグランを併設しており、お預かり中は朝・夕の2回以上、ドッグランで遊んでいただきます。屋根付きエリアもございます。" },
-  { q: "ペットホテルでは、預かり期間に制限はありますか?", a: "特に制限はございません。長期のお預かりも承っておりますので、まずはご相談ください。" },
-];
 
 export default function GuidePage() {
   return (
@@ -99,13 +81,12 @@ export default function GuidePage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-078.jpg"
+            src="/images/img-018.jpg"
             alt="はじめてガイド"
             className="w-full object-cover"
             style={{ height: "clamp(140px, 18vw, 249px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ はじめてガイド</p>
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>はじめての方へ</h1>
           </div>
         </div>
@@ -124,13 +105,12 @@ export default function GuidePage() {
           <div className="max-w-7xl mx-auto px-3 sm:px-6">
             <div className="flex overflow-x-auto gap-0 -mx-1">
               {[
-                { label: "ご利用の流れ", id: "flow" },
                 { label: "必要なもの", id: "items" },
-                { label: "料金・プラン", id: "pricing" },
+                { label: "料金・プラン", href: "/service" },
                 { label: "注意事項", id: "precautions" },
-                { label: "よくある質問", id: "faq" },
+                { label: "よくある質問", href: "/faq" },
               ].map((tab) => (
-                <a key={tab.id} href={`#${tab.id}`} className="flex-shrink-0 px-3 sm:px-4 py-4 text-[#3C200F] border-b-2 border-transparent hover:border-[#B87942] whitespace-nowrap min-h-11" style={{ fontSize: "clamp(13px, 3vw, 18px)", fontWeight: 400 }}>
+                <a key={tab.id ?? tab.href} href={tab.href ?? `#${tab.id}`} className="flex-shrink-0 px-3 sm:px-4 py-4 text-[#3C200F] border-b-2 border-transparent hover:border-[#B87942] whitespace-nowrap min-h-11" style={{ fontSize: "clamp(13px, 3vw, 18px)", fontWeight: 400 }}>
                   {tab.label}
                 </a>
               ))}
@@ -233,60 +213,20 @@ export default function GuidePage() {
           </div>
         </section>
 
-        {/* 料金・プラン */}
-        <section id="pricing" className="py-16 px-6 bg-[#F7F7F7] scroll-mt-[140px]">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "26px", fontWeight: 400 }}>料金・プラン</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-white p-8">
-                <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "22px", fontWeight: 400 }}>一時預かり</h3>
-                <p className="text-[#3C200F] mb-4" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
-                  旅行プランの中に組み合わせて、箱根旅行をもっと自由に。
-                </p>
-                <p className="text-[#3C200F] mb-4" style={{ fontSize: "18px", fontWeight: 400, lineHeight: "2" }}>
-                  1日：¥5,500/8時間（早朝・通常プラン）<br />
-                  半日：¥3,300/4時間<br />
-                  スポット：¥1,100/1時間
-                </p>
-                <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400, lineHeight: "1.8" }}>
-                  通常プランのお預かり時間：午前9時〜午後5時<br />
-                  早朝プランのお預かり時間：午前7時〜午後3時<br />
-                  お預かり最終受付：15時<br />
-                  お引き取り最終：17時
-                </p>
-              </div>
-              <div className="bg-white p-8">
-                <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "22px", fontWeight: 400 }}>宿泊預かり</h3>
-                <p className="text-[#3C200F] mb-4" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
-                  愛犬と泊まれる宿に空きがない。宿泊する宿は愛犬と泊まれないそんな時に。
-                </p>
-                <p className="text-[#3C200F] mb-4" style={{ fontSize: "18px", fontWeight: 400, lineHeight: "2" }}>
-                  1泊：¥7,700-<br />
-                  追加1時間あたり：¥1,100-
-                </p>
-                <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400, lineHeight: "1.8" }}>
-                  チェックイン：14時〜17時<br />
-                  チェックアウト：9時〜11時
-                </p>
-              </div>
-            </div>
-            <div className="mt-6 bg-white p-6">
-              <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "18px", fontWeight: 400 }}>オプション</h3>
-              <div className="grid sm:grid-cols-3 gap-4 text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>
-                <p>お散歩：¥550-/1回</p>
-                <p>わんちゃんグッズ販売：¥550〜</p>
-                <p>ご飯やおやつ販売：¥220〜</p>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-center">
-              <a
-                href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
-                style={{ fontSize: "18px", fontWeight: 400 }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> ご予約はこちら
-              </a>
-            </div>
+        {/* 料金・プランへのリンク */}
+        <section className="py-12 px-6 bg-[#F7F7F7]">
+          <div className="max-w-7xl mx-auto text-center">
+            <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400 }}>料金・プラン</h2>
+            <p className="text-[#8F7B65] mb-6" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
+              半日お預かり ¥3,300〜 ／ 1日お預かり ¥5,500〜 ／ 宿泊 ¥7,700〜
+            </p>
+            <Link
+              href="/service"
+              className="text-[#3C200F] hover:text-[#B87942] transition-colors group border-b border-[#3C200F] pb-1"
+              style={{ fontSize: "16px", fontWeight: 400 }}
+            >
+              料金・サービスの詳細はこちら <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+            </Link>
           </div>
         </section>
 
@@ -322,18 +262,20 @@ export default function GuidePage() {
           </div>
         </section>
 
-        {/* FAQ */}
-        <section id="faq" className="py-16 px-6 bg-[#F7F7F7] scroll-mt-[140px]">
-          <div className="max-w-7xl mx-auto">
+        {/* FAQへのリンク */}
+        <section className="py-12 px-6 bg-[#F7F7F7]">
+          <div className="max-w-7xl mx-auto text-center">
             <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400 }}>よくある質問</h2>
-            <p className="text-[#8F7B65] mb-10" style={{ fontSize: "16px", fontWeight: 400 }}>ご利用について</p>
-            <FaqAccordion faqs={faqs} />
-            <div className="mt-8 text-center">
-              <Link href="/faq" className="inline-flex items-center gap-2 text-[#3C200F] hover:text-[#B87942] transition-colors group" style={{ fontSize: "16px", fontWeight: 400 }}>
-                <span>すべてのよくある質問を見る</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
-              </Link>
-            </div>
+            <p className="text-[#8F7B65] mb-6" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
+              予約方法、持ち物、料金、犬種制限など、よくいただくご質問をまとめています。
+            </p>
+            <Link
+              href="/faq"
+              className="text-[#3C200F] hover:text-[#B87942] transition-colors group border-b border-[#3C200F] pb-1"
+              style={{ fontSize: "16px", fontWeight: 400 }}
+            >
+              よくある質問を見る <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+            </Link>
           </div>
         </section>
 

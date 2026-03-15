@@ -59,9 +59,21 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
           <p className="text-[12px] text-[#B87942]">早朝プラン</p>
         )}
         {form.plan === "stay" && form.checkout_date && (
-          <p className="text-sm">
-            チェックアウト: {formatDate(form.checkout_date)}（{stayNights}泊）/ 9:00〜11:00
-          </p>
+          <>
+            <p className="text-sm">
+              チェックアウト: {formatDate(form.checkout_date)}（{stayNights}泊）/ 9:00〜11:00
+            </p>
+            {form.checkin_extension && form.checkin_extension_from && (
+              <p className="text-[12px] text-[#B87942]">
+                早預かり: {form.checkin_extension_from}〜チェックイン（¥1,100/時間）
+              </p>
+            )}
+            {form.checkout_extension && form.checkout_extension_until && (
+              <p className="text-[12px] text-[#B87942]">
+                延長預かり: チェックアウト後〜{form.checkout_extension_until}（¥1,100/時間）
+              </p>
+            )}
+          </>
         )}
         {form.destination && (
           <p className="text-sm text-[#888]">行き先: {form.destination}</p>
@@ -80,8 +92,13 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
               {dog.name}（{dog.breed}）
             </p>
             <p className="text-sm text-[#888]">
-              {dog.weight}kg / {dog.age}歳 / {dog.sex === "male" ? "オス" : "メス"} /
-              {dog.neutered ? " 去勢・避妊済み" : " 未去勢・未避妊"}
+              {dog.weight}kg /
+              {dog.age === "0" && dog.age_months ? ` ${dog.age_months}ヶ月` : ` ${dog.age}歳`} /
+              {dog.sex === "male" ? " オス" : " メス"}
+            </p>
+            <p className="text-[12px] text-[#888]">
+              狂犬病ワクチン: {dog.has_rabies_vaccine ? "接種済み" : "未接種"} /
+              混合ワクチン: {dog.has_mixed_vaccine ? "接種済み" : "未接種"}
             </p>
             {dog.allergies && (
               <p className="text-sm text-[#888]">アレルギー: {dog.allergies}</p>
@@ -175,10 +192,11 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
       <div className="p-4 rounded-xl border border-[#E5DDD8] text-sm space-y-2">
         <h3 className="font-medium">キャンセルポリシー</h3>
         <ul className="text-[#888] space-y-1 text-[13px]">
-          <li>3日前まで：無料</li>
-          <li>前日：料金の50%</li>
-          <li>当日・無断キャンセル：料金の100%</li>
+          <li>前日キャンセル：予約日数の50%</li>
+          <li>当日キャンセル：予約日数の100%</li>
         </ul>
+        <p className="text-[#888] text-[12px] mt-1">※ペットの体調不良・ケガ・病気、飼い主様の病気、台風や大雪などの場合はキャンセル料をいただかない場合もございます。</p>
+        <p className="text-[#888] text-[12px]">※キャンセル・変更の際はできるだけ速やかにご連絡ください。</p>
       </div>
 
       {/* 同意チェック */}

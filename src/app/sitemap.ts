@@ -25,6 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/onsen`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/museum`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/ryokan`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/pethotel`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/dogrun`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/guide/hakone-dog`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/guide/pet-hotel-tips`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },

@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
   description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。ユネッサンや温泉、美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐・ドッグラン併設。",
+  alternates: { canonical: "/4h" },
 };
 
 const scenes = [
@@ -26,6 +27,16 @@ const scenes = [
     title: "美術館めぐりの間に",
     body: "ポーラ美術館、箱根ガラスの森美術館、箱根ラリック美術館はDogHubから車で2〜4分。美術館を楽しんだ後にすぐお迎えに来られる距離です。",
     keyword: "箱根 美術館 犬",
+  },
+  {
+    title: "宿泊プランの前後に組み合わせ",
+    body: "宿泊のチェックアウト（11時）後、午後までもう少し預けたい場合、超過料金での延長も可能ですが、半日プランを組み合わせた方がお得になる場合があります。チェックイン（14時）前に朝から預けたい場合も同様です。",
+    keyword: "",
+  },
+  {
+    title: "ペット可の宿に泊まりながら、日中だけお預け",
+    body: "レジーナリゾート箱根仙石原などペット可の施設に泊まっていても、チェックイン前やチェックアウト後に美術館・温泉・ユネッサンなどを楽しみたい方は多くいらっしゃいます。近隣のペット可宿泊施設からもDogHubをご案内いただいており、「日中だけ預けたい」というご利用にぴったりです。",
+    keyword: "",
   },
   {
     title: "ちょっとした用事の間に",
@@ -66,11 +77,10 @@ export default function FourHourPage() {
           <img
             src="/images/img-020.jpg"
             alt="DogHub箱根仙石原 半日お預かり"
-            className="w-full object-cover"
+            className="w-full object-cover object-top"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ 半日お預かり</p>
             <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>半日お預かりプラン</h1>
           </div>
         </div>
@@ -115,8 +125,7 @@ export default function FourHourPage() {
                     <p>通常プラン：9時〜17時</p>
                     <p>早朝プラン：7時〜15時</p>
                     <p>お預かり最終受付：15時 ／ お引き取り最終：17時</p>
-                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※早朝プランは事前にご連絡お願いします。</p>
-                    <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
+                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
                   </div>
                 </div>
 

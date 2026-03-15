@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { fetchSiteSettings } from "@/lib/site-settings";
 
 interface CapacityRow {
   date: string;
@@ -21,6 +22,11 @@ export default function CapacityPage() {
   const [editForm, setEditForm] = useState({ stay_limit: 10, day_limit: 9, closed: false, note: "" });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [closedWeekdays, setClosedWeekdays] = useState<number[]>([3, 4]);
+
+  useEffect(() => {
+    fetchSiteSettings().then((s) => setClosedWeekdays(s.closedWeekdays));
+  }, []);
 
   useEffect(() => {
     fetchMonth();
@@ -134,7 +140,7 @@ export default function CapacityPage() {
       <div className="bg-white rounded-xl p-3">
         <div className="grid grid-cols-7 mb-2">
           {["日", "月", "火", "水", "木", "金", "土"].map((d, i) => (
-            <div key={d} className={`text-center text-[11px] font-medium py-1 ${
+            <div key={d} className={`text-center text-xs font-medium py-1 ${
               i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"
             }`}>{d}</div>
           ))}
@@ -156,10 +162,10 @@ export default function CapacityPage() {
                 <button
                   key={i}
                   onClick={() => selectDate(dateStr)}
-                  className={`aspect-square rounded-lg border flex flex-col items-center justify-center text-[12px] transition-all ${
+                  className={`aspect-square rounded-lg border flex flex-col items-center justify-center text-xs transition-all ${
                     isSelected
                       ? "ring-2 ring-[#B87942] bg-[#B87942]/5"
-                      : d?.closed || dayOfWeek === 3 || dayOfWeek === 4
+                      : d?.closed || closedWeekdays.includes(dayOfWeek)
                         ? "bg-gray-50 text-gray-300"
                         : "bg-white active:bg-gray-50"
                   }`}
@@ -168,7 +174,7 @@ export default function CapacityPage() {
                     dayOfWeek === 0 ? "text-red-500" : dayOfWeek === 6 ? "text-blue-500" : ""
                   }>{day}</span>
                   {d && !d.closed && (
-                    <span className="text-[8px] text-gray-400">
+                    <span className="text-[10px] text-gray-400">
                       {d.day_limit}/{d.stay_limit}
                     </span>
                   )}

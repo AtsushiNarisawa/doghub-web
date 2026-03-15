@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Script from "next/script";
 import { Noto_Sans_JP, DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { MobileCta } from "@/components/mobile-cta";
 import { JsonLd } from "@/components/json-ld";
+import { GtmPageView } from "@/components/gtm-page-view";
 
 const GTM_ID = "GTM-NMCHVJ7K";
 
@@ -90,6 +92,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           />
         </noscript>
         <JsonLd />
+        <Suspense fallback={null}>
+          <GtmPageView />
+        </Suspense>
         {children}
         <MobileCta />
         <ScrollToTop />

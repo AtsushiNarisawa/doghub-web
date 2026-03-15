@@ -65,12 +65,25 @@ export default function BookingPage() {
           <p className="text-sm text-[#888]">
             ワクチン証明書を当日ご持参ください。
           </p>
-          <Link
-            href="/"
-            className="inline-block mt-4 px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
-          >
-            トップページへ戻る
-          </Link>
+          <div className="flex flex-col gap-3 mt-4">
+            <button
+              onClick={() => {
+                setResult(null);
+                setStep(1);
+                setForm({ ...INITIAL_FORM });
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="w-full px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
+            >
+              続けて予約する
+            </button>
+            <Link
+              href="/"
+              className="w-full px-8 py-3 border border-[#E5DDD8] text-[#888] rounded-xl text-sm font-medium text-center"
+            >
+              ホームページへ戻る
+            </Link>
+          </div>
         </div>
       </div>
     );

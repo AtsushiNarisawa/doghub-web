@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "箱根 犬連れ 完全ガイド｜愛犬と楽しむ箱根旅行の過ごし方｜DogHub箱根仙石原",
   description: "箱根に犬連れで旅行する方のための完全ガイド。犬と一緒に行ける観光スポット、ペット不可施設での過ごし方、犬連れにおすすめのエリア、持ち物チェックリストまで。DogHub箱根仙石原が解説。",
+  alternates: { canonical: "/guide/hakone-dog" },
 };
 
 const dogFriendlySpots = [
@@ -49,7 +50,6 @@ export default function HakoneDogGuidePage() {
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
-            <p className="text-sm mb-2 opacity-80">/ 箱根 犬連れガイド</p>
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               箱根 犬連れ 完全ガイド
             </h1>

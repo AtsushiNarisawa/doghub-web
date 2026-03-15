@@ -9,6 +9,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "ユネッサン × ペット預かり｜箱根小涌園の間に愛犬をお預け｜DogHub箱根仙石原",
   description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。半日4時間¥3,300でユネッサンを満喫。24時間スタッフ常駐・完全個室・ドッグラン併設のペットホテル。",
+  alternates: { canonical: "/yunessun" },
 };
 
 export default function YunessunPage() {
@@ -20,13 +21,12 @@ export default function YunessunPage() {
         {/* Hero */}
         <div className="relative">
           <img
-            src="/images/img-020.jpg"
+            src="/images/img-050.jpg"
             alt="ユネッサン × ペット預かり"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ ユネッサン × ペット預かり</p>
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               ユネッサンを楽しむ間、愛犬をお預け
             </h1>
@@ -57,9 +57,9 @@ export default function YunessunPage() {
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   DogHub箱根仙石原はユネッサンから車で約15分。
-                  半日お預かりプラン（4時間 ¥3,300）でユネッサンを満喫して、
-                  お迎え後は愛犬と一緒に仙石原のすすき草原をお散歩。
-                  わんちゃんも飼い主様も大満足の箱根旅行が実現します。
+                  ユネッサンの温泉プールだけなら半日プラン（4時間 ¥3,300）、
+                  隣接する森の湯もセットで楽しむなら1日プラン（8時間 ¥5,500）がおすすめ。
+                  ほとんどのお客様がユネッサンと森の湯をセットで楽しまれています。
                 </p>
 
                 <div className="bg-[#F7F7F7] p-8 mb-8">
@@ -68,12 +68,12 @@ export default function YunessunPage() {
                     <div className="pb-3 border-b border-[#E5DDD8]">
                       <p className="text-[#B87942]" style={{ fontSize: "14px" }}>半日お預かり（4時間）</p>
                       <p style={{ fontSize: "24px" }}>¥3,300</p>
-                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサンだけなら半日プランで十分</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサンの温泉プールだけなら半日プラン</p>
                     </div>
                     <div>
                       <p className="text-[#B87942]" style={{ fontSize: "14px" }}>1日お預かり（8時間）</p>
                       <p style={{ fontSize: "24px" }}>¥5,500</p>
-                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサン + 美術館を巡るなら1日プラン</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサン + 森の湯をセットで楽しむなら1日プラン</p>
                     </div>
                   </div>
                   <p className="text-[#8F7B65] mt-3" style={{ fontSize: "13px" }}>※表示料金はすべて税込です。</p>
@@ -111,25 +111,25 @@ export default function YunessunPage() {
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>ユネッサン × DogHubのモデルケース</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="bg-white border border-[#E5DDD8] p-8">
-                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>日帰りユネッサンプラン</h3>
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>ユネッサン温泉プールプラン</h3>
                 <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>半日お預かり（4時間）¥3,300</p>
                 <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                   <p>9:00 DogHubにお預け</p>
                   <p>9:20 ユネッサン到着（車で約15分）</p>
-                  <p>9:30 ユネッサン入場・温泉を満喫</p>
+                  <p>9:30 ユネッサン入場・温泉プールを満喫</p>
                   <p>12:30 ユネッサン退場・ランチ</p>
                   <p>13:00 DogHubでお迎え</p>
                   <p>13:30 愛犬とすすき草原を散策</p>
                 </div>
               </div>
               <div className="bg-white border border-[#E5DDD8] p-8">
-                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>ユネッサン + 美術館欲張りプラン</h3>
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>ユネッサン + 森の湯セットプラン</h3>
                 <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>1日お預かり（8時間）¥5,500</p>
                 <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                   <p>9:00 DogHubにお預け</p>
-                  <p>9:20 ユネッサンで遊ぶ</p>
-                  <p>13:00 ランチ</p>
-                  <p>14:00 ポーラ美術館（DogHubから車4分）</p>
+                  <p>9:20 ユネッサン到着・温泉プールで遊ぶ</p>
+                  <p>12:30 ランチ</p>
+                  <p>13:30 森の湯でゆっくり温泉</p>
                   <p>16:00 DogHubでお迎え</p>
                   <p>16:30 愛犬とカフェでおやつ</p>
                 </div>
@@ -161,7 +161,7 @@ export default function YunessunPage() {
         <section className="py-16 px-6 bg-[#F7F7F7] border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根でこんな過ごし方も</h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Link href="/onsen" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>温泉 × ペット預かり</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>日帰り温泉を満喫</p>
@@ -175,6 +175,11 @@ export default function YunessunPage() {
               <Link href="/golf" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ゴルフ × ペットホテル</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>早朝7時からお預かり</p>
+                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+              <Link href="/pethotel" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ペット可ホテル × 日中預かり</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>チェックイン前後の観光に</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
             </div>

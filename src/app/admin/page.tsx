@@ -14,6 +14,7 @@ interface ReservationRow {
   walk_option: boolean;
   notes: string | null;
   customers: {
+    id: string;
     last_name: string;
     first_name: string;
     phone: string;
@@ -23,6 +24,9 @@ interface ReservationRow {
       name: string;
       breed: string;
       weight: number;
+      allergies: string | null;
+      meal_notes: string | null;
+      medication_notes: string | null;
     };
   }[];
 }
@@ -35,6 +39,7 @@ interface CapacityRow {
 }
 
 const PLAN_LABELS: Record<string, string> = {
+  spot: "スポット",
   "4h": "半日",
   "8h": "1日",
   stay: "宿泊",
@@ -68,8 +73,8 @@ export default function AdminDashboard() {
       .from("reservations")
       .select(`
         id, plan, date, checkin_time, checkout_date, status, walk_option, notes,
-        customers!inner(last_name, first_name, phone),
-        reservation_dogs(dogs(name, breed, weight))
+        customers!inner(id, last_name, first_name, phone),
+        reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
       `)
       .eq("date", selectedDate)
       .neq("status", "cancelled")
@@ -119,7 +124,7 @@ export default function AdminDashboard() {
             <p className="text-sm font-medium text-orange-700">
               確認待ちの予約があります
             </p>
-            <p className="text-[12px] text-orange-600">{pendingCount}件</p>
+            <p className="text-xs text-orange-600">{pendingCount}件</p>
           </div>
           <Link
             href="/admin/calendar"
@@ -134,7 +139,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between bg-white rounded-xl p-3">
         <button
           onClick={() => changeDate(-1)}
-          className="p-2 rounded-lg active:bg-gray-100"
+          className="p-3 rounded-lg active:bg-gray-100"
         >
           <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -142,11 +147,11 @@ export default function AdminDashboard() {
         </button>
         <div className="text-center">
           <p className="font-medium">{formatDate(selectedDate)}</p>
-          {isToday && <p className="text-[11px] text-[#B87942]">今日</p>}
+          {isToday && <p className="text-xs text-[#B87942]">今日</p>}
         </div>
         <button
           onClick={() => changeDate(1)}
-          className="p-2 rounded-lg active:bg-gray-100"
+          className="p-3 rounded-lg active:bg-gray-100"
         >
           <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -158,7 +163,7 @@ export default function AdminDashboard() {
       {capacity && (
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl p-3">
-            <p className="text-[11px] text-gray-500 mb-1">日帰り</p>
+            <p className="text-xs text-gray-500 mb-1">日帰り</p>
             <div className="flex items-end gap-1">
               <span className="text-2xl font-medium font-dm">
                 {capacity.day_booked}
@@ -183,7 +188,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="bg-white rounded-xl p-3">
-            <p className="text-[11px] text-gray-500 mb-1">宿泊</p>
+            <p className="text-xs text-gray-500 mb-1">宿泊</p>
             <div className="flex items-end gap-1">
               <span className="text-2xl font-medium font-dm">
                 {capacity.stay_booked}
@@ -244,25 +249,42 @@ export default function AdminDashboard() {
                         {PLAN_LABELS[r.plan] || r.plan}
                       </span>
                     </div>
-                    <span
-                      className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${statusInfo.color}`}
-                    >
-                      {statusInfo.label}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {dogs.some((d) => d.allergies || d.medication_notes) && (
+                        <span className="text-xs text-red-500 font-medium">⚠️</span>
+                      )}
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusInfo.color}`}>
+                        {statusInfo.label}
+                      </span>
+                    </div>
                   </div>
                   <p className="text-sm font-medium">
                     {customer.last_name} {customer.first_name} 様
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {dogs.map((dog, i) => (
-                      <span key={i} className="text-[12px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+                      <span key={i} className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
                         {dog.name}（{dog.breed} / {dog.weight}kg）
                       </span>
                     ))}
                   </div>
+                  {dogs.some((d) => d.allergies) && (
+                    <div className="mt-2 px-2 py-1.5 bg-red-50 rounded-lg">
+                      {dogs.filter((d) => d.allergies).map((d, i) => (
+                        <p key={i} className="text-xs text-red-600">⚠️ {d.name}: {d.allergies}</p>
+                      ))}
+                    </div>
+                  )}
+                  {dogs.some((d) => d.medication_notes) && (
+                    <div className="mt-1 px-2 py-1.5 bg-purple-50 rounded-lg">
+                      {dogs.filter((d) => d.medication_notes).map((d, i) => (
+                        <p key={i} className="text-xs text-purple-700">💊 {d.name}: {d.medication_notes}</p>
+                      ))}
+                    </div>
+                  )}
                   {r.walk_option && (
-                    <span className="text-[11px] text-blue-600 mt-1 inline-block">
-                      散歩オプション
+                    <span className="text-xs text-blue-600 mt-1 inline-block">
+                      🦮 散歩オプション
                     </span>
                   )}
                 </Link>

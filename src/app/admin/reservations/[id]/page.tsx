@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 interface Reservation {
@@ -39,7 +40,8 @@ interface Reservation {
       age: number | null;
       sex: string;
       neutered: boolean;
-      vaccine_expires_at: string | null;
+      rabies_vaccine_expires_at: string | null;
+      mixed_vaccine_expires_at: string | null;
       allergies: string | null;
       meal_notes: string | null;
       medication_notes: string | null;
@@ -47,7 +49,7 @@ interface Reservation {
   }[];
 }
 
-const PLAN_LABELS: Record<string, string> = { "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
+const PLAN_LABELS: Record<string, string> = { spot: "スポット（1時間〜）", "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
 const STATUS_OPTIONS = [
   { value: "confirmed", label: "確定", color: "bg-green-100 text-green-700" },
   { value: "pending", label: "確認待ち", color: "bg-orange-100 text-orange-700" },
@@ -146,7 +148,7 @@ export default function ReservationDetailPage() {
               key={opt.value}
               onClick={() => updateStatus(opt.value)}
               disabled={saving}
-              className={`py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`py-3 rounded-lg text-sm font-medium transition-all ${
                 res.status === opt.value
                   ? `${opt.color} ring-2 ring-offset-1 ring-gray-300`
                   : "bg-gray-50 text-gray-400 active:bg-gray-100"
@@ -199,29 +201,47 @@ export default function ReservationDetailPage() {
             <p className="text-gray-500">〒{customer.postal_code} {customer.address}</p>
           )}
         </div>
+        <Link
+          href={`/admin/customers/${customer.id}`}
+          className="block text-center text-sm text-[#B87942] py-2.5 border border-[#B87942] rounded-xl mt-3 active:bg-orange-50"
+        >
+          顧客詳細・予約履歴 →
+        </Link>
       </div>
 
       {/* ワンちゃん情報 */}
       {dogs.map((dog, i) => (
         <div key={i} className="bg-white rounded-xl p-4 space-y-2">
           <h3 className="text-sm font-medium text-gray-500">
-            {dogs.length > 1 ? `ワンちゃん ${i + 1}` : "ワンちゃん情報"}
+            🐾 {dogs.length > 1 ? `ワンちゃん ${i + 1}` : "ワンちゃん情報"}
           </h3>
           <div className="space-y-1 text-sm">
             <p className="font-medium">{dog.name}（{dog.breed}）</p>
             <p>
               <span className="text-gray-400">体重:</span> {dog.weight}kg
-              <span className="text-gray-400 ml-3">年齢:</span> {dog.age}歳
+              {dog.age != null && <><span className="text-gray-400 ml-3">年齢:</span> {dog.age}歳</>}
               <span className="text-gray-400 ml-3">{dog.sex === "male" ? "オス" : "メス"}</span>
               <span className="text-gray-400 ml-3">{dog.neutered ? "去勢済" : "未去勢"}</span>
             </p>
-            {dog.vaccine_expires_at && (
-              <p><span className="text-gray-400">ワクチン期限:</span> {dog.vaccine_expires_at}</p>
-            )}
-            {dog.allergies && <p><span className="text-gray-400">アレルギー:</span> {dog.allergies}</p>}
-            {dog.meal_notes && <p><span className="text-gray-400">食事:</span> {dog.meal_notes}</p>}
-            {dog.medication_notes && <p><span className="text-gray-400">投薬:</span> {dog.medication_notes}</p>}
           </div>
+          {dog.allergies && (
+            <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+              <p className="text-xs font-medium text-red-600 mb-1">⚠️ アレルギー・注意事項</p>
+              <p className="text-sm text-red-700">{dog.allergies}</p>
+            </div>
+          )}
+          {dog.meal_notes && (
+            <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3">
+              <p className="text-xs font-medium text-yellow-700 mb-1">🍚 食事メモ</p>
+              <p className="text-sm text-yellow-800">{dog.meal_notes}</p>
+            </div>
+          )}
+          {dog.medication_notes && (
+            <div className="bg-purple-50 border border-purple-100 rounded-lg p-3">
+              <p className="text-xs font-medium text-purple-700 mb-1">💊 投薬メモ</p>
+              <p className="text-sm text-purple-800">{dog.medication_notes}</p>
+            </div>
+          )}
         </div>
       ))}
 
@@ -238,7 +258,7 @@ export default function ReservationDetailPage() {
         <button
           onClick={saveAdminNotes}
           disabled={saving}
-          className="px-4 py-2 rounded-lg bg-gray-100 text-sm text-gray-700 active:bg-gray-200 disabled:opacity-50"
+          className="px-4 py-3 rounded-lg bg-gray-100 text-sm text-gray-700 active:bg-gray-200 disabled:opacity-50"
         >
           {saving ? "保存中..." : "メモを保存"}
         </button>

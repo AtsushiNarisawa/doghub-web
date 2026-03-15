@@ -9,9 +9,15 @@ export function DogHotel() {
             <p className="text-[#311908] mb-3" style={{ fontSize: "20px", fontWeight: 400 }}>Service 01</p>
             <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 400, letterSpacing: "1.6px" }}>DOG HOTEL</h2>
             <h3 className="text-[#311908] mb-6" style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 400, lineHeight: "1.6" }}>
-              一時預かりも、宿泊も対応できる<br />ドッグホテル
+              一時預かりも、宿泊も対応できるドッグホテル
             </h3>
             <p className="text-[#8F7B65] mb-4" style={{ fontSize: "16px", fontWeight: 400 }}>箱根町で唯一のドッグホテルとなります。</p>
+            <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
+              ケージにずっと入れておくのではなく、完全個室とドッグランで
+              わんちゃんにもリゾート気分を味わってもらう滞在を。
+              愛犬が楽しく過ごしている間、飼い主様はお好きな旅館やホテルへ。
+              「愛犬と泊まれる宿」に限定せず、箱根を自由に楽しめます。
+            </p>
             <p className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
               例えば、一時預かりで温泉と、愛犬と散策をしたり、
               宿泊プランで愛犬との旅行中にゴルフなどを楽しんだり。

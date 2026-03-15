@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
+import { sendBookingEmails } from "@/lib/email";
+import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "ワンちゃん情報が不足しています" }, { status: 400 });
     }
     const c = body.customer;
-    if (!c.last_name || !c.first_name || !c.phone || !c.email) {
+    if (!c.last_name || !c.first_name || !c.phone) {
       return NextResponse.json({ error: "お客様情報が不足しています" }, { status: 400 });
     }
 
@@ -48,13 +51,16 @@ export async function POST(req: NextRequest) {
           first_name_kana: c.first_name_kana,
           postal_code: c.postal_code || null,
           address: c.address || null,
+          ...(body.line_id ? { line_id: body.line_id } : {}),
         })
         .eq("id", customerId);
     } else {
-      // 新規顧客
-      const { data: newCustomer, error: customerError } = await supabase
+      // 新規顧客（UUIDを事前生成してSELECT不要にする）
+      const newCustomerId = randomUUID();
+      const { error: customerError } = await supabase
         .from("customers")
         .insert({
+          id: newCustomerId,
           phone: normalizedPhone,
           email: c.email,
           last_name: c.last_name,
@@ -63,15 +69,14 @@ export async function POST(req: NextRequest) {
           first_name_kana: c.first_name_kana,
           postal_code: c.postal_code || null,
           address: c.address || null,
-          source: "web",
-        })
-        .select("id")
-        .single();
+          source: body.line_id ? "line" : "web",
+          ...(body.line_id ? { line_id: body.line_id } : {}),
+        });
 
-      if (customerError || !newCustomer) {
+      if (customerError) {
         return NextResponse.json({ error: "顧客登録に失敗しました" }, { status: 500 });
       }
-      customerId = newCustomer.id;
+      customerId = newCustomerId;
     }
 
     // 2. 犬の upsert
@@ -84,9 +89,9 @@ export async function POST(req: NextRequest) {
           .update({
             weight: parseFloat(dog.weight),
             age: dog.age ? parseInt(dog.age) : null,
-            neutered: dog.neutered,
-            rabies_vaccine_expires_at: dog.rabies_vaccine_expires_at || null,
-            mixed_vaccine_expires_at: dog.mixed_vaccine_expires_at || null,
+            age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
+            has_rabies_vaccine: dog.has_rabies_vaccine,
+            has_mixed_vaccine: dog.has_mixed_vaccine,
             allergies: dog.allergies || null,
             meal_notes: dog.meal_notes || null,
             medication_notes: dog.medication_notes || null,
@@ -94,30 +99,30 @@ export async function POST(req: NextRequest) {
           .eq("id", dog.id);
         dogIds.push(dog.id);
       } else {
-        // 新規の犬
-        const { data: newDog, error: dogError } = await supabase
+        // 新規の犬（UUIDを事前生成してSELECT不要にする）
+        const dogId = randomUUID();
+        const { error: dogError } = await supabase
           .from("dogs")
           .insert({
+            id: dogId,
             customer_id: customerId,
             name: dog.name,
             breed: dog.breed,
             weight: parseFloat(dog.weight),
             age: dog.age ? parseInt(dog.age) : null,
+            age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
             sex: dog.sex as "male" | "female",
-            neutered: dog.neutered,
-            rabies_vaccine_expires_at: dog.rabies_vaccine_expires_at || null,
-            mixed_vaccine_expires_at: dog.mixed_vaccine_expires_at || null,
+            has_rabies_vaccine: dog.has_rabies_vaccine,
+            has_mixed_vaccine: dog.has_mixed_vaccine,
             allergies: dog.allergies || null,
             meal_notes: dog.meal_notes || null,
             medication_notes: dog.medication_notes || null,
-          })
-          .select("id")
-          .single();
+          });
 
-        if (dogError || !newDog) {
+        if (dogError) {
           return NextResponse.json({ error: "犬情報の登録に失敗しました" }, { status: 500 });
         }
-        dogIds.push(newDog.id);
+        dogIds.push(dogId);
       }
     }
 
@@ -125,10 +130,12 @@ export async function POST(req: NextRequest) {
     const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) >= 15);
     const status = hasHeavyDog ? "pending" : "confirmed";
 
-    // 4. 予約作成
-    const { data: reservation, error: reservationError } = await supabase
+    // 4. 予約作成（UUIDを事前生成してSELECT不要にする）
+    const reservationId = randomUUID();
+    const { error: reservationError } = await supabase
       .from("reservations")
       .insert({
+        id: reservationId,
         customer_id: customerId,
         plan: body.plan as "spot" | "4h" | "8h" | "stay",
         date: body.date,
@@ -139,15 +146,24 @@ export async function POST(req: NextRequest) {
         destination: body.destination || null,
         early_morning: body.early_morning || false,
         referral_source: body.referral_source || null,
-        notes: body.notes || null,
-        source: "web",
-      })
-      .select("id")
-      .single();
+        notes: [
+          body.notes || "",
+          body.checkin_extension && body.checkin_extension_from
+            ? `【早預かり】${body.checkin_extension_from}〜チェックイン`
+            : "",
+          body.checkout_extension && body.checkout_extension_until
+            ? `【延長預かり】チェックアウト後〜${body.checkout_extension_until}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n") || null,
+        source: (["web", "line", "phone", "walk_in"].includes(body.source as string) ? body.source : "web") as "web" | "line" | "phone" | "walk_in",
+      });
 
-    if (reservationError || !reservation) {
+    if (reservationError) {
       return NextResponse.json({ error: "予約登録に失敗しました" }, { status: 500 });
     }
+    const reservation = { id: reservationId };
 
     // 5. reservation_dogs 中間テーブル
     const rdInserts = dogIds.map((dogId) => ({
@@ -176,6 +192,32 @@ export async function POST(req: NextRequest) {
         date: body.date,
         [capacityColumn]: 1,
       });
+    }
+
+    // 7. メール送信（失敗しても予約自体は成功扱い）
+    try {
+      await sendBookingEmails(body, reservation.id, status);
+    } catch (err) {
+      console.error("Email send error:", err);
+    }
+
+    // 8. LINE通知（line_idがある場合のみ）
+    if (body.line_id) {
+      try {
+        await sendLinePushMessage(
+          body.line_id,
+          buildBookingConfirmMessage({
+            customerName: `${c.last_name} ${c.first_name}`,
+            plan: body.plan,
+            date: body.date,
+            checkinTime: body.checkin_time,
+            reservationId: reservationId,
+            status,
+          })
+        );
+      } catch (err) {
+        console.error("LINE push error:", err);
+      }
     }
 
     return NextResponse.json({

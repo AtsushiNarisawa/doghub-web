@@ -8,6 +8,7 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 export const metadata: Metadata = {
   title: "犬の一時預かり・宿泊サービス｜DogHub箱根仙石原 ペットホテル",
   description: "箱根仙石原のドッグホテル。一時預かり¥1,100〜/1時間・宿泊¥7,700〜。24時間スタッフ常駐、完全個室、ドッグラン併設。",
+  alternates: { canonical: "/service" },
 };
 
 const features = [
@@ -71,7 +72,6 @@ export default function ServicePage() {
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <p className="text-sm mb-2 opacity-80">/ お預かりサービス</p>
             <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>お預かりサービス</h1>
           </div>
         </div>
@@ -92,9 +92,8 @@ export default function ServicePage() {
               <div>
                 <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>DOG HOTEL</h2>
                 <h3 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 400, lineHeight: "1.6" }}>
-                  一時預かりも、宿泊も対応できる<br />ドッグホテル
+                  一時預かりも、宿泊も対応できるドッグホテル
                 </h3>
-                <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400 }}>箱根町で唯一のドッグホテル となります。</p>
                 <p className="text-[#3C200F] mb-2" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   箱根の山を登る間も一緒に過ごすことができます。
                 </p>
@@ -159,7 +158,6 @@ export default function ServicePage() {
                   <p>早朝プランのお預かり時間：午前7時〜午後3時</p>
                   <p>お預かり最終受付：15時</p>
                   <p>お引き取り最終：17時</p>
-                  <p className="mt-2">※早朝プランは事前にご連絡お願いします。</p>
                 </div>
                 <a
                   href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
@@ -223,15 +221,15 @@ export default function ServicePage() {
             <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400, letterSpacing: "1.6px" }}>OPTION MENU</h2>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "18px", fontWeight: 400 }}>オプション</p>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "14px", fontWeight: 400 }}>※一時預かり、宿泊をご利用時に追加可能</p>
-            <div className="grid sm:grid-cols-2 gap-8">
+            <div className="grid sm:grid-cols-2 gap-8 max-w-2xl">
               <div>
                 <img
                   src="/images/img-008.jpg"
                   alt="お散歩"
-                  className="w-full object-cover"
-                  style={{ maxWidth: "365px", height: "auto", aspectRatio: "365/259" }}
+                  className="w-full object-cover rounded"
+                  style={{ aspectRatio: "4/3" }}
                 />
-                <div className="mt-4">
+                <div className="mt-3">
                   <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "18px", fontWeight: 400 }}>お散歩</h3>
                   <p className="text-[#B87942]" style={{ fontSize: "16px", fontWeight: 400 }}>¥550-/1回</p>
                 </div>
@@ -240,10 +238,10 @@ export default function ServicePage() {
                 <img
                   src="/images/img-052.webp"
                   alt="わんちゃんが利用するおもちゃや食べ物"
-                  className="w-full object-cover"
-                  style={{ maxWidth: "366px", height: "auto", aspectRatio: "366/259" }}
+                  className="w-full object-cover rounded"
+                  style={{ aspectRatio: "4/3" }}
                 />
-                <div className="mt-4">
+                <div className="mt-3">
                   <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "18px", fontWeight: 400 }}>持ち物を忘れてしまった時に</h3>
                   <p className="text-[#B87942]" style={{ fontSize: "16px", fontWeight: 400 }}>¥220-</p>
                   <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>ご飯、おやつ、マナーウェアなども販売しています</p>
@@ -252,12 +250,12 @@ export default function ServicePage() {
             </div>
 
             {/* Goods promo */}
-            <div className="mt-12">
+            <div className="mt-12 max-w-2xl">
               <img
                 src="/images/img-057.jpg"
                 alt="DogHub箱根仙石原のグッズ一覧"
-                className="w-full object-cover"
-                style={{ maxWidth: "1164px", aspectRatio: "1164/244", margin: "0 auto" }}
+                className="w-full object-cover rounded"
+                style={{ aspectRatio: "16/4" }}
               />
               <div className="mt-6 text-center">
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "16px", fontWeight: 400 }}>わんちゃん向けのグッズ・雑貨なども販売中です</p>

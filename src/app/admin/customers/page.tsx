@@ -69,7 +69,7 @@ export default function CustomersPage() {
       </div>
 
       {/* 件数 */}
-      <p className="text-[12px] text-gray-400">
+      <p className="text-xs text-gray-400">
         {filtered.length}件の顧客
       </p>
 
@@ -93,11 +93,11 @@ export default function CustomersPage() {
                 <p className="font-medium text-sm">
                   {c.last_name} {c.first_name}
                 </p>
-                <span className="text-[11px] text-gray-400 font-dm">
+                <span className="text-xs text-gray-400 font-dm">
                   {c.reservations.length}回利用
                 </span>
               </div>
-              <p className="text-[12px] text-gray-500">
+              <p className="text-xs text-gray-500">
                 <a href={`tel:${c.phone}`} className="text-[#B87942]">
                   {c.phone}
                 </a>
@@ -105,7 +105,7 @@ export default function CustomersPage() {
               {c.dogs.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {c.dogs.map((dog, i) => (
-                    <span key={i} className="text-[11px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+                    <span key={i} className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
                       {dog.name}（{dog.breed}）
                     </span>
                   ))}
