@@ -62,6 +62,7 @@ export default function ReservationDetailPage() {
   const router = useRouter();
   const [res, setRes] = useState<Reservation | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [pastVisits, setPastVisits] = useState<{ id: string; date: string; plan: string; status: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -83,6 +84,18 @@ export default function ReservationDetailPage() {
     if (data) {
       setRes(data as unknown as Reservation);
       setAdminNotes(data.admin_notes || "");
+
+      // 過去の来店履歴を取得
+      const customerId = (data as unknown as Reservation).customers.id;
+      const { data: history } = await supabase
+        .from("reservations")
+        .select("id, date, plan, status")
+        .eq("customer_id", customerId)
+        .neq("id", id)
+        .in("status", ["confirmed", "completed"])
+        .order("date", { ascending: false })
+        .limit(10);
+      setPastVisits(history || []);
     }
     setLoading(false);
   };
@@ -151,8 +164,8 @@ export default function ReservationDetailPage() {
       {/* 確認待ち → 確定アクション */}
       {res.status === "pending" && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
-          <p className="text-sm font-medium text-orange-700">この予約は確認待ちです</p>
-          <p className="text-xs text-orange-600">内容を確認のうえ、確定またはキャンセルしてください。</p>
+          <p className="text-base font-medium text-orange-700">この予約は確認待ちです</p>
+          <p className="text-sm text-orange-600">内容を確認のうえ、確定またはキャンセルしてください。</p>
           <button
             type="button"
             onClick={() => updateStatus("confirmed")}
@@ -174,7 +187,7 @@ export default function ReservationDetailPage() {
 
       {/* ステータス変更 */}
       <div className="bg-white rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-medium text-gray-500">ステータス</h3>
+        <h3 className="text-base font-medium text-gray-500">ステータス</h3>
         <div className="grid grid-cols-2 gap-2">
           {STATUS_OPTIONS.map((opt) => (
             <button
@@ -184,7 +197,7 @@ export default function ReservationDetailPage() {
               className={`py-3 rounded-lg text-sm font-medium transition-all ${
                 res.status === opt.value
                   ? `${opt.color} ring-2 ring-offset-1 ring-gray-300`
-                  : "bg-gray-50 text-gray-400 active:bg-gray-100"
+                  : "bg-gray-50 text-gray-500 active:bg-gray-100"
               }`}
             >
               {opt.label}
@@ -195,32 +208,39 @@ export default function ReservationDetailPage() {
 
       {/* 予約情報 */}
       <div className="bg-white rounded-xl p-4 space-y-2">
-        <h3 className="text-sm font-medium text-gray-500">予約情報</h3>
+        <h3 className="text-base font-medium text-gray-500">予約情報</h3>
         <div className="space-y-1 text-sm">
-          <p><span className="text-gray-400 inline-block w-24">プラン</span>{PLAN_LABELS[res.plan]}</p>
-          <p><span className="text-gray-400 inline-block w-24">日付</span>{formatDate(res.date)}</p>
-          <p><span className="text-gray-400 inline-block w-24">チェックイン</span>{res.checkin_time.slice(0, 5)}</p>
+          <p><span className="text-gray-500 inline-block w-24">プラン</span>{PLAN_LABELS[res.plan]}</p>
+          <p><span className="text-gray-500 inline-block w-24">日付</span>{formatDate(res.date)}</p>
+          <p><span className="text-gray-500 inline-block w-24">チェックイン</span>{res.checkin_time.slice(0, 5)}</p>
           {res.checkout_date && (
-            <p><span className="text-gray-400 inline-block w-24">チェックアウト</span>{formatDate(res.checkout_date)}</p>
+            <p><span className="text-gray-500 inline-block w-24">チェックアウト</span>{formatDate(res.checkout_date)}</p>
           )}
-          <p><span className="text-gray-400 inline-block w-24">散歩</span>{res.walk_option ? "あり" : "なし"}</p>
-          <p><span className="text-gray-400 inline-block w-24">予約元</span>{res.source}</p>
+          <p><span className="text-gray-500 inline-block w-24">散歩</span>{res.walk_option ? "あり" : "なし"}</p>
+          <p><span className="text-gray-500 inline-block w-24">予約元</span>{res.source}</p>
           {res.referral_source && (
-            <p><span className="text-gray-400 inline-block w-24">きっかけ</span>{res.referral_source}</p>
+            <p><span className="text-gray-500 inline-block w-24">きっかけ</span>{res.referral_source}</p>
           )}
           {res.notes && (
-            <p><span className="text-gray-400 inline-block w-24">備考</span>{res.notes}</p>
+            <p><span className="text-gray-500 inline-block w-24">備考</span>{res.notes}</p>
           )}
         </div>
       </div>
 
       {/* お客様情報 */}
       <div className="bg-white rounded-xl p-4 space-y-2">
-        <h3 className="text-sm font-medium text-gray-500">お客様情報</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-medium text-gray-500">お客様情報</h3>
+          {pastVisits.length > 0 && (
+            <span className="text-sm px-2 py-1 rounded bg-blue-100 text-blue-700 font-medium">
+              リピーター（{pastVisits.length + 1}回目）
+            </span>
+          )}
+        </div>
         <div className="space-y-1 text-sm">
-          <p className="font-medium">
+          <p className="text-base font-medium">
             {customer.last_name} {customer.first_name}
-            <span className="text-gray-400 ml-2 font-normal">
+            <span className="text-gray-500 ml-2 font-normal text-sm">
               （{customer.last_name_kana} {customer.first_name_kana}）
             </span>
           </p>
@@ -234,6 +254,30 @@ export default function ReservationDetailPage() {
             <p className="text-gray-500">〒{customer.postal_code} {customer.address}</p>
           )}
         </div>
+
+        {/* 過去の来店履歴 */}
+        {pastVisits.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-sm font-medium text-gray-500 mb-2">過去の来店</p>
+            <div className="space-y-1.5">
+              {pastVisits.map((v) => {
+                const d = new Date(v.date + "T00:00:00");
+                const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}（${"日月火水木金土"[d.getDay()]}）`;
+                return (
+                  <Link
+                    key={v.id}
+                    href={`/admin/reservations/${v.id}`}
+                    className="flex items-center justify-between text-sm py-1.5 px-2 rounded-lg hover:bg-gray-50 active:bg-gray-100"
+                  >
+                    <span className="text-gray-700">{dateStr}</span>
+                    <span className="text-gray-500">{PLAN_LABELS[v.plan] || v.plan}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <Link
           href={`/admin/customers/${customer.id}`}
           className="block text-center text-sm text-[#B87942] py-2.5 border border-[#B87942] rounded-xl mt-3 active:bg-orange-50"
@@ -245,33 +289,33 @@ export default function ReservationDetailPage() {
       {/* ワンちゃん情報 */}
       {dogs.map((dog, i) => (
         <div key={i} className="bg-white rounded-xl p-4 space-y-2">
-          <h3 className="text-sm font-medium text-gray-500">
+          <h3 className="text-base font-medium text-gray-500">
             🐾 {dogs.length > 1 ? `ワンちゃん ${i + 1}` : "ワンちゃん情報"}
           </h3>
           <div className="space-y-1 text-sm">
-            <p className="font-medium">{dog.name}（{dog.breed}）</p>
+            <p className="text-base font-medium">{dog.name}（{dog.breed}）</p>
             <p>
-              <span className="text-gray-400">体重:</span> {dog.weight}kg
-              {dog.age != null && <><span className="text-gray-400 ml-3">年齢:</span> {dog.age}歳</>}
-              <span className="text-gray-400 ml-3">{dog.sex === "male" ? "オス" : "メス"}</span>
-              <span className="text-gray-400 ml-3">{dog.neutered ? "去勢済" : "未去勢"}</span>
+              <span className="text-gray-500">体重:</span> {dog.weight}kg
+              {dog.age != null && <><span className="text-gray-500 ml-3">年齢:</span> {dog.age}歳</>}
+              <span className="text-gray-500 ml-3">{dog.sex === "male" ? "オス" : "メス"}</span>
+              <span className="text-gray-500 ml-3">{dog.neutered ? "去勢済" : "未去勢"}</span>
             </p>
           </div>
           {dog.allergies && (
             <div className="bg-red-50 border border-red-100 rounded-lg p-3">
-              <p className="text-xs font-medium text-red-600 mb-1">⚠️ アレルギー・注意事項</p>
+              <p className="text-sm font-medium text-red-600 mb-1">⚠️ アレルギー・注意事項</p>
               <p className="text-sm text-red-700">{dog.allergies}</p>
             </div>
           )}
           {dog.meal_notes && (
             <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3">
-              <p className="text-xs font-medium text-yellow-700 mb-1">🍚 食事メモ</p>
+              <p className="text-sm font-medium text-yellow-700 mb-1">🍚 食事メモ</p>
               <p className="text-sm text-yellow-800">{dog.meal_notes}</p>
             </div>
           )}
           {dog.medication_notes && (
             <div className="bg-purple-50 border border-purple-100 rounded-lg p-3">
-              <p className="text-xs font-medium text-purple-700 mb-1">💊 投薬メモ</p>
+              <p className="text-sm font-medium text-purple-700 mb-1">💊 投薬メモ</p>
               <p className="text-sm text-purple-800">{dog.medication_notes}</p>
             </div>
           )}
@@ -280,7 +324,7 @@ export default function ReservationDetailPage() {
 
       {/* スタッフメモ */}
       <div className="bg-white rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-medium text-gray-500">スタッフメモ</h3>
+        <h3 className="text-base font-medium text-gray-500">スタッフメモ</h3>
         <textarea
           value={adminNotes}
           onChange={(e) => setAdminNotes(e.target.value)}

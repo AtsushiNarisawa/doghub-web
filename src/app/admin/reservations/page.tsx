@@ -30,7 +30,7 @@ const PLAN_COLORS: Record<string, string> = {
 const STATUS_STYLES: Record<string, { label: string; bg: string }> = {
   confirmed: { label: "確定", bg: "bg-green-100 text-green-700" },
   pending: { label: "確認待ち", bg: "bg-orange-100 text-orange-700" },
-  cancelled: { label: "キャンセル", bg: "bg-gray-100 text-gray-400" },
+  cancelled: { label: "キャンセル", bg: "bg-gray-100 text-gray-500" },
   completed: { label: "完了", bg: "bg-blue-100 text-blue-700" },
 };
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -215,7 +215,7 @@ export default function ReservationsPage() {
           <button
             key={mode}
             onClick={() => setViewMode(mode)}
-            className={`flex-1 py-2 text-xs font-medium rounded-md transition-all ${
+            className={`flex-1 py-3 text-sm font-medium rounded-md transition-all ${
               viewMode === mode ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"
             }`}
           >
@@ -233,8 +233,8 @@ export default function ReservationsPage() {
             </svg>
           </button>
           <div className="text-center">
-            <span className="text-sm font-medium text-gray-800">{headerLabel}</span>
-            <button onClick={goToday} className="ml-2 text-xs text-[#B87942] font-medium">
+            <span className="text-base font-medium text-gray-800">{headerLabel}</span>
+            <button onClick={goToday} className="ml-2 text-sm text-[#B87942] font-medium">
               今日
             </button>
           </div>
@@ -252,8 +252,8 @@ export default function ReservationsPage() {
           {/* 曜日ヘッダー */}
           <div className="grid grid-cols-7 gap-1 mb-1">
             {WEEKDAY_LABELS.map((label, i) => (
-              <div key={i} className={`text-center text-[10px] font-medium py-1 ${
-                i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"
+              <div key={i} className={`text-center text-xs font-medium py-1 ${
+                i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-500"
               }`}>
                 {label}
               </div>
@@ -286,7 +286,7 @@ export default function ReservationsPage() {
                       : isToday
                         ? "bg-[#B87942]/10 text-[#B87942]"
                         : isClosed
-                          ? "bg-gray-50 text-gray-300"
+                          ? "bg-gray-50 text-gray-500"
                           : "text-gray-700 active:bg-gray-100"
                   } ${viewMode === "month" && !isCurrentMonth ? "opacity-30" : ""}`}
                 >
@@ -295,13 +295,13 @@ export default function ReservationsPage() {
                   </span>
                   {viewMode === "week" && !isClosed ? (
                     <div className="mt-1 space-y-0.5">
-                      <p className={`text-[8px] leading-none ${
-                        isSelected ? "text-white/80" : dayBooked >= dayLimit ? "text-red-400 font-medium" : "text-gray-400"
+                      <p className={`text-xs leading-none ${
+                        isSelected ? "text-white/80" : dayBooked >= dayLimit ? "text-red-500 font-medium" : "text-gray-500"
                       }`}>
                         日{dayBooked}/{dayLimit}
                       </p>
-                      <p className={`text-[8px] leading-none ${
-                        isSelected ? "text-white/80" : stayBooked >= stayLimit ? "text-red-400 font-medium" : "text-gray-400"
+                      <p className={`text-xs leading-none ${
+                        isSelected ? "text-white/80" : stayBooked >= stayLimit ? "text-red-500 font-medium" : "text-gray-500"
                       }`}>
                         泊{stayBooked}/{stayLimit}
                       </p>
@@ -323,7 +323,7 @@ export default function ReservationsPage() {
       {/* リストモード：検索 */}
       {viewMode === "list" && (
         <div className="relative">
-          <svg className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-4 h-4 text-gray-500 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input
@@ -347,24 +347,24 @@ export default function ReservationsPage() {
         return (
           <div>
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-gray-800">
+              <h3 className="text-base font-medium text-gray-800">
                 {formatDisplay(selectedDate)}
               </h3>
-              <span className="text-xs text-gray-400">
+              <span className="text-sm text-gray-500">
                 {selectedReservations.filter((r) => r.status !== "cancelled").length}件
               </span>
             </div>
             {!isClosed && (
               <div className="flex gap-3 mt-1">
-                <span className={`text-xs ${dayB >= dayL ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                <span className={`text-sm ${dayB >= dayL ? "text-red-500 font-medium" : "text-gray-500"}`}>
                   日中 {dayB}/{dayL}
                 </span>
-                <span className={`text-xs ${stayB >= stayL ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                <span className={`text-sm ${stayB >= stayL ? "text-red-500 font-medium" : "text-gray-500"}`}>
                   宿泊 {stayB}/{stayL}
                 </span>
               </div>
             )}
-            {isClosed && <p className="text-xs text-gray-400 mt-1">定休日</p>}
+            {isClosed && <p className="text-sm text-gray-500 mt-1">定休日</p>}
           </div>
         );
       })()}
@@ -375,7 +375,7 @@ export default function ReservationsPage() {
           <div className="animate-spin w-6 h-6 border-2 border-[#B87942] border-t-transparent rounded-full mx-auto" />
         </div>
       ) : selectedReservations.length === 0 ? (
-        <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-400">
+        <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-500">
           {viewMode !== "list" ? "この日の予約はありません" : "予約が見つかりません"}
         </div>
       ) : (
@@ -395,38 +395,38 @@ export default function ReservationsPage() {
                 <div className="flex items-start justify-between mb-1.5">
                   <div className="flex items-center gap-2">
                     {viewMode === "list" && (
-                      <span className="text-sm font-medium text-gray-800">
+                      <span className="text-base font-medium text-gray-800">
                         {formatDisplay(r.date)}
                       </span>
                     )}
-                    <span className="text-xs text-gray-600">
+                    <span className="text-sm text-gray-600">
                       {r.checkin_time.slice(0, 5)}
                     </span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${planColor}`}>
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${planColor}`}>
                       {PLAN_LABELS[r.plan] || r.plan}
                     </span>
                     {r.plan === "stay" && r.checkout_date && (
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-xs text-gray-500">
                         〜{new Date(r.checkout_date + "T00:00:00").getDate()}日
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {dog?.allergies && <span className="text-xs text-red-500">⚠️</span>}
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${st.bg}`}>
+                    {dog?.allergies && <span className="text-sm text-red-500">⚠️</span>}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${st.bg}`}>
                       {st.label}
                     </span>
                   </div>
                 </div>
-                <p className="text-sm font-medium">
+                <p className="text-base font-medium">
                   {r.customers.last_name} {r.customers.first_name} 様
                   {dog && (
-                    <span className="text-xs text-gray-500 ml-1.5">
+                    <span className="text-sm text-gray-500 ml-1.5">
                       {dog.name}
                     </span>
                   )}
                   {dogs.length > 1 && (
-                    <span className="text-[10px] text-gray-400 ml-1">
+                    <span className="text-xs text-gray-500 ml-1">
                       ({di + 1}/{dogs.length})
                     </span>
                   )}
@@ -434,7 +434,7 @@ export default function ReservationsPage() {
                 {r.status === "pending" && di === 0 && (
                   <button
                     onClick={(e) => confirmReservation(r.id, e)}
-                    className="mt-2 text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-lg border border-green-200 active:bg-green-100"
+                    className="mt-2 text-sm bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-200 active:bg-green-100"
                   >
                     予約を確定する
                   </button>

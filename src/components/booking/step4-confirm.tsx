@@ -251,6 +251,17 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
         <p className="text-[#888] text-[12px]">※キャンセル・変更の際はできるだけ速やかにご連絡ください。</p>
       </div>
 
+      {/* 当日のご案内 */}
+      <div className="p-4 rounded-xl border border-[#E5DDD8] text-sm space-y-2">
+        <h3 className="font-medium">当日のご案内</h3>
+        <div className="text-[13px] text-[#666] space-y-1.5">
+          <p><span className="font-medium text-[#3C200F]">持ち物:</span> ワクチン証明書（狂犬病・混合）、リード、普段の食事（宿泊の場合）</p>
+          <p><span className="font-medium text-[#3C200F]">場所:</span> 神奈川県足柄下郡箱根町仙石原1246-125（ポーラ美術館から車4分）</p>
+          <p><span className="font-medium text-[#3C200F]">駐車場:</span> 施設前に無料駐車スペースあり</p>
+          <p><span className="font-medium text-[#3C200F]">お支払い:</span> 現地にて（現金・クレジットカード・電子マネー・QR決済対応）</p>
+        </div>
+      </div>
+
       {/* 同意チェック */}
       <label className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
         <input

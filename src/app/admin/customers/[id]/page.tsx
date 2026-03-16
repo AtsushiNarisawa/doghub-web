@@ -48,7 +48,7 @@ const PLAN_LABELS: Record<string, string> = {
 const STATUS_STYLES: Record<string, { label: string; bg: string }> = {
   confirmed:  { label: "確定",       bg: "bg-green-100 text-green-700" },
   pending:    { label: "確認待ち",   bg: "bg-orange-100 text-orange-700" },
-  cancelled:  { label: "キャンセル", bg: "bg-gray-100 text-gray-400" },
+  cancelled:  { label: "キャンセル", bg: "bg-gray-100 text-gray-500" },
   completed:  { label: "完了",       bg: "bg-blue-100 text-blue-700" },
 };
 
@@ -117,7 +117,7 @@ export default function CustomerDetailPage() {
     );
   }
   if (!customer) {
-    return <div className="py-20 text-center text-sm text-gray-400">顧客が見つかりません</div>;
+    return <div className="py-20 text-center text-sm text-gray-500">顧客が見つかりません</div>;
   }
 
   const completedCount = reservations.filter((r) => r.status !== "cancelled").length;
@@ -134,10 +134,10 @@ export default function CustomerDetailPage() {
         <div className="flex-1">
           <h2 className="font-medium">{customer.last_name} {customer.first_name} 様</h2>
           {(customer.last_name_kana || customer.first_name_kana) && (
-            <p className="text-xs text-gray-400">{customer.last_name_kana} {customer.first_name_kana}</p>
+            <p className="text-sm text-gray-500">{customer.last_name_kana} {customer.first_name_kana}</p>
           )}
         </div>
-        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{completedCount}回利用</span>
+        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{completedCount}回利用</span>
       </div>
 
       {/* この顧客で新規予約 */}
@@ -154,11 +154,11 @@ export default function CustomerDetailPage() {
       {/* 顧客情報 */}
       <div className="bg-white rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-medium text-gray-500">お客様情報</p>
+          <p className="text-sm font-medium text-gray-500">お客様情報</p>
           <button
             onClick={() => editMode ? saveCustomer() : setEditMode(true)}
             disabled={saving}
-            className="text-xs text-[#B87942] font-medium disabled:opacity-50"
+            className="text-sm text-[#B87942] font-medium disabled:opacity-50"
           >
             {editMode ? (saving ? "保存中..." : "保存") : "編集"}
           </button>
@@ -167,38 +167,38 @@ export default function CustomerDetailPage() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs text-gray-400">姓</label>
+                <label className="text-sm text-gray-500">姓</label>
                 <input
                   value={editData.last_name || ""}
                   onChange={(e) => setEditData({ ...editData, last_name: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                  className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-400">名</label>
+                <label className="text-sm text-gray-500">名</label>
                 <input
                   value={editData.first_name || ""}
                   onChange={(e) => setEditData({ ...editData, first_name: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                  className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-400">電話番号</label>
+              <label className="text-sm text-gray-500">電話番号</label>
               <input
                 value={editData.phone || ""}
                 onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                 type="tel"
-                className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-400">メール</label>
+              <label className="text-sm text-gray-500">メール</label>
               <input
                 value={editData.email || ""}
                 onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                 type="email"
-                className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
               />
             </div>
             <button
@@ -211,27 +211,27 @@ export default function CustomerDetailPage() {
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">電話番号</span>
-              <a href={`tel:${customer.phone}`} className="text-sm text-[#B87942] font-medium">
+              <span className="text-sm text-gray-500">電話番号</span>
+              <a href={`tel:${customer.phone}`} className="text-base text-[#B87942] font-medium">
                 {customer.phone}
               </a>
             </div>
             {customer.email && (
               <div className="flex items-center justify-between gap-4">
-                <span className="text-xs text-gray-400 shrink-0">メール</span>
-                <span className="text-sm text-gray-700 text-right truncate">{customer.email}</span>
+                <span className="text-sm text-gray-500 shrink-0">メール</span>
+                <span className="text-base text-gray-700 text-right truncate">{customer.email}</span>
               </div>
             )}
             {customer.address && (
               <div className="flex items-start justify-between gap-4">
-                <span className="text-xs text-gray-400 shrink-0 pt-0.5">住所</span>
-                <span className="text-sm text-gray-700 text-right">〒{customer.postal_code}<br />{customer.address}</span>
+                <span className="text-sm text-gray-500 shrink-0 pt-0.5">住所</span>
+                <span className="text-base text-gray-700 text-right">〒{customer.postal_code}<br />{customer.address}</span>
               </div>
             )}
             {customer.line_id && (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">LINE</span>
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">連携済み</span>
+                <span className="text-sm text-gray-500">LINE</span>
+                <span className="text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full">連携済み</span>
               </div>
             )}
           </div>
@@ -240,27 +240,27 @@ export default function CustomerDetailPage() {
 
       {/* ワンちゃん */}
       <div className="bg-white rounded-xl p-4">
-        <p className="text-xs font-medium text-gray-500 mb-3">登録ワンちゃん（{dogs.length}頭）</p>
+        <p className="text-sm font-medium text-gray-500 mb-3">登録ワンちゃん（{dogs.length}頭）</p>
         {dogs.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-2">ワンちゃん情報なし</p>
+          <p className="text-sm text-gray-500 text-center py-2">ワンちゃん情報なし</p>
         ) : (
           <div className="space-y-3">
             {dogs.map((dog) => (
               <div key={dog.id} className="border-b border-gray-50 pb-3 last:border-0 last:pb-0">
-                <p className="text-sm font-medium">{dog.name}（{dog.breed}）</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-base font-medium">{dog.name}（{dog.breed}）</p>
+                <p className="text-sm text-gray-500 mt-0.5">
                   {dog.weight}kg
                   {dog.age != null && ` / ${dog.age}歳`}
                   {" / "}{dog.sex === "male" ? "オス" : "メス"}
                 </p>
                 {dog.allergies && (
-                  <p className="text-xs text-red-600 mt-1">⚠️ {dog.allergies}</p>
+                  <p className="text-sm text-red-600 mt-1">⚠️ {dog.allergies}</p>
                 )}
                 {dog.meal_notes && (
-                  <p className="text-xs text-yellow-700 mt-0.5">🍚 {dog.meal_notes}</p>
+                  <p className="text-sm text-yellow-700 mt-0.5">🍚 {dog.meal_notes}</p>
                 )}
                 {dog.medication_notes && (
-                  <p className="text-xs text-purple-700 mt-0.5">💊 {dog.medication_notes}</p>
+                  <p className="text-sm text-purple-700 mt-0.5">💊 {dog.medication_notes}</p>
                 )}
               </div>
             ))}
@@ -270,13 +270,13 @@ export default function CustomerDetailPage() {
 
       {/* スタッフメモ */}
       <div className="bg-white rounded-xl p-4">
-        <p className="text-xs font-medium text-gray-500 mb-2">スタッフメモ</p>
+        <p className="text-sm font-medium text-gray-500 mb-2">スタッフメモ</p>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="顧客についての内部メモ..."
-          className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:border-[#B87942] focus:outline-none resize-none"
+          className="w-full text-base border border-gray-200 rounded-xl px-3 py-2 focus:border-[#B87942] focus:outline-none resize-none"
         />
         <button
           onClick={saveNotes}
@@ -289,9 +289,9 @@ export default function CustomerDetailPage() {
 
       {/* 予約履歴 */}
       <div>
-        <p className="text-xs font-medium text-gray-500 mb-2">予約履歴（直近{reservations.length}件）</p>
+        <p className="text-sm font-medium text-gray-500 mb-2">予約履歴（直近{reservations.length}件）</p>
         {reservations.length === 0 ? (
-          <div className="bg-white rounded-xl p-6 text-center text-sm text-gray-400">
+          <div className="bg-white rounded-xl p-6 text-center text-sm text-gray-500">
             予約履歴なし
           </div>
         ) : (
@@ -307,13 +307,13 @@ export default function CustomerDetailPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-sm font-medium">{formatDate(r.date)}</span>
-                      <span className="text-xs text-gray-400 ml-2">{PLAN_LABELS[r.plan]}</span>
+                      <span className="text-base font-medium">{formatDate(r.date)}</span>
+                      <span className="text-sm text-gray-500 ml-2">{PLAN_LABELS[r.plan]}</span>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${st.bg}`}>{st.label}</span>
+                    <span className={`text-sm px-2 py-0.5 rounded-full ${st.bg}`}>{st.label}</span>
                   </div>
                   {dogNames && (
-                    <p className="text-xs text-gray-400 mt-0.5">🐾 {dogNames}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">🐾 {dogNames}</p>
                   )}
                 </Link>
               );

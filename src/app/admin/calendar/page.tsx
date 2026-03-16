@@ -72,10 +72,10 @@ export default function CalendarPage() {
   };
 
   const getDayColor = (dateStr: string, dayOfWeek: number) => {
-    if (closedWeekdays.includes(dayOfWeek)) return "bg-gray-100 text-gray-300"; // 定休日
+    if (closedWeekdays.includes(dayOfWeek)) return "bg-gray-100 text-gray-500"; // 定休日
     const d = dayMap[dateStr];
     if (!d) return "bg-white";
-    if (d.closed) return "bg-gray-100 text-gray-300";
+    if (d.closed) return "bg-gray-100 text-gray-500";
     const totalBooked = d.day_booked + d.stay_booked;
     const totalLimit = d.day_limit + d.stay_limit;
     const ratio = totalBooked / totalLimit;
@@ -88,13 +88,13 @@ export default function CalendarPage() {
     <div className="space-y-4">
       {/* 月ナビ */}
       <div className="flex items-center justify-between bg-white rounded-xl p-3">
-        <button onClick={() => changeMonth(-1)} className="p-2 rounded-lg active:bg-gray-100">
+        <button onClick={() => changeMonth(-1)} className="p-3 rounded-lg active:bg-gray-100">
           <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <p className="font-medium">{year}年{month + 1}月</p>
-        <button onClick={() => changeMonth(1)} className="p-2 rounded-lg active:bg-gray-100">
+        <button onClick={() => changeMonth(1)} className="p-3 rounded-lg active:bg-gray-100">
           <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
@@ -102,7 +102,7 @@ export default function CalendarPage() {
       </div>
 
       {/* 凡例 */}
-      <div className="flex flex-wrap gap-2 text-xs text-gray-500 px-1">
+      <div className="flex flex-wrap gap-2 text-sm text-gray-500 px-1">
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200" />空きあり</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-orange-200" />残りわずか</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-200" />満室</span>
@@ -114,8 +114,8 @@ export default function CalendarPage() {
         {/* 曜日ヘッダー */}
         <div className="grid grid-cols-7 mb-2">
           {["日", "月", "火", "水", "木", "金", "土"].map((d, i) => (
-            <div key={d} className={`text-center text-xs font-medium py-1 ${
-              i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"
+            <div key={d} className={`text-center text-sm font-medium py-1 ${
+              i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-500"
             }`}>
               {d}
             </div>
@@ -141,7 +141,7 @@ export default function CalendarPage() {
                 <Link
                   key={i}
                   href={`/admin?date=${dateStr}`}
-                  className={`aspect-square rounded-lg border flex flex-col items-center justify-center text-xs transition-all active:opacity-70 ${getDayColor(dateStr, dayOfWeek)} ${isToday ? "ring-2 ring-[#B87942]" : ""}`}
+                  className={`aspect-square rounded-lg border flex flex-col items-center justify-center text-sm transition-all active:opacity-70 ${getDayColor(dateStr, dayOfWeek)} ${isToday ? "ring-2 ring-[#B87942]" : ""}`}
                 >
                   <span className={`font-medium ${
                     dayOfWeek === 0 ? "text-red-500" : dayOfWeek === 6 ? "text-blue-500" : ""
@@ -149,12 +149,12 @@ export default function CalendarPage() {
                     {day}
                   </span>
                   {!isClosed && d && (
-                    <span className="text-[10px] text-gray-400 mt-0.5">
+                    <span className="text-xs text-gray-500 mt-0.5">
                       {d.day_booked + d.stay_booked}
                     </span>
                   )}
                   {isClosed && (
-                    <span className="text-[10px] text-gray-300">休</span>
+                    <span className="text-xs text-gray-500">休</span>
                   )}
                 </Link>
               );

@@ -9,10 +9,20 @@ const PREVIEW_PROTECTED: string[] = [];
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // 旧Wix /blog パスを /news へ301リダイレクト
-  if (pathname === "/blog" || pathname.startsWith("/blog/")) {
+  // 旧Wix URLリダイレクト（middleware で処理し二重リダイレクトを防止）
+  const legacyRedirects: Record<string, string> = {
+    "/blog": "/news",
+    "/beginner": "/guide",
+    "/hakone": "/spots",
+    "/dog-run": "/spots",
+    "/home": "/booking",
+    "/service-page": "/service",
+  };
+
+  const redirectTarget = legacyRedirects[pathname] || (pathname.startsWith("/blog/") ? "/news" : null) || (pathname.startsWith("/post/") ? "/news" : null) || (pathname.startsWith("/service-page/") ? "/service" : null);
+  if (redirectTarget) {
     const url = req.nextUrl.clone();
-    url.pathname = "/news";
+    url.pathname = redirectTarget;
     return NextResponse.redirect(url, 301);
   }
 
@@ -101,5 +111,5 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks"],
+  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/beginner", "/hakone", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*"],
 };

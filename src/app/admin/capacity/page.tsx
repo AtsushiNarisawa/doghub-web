@@ -117,7 +117,7 @@ export default function CapacityPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-medium text-gray-500">
+      <h2 className="text-base font-medium text-gray-500">
         日をタップして容量を設定
       </h2>
 
@@ -140,8 +140,8 @@ export default function CapacityPage() {
       <div className="bg-white rounded-xl p-3">
         <div className="grid grid-cols-7 mb-2">
           {["日", "月", "火", "水", "木", "金", "土"].map((d, i) => (
-            <div key={d} className={`text-center text-xs font-medium py-1 ${
-              i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"
+            <div key={d} className={`text-center text-sm font-medium py-1 ${
+              i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-500"
             }`}>{d}</div>
           ))}
         </div>
@@ -166,7 +166,7 @@ export default function CapacityPage() {
                     isSelected
                       ? "ring-2 ring-[#B87942] bg-[#B87942]/5"
                       : d?.closed || closedWeekdays.includes(dayOfWeek)
-                        ? "bg-gray-50 text-gray-300"
+                        ? "bg-gray-50 text-gray-500"
                         : "bg-white active:bg-gray-50"
                   }`}
                 >
@@ -174,7 +174,7 @@ export default function CapacityPage() {
                     dayOfWeek === 0 ? "text-red-500" : dayOfWeek === 6 ? "text-blue-500" : ""
                   }>{day}</span>
                   {d && !d.closed && (
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-xs text-gray-500">
                       {d.day_limit}/{d.stay_limit}
                     </span>
                   )}
@@ -208,12 +208,12 @@ export default function CapacityPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setEditForm({ ...editForm, day_limit: Math.max(0, editForm.day_limit - 1) })}
-                      className="w-10 h-10 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
+                      className="w-11 h-11 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
                     >-</button>
                     <span className="text-xl font-medium font-dm w-8 text-center">{editForm.day_limit}</span>
                     <button
                       onClick={() => setEditForm({ ...editForm, day_limit: editForm.day_limit + 1 })}
-                      className="w-10 h-10 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
+                      className="w-11 h-11 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
                     >+</button>
                   </div>
                 </div>
@@ -222,12 +222,12 @@ export default function CapacityPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setEditForm({ ...editForm, stay_limit: Math.max(0, editForm.stay_limit - 1) })}
-                      className="w-10 h-10 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
+                      className="w-11 h-11 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
                     >-</button>
                     <span className="text-xl font-medium font-dm w-8 text-center">{editForm.stay_limit}</span>
                     <button
                       onClick={() => setEditForm({ ...editForm, stay_limit: editForm.stay_limit + 1 })}
-                      className="w-10 h-10 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
+                      className="w-11 h-11 rounded-lg bg-gray-100 text-lg active:bg-gray-200"
                     >+</button>
                   </div>
                 </div>
@@ -240,7 +240,7 @@ export default function CapacityPage() {
                   value={editForm.note}
                   onChange={(e) => setEditForm({ ...editForm, note: e.target.value })}
                   placeholder="例: イベントのため制限"
-                  className="w-full p-3 rounded-lg border border-gray-200 text-sm focus:border-[#B87942] focus:outline-none"
+                  className="w-full p-3 rounded-lg border border-gray-200 text-base focus:border-[#B87942] focus:outline-none"
                 />
               </div>
             </>
@@ -249,14 +249,14 @@ export default function CapacityPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setSelectedDate(null)}
-              className="flex-1 py-3 rounded-lg border border-gray-200 text-sm text-gray-600 active:bg-gray-50"
+              className="flex-1 py-3 rounded-lg border border-gray-200 text-base text-gray-600 active:bg-gray-50"
             >
               キャンセル
             </button>
             <button
               onClick={saveCapacity}
               disabled={saving}
-              className="flex-1 py-3 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830] disabled:opacity-50"
+              className="flex-1 py-3 rounded-lg bg-[#B87942] text-white text-base font-medium active:bg-[#A06830] disabled:opacity-50"
             >
               {saving ? "保存中..." : "保存"}
             </button>

@@ -224,6 +224,19 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* 施設情報（HPを見ずに来た方向け） */}
+      <div className="p-4 rounded-xl bg-white border border-[#E5DDD8] space-y-2">
+        <p className="text-sm font-medium text-[#3C200F]">DogHub箱根仙石原</p>
+        <div className="text-[13px] text-[#666] space-y-1">
+          <p>箱根・仙石原にある犬のお預かり専門施設です。ドッグラン併設・完全個室・スタッフ常駐で安心してお預けいただけます。</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[12px]">
+            <span>営業: 金〜火 9:00-17:00</span>
+            <span>定休: {closedWeekdayNames()}曜日</span>
+            <span>体重: 15kgまで（超える場合は要相談）</span>
+          </div>
+        </div>
+      </div>
+
       {/* プラン選択 */}
       <div>
         <h2 className="text-lg font-medium mb-3">プランを選択</h2>
@@ -279,7 +292,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             min={getMinDate()}
             max={getMaxDate()}
             onChange={(e) => onChange({ ...form, date: e.target.value })}
-            className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+            className="w-full px-4 py-5 rounded-xl border-2 border-[#E5DDD8] text-lg bg-white focus:border-[#B87942] focus:outline-none"
           />
           {form.date && isClosedDay(form.date) && (
             <p className="text-red-500 text-sm mt-2">
@@ -357,7 +370,10 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             ))}
           </div>
           <p className="text-[13px] text-[#888] mt-2">
-            お引き取り最終: 17:00 / 超過料金: ¥1,100/時間
+            お引き取り最終: 17:00（超過: ¥1,100/時間）
+          </p>
+          <p className="text-[12px] text-[#888] mt-1">
+            ※ 前日17:00までのご予約が必要です
           </p>
         </div>
       )}
@@ -387,7 +403,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   onChange({ ...form, destination: e.target.value });
                 }
               }}
-              className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+              className="w-full px-4 py-5 rounded-xl border-2 border-[#E5DDD8] text-lg bg-white focus:border-[#B87942] focus:outline-none"
             >
               <option value="">選択してください</option>
               {destinations.map((dest) => (
@@ -423,7 +439,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
               return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
             })()}
             onChange={(e) => onChange({ ...form, checkout_date: e.target.value })}
-            className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+            className="w-full px-4 py-5 rounded-xl border-2 border-[#E5DDD8] text-lg bg-white focus:border-[#B87942] focus:outline-none"
           />
           {form.checkout_date && stayClosedDates.length > 0 && (
             <p className="text-red-500 text-sm mt-2">

@@ -14,6 +14,17 @@ interface Props {
 export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
   // リピーター判定：犬情報がDBから読み込まれている（idがある）場合
   const isReturning = form.dogs.some((d) => !!d.id);
+
+  // 住所を自動入力部分と手入力部分に分離して管理
+  const [autoAddress, setAutoAddress] = useState(() => {
+    // 既存の住所がある場合、都道府県〜町名部分を推定
+    return "";
+  });
+  const [detailAddress, setDetailAddress] = useState(() => {
+    // 既存の住所から番地以降を取得
+    return form.customer.address || "";
+  });
+
   // 郵便番号から住所自動入力
   const fetchAddress = async (postalCode: string) => {
     const code = postalCode.replace(/-/g, "");
@@ -23,15 +34,30 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
       const json = await res.json();
       if (json.results?.[0]) {
         const r = json.results[0];
-        const addr = `${r.address1}${r.address2}${r.address3}`;
+        const base = `${r.address1}${r.address2}${r.address3}`;
+        setAutoAddress(base);
+        // 手入力部分が空、または前の自動入力部分だけだった場合はクリア
+        if (!detailAddress || detailAddress === form.customer.address) {
+          setDetailAddress("");
+        }
         onChange({
           ...form,
-          customer: { ...form.customer, postal_code: postalCode, address: addr },
+          customer: { ...form.customer, postal_code: postalCode, address: base },
         });
       }
     } catch {
       // 静かに失敗
     }
+  };
+
+  // 番地・建物名の変更時に結合してaddressを更新
+  const handleDetailChange = (val: string) => {
+    setDetailAddress(val);
+    const combined = autoAddress ? `${autoAddress}${val}` : val;
+    onChange({
+      ...form,
+      customer: { ...form.customer, address: combined },
+    });
   };
 
   const c = form.customer;
@@ -144,7 +170,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
             />
           </div>
 
-          {/* 郵便番号・住所 */}
+          {/* 郵便番号 */}
           <div>
             <label className="text-sm text-[#888] block mb-1">郵便番号</label>
             <input
@@ -160,17 +186,34 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
             />
           </div>
+
+          {/* 住所（自動入力部分） */}
+          {autoAddress && (
+            <div>
+              <label className="text-sm text-[#888] block mb-1">都道府県・市区町村</label>
+              <div className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-[#F8F5F0] text-[#666]">
+                {autoAddress}
+              </div>
+            </div>
+          )}
+
+          {/* 住所（手入力部分：番地・建物名） */}
           <div>
-            <label className="text-sm text-[#888] block mb-1">住所</label>
+            <label className="text-sm text-[#888] block mb-1">
+              {autoAddress ? "番地・建物名" : "住所"}
+            </label>
             <input
               type="text"
-              value={c.address}
-              onChange={(e) =>
-                onChange({ ...form, customer: { ...c, address: e.target.value } })
-              }
-              placeholder="自動入力されます"
+              value={detailAddress}
+              onChange={(e) => handleDetailChange(e.target.value)}
+              placeholder={autoAddress ? "1246-125 メゾン仙石原102号" : "自動入力されます"}
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
             />
+            {autoAddress && !detailAddress && (
+              <p className="text-[12px] text-orange-500 mt-1">
+                番地・建物名をご入力ください
+              </p>
+            )}
           </div>
       </div>
 

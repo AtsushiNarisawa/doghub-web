@@ -102,19 +102,7 @@ export function Header() {
                 </Link>
               )
             )}
-            {/* WanWalk（独立サービス） - セパレーター付き */}
-            <span className="h-5 w-px bg-[#E5DDD8]" />
-            <Link
-              href={wanwalkNavItem.href}
-              className="text-amber-700 hover:text-amber-900 transition-colors whitespace-nowrap flex items-center gap-1 font-medium"
-              style={{ fontSize: "14px" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              {wanwalkNavItem.label}
-            </Link>
+            {/* WanWalk（独立サービス） - 一時非表示 */}
             <div className="flex items-center gap-1 ml-2">
               <a
                 href="https://www.instagram.com/doghub.hakone__/"
@@ -236,21 +224,7 @@ export function Header() {
             >
               ペットホテル予約
             </a>
-            {/* WanWalk（独立サービス） */}
-            <div className="border-t-2 border-amber-200 mt-4 pt-4">
-              <p className="text-xs text-amber-600 font-medium mb-2 tracking-wide">WanWalk - 散歩ルート情報</p>
-              <Link
-                href="/walks"
-                className="flex items-center gap-2 text-sm text-amber-700 font-medium py-3 hover:text-amber-900 transition-colors"
-                onClick={() => setMenuOpen(false)}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                散歩コースを探す
-              </Link>
-            </div>
+            {/* WanWalk（独立サービス） - 一時非表示 */}
           </div>
         )}
       </header>

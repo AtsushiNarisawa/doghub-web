@@ -27,12 +27,12 @@ function AdminNav() {
             <Link
               key={href}
               href={href}
-              className={`flex-1 flex flex-col items-center py-2 pt-3 text-xs ${
+              className={`flex-1 flex flex-col items-center py-2 pt-3 text-sm ${
                 isNew
                   ? "text-white"
                   : isActive(href)
                     ? "text-[#B87942]"
-                    : "text-gray-400"
+                    : "text-gray-500"
               }`}
             >
               {isNew ? (
@@ -71,13 +71,13 @@ function AdminHeader() {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-        <h1 className="font-medium text-[15px] text-gray-900">DogHub 管理</h1>
+        <h1 className="text-base font-medium text-gray-900">DogHub 管理</h1>
         <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100"
+            className="p-3 rounded-lg hover:bg-gray-100"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
             </svg>
           </button>
@@ -87,7 +87,7 @@ function AdminHeader() {
               <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                  className="w-full text-left px-4 py-2.5 text-base text-gray-700 hover:bg-gray-50"
                 >
                   ログアウト
                 </button>

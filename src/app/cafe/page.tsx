@@ -6,8 +6,8 @@ import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
-  title: "犬連れOK おむすびカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
-  description: "DogHub箱根仙石原のカフェ・グッズ販売。5つ星のお米マイスター厳選のおむすびとスープ。愛犬と入れるイートインスペースあり。カフェ営業時間11時〜17時。",
+  title: "箱根 犬連れランチ＆ドッグカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
+  description: "箱根で犬連れランチならDogHubのドッグカフェへ。5つ星お米マイスター厳選のおむすびとスープを愛犬と一緒に。イートイン・テイクアウトOK、ドッグラン併設。営業11時〜17時、予約不要。",
   alternates: { canonical: "/cafe" },
 };
 

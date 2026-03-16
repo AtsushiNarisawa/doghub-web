@@ -162,7 +162,7 @@ function DogForm({
       <div className="space-y-2">
         <p className="text-sm text-[#888]">
           ワクチン接種 <span className="text-red-400">*</span>
-          <span className="text-[12px] block mt-0.5">証明書を当日ご持参ください（写真でも可）</span>
+          <span className="text-[12px] block mt-0.5">当日、狂犬病・混合ワクチンの証明書をご持参ください（スマホの写真でもOK）。未接種の場合はお預かりできません。</span>
         </p>
         <label className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F5F0]">
           <input
@@ -353,9 +353,24 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
         {lookupState === "found" && (
           <div className="text-sm text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg">
             <p className="font-medium">おかえりなさい！</p>
-            <p className="text-[12px] mt-1 text-green-600">
-              前回のワンちゃん情報を読み込みました。体重・年齢をご確認のうえ必要があれば修正してください。
-            </p>
+            {form.dogs.some((d) => d.name && d.name !== "") ? (
+              <>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {form.dogs.filter((d) => d.name).map((d, i) => (
+                    <span key={i} className="bg-white text-green-700 px-2 py-0.5 rounded text-xs font-medium">
+                      {d.name}（{d.breed}）
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[12px] mt-2 text-green-600">
+                  体重・年齢をご確認のうえ必要があれば修正してください。
+                </p>
+              </>
+            ) : (
+              <p className="text-[12px] mt-1 text-green-600">
+                ワンちゃん情報を下記にご入力ください。
+              </p>
+            )}
           </div>
         )}
         {lookupState === "not_found" && (

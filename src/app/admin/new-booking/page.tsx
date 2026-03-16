@@ -234,7 +234,7 @@ function NewBookingForm() {
       <div className="py-20 text-center space-y-3">
         <div className="text-4xl">✅</div>
         <p className="font-medium text-gray-800">予約を登録しました</p>
-        <p className="text-sm text-gray-400">ホームに戻ります...</p>
+        <p className="text-base text-gray-500">ホームに戻ります...</p>
       </div>
     );
   }
@@ -246,7 +246,7 @@ function NewBookingForm() {
         <h2 className="font-medium text-gray-800">顧客を検索</h2>
         <div className="bg-white rounded-xl p-4 space-y-3">
           <div className="relative">
-            <svg className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-4 h-4 text-gray-500 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
             <input
@@ -277,10 +277,10 @@ function NewBookingForm() {
                 className="w-full p-4 text-left active:bg-gray-50 flex items-center justify-between"
               >
                 <div>
-                  <p className="text-sm font-medium text-gray-800">
+                  <p className="text-base font-medium text-gray-800">
                     {c.last_name} {c.first_name}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-500 mt-0.5">
                     {c.phone}
                     {c.dogs && c.dogs.length > 0 && (
                       <span className="ml-2">
@@ -289,7 +289,7 @@ function NewBookingForm() {
                     )}
                   </p>
                 </div>
-                <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -300,7 +300,7 @@ function NewBookingForm() {
         {/* 該当なし */}
         {hasSearched && searchResults.length === 0 && !searching && (
           <div className="bg-white rounded-xl p-4 text-center">
-            <p className="text-sm text-gray-400">該当するお客様が見つかりません</p>
+            <p className="text-base text-gray-500">該当するお客様が見つかりません</p>
           </div>
         )}
 
@@ -339,25 +339,25 @@ function NewBookingForm() {
       {/* 顧客情報 */}
       {customer ? (
         <div className="bg-white rounded-xl p-4">
-          <p className="text-xs text-gray-400 mb-1">お客様</p>
+          <p className="text-sm text-gray-500 mb-1">お客様</p>
           <p className="font-medium">{customer.last_name} {customer.first_name} 様</p>
           <a href={`tel:${customer.phone}`} className="text-sm text-[#B87942]">{customer.phone}</a>
         </div>
       ) : (
         <div className="bg-white rounded-xl p-4 space-y-3">
-          <p className="text-xs font-medium text-gray-500">新規お客様情報</p>
+          <p className="text-sm font-medium text-gray-500">新規お客様情報</p>
           <div className="grid grid-cols-2 gap-2">
             <input
               value={newCustomer.last_name}
               onChange={(e) => setNewCustomer({ ...newCustomer, last_name: e.target.value })}
               placeholder="せい（必須）"
-              className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+              className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
             />
             <input
               value={newCustomer.first_name}
               onChange={(e) => setNewCustomer({ ...newCustomer, first_name: e.target.value })}
               placeholder="めい"
-              className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+              className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
             />
           </div>
           <input
@@ -365,7 +365,7 @@ function NewBookingForm() {
             value={newCustomer.phone}
             onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
             placeholder="電話番号（必須）"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+            className="w-full px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
           />
         </div>
       )}
@@ -373,7 +373,7 @@ function NewBookingForm() {
       {/* ワンちゃん情報 */}
       {customer && customer.dogs && customer.dogs.length > 0 ? (
         <div className="bg-white rounded-xl p-4">
-          <p className="text-xs font-medium text-gray-500 mb-3">ワンちゃん選択（複数可）</p>
+          <p className="text-sm font-medium text-gray-500 mb-3">ワンちゃん選択（複数可）</p>
           <div className="space-y-2">
             {customer.dogs.map((dog) => (
               <button
@@ -387,7 +387,7 @@ function NewBookingForm() {
               >
                 <div className="text-left">
                   <p className="text-sm font-medium">{dog.name}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-sm text-gray-500">
                     {dog.breed} / {dog.weight}kg{dog.age != null ? ` / ${dog.age}歳` : ""}
                   </p>
                 </div>
@@ -406,15 +406,15 @@ function NewBookingForm() {
         </div>
       ) : isNewCustomer && (
         <div className="bg-white rounded-xl p-4 space-y-3">
-          <p className="text-xs font-medium text-gray-500">ワンちゃん情報</p>
+          <p className="text-sm font-medium text-gray-500">ワンちゃん情報</p>
           {newDogs.map((dog, i) => (
             <div key={i} className="space-y-2 pb-3 border-b border-gray-100 last:border-0 last:pb-0">
               {newDogs.length > 1 && (
                 <div className="flex justify-between items-center">
-                  <p className="text-xs text-gray-400">{i + 1}頭目</p>
+                  <p className="text-sm text-gray-500">{i + 1}頭目</p>
                   <button
                     onClick={() => setNewDogs(newDogs.filter((_, j) => j !== i))}
-                    className="text-xs text-red-400"
+                    className="text-sm text-red-500"
                   >
                     削除
                   </button>
@@ -425,13 +425,13 @@ function NewBookingForm() {
                   value={dog.name}
                   onChange={(e) => { const d = [...newDogs]; d[i] = { ...d[i], name: e.target.value }; setNewDogs(d); }}
                   placeholder="名前（必須）"
-                  className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                  className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
                 />
                 <input
                   value={dog.breed}
                   onChange={(e) => { const d = [...newDogs]; d[i] = { ...d[i], breed: e.target.value }; setNewDogs(d); }}
                   placeholder="犬種"
-                  className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                  className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -443,7 +443,7 @@ function NewBookingForm() {
                   value={dog.weight}
                   onChange={(e) => { const v = e.target.value; if (v === "" || parseFloat(v) >= 0) { const d = [...newDogs]; d[i] = { ...d[i], weight: v }; setNewDogs(d); } }}
                   placeholder="体重(kg)"
-                  className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                  className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
                 />
                 <input
                   type="number"
@@ -452,14 +452,14 @@ function NewBookingForm() {
                   value={dog.age}
                   onChange={(e) => { const v = e.target.value; if (v === "" || parseInt(v) >= 0) { const d = [...newDogs]; d[i] = { ...d[i], age: v }; setNewDogs(d); } }}
                   placeholder="年齢"
-                  className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                  className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
                 />
               </div>
             </div>
           ))}
           <button
             onClick={() => setNewDogs([...newDogs, { name: "", breed: "", weight: "", age: "" }])}
-            className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-xs text-gray-500 active:bg-gray-50"
+            className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 active:bg-gray-50"
           >
             + もう1頭追加
           </button>
@@ -468,7 +468,7 @@ function NewBookingForm() {
 
       {/* プラン選択 */}
       <div className="bg-white rounded-xl p-4">
-        <p className="text-xs font-medium text-gray-500 mb-3">プラン</p>
+        <p className="text-sm font-medium text-gray-500 mb-3">プラン</p>
         <div className="grid grid-cols-2 gap-2">
           {PLANS.map((p) => (
             <button
@@ -488,20 +488,20 @@ function NewBookingForm() {
 
       {/* 日程 */}
       <div className="bg-white rounded-xl p-4 space-y-3">
-        <p className="text-xs font-medium text-gray-500">日程</p>
+        <p className="text-sm font-medium text-gray-500">日程</p>
         <div>
-          <label className="text-xs text-gray-400">チェックイン日</label>
+          <label className="text-sm text-gray-500">チェックイン日</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             min={new Date().toISOString().split("T")[0]}
-            className="w-full mt-1 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+            className="w-full mt-1 px-3 py-2.5 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
           />
         </div>
         {plan && (
           <div>
-            <label className="text-xs text-gray-400">チェックイン時間</label>
+            <label className="text-sm text-gray-500">チェックイン時間</label>
             <div className="grid grid-cols-3 gap-2 mt-1">
               {availableTimes.map((t) => (
                 <button
@@ -521,13 +521,13 @@ function NewBookingForm() {
         )}
         {plan === "stay" && (
           <div>
-            <label className="text-xs text-gray-400">チェックアウト日</label>
+            <label className="text-sm text-gray-500">チェックアウト日</label>
             <input
               type="date"
               value={checkoutDate}
               onChange={(e) => setCheckoutDate(e.target.value)}
               min={date || new Date().toISOString().split("T")[0]}
-              className="w-full mt-1 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+              className="w-full mt-1 px-3 py-2.5 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
             />
           </div>
         )}
@@ -535,13 +535,13 @@ function NewBookingForm() {
 
       {/* メモ */}
       <div className="bg-white rounded-xl p-4 space-y-3">
-        <p className="text-xs font-medium text-gray-500">備考</p>
+        <p className="text-sm font-medium text-gray-500">備考</p>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="備考・特記事項..."
           rows={3}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none resize-none"
+          className="w-full px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none resize-none"
         />
       </div>
 

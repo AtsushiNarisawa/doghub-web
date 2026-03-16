@@ -6,8 +6,8 @@ import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
-  title: "箱根 犬連れ観光おすすめスポット｜DogHub箱根仙石原",
-  description: "DogHub箱根仙石原おすすめの周辺観光スポット。箱根ガラスの森、ポーラ美術館、仙石原すすき草原など、愛犬と一緒に楽しめるスポットをご紹介。",
+  title: "箱根 犬連れ観光ガイド｜犬と箱根を楽しむおすすめスポット｜DogHub",
+  description: "犬と箱根を満喫！犬連れOKのスポットとペット不可施設での預け方をまとめて紹介。ポーラ美術館・ガラスの森・すすき草原など仙石原エリア中心に厳選。観光中のお預かりはDogHubへ。",
   alternates: { canonical: "/spots" },
 };
 

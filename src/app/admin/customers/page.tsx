@@ -55,7 +55,7 @@ export default function CustomersPage() {
     <div className="space-y-4">
       {/* 検索 */}
       <div className="relative">
-        <svg className="w-5 h-5 text-gray-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <svg className="w-5 h-5 text-gray-500 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
         </svg>
         <input
@@ -64,12 +64,12 @@ export default function CustomersPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="名前・電話番号・犬の名前で検索"
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:border-[#B87942] focus:outline-none"
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-base focus:border-[#B87942] focus:outline-none"
         />
       </div>
 
       {/* 件数 */}
-      <p className="text-xs text-gray-400">
+      <p className="text-sm text-gray-500">
         {filtered.length}件の顧客
       </p>
 
@@ -79,7 +79,7 @@ export default function CustomersPage() {
           <div className="animate-spin w-6 h-6 border-2 border-[#B87942] border-t-transparent rounded-full mx-auto" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-400">
+        <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-500">
           {search ? "該当する顧客が見つかりません" : "顧客データがまだありません"}
         </div>
       ) : (
@@ -90,14 +90,14 @@ export default function CustomersPage() {
               className="bg-white rounded-xl p-4 active:bg-gray-50 transition-colors"
             >
               <div className="flex items-start justify-between mb-1">
-                <p className="font-medium text-sm">
+                <p className="font-medium text-base">
                   {c.last_name} {c.first_name}
                 </p>
-                <span className="text-xs text-gray-400 font-dm">
+                <span className="text-sm text-gray-500 font-dm">
                   {c.reservations.length}回利用
                 </span>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-500">
                 <a href={`tel:${c.phone}`} className="text-[#B87942]">
                   {c.phone}
                 </a>
@@ -105,7 +105,7 @@ export default function CustomersPage() {
               {c.dogs.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {c.dogs.map((dog, i) => (
-                    <span key={i} className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+                    <span key={i} className="text-sm text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
                       {dog.name}（{dog.breed}）
                     </span>
                   ))}

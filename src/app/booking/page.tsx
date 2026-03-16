@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { BookingStep, BookingFormData } from "@/types/booking";
 import { INITIAL_FORM } from "@/types/booking";
@@ -10,13 +10,25 @@ import { Step2Dogs } from "@/components/booking/step2-dogs";
 import { Step3Customer } from "@/components/booking/step3-customer";
 import { Step4Confirm } from "@/components/booking/step4-confirm";
 
+function pushEvent(event: string, params?: Record<string, unknown>) {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event, ...params });
+}
+
 export default function BookingPage() {
   const [step, setStep] = useState<BookingStep>(1);
   const [form, setForm] = useState<BookingFormData>({ ...INITIAL_FORM });
   const [result, setResult] = useState<"success" | "error" | null>(null);
 
+  // 予約開始イベント
+  useEffect(() => {
+    pushEvent("begin_booking");
+  }, []);
+
   const goNext = () => {
-    setStep((s) => Math.min(s + 1, 4) as BookingStep);
+    const nextStep = Math.min(step + 1, 4) as BookingStep;
+    pushEvent("booking_step", { booking_step: nextStep });
+    setStep(nextStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -26,6 +38,7 @@ export default function BookingPage() {
   };
 
   const handleSubmit = async () => {
+    pushEvent("booking_submit", { plan: form.plan, dog_count: form.dogs.length });
     try {
       const res = await fetch("/api/booking", {
         method: "POST",
@@ -33,11 +46,18 @@ export default function BookingPage() {
         body: JSON.stringify(form),
       });
       if (res.ok) {
+        pushEvent("booking_complete", {
+          plan: form.plan,
+          dog_count: form.dogs.length,
+          date: form.date,
+        });
         setResult("success");
       } else {
+        pushEvent("booking_error", { error_type: "api_error" });
         setResult("error");
       }
     } catch {
+      pushEvent("booking_error", { error_type: "network_error" });
       setResult("error");
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -62,9 +82,11 @@ export default function BookingPage() {
               ? "スタッフが確認後、メールにてご連絡いたします。しばらくお待ちください。"
               : "確認メールをお送りしました。当日お気をつけてお越しください。"}
           </p>
-          <p className="text-sm text-[#888]">
-            ワクチン証明書を当日ご持参ください。
-          </p>
+          <div className="text-sm text-[#888] text-left space-y-1">
+            <p>ワクチン証明書（狂犬病・混合）を当日ご持参ください。</p>
+            <p>住所: 箱根町仙石原1246-125</p>
+            <p>TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
+          </div>
           <div className="flex flex-col gap-3 mt-4">
             <button
               onClick={() => {

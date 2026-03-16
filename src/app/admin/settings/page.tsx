@@ -236,8 +236,8 @@ export default function SettingsPage() {
       {/* 営業日カレンダー */}
       <div className="bg-white rounded-xl p-4 space-y-3">
         <div>
-          <h3 className="text-sm font-medium mb-1">営業日</h3>
-          <p className="text-xs text-gray-400">タップで臨時休業・臨時営業を切り替え</p>
+          <h3 className="text-base font-medium mb-1">営業日</h3>
+          <p className="text-sm text-gray-500">タップで臨時休業・臨時営業を切り替え</p>
         </div>
 
         {/* 月ナビ */}
@@ -265,7 +265,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 凡例 */}
-        <div className="flex flex-wrap gap-2 text-[10px] text-gray-500">
+        <div className="flex flex-wrap gap-2 text-xs text-gray-500">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded bg-white border border-gray-200 inline-block" />
             営業
@@ -291,8 +291,8 @@ export default function SettingsPage() {
         {/* 曜日ヘッダー */}
         <div className="grid grid-cols-7 gap-1">
           {WEEKDAY_LABELS.map((label, i) => (
-            <div key={i} className={`text-center text-[10px] font-medium py-1 ${
-              i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"
+            <div key={i} className={`text-center text-sm font-medium py-1 ${
+              i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-500"
             }`}>
               {label}
             </div>
@@ -340,7 +340,7 @@ export default function SettingsPage() {
                   isToday
                     ? "font-bold text-[#B87942]"
                     : !isThisMonth
-                    ? "text-gray-300"
+                    ? "text-gray-500"
                     : holiday
                     ? "text-orange-600"
                     : date.getDay() === 0
@@ -348,21 +348,21 @@ export default function SettingsPage() {
                     : date.getDay() === 6
                     ? "text-blue-500"
                     : closed && !isPast
-                    ? "text-gray-400"
+                    ? "text-gray-500"
                     : "text-gray-700"
                 }`}>
                   {date.getDate()}
                 </span>
                 {isToday && (
-                  <span className="text-[7px] text-[#B87942] font-medium leading-none mt-0.5">今日</span>
+                  <span className="text-xs text-[#B87942] font-medium leading-none mt-0.5">今日</span>
                 )}
                 {holiday && isThisMonth && !isToday && (
-                  <span className="text-[7px] text-orange-500 leading-none mt-0.5 truncate w-full text-center px-0.5">
+                  <span className="text-xs text-orange-500 leading-none mt-0.5 truncate w-full text-center px-0.5">
                     {holiday.length > 3 ? holiday.slice(0, 3) : holiday}
                   </span>
                 )}
                 {isSaving && (
-                  <span className="text-[7px] text-gray-400 leading-none mt-0.5">...</span>
+                  <span className="text-xs text-gray-500 leading-none mt-0.5">...</span>
                 )}
               </button>
             );
@@ -377,9 +377,9 @@ export default function SettingsPage() {
           if (monthHolidays.length === 0) return null;
           return (
             <div className="bg-orange-50 rounded-lg px-3 py-2">
-              <p className="text-[10px] text-orange-600 font-medium mb-1">祝日</p>
+              <p className="text-xs text-orange-600 font-medium mb-1">祝日</p>
               {monthHolidays.map(([d, name]) => (
-                <p key={d} className="text-xs text-orange-700">
+                <p key={d} className="text-sm text-orange-700">
                   {parseInt(d.split("-")[2])}日 {name}
                 </p>
               ))}
@@ -387,7 +387,7 @@ export default function SettingsPage() {
           );
         })()}
 
-        <p className="text-xs text-gray-400">
+        <p className="text-sm text-gray-500">
           定休日: {settings.closed_weekdays.map((d) => WEEKDAY_LABELS[d]).join("・")}曜日
         </p>
       </div>
@@ -395,8 +395,8 @@ export default function SettingsPage() {
       {/* 予約受付期間 */}
       <div className="bg-white rounded-xl p-4 space-y-4">
         <div>
-          <h3 className="text-sm font-medium mb-1">予約受付期間</h3>
-          <p className="text-xs text-gray-400">何日先まで予約を受け付けるか</p>
+          <h3 className="text-base font-medium mb-1">予約受付期間</h3>
+          <p className="text-sm text-gray-500">何日先まで予約を受け付けるか</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -408,7 +408,7 @@ export default function SettingsPage() {
           </button>
           <div className="flex-1 text-center">
             <span className="text-3xl font-medium font-dm">{settings.booking_window_days}</span>
-            <span className="text-sm text-gray-400 ml-1">日先まで</span>
+            <span className="text-sm text-gray-500 ml-1">日先まで</span>
           </div>
           <button
             onClick={() => setSettings((prev) => ({ ...prev, booking_window_days: Math.min(365, prev.booking_window_days + 30) }))}
@@ -423,7 +423,7 @@ export default function SettingsPage() {
             <button
               key={d}
               onClick={() => setSettings((prev) => ({ ...prev, booking_window_days: d }))}
-              className={`px-3 py-1.5 rounded-full text-xs transition-all ${
+              className={`px-3 py-1.5 rounded-full text-sm transition-all ${
                 settings.booking_window_days === d
                   ? "bg-[#B87942] text-white"
                   : "bg-gray-100 text-gray-500 active:bg-gray-200"
@@ -434,14 +434,14 @@ export default function SettingsPage() {
           ))}
         </div>
 
-        <p className="text-xs text-gray-400 bg-gray-50 rounded-lg px-3 py-2">
+        <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
           本日から約{Math.round(settings.booking_window_days / 30)}ヶ月先まで受付
         </p>
 
         <button
           onClick={saveBookingWindow}
           disabled={saving}
-          className={`w-full py-3 rounded-xl text-sm font-medium transition-all ${
+          className={`w-full py-3 rounded-xl text-base font-medium transition-all ${
             saved
               ? "bg-green-500 text-white"
               : "bg-[#B87942] text-white active:bg-[#A06830] disabled:opacity-50"
