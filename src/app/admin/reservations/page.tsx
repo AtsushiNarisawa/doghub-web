@@ -38,7 +38,10 @@ const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 type ViewMode = "week" | "month" | "list";
 
 function formatDateKey(d: Date) {
-  return d.toISOString().split("T")[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 function formatDisplay(d: string) {
   const date = new Date(d + "T00:00:00");
@@ -377,14 +380,15 @@ export default function ReservationsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {selectedReservations.map((r) => {
+          {selectedReservations.flatMap((r) => {
             const st = STATUS_STYLES[r.status] || STATUS_STYLES.confirmed;
             const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
             const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean);
-            const hasAlert = dogs.some((d) => d?.allergies);
-            return (
+            const dogCards = dogs.length > 1 ? dogs : [dogs[0] || null];
+
+            return dogCards.map((dog, di) => (
               <Link
-                key={r.id}
+                key={`${r.id}-${di}`}
                 href={`/admin/reservations/${r.id}`}
                 className="block bg-white rounded-xl p-4 active:bg-gray-50"
               >
@@ -408,7 +412,7 @@ export default function ReservationsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {hasAlert && <span className="text-xs text-red-500">⚠️</span>}
+                    {dog?.allergies && <span className="text-xs text-red-500">⚠️</span>}
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${st.bg}`}>
                       {st.label}
                     </span>
@@ -416,20 +420,18 @@ export default function ReservationsPage() {
                 </div>
                 <p className="text-sm font-medium">
                   {r.customers.last_name} {r.customers.first_name} 様
-                  {(r.dog_count || dogs.length) > 1 && (
-                    <span className="text-xs text-gray-400 ml-1">
-                      {r.dog_count || dogs.length}頭
+                  {dog && (
+                    <span className="text-xs text-gray-500 ml-1.5">
+                      {dog.name}
+                    </span>
+                  )}
+                  {dogs.length > 1 && (
+                    <span className="text-[10px] text-gray-400 ml-1">
+                      ({di + 1}/{dogs.length})
                     </span>
                   )}
                 </p>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {dogs.map((d, i) => (
-                    <span key={i} className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
-                      {d?.name}
-                    </span>
-                  ))}
-                </div>
-                {r.status === "pending" && (
+                {r.status === "pending" && di === 0 && (
                   <button
                     onClick={(e) => confirmReservation(r.id, e)}
                     className="mt-2 text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-lg border border-green-200 active:bg-green-100"
@@ -438,7 +440,7 @@ export default function ReservationsPage() {
                   </button>
                 )}
               </Link>
-            );
+            ));
           })}
         </div>
       )}

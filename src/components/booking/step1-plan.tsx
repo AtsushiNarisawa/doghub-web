@@ -42,14 +42,14 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     } else {
       today.setDate(today.getDate() + 1);
     }
-    return today.toISOString().split("T")[0];
+    return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
   };
 
   // 受付上限日
   const getMaxDate = () => {
     const d = new Date();
     d.setDate(d.getDate() + bookingWindowDays);
-    return d.toISOString().split("T")[0];
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   };
 
   // 定休日チェック（設定から取得）
@@ -76,7 +76,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     const d = new Date(start);
     while (d < end) { // CO日を除外
       if (closedWeekdays.includes(d.getDay())) {
-        datesToCheck.push(d.toISOString().split("T")[0]);
+        datesToCheck.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
       }
       d.setDate(d.getDate() + 1);
     }
@@ -124,7 +124,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         const d = new Date(form.date);
         const end = new Date(form.checkout_date);
         while (d < end) {
-          dates.push(d.toISOString().split("T")[0]);
+          dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
           d.setDate(d.getDate() + 1);
         }
 
@@ -420,7 +420,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             min={(() => {
               const d = new Date(form.date);
               d.setDate(d.getDate() + 1);
-              return d.toISOString().split("T")[0];
+              return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
             })()}
             onChange={(e) => onChange({ ...form, checkout_date: e.target.value })}
             className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"

@@ -55,7 +55,7 @@ export default function CancelPage() {
           if (r.status === "cancelled") {
             setError("この予約は既にキャンセルされています");
           } else {
-            const today = new Date().toISOString().split("T")[0];
+            const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
             if (r.date < today) {
               setError("過去の予約はキャンセルできません");
             }
@@ -155,7 +155,7 @@ export default function CancelPage() {
               </div>
             )}
 
-            {reservation.status !== "cancelled" && reservation.date >= new Date().toISOString().split("T")[0] ? (
+            {reservation.status !== "cancelled" && reservation.date >= (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })() ? (
               !confirming ? (
                 <button
                   onClick={() => setConfirming(true)}

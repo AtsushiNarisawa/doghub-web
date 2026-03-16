@@ -3,9 +3,7 @@ export function Reservation() {
     <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
       <div className="max-w-7xl mx-auto">
         <a
-          href="https://airrsv.net/doghubhakone/calendar"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/booking"
           className="block w-full border border-[#3C200F] py-10 text-center hover:bg-[#F8F5F0] transition-colors"
         >
           <p className="text-[#3C200F] mb-3 flex items-center justify-center gap-3" style={{ fontSize: "clamp(24px, 4vw, 38.4px)", fontWeight: 400, letterSpacing: "2.7px" }}>

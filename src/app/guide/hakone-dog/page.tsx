@@ -150,7 +150,7 @@ export default function HakoneDogGuidePage() {
             </div>
             <div className="mt-6">
               <a
-                href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
+                href="/booking"
                 className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-8 py-3 hover:opacity-90 transition-opacity"
                 style={{ fontSize: "16px", fontWeight: 400 }}
               >

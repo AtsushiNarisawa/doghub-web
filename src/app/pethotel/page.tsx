@@ -103,7 +103,7 @@ export default function PetHotelPage() {
                 </div>
 
                 <a
-                  href="https://airrsv.net/doghubhakone/calendar" target="_blank" rel="noopener noreferrer"
+                  href="/booking"
                   className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                   style={{ fontSize: "18px", fontWeight: 400 }}
                 >

@@ -33,9 +33,7 @@ export function MobileCta() {
           </p>
         </div>
         <a
-          href="https://airrsv.net/doghubhakone/calendar"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/booking"
           className="flex-shrink-0 bg-white text-[#3C200F] px-5 py-2.5 flex items-center gap-2 hover:bg-[#F7F7F7] transition-colors"
           style={{ fontSize: "14px", fontWeight: 400 }}
         >

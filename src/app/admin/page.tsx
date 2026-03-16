@@ -56,16 +56,18 @@ export default function AdminDashboard() {
   const [pendingRes, setPendingRes] = useState<ReservationRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const today = new Date().toISOString().split("T")[0];
+  const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const realToday = fmtDate(new Date());
+  const [selectedDate, setSelectedDate] = useState(realToday);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedDate]);
 
   const fetchData = async () => {
     setLoading(true);
 
-    // 今日チェックインの予約
+    // 選択日のチェックイン予約
     const { data: todayData } = await supabase
       .from("reservations")
       .select(`
@@ -73,11 +75,11 @@ export default function AdminDashboard() {
         customers!inner(id, last_name, first_name, phone),
         reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
       `)
-      .eq("date", today)
+      .eq("date", selectedDate)
       .neq("status", "cancelled")
       .order("checkin_time");
 
-    // 宿泊中（チェックイン日 < 今日 && チェックアウト日 >= 今日）
+    // 宿泊中（チェックイン日 < 選択日 && チェックアウト日 >= 選択日）
     const { data: stayData } = await supabase
       .from("reservations")
       .select(`
@@ -86,15 +88,15 @@ export default function AdminDashboard() {
         reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
       `)
       .eq("plan", "stay")
-      .lt("date", today)
-      .gte("checkout_date", today)
+      .lt("date", selectedDate)
+      .gte("checkout_date", selectedDate)
       .neq("status", "cancelled");
 
     // 容量
     const { data: capData } = await supabase
       .from("daily_capacity")
       .select("*")
-      .eq("date", today)
+      .eq("date", selectedDate)
       .maybeSingle();
 
     // 確認待ち予約（全日程）
@@ -116,11 +118,19 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  const formatToday = () => {
-    const d = new Date();
+  const changeDate = (offset: number) => {
+    const d = new Date(selectedDate + "T00:00:00");
+    d.setDate(d.getDate() + offset);
+    setSelectedDate(fmtDate(d));
+  };
+
+  const formatDisplayDate = (dateStr: string) => {
+    const d = new Date(dateStr + "T00:00:00");
     const days = ["日", "月", "火", "水", "木", "金", "土"];
     return `${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
   };
+
+  const isToday = selectedDate === realToday;
 
   // 時間帯ごとにグループ化
   const groupByTime = (reservations: ReservationRow[]) => {
@@ -163,9 +173,29 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-4">
-      {/* 今日の概要 */}
+      {/* 日付ナビ + 概要 */}
       <div className="bg-white rounded-xl p-4">
-        <h2 className="text-lg font-medium text-gray-800">{formatToday()}</h2>
+        <div className="flex items-center justify-between mb-1">
+          <button onClick={() => changeDate(-1)} className="p-2 -ml-2 rounded-lg active:bg-gray-100">
+            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="text-center">
+            <h2 className="text-lg font-medium text-gray-800">{formatDisplayDate(selectedDate)}</h2>
+            {!isToday && (
+              <button onClick={() => setSelectedDate(realToday)} className="text-xs text-[#B87942] font-medium">
+                今日に戻る
+              </button>
+            )}
+            {isToday && <p className="text-xs text-[#B87942]">今日</p>}
+          </div>
+          <button onClick={() => changeDate(1)} className="p-2 -mr-2 rounded-lg active:bg-gray-100">
+            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
         <div className="flex gap-4 mt-2">
           <div className="text-center">
             <span className="text-2xl font-medium font-dm">{totalDogs}</span>
