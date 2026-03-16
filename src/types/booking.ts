@@ -84,9 +84,8 @@ export const PLANS: PlanInfo[] = [
     description: "ユネッサンを満喫、またゴルフにちょうどいい。",
     basePrice: 5500,
     priceUnit: "",
-    checkinRange: { start: "09:00", end: "09:00" },
+    checkinRange: { start: "07:00", end: "09:00" },
     maxHours: 8,
-    earlyMorning: true,
   },
   {
     id: "stay",

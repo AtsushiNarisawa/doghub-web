@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { BookingFormData } from "@/types/booking";
 import { PLANS, DAY_DESTINATIONS, DAY_DESTINATIONS_4H, STAY_DESTINATIONS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +23,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   const [loadingCapacity, setLoadingCapacity] = useState(false);
   const [bookingWindowDays, setBookingWindowDays] = useState(180);
   const [closedWeekdays, setClosedWeekdays] = useState<number[]>([3, 4]);
+  const [showOtherInput, setShowOtherInput] = useState(false);
 
   // 設定を取得
   useEffect(() => {
@@ -64,16 +65,50 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   };
 
   // 宿泊期間中に定休日が含まれるかチェック
-  const hasClosedDayInStay = (checkin: string, checkout: string) => {
+  // CI日〜CO前日を確認。CO日は除外（チェックアウトのみ対応可能）
+  // daily_capacityで臨時営業に設定されている日は定休日でもOK
+  const [stayClosedDates, setStayClosedDates] = useState<string[]>([]);
+
+  const checkClosedDaysInStay = useCallback(async (checkin: string, checkout: string) => {
     const start = new Date(checkin);
-    const end = new Date(checkout);
+    const end = new Date(checkout); // CO日は除外するので end 未満
+    const datesToCheck: string[] = [];
     const d = new Date(start);
-    while (d <= end) {
-      if (closedWeekdays.includes(d.getDay())) return true;
+    while (d < end) { // CO日を除外
+      if (closedWeekdays.includes(d.getDay())) {
+        datesToCheck.push(d.toISOString().split("T")[0]);
+      }
       d.setDate(d.getDate() + 1);
     }
-    return false;
-  };
+
+    if (datesToCheck.length === 0) {
+      setStayClosedDates([]);
+      return;
+    }
+
+    // 臨時営業オーバーライドを確認
+    const { data } = await supabase
+      .from("daily_capacity")
+      .select("date, closed")
+      .in("date", datesToCheck);
+
+    const actualClosed = datesToCheck.filter((date) => {
+      const override = data?.find((r) => r.date === date);
+      // override で closed=false なら臨時営業 → OK
+      if (override && !override.closed) return false;
+      return true; // デフォルト定休日のまま → NG
+    });
+
+    setStayClosedDates(actualClosed);
+  }, [closedWeekdays]);
+
+  useEffect(() => {
+    if (form.plan === "stay" && form.date && form.checkout_date) {
+      checkClosedDaysInStay(form.date, form.checkout_date);
+    } else {
+      setStayClosedDates([]);
+    }
+  }, [form.plan, form.date, form.checkout_date, checkClosedDaysInStay]);
 
   useEffect(() => {
     if (!form.date) {
@@ -118,7 +153,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         setCapacity({
           stay_remaining: minStayRemaining,
           day_remaining: coDay.day_remaining,
-          closed: closed || coDay.closed,
+          closed, // CO日のclosedは除外（CO日は定休日でもチェックアウト可能）
         });
       } else {
         // 日帰り or 宿泊でCO日未選択：CI日のみチェック
@@ -181,7 +216,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     (form.plan === "stay"
       ? capacity.stay_remaining > 0 &&
         form.checkout_date &&
-        !hasClosedDayInStay(form.date, form.checkout_date) &&
+        stayClosedDates.length === 0 &&
         (!form.checkin_extension || form.checkin_extension_from) &&
         (!form.checkout_extension || form.checkout_extension_until)
       : true) &&
@@ -332,9 +367,9 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         const destinations =
           form.plan === "stay" ? STAY_DESTINATIONS :
           form.plan === "4h" ? DAY_DESTINATIONS_4H : DAY_DESTINATIONS;
-        const isOther = form.destination === "その他（自由記入）" ||
-          (form.destination !== "" && !(destinations as readonly string[]).includes(form.destination));
-        const selectValue = isOther ? "その他（自由記入）" : form.destination;
+        const isListItem = (destinations as readonly string[]).includes(form.destination);
+        const selectValue = showOtherInput ? "その他（自由記入）" : isListItem ? form.destination : form.destination ? "その他（自由記入）" : "";
+
         return (
           <div>
             <h2 className="text-lg font-medium mb-2">お預かり中の行き先</h2>
@@ -345,8 +380,10 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
               value={selectValue}
               onChange={(e) => {
                 if (e.target.value === "その他（自由記入）") {
+                  setShowOtherInput(true);
                   onChange({ ...form, destination: "" });
                 } else {
+                  setShowOtherInput(false);
                   onChange({ ...form, destination: e.target.value });
                 }
               }}
@@ -357,10 +394,10 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                 <option key={dest} value={dest}>{dest}</option>
               ))}
             </select>
-            {(selectValue === "その他（自由記入）" || isOther) && (
+            {(showOtherInput || (!isListItem && form.destination !== "")) && (
               <input
                 type="text"
-                value={isOther && form.destination !== "その他（自由記入）" ? form.destination : ""}
+                value={form.destination === "その他（自由記入）" ? "" : form.destination}
                 onChange={(e) => onChange({ ...form, destination: e.target.value })}
                 placeholder="行き先を入力してください"
                 className="mt-2 w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
@@ -388,9 +425,9 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             onChange={(e) => onChange({ ...form, checkout_date: e.target.value })}
             className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
           />
-          {form.checkout_date && hasClosedDayInStay(form.date, form.checkout_date) && (
+          {form.checkout_date && stayClosedDates.length > 0 && (
             <p className="text-red-500 text-sm mt-2">
-              お預かり期間中に定休日（{closedWeekdayNames()}曜日）が含まれています。定休日をまたがない日程をお選びください。
+              お預かり期間中に定休日が含まれています（チェックアウト日は定休日でもOKです）。日程をご確認ください。
             </p>
           )}
         </div>

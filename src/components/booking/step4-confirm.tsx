@@ -134,27 +134,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
         )}
       </div>
 
-      {/* 料金 */}
-      <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-2">
-        <h3 className="font-medium text-sm text-[#888]">料金の目安</h3>
-        <div className="flex justify-between text-sm">
-          <span>
-            {plan?.name} x {dogCount}頭
-            {stayNights > 1 ? ` x ${stayNights}泊` : ""}
-          </span>
-          <span>
-            ¥{(baseTotal * Math.max(stayNights, 1)).toLocaleString()}
-          </span>
-        </div>
-        <p className="text-[12px] text-[#888]">
-          ※ 超過料金 ¥{EXTRA_HOUR_FEE.toLocaleString()}/時間が別途発生する場合があります
-        </p>
-        <p className="text-[12px] text-[#888]">
-          ※ お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）
-        </p>
-      </div>
-
-      {/* オプション */}
+      {/* オプション・備考 */}
       <div className="space-y-3">
         <label className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F5F0]">
           <input
@@ -163,7 +143,10 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
             onChange={(e) => onChange({ ...form, walk_option: e.target.checked })}
             className="w-5 h-5 rounded accent-[#B87942]"
           />
-          <span className="text-sm">お散歩オプションを希望する（¥{WALK_OPTION_FEE.toLocaleString()}/回）</span>
+          <div>
+            <span className="text-sm">お散歩オプションを希望する（¥{WALK_OPTION_FEE.toLocaleString()}/1回1頭）</span>
+            <p className="text-[11px] text-[#888] mt-0.5">複数回ご希望の場合はチェックイン時にお伝えください</p>
+          </div>
         </label>
 
         <div>
@@ -179,6 +162,75 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
           />
         </div>
       </div>
+
+      {/* 料金の目安 */}
+      {(() => {
+        const baseFee = (plan?.basePrice ?? 0) * dogCount * Math.max(stayNights, 1);
+
+        // CI前早預かり延長料金
+        let ciExtFee = 0;
+        let ciExtHours = 0;
+        if (form.checkin_extension && form.checkin_extension_from) {
+          const [fh] = form.checkin_extension_from.split(":").map(Number);
+          ciExtHours = Math.max(0, 14 - fh);
+          ciExtFee = ciExtHours * EXTRA_HOUR_FEE * dogCount;
+        }
+
+        // CO後延長料金
+        let coExtFee = 0;
+        let coExtHours = 0;
+        if (form.checkout_extension && form.checkout_extension_until) {
+          const [th] = form.checkout_extension_until.split(":").map(Number);
+          coExtHours = Math.max(0, th - 11);
+          coExtFee = coExtHours * EXTRA_HOUR_FEE * dogCount;
+        }
+
+        // 散歩オプション
+        const walkFee = form.walk_option ? WALK_OPTION_FEE * dogCount : 0;
+
+        const totalEstimate = baseFee + ciExtFee + coExtFee + walkFee;
+
+        return (
+          <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-2">
+            <h3 className="font-medium text-sm text-[#888]">料金の目安</h3>
+            <div className="flex justify-between text-sm">
+              <span>
+                {plan?.name} x {dogCount}頭
+                {stayNights > 1 ? ` x ${stayNights}泊` : ""}
+              </span>
+              <span>¥{baseFee.toLocaleString()}</span>
+            </div>
+            {ciExtFee > 0 && (
+              <div className="flex justify-between text-sm text-[#B87942]">
+                <span>早預かり（{ciExtHours}時間 x {dogCount}頭）</span>
+                <span>¥{ciExtFee.toLocaleString()}</span>
+              </div>
+            )}
+            {coExtFee > 0 && (
+              <div className="flex justify-between text-sm text-[#B87942]">
+                <span>延長預かり（{coExtHours}時間 x {dogCount}頭）</span>
+                <span>¥{coExtFee.toLocaleString()}</span>
+              </div>
+            )}
+            {walkFee > 0 && (
+              <div className="flex justify-between text-sm text-[#B87942]">
+                <span>お散歩オプション（{dogCount}頭）</span>
+                <span>¥{walkFee.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm font-medium pt-2 border-t border-[#E5DDD8]">
+              <span>合計（税込）</span>
+              <span>¥{totalEstimate.toLocaleString()}〜</span>
+            </div>
+            <p className="text-[12px] text-[#888]">
+              ※ 引き取り時間超過の場合 ¥{EXTRA_HOUR_FEE.toLocaleString()}/時間が別途発生します
+            </p>
+            <p className="text-[12px] text-[#888]">
+              ※ お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）
+            </p>
+          </div>
+        );
+      })()}
 
       {/* 15kg以上の注意 */}
       {hasHeavyDog && (

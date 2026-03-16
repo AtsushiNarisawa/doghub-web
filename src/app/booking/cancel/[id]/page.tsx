@@ -133,7 +133,7 @@ export default function CancelPage() {
               </div>
               <div className="flex justify-between py-2 border-b border-[#f0ebe5]">
                 <span className="text-sm text-[#888]">日付</span>
-                <span className="text-sm">{formatDate(reservation.date)} {reservation.checkin_time}</span>
+                <span className="text-sm">{formatDate(reservation.date)} {reservation.checkin_time.slice(0, 5)}</span>
               </div>
               {reservation.plan === "stay" && reservation.checkout_date && (
                 <div className="flex justify-between py-2 border-b border-[#f0ebe5]">

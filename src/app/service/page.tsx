@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { ModelCase } from "@/components/model-case";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
@@ -296,6 +297,7 @@ export default function ServicePage() {
           </div>
         </section>
 
+        <ModelCase />
         <QuickNav />
       </main>
       <Footer />

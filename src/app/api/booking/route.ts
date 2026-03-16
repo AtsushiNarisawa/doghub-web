@@ -23,19 +23,47 @@ export async function POST(req: NextRequest) {
     const closedWeekdays = [3, 4];
     const checkinDay = new Date(body.date).getDay();
     if (closedWeekdays.includes(checkinDay)) {
-      return NextResponse.json({ error: "定休日（水・木）のご予約は承れません" }, { status: 400 });
+      // CI日が定休日の場合、臨時営業オーバーライドを確認
+      const { data: ciCap } = await supabase
+        .from("daily_capacity")
+        .select("closed")
+        .eq("date", body.date)
+        .maybeSingle();
+      // override closed=false なら臨時営業 → OK
+      if (!ciCap || ciCap.closed !== false) {
+        return NextResponse.json({ error: "チェックイン日が定休日です" }, { status: 400 });
+      }
     }
 
-    // サーバー側：宿泊期間中の定休日チェック
+    // サーバー側：宿泊期間中の定休日チェック（CI日〜CO前日。CO日は除外）
     if (body.plan === "stay" && body.checkout_date) {
       const start = new Date(body.date);
       const end = new Date(body.checkout_date);
       const d = new Date(start);
-      while (d <= end) {
+      const closedDatesInStay: string[] = [];
+      while (d < end) { // CO日を除外
         if (closedWeekdays.includes(d.getDay())) {
-          return NextResponse.json({ error: "お預かり期間中に定休日（水・木）が含まれています" }, { status: 400 });
+          closedDatesInStay.push(d.toISOString().split("T")[0]);
         }
         d.setDate(d.getDate() + 1);
+      }
+
+      if (closedDatesInStay.length > 0) {
+        // 臨時営業オーバーライドを確認
+        const { data: overrides } = await supabase
+          .from("daily_capacity")
+          .select("date, closed")
+          .in("date", closedDatesInStay);
+
+        const stillClosed = closedDatesInStay.filter((date) => {
+          const override = overrides?.find((r) => r.date === date);
+          if (override && override.closed === false) return false; // 臨時営業
+          return true;
+        });
+
+        if (stillClosed.length > 0) {
+          return NextResponse.json({ error: "お預かり期間中に定休日が含まれています" }, { status: 400 });
+        }
       }
     }
     if (!body.dogs.length || body.dogs.some((d) => !d.name || !d.breed || !d.weight || !d.sex)) {

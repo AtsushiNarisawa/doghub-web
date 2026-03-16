@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { BookingFormData, CustomerFormData, DogFormData } from "@/types/booking";
+import type { BookingFormData, DogFormData } from "@/types/booking";
 import { INITIAL_DOG } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 
@@ -248,18 +248,7 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
         .select("*")
         .eq("customer_id", customer.id);
 
-      const customerData: CustomerFormData = {
-        id: customer.id,
-        last_name: customer.last_name,
-        first_name: customer.first_name,
-        last_name_kana: customer.last_name_kana,
-        first_name_kana: customer.first_name_kana,
-        phone: customer.phone,
-        email: customer.email,
-        postal_code: customer.postal_code || "",
-        address: customer.address || "",
-      };
-
+      // 犬情報のみセット（個人情報はStep3でお客様が入力）
       const dogData: DogFormData[] =
         dogs && dogs.length > 0
           ? dogs.map((d) => ({
@@ -278,7 +267,12 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
             }))
           : [{ ...INITIAL_DOG }];
 
-      onChange({ ...form, customer: customerData, dogs: dogData });
+      // 電話番号のみ保持（Step3で名前等を入力してもらう）
+      onChange({
+        ...form,
+        customer: { ...form.customer, phone: normalized },
+        dogs: dogData,
+      });
       setLookupState("found");
     } else {
       onChange({
@@ -358,9 +352,7 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
 
         {lookupState === "found" && (
           <div className="text-sm text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg">
-            <p className="font-medium">
-              {form.customer.last_name} {form.customer.first_name} 様、おかえりなさい！
-            </p>
+            <p className="font-medium">おかえりなさい！</p>
             <p className="text-[12px] mt-1 text-green-600">
               前回のワンちゃん情報を読み込みました。体重・年齢をご確認のうえ必要があれば修正してください。
             </p>

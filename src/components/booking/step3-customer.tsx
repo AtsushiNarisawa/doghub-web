@@ -12,9 +12,8 @@ interface Props {
 }
 
 export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
-  const isReturning = !!form.customer.id;
-  const [editMode, setEditMode] = useState(!isReturning);
-
+  // リピーター判定：犬情報がDBから読み込まれている（idがある）場合
+  const isReturning = form.dogs.some((d) => !!d.id);
   // 郵便番号から住所自動入力
   const fetchAddress = async (postalCode: string) => {
     const code = postalCode.replace(/-/g, "");
@@ -44,60 +43,8 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* リピーター：確認モード */}
-      {isReturning && !editMode && (
-        <div className="p-4 rounded-xl border-2 border-[#B87942]/20 bg-white space-y-3">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium text-sm">登録済みのお客様情報</h3>
-            <span className="text-[11px] bg-[#B87942]/10 text-[#B87942] px-2 py-1 rounded-full font-medium">
-              リピーター
-            </span>
-          </div>
-          <div className="space-y-2 text-sm">
-            <p>
-              <span className="text-[#888] inline-block w-20">お名前</span>
-              {c.last_name} {c.first_name}（{c.last_name_kana} {c.first_name_kana}）
-            </p>
-            <p>
-              <span className="text-[#888] inline-block w-20">電話番号</span>
-              {c.phone}
-            </p>
-            <p>
-              <span className="text-[#888] inline-block w-20">メール</span>
-              {c.email}
-            </p>
-            {c.address && (
-              <p>
-                <span className="text-[#888] inline-block w-20">住所</span>
-                〒{c.postal_code} {c.address}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setEditMode(true)}
-            className="text-sm text-[#B87942] underline"
-          >
-            情報を変更する
-          </button>
-        </div>
-      )}
-
-      {/* 入力フォーム（新規 or 編集モード） */}
-      {(!isReturning || editMode) && (
-        <div className="space-y-4">
-          {isReturning && editMode && (
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-[#888]">情報を修正できます</p>
-              <button
-                type="button"
-                onClick={() => setEditMode(false)}
-                className="text-sm text-[#888] underline"
-              >
-                戻る
-              </button>
-            </div>
-          )}
+      {/* 入力フォーム */}
+      <div className="space-y-4">
 
           {/* 氏名 */}
           <div className="grid grid-cols-2 gap-3">
@@ -225,8 +172,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
             />
           </div>
-        </div>
-      )}
+      </div>
 
       {/* きっかけ（初回のみ） */}
       {!isReturning && (

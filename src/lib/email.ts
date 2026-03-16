@@ -100,7 +100,7 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
       ${form.walk_option ? `
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">散歩オプション</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">あり（¥550/回）</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">あり（¥550/1回1頭）</td>
       </tr>` : ""}
     </table>
 

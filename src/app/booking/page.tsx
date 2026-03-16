@@ -70,7 +70,12 @@ export default function BookingPage() {
               onClick={() => {
                 setResult(null);
                 setStep(1);
-                setForm({ ...INITIAL_FORM });
+                // 顧客情報・犬情報は保持し、予約内容のみリセット
+                setForm((prev) => ({
+                  ...INITIAL_FORM,
+                  customer: prev.customer,
+                  dogs: prev.dogs,
+                }));
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               className="w-full px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
@@ -103,7 +108,7 @@ export default function BookingPage() {
           <p className="text-sm text-[#888] leading-relaxed">
             通信エラーが発生しました。もう一度お試しいただくか、お電話にてご予約ください。
           </p>
-          <p className="text-sm font-medium">TEL: 0460-83-8223</p>
+          <p className="text-sm font-medium">TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
           <button
             onClick={() => setResult(null)}
             className="inline-block mt-4 px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
