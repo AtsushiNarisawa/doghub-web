@@ -63,6 +63,18 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     return closedWeekdays.map((d) => labels[d]).join("・");
   };
 
+  // 宿泊期間中に定休日が含まれるかチェック
+  const hasClosedDayInStay = (checkin: string, checkout: string) => {
+    const start = new Date(checkin);
+    const end = new Date(checkout);
+    const d = new Date(start);
+    while (d <= end) {
+      if (closedWeekdays.includes(d.getDay())) return true;
+      d.setDate(d.getDate() + 1);
+    }
+    return false;
+  };
+
   useEffect(() => {
     if (!form.date) {
       setCapacity(null);
@@ -70,25 +82,66 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     }
     const fetchCapacity = async () => {
       setLoadingCapacity(true);
-      const { data } = await supabase
-        .from("daily_capacity")
-        .select("*")
-        .eq("date", form.date)
-        .maybeSingle();
 
-      if (data) {
+      if (form.plan === "stay" && form.checkout_date) {
+        // 宿泊：全泊日(CI〜CO前日)のstay枠 + CO日のday枠をチェック
+        const dates: string[] = [];
+        const d = new Date(form.date);
+        const end = new Date(form.checkout_date);
+        while (d < end) {
+          dates.push(d.toISOString().split("T")[0]);
+          d.setDate(d.getDate() + 1);
+        }
+
+        const { data: rows } = await supabase
+          .from("daily_capacity")
+          .select("*")
+          .in("date", [...dates, form.checkout_date]);
+
+        let minStayRemaining = 10;
+        let closed = false;
+        let coDay = { day_remaining: 9, closed: false };
+
+        for (const date of dates) {
+          const row = rows?.find((r) => r.date === date);
+          if (row) {
+            if (row.closed) { closed = true; break; }
+            minStayRemaining = Math.min(minStayRemaining, row.stay_limit - row.stay_booked);
+          }
+        }
+
+        const coRow = rows?.find((r) => r.date === form.checkout_date);
+        if (coRow) {
+          coDay = { day_remaining: coRow.day_limit - coRow.day_booked, closed: coRow.closed };
+        }
+
         setCapacity({
-          stay_remaining: data.stay_limit - data.stay_booked,
-          day_remaining: data.day_limit - data.day_booked,
-          closed: data.closed,
+          stay_remaining: minStayRemaining,
+          day_remaining: coDay.day_remaining,
+          closed: closed || coDay.closed,
         });
       } else {
-        setCapacity({ stay_remaining: 10, day_remaining: 9, closed: false });
+        // 日帰り or 宿泊でCO日未選択：CI日のみチェック
+        const { data } = await supabase
+          .from("daily_capacity")
+          .select("*")
+          .eq("date", form.date)
+          .maybeSingle();
+
+        if (data) {
+          setCapacity({
+            stay_remaining: data.stay_limit - data.stay_booked,
+            day_remaining: data.day_limit - data.day_booked,
+            closed: data.closed,
+          });
+        } else {
+          setCapacity({ stay_remaining: 10, day_remaining: 9, closed: false });
+        }
       }
       setLoadingCapacity(false);
     };
     fetchCapacity();
-  }, [form.date]);
+  }, [form.date, form.plan, form.checkout_date]);
 
   const selectedPlan = PLANS.find((p) => p.id === form.plan);
 
@@ -128,6 +181,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     (form.plan === "stay"
       ? capacity.stay_remaining > 0 &&
         form.checkout_date &&
+        !hasClosedDayInStay(form.date, form.checkout_date) &&
         (!form.checkin_extension || form.checkin_extension_from) &&
         (!form.checkout_extension || form.checkout_extension_until)
       : true) &&
@@ -334,6 +388,11 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             onChange={(e) => onChange({ ...form, checkout_date: e.target.value })}
             className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
           />
+          {form.checkout_date && hasClosedDayInStay(form.date, form.checkout_date) && (
+            <p className="text-red-500 text-sm mt-2">
+              お預かり期間中に定休日（{closedWeekdayNames()}曜日）が含まれています。定休日をまたがない日程をお選びください。
+            </p>
+          )}
         </div>
       )}
 

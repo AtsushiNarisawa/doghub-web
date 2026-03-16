@@ -72,7 +72,7 @@ export const PLANS: PlanInfo[] = [
   {
     id: "4h",
     name: "半日お預かり（4時間）",
-    description: "ユネッサンや観光の間にぴったり。",
+    description: "美術館や日帰り温泉の間にちょうどいい。",
     basePrice: 3300,
     priceUnit: "",
     checkinRange: { start: "09:00", end: "13:00" },
@@ -81,7 +81,7 @@ export const PLANS: PlanInfo[] = [
   {
     id: "8h",
     name: "1日お預かり（8時間）",
-    description: "温泉旅館や観光をゆっくり楽しみたい方に。",
+    description: "ユネッサンを満喫、またゴルフにちょうどいい。",
     basePrice: 5500,
     priceUnit: "",
     checkinRange: { start: "09:00", end: "09:00" },
@@ -91,7 +91,7 @@ export const PLANS: PlanInfo[] = [
   {
     id: "stay",
     name: "宿泊お預かり",
-    description: "お泊まりでのご旅行に。翌日のお迎えまでしっかりお預かり。",
+    description: "ワンちゃんと泊まれるホテルに空きがない時や、ワンちゃんNGのホテルに泊まる時に。",
     basePrice: 7700,
     priceUnit: "/泊",
     checkinRange: { start: "14:00", end: "17:00" },

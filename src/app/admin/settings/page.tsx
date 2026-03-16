@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -10,28 +10,36 @@ interface Settings {
   closed_weekdays: number[];
 }
 
+interface DayOverride {
+  date: string;
+  closed: boolean;
+}
+
 const DEFAULT_SETTINGS: Settings = {
   booking_window_days: 180,
   closed_weekdays: [3, 4],
 };
 
+function formatDate(d: Date) {
+  return d.toISOString().split("T")[0];
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [overrides, setOverrides] = useState<DayOverride[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savingDate, setSavingDate] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("site_settings").select("key, value");
-    if (data) {
-      const map: Record<string, string> = {};
-      for (const row of data) map[row.key] = row.value;
 
+    // 設定を取得
+    const { data: settingsData } = await supabase.from("site_settings").select("key, value");
+    if (settingsData) {
+      const map: Record<string, string> = {};
+      for (const row of settingsData) map[row.key] = row.value;
       setSettings({
         booking_window_days: map.booking_window_days
           ? parseInt(map.booking_window_days)
@@ -41,37 +49,106 @@ export default function SettingsPage() {
           : DEFAULT_SETTINGS.closed_weekdays,
       });
     }
+
+    // 4週間分のdaily_capacityを取得（臨時休業/臨時営業）
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 28);
+    const { data: capData } = await supabase
+      .from("daily_capacity")
+      .select("date, closed")
+      .gte("date", formatDate(today))
+      .lte("date", formatDate(endDate));
+
+    if (capData) {
+      setOverrides(capData.filter((r) => r.closed !== null).map((r) => ({ date: r.date, closed: r.closed })));
+    }
+
     setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  // カレンダー用：4週間分の日付を生成
+  const getCalendarDays = () => {
+    const today = new Date();
+    // 今週の日曜日から開始
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+
+    const days: Date[] = [];
+    for (let i = 0; i < 35; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      days.push(d);
+    }
+    return days;
   };
 
-  const saveSettings = async () => {
-    setSaving(true);
-    const updates = [
-      {
-        key: "booking_window_days",
-        value: String(settings.booking_window_days),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        key: "closed_weekdays",
-        value: settings.closed_weekdays.join(","),
-        updated_at: new Date().toISOString(),
-      },
-    ];
+  // ある日が営業日かどうか判定
+  const isDayClosed = (date: Date) => {
+    const dateStr = formatDate(date);
+    const override = overrides.find((o) => o.date === dateStr);
+    if (override) return override.closed;
+    // デフォルトは定休日設定に従う
+    return settings.closed_weekdays.includes(date.getDay());
+  };
 
-    await supabase.from("site_settings").upsert(updates);
+  // ある日が臨時変更されているか
+  const isOverridden = (date: Date) => {
+    const dateStr = formatDate(date);
+    return overrides.some((o) => o.date === dateStr);
+  };
+
+  // 日付をタップして臨時休業/臨時営業を切り替え
+  const toggleDay = async (date: Date) => {
+    const dateStr = formatDate(date);
+    const today = formatDate(new Date());
+    if (dateStr < today) return; // 過去日は変更不可
+
+    const isRegularClosed = settings.closed_weekdays.includes(date.getDay());
+    const currentOverride = overrides.find((o) => o.date === dateStr);
+    const currentlyClosed = isDayClosed(date);
+
+    setSavingDate(dateStr);
+
+    if (currentOverride) {
+      // オーバーライドが既にある → 削除してデフォルトに戻す
+      await supabase.from("daily_capacity").update({ closed: false }).eq("date", dateStr);
+      setOverrides((prev) => prev.filter((o) => o.date !== dateStr));
+    } else {
+      // オーバーライドなし → 反転させる
+      const newClosed = !currentlyClosed;
+      const { data: existing } = await supabase
+        .from("daily_capacity")
+        .select("date")
+        .eq("date", dateStr)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from("daily_capacity").update({ closed: newClosed }).eq("date", dateStr);
+      } else {
+        await supabase.from("daily_capacity").insert({ date: dateStr, closed: newClosed });
+      }
+      setOverrides((prev) => [...prev.filter((o) => o.date !== dateStr), { date: dateStr, closed: newClosed }]);
+    }
+
+    setSavingDate(null);
+  };
+
+  // 予約受付期間の保存
+  const saveBookingWindow = async () => {
+    setSaving(true);
+    await supabase.from("site_settings").upsert({
+      key: "booking_window_days",
+      value: String(settings.booking_window_days),
+      updated_at: new Date().toISOString(),
+    });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  };
-
-  const toggleWeekday = (day: number) => {
-    setSettings((prev) => ({
-      ...prev,
-      closed_weekdays: prev.closed_weekdays.includes(day)
-        ? prev.closed_weekdays.filter((d) => d !== day)
-        : [...prev.closed_weekdays, day].sort(),
-    }));
   };
 
   if (loading) {
@@ -82,11 +159,121 @@ export default function SettingsPage() {
     );
   }
 
+  const calendarDays = getCalendarDays();
+  const todayStr = formatDate(new Date());
+
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-medium text-gray-500">予約・営業設定</h2>
+      {/* 営業日カレンダー */}
+      <div className="bg-white rounded-xl p-4 space-y-3">
+        <div>
+          <h3 className="text-sm font-medium mb-1">営業日</h3>
+          <p className="text-xs text-gray-400">
+            タップで臨時休業・臨時営業を切り替え
+          </p>
+        </div>
 
-      {/* 受付期間 */}
+        {/* 凡例 */}
+        <div className="flex gap-3 text-xs text-gray-500">
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-white border border-gray-200 inline-block" />
+            営業
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-gray-300 inline-block" />
+            定休
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-red-400 inline-block" />
+            臨時休業
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-green-400 inline-block" />
+            臨時営業
+          </span>
+        </div>
+
+        {/* 曜日ヘッダー */}
+        <div className="grid grid-cols-7 gap-1">
+          {WEEKDAY_LABELS.map((label, i) => (
+            <div
+              key={i}
+              className={`text-center text-xs font-medium py-1 ${
+                i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"
+              }`}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+
+        {/* カレンダー本体 */}
+        <div className="grid grid-cols-7 gap-1">
+          {calendarDays.map((date) => {
+            const dateStr = formatDate(date);
+            const isPast = dateStr < todayStr;
+            const isToday = dateStr === todayStr;
+            const closed = isDayClosed(date);
+            const overridden = isOverridden(date);
+            const isRegularClosed = settings.closed_weekdays.includes(date.getDay());
+            const isSaving = savingDate === dateStr;
+
+            // 背景色の決定
+            let bgClass = "bg-white border border-gray-100";
+            if (isPast) {
+              bgClass = closed ? "bg-gray-200 opacity-40" : "bg-gray-50 opacity-40";
+            } else if (overridden && closed) {
+              // 通常営業日 → 臨時休業
+              bgClass = "bg-red-100 border-2 border-red-300";
+            } else if (overridden && !closed) {
+              // 通常定休日 → 臨時営業
+              bgClass = "bg-green-100 border-2 border-green-300";
+            } else if (isRegularClosed) {
+              bgClass = "bg-gray-200";
+            }
+
+            return (
+              <button
+                key={dateStr}
+                onClick={() => !isPast && toggleDay(date)}
+                disabled={isPast || isSaving}
+                className={`aspect-square rounded-lg flex flex-col items-center justify-center transition-all ${bgClass} ${
+                  isPast ? "cursor-default" : "active:scale-95"
+                }`}
+              >
+                <span
+                  className={`text-sm leading-none ${
+                    isToday
+                      ? "font-bold text-[#B87942]"
+                      : date.getDay() === 0
+                      ? "text-red-500"
+                      : date.getDay() === 6
+                      ? "text-blue-500"
+                      : closed && !isPast
+                      ? "text-gray-400"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {date.getDate()}
+                </span>
+                {isToday && (
+                  <span className="text-[8px] text-[#B87942] font-medium leading-none mt-0.5">今日</span>
+                )}
+                {isSaving && (
+                  <span className="text-[8px] text-gray-400 leading-none mt-0.5">...</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 定休日表示 */}
+        <p className="text-xs text-gray-400">
+          定休日: {settings.closed_weekdays.map((d) => WEEKDAY_LABELS[d]).join("・")}曜日
+        </p>
+      </div>
+
+      {/* 予約受付期間 */}
       <div className="bg-white rounded-xl p-4 space-y-4">
         <div>
           <h3 className="text-sm font-medium mb-1">予約受付期間</h3>
@@ -145,68 +332,19 @@ export default function SettingsPage() {
         <p className="text-xs text-gray-400 bg-gray-50 rounded-lg px-3 py-2">
           本日から約{Math.round(settings.booking_window_days / 30)}ヶ月先まで受付
         </p>
+
+        <button
+          onClick={saveBookingWindow}
+          disabled={saving}
+          className={`w-full py-3 rounded-xl text-sm font-medium transition-all ${
+            saved
+              ? "bg-green-500 text-white"
+              : "bg-[#B87942] text-white active:bg-[#A06830] disabled:opacity-50"
+          }`}
+        >
+          {saved ? "保存しました" : saving ? "保存中..." : "受付期間を保存"}
+        </button>
       </div>
-
-      {/* 定休日 */}
-      <div className="bg-white rounded-xl p-4 space-y-4">
-        <div>
-          <h3 className="text-sm font-medium mb-1">定休日（曜日）</h3>
-          <p className="text-xs text-gray-400">
-            毎週休業する曜日。臨時休業は容量設定ページで個別に設定できます
-          </p>
-        </div>
-
-        <div className="grid grid-cols-7 gap-1.5">
-          {WEEKDAY_LABELS.map((label, i) => (
-            <button
-              key={i}
-              onClick={() => toggleWeekday(i)}
-              className={`aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all ${
-                settings.closed_weekdays.includes(i)
-                  ? "bg-red-100 text-red-600 ring-2 ring-red-300 ring-offset-1"
-                  : i === 0
-                  ? "bg-red-50 text-red-400 active:bg-red-100"
-                  : i === 6
-                  ? "bg-blue-50 text-blue-400 active:bg-blue-100"
-                  : "bg-gray-100 text-gray-500 active:bg-gray-200"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {settings.closed_weekdays.length === 0 ? (
-          <p className="text-xs text-gray-400">定休日なし（年中無休）</p>
-        ) : (
-          <p className="text-xs text-gray-500">
-            定休日:{" "}
-            {settings.closed_weekdays.map((d) => WEEKDAY_LABELS[d]).join("・")}曜日
-          </p>
-        )}
-      </div>
-
-      {/* 臨時休業のガイド */}
-      <div className="bg-orange-50 rounded-xl p-4">
-        <h3 className="text-sm font-medium text-orange-700 mb-1">臨時休業・臨時営業</h3>
-        <p className="text-xs text-orange-600">
-          特定日だけ休業または定休日に営業する場合は、
-          <strong>容量設定</strong>ページで日付を選んで「臨時休業にする」にチェックを入れてください。
-        </p>
-      </div>
-
-      {/* 保存ボタン */}
-      <button
-        onClick={saveSettings}
-        disabled={saving}
-        className={`w-full py-4 rounded-xl text-sm font-medium transition-all ${
-          saved
-            ? "bg-green-500 text-white"
-            : "bg-[#B87942] text-white active:bg-[#A06830] disabled:opacity-50"
-        }`}
-      >
-        {saved ? "保存しました ✓" : saving ? "保存中..." : "設定を保存"}
-      </button>
     </div>
   );
 }

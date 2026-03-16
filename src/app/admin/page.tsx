@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+interface DogInfo {
+  name: string;
+  breed: string;
+  weight: number;
+  allergies: string | null;
+  meal_notes: string | null;
+  medication_notes: string | null;
+}
+
 interface ReservationRow {
   id: string;
   plan: string;
@@ -13,22 +22,14 @@ interface ReservationRow {
   status: string;
   walk_option: boolean;
   notes: string | null;
+  dog_count: number;
   customers: {
     id: string;
     last_name: string;
     first_name: string;
     phone: string;
   };
-  reservation_dogs: {
-    dogs: {
-      name: string;
-      breed: string;
-      weight: number;
-      allergies: string | null;
-      meal_notes: string | null;
-      medication_notes: string | null;
-    };
-  }[];
+  reservation_dogs: { dogs: DogInfo | null }[];
 }
 
 interface CapacityRow {
@@ -39,260 +40,332 @@ interface CapacityRow {
 }
 
 const PLAN_LABELS: Record<string, string> = {
-  spot: "スポット",
-  "4h": "半日",
-  "8h": "1日",
-  stay: "宿泊",
+  spot: "スポット", "4h": "半日", "8h": "1日", stay: "宿泊",
 };
-
-const STATUS_STYLES: Record<string, { label: string; color: string }> = {
-  confirmed: { label: "確定", color: "bg-green-100 text-green-700" },
-  pending: { label: "確認待ち", color: "bg-orange-100 text-orange-700" },
-  cancelled: { label: "キャンセル", color: "bg-gray-100 text-gray-500" },
-  completed: { label: "完了", color: "bg-blue-100 text-blue-700" },
+const PLAN_COLORS: Record<string, string> = {
+  "4h": "bg-sky-100 text-sky-700",
+  "8h": "bg-amber-100 text-amber-700",
+  stay: "bg-purple-100 text-purple-700",
+  spot: "bg-gray-100 text-gray-600",
 };
 
 export default function AdminDashboard() {
-  const [reservations, setReservations] = useState<ReservationRow[]>([]);
+  const [todayRes, setTodayRes] = useState<ReservationRow[]>([]);
+  const [stayingOver, setStayingOver] = useState<ReservationRow[]>([]);
   const [capacity, setCapacity] = useState<CapacityRow | null>(null);
-  const [pendingCount, setPendingCount] = useState(0);
+  const [pendingRes, setPendingRes] = useState<ReservationRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+
+  const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     fetchData();
-  }, [selectedDate]);
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
 
-    // 予約取得
-    const { data: resData } = await supabase
+    // 今日チェックインの予約
+    const { data: todayData } = await supabase
       .from("reservations")
       .select(`
-        id, plan, date, checkin_time, checkout_date, status, walk_option, notes,
+        id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
         customers!inner(id, last_name, first_name, phone),
         reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
       `)
-      .eq("date", selectedDate)
+      .eq("date", today)
       .neq("status", "cancelled")
       .order("checkin_time");
 
-    // 容量取得
+    // 宿泊中（チェックイン日 < 今日 && チェックアウト日 >= 今日）
+    const { data: stayData } = await supabase
+      .from("reservations")
+      .select(`
+        id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
+        customers!inner(id, last_name, first_name, phone),
+        reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
+      `)
+      .eq("plan", "stay")
+      .lt("date", today)
+      .gte("checkout_date", today)
+      .neq("status", "cancelled");
+
+    // 容量
     const { data: capData } = await supabase
       .from("daily_capacity")
       .select("*")
-      .eq("date", selectedDate)
+      .eq("date", today)
       .maybeSingle();
 
-    // 確認待ち件数
-    const { count } = await supabase
+    // 確認待ち予約（全日程）
+    const { data: pendingData } = await supabase
       .from("reservations")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending");
+      .select(`
+        id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
+        customers!inner(id, last_name, first_name, phone),
+        reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
+      `)
+      .eq("status", "pending")
+      .order("date")
+      .order("checkin_time");
 
-    setReservations((resData as unknown as ReservationRow[]) || []);
-    setCapacity(
-      capData || { stay_limit: 10, day_limit: 9, stay_booked: 0, day_booked: 0 }
-    );
-    setPendingCount(count || 0);
+    setTodayRes((todayData as unknown as ReservationRow[]) || []);
+    setStayingOver((stayData as unknown as ReservationRow[]) || []);
+    setCapacity(capData || { stay_limit: 10, day_limit: 9, stay_booked: 0, day_booked: 0 });
+    setPendingRes((pendingData as unknown as ReservationRow[]) || []);
     setLoading(false);
   };
 
-  const today = new Date().toISOString().split("T")[0];
-  const isToday = selectedDate === today;
-
-  const formatDate = (d: string) => {
-    const date = new Date(d);
-    return `${date.getMonth() + 1}/${date.getDate()}（${"日月火水木金土"[date.getDay()]}）`;
+  const formatToday = () => {
+    const d = new Date();
+    const days = ["日", "月", "火", "水", "木", "金", "土"];
+    return `${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
   };
 
-  const changeDate = (offset: number) => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + offset);
-    setSelectedDate(d.toISOString().split("T")[0]);
+  // 時間帯ごとにグループ化
+  const groupByTime = (reservations: ReservationRow[]) => {
+    const groups: Record<string, ReservationRow[]> = {};
+    for (const r of reservations) {
+      const time = r.checkin_time.slice(0, 5);
+      if (!groups[time]) groups[time] = [];
+      groups[time].push(r);
+    }
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   };
+
+  // アラートがある犬
+  const getAlerts = (dogs: (DogInfo | null)[]) => {
+    const alerts: { name: string; type: string; text: string }[] = [];
+    for (const d of dogs) {
+      if (!d) continue;
+      if (d.allergies) alerts.push({ name: d.name, type: "allergy", text: d.allergies });
+      if (d.medication_notes) alerts.push({ name: d.name, type: "med", text: d.medication_notes });
+      if (d.meal_notes) alerts.push({ name: d.name, type: "meal", text: d.meal_notes });
+    }
+    return alerts;
+  };
+
+  // 全予約からアラートを集める
+  const allReservations = [...stayingOver, ...todayRes];
+  const allAlerts = allReservations.flatMap((r) =>
+    getAlerts(r.reservation_dogs.map((rd) => rd.dogs))
+  );
+
+  const totalDogs = allReservations.reduce((sum, r) => sum + (r.dog_count || r.reservation_dogs.length), 0);
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center">
+        <div className="animate-spin w-6 h-6 border-2 border-[#B87942] border-t-transparent rounded-full mx-auto" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {/* 確認待ちアラート */}
-      {pendingCount > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-orange-700">
-              確認待ちの予約があります
-            </p>
-            <p className="text-xs text-orange-600">{pendingCount}件</p>
+      {/* 今日の概要 */}
+      <div className="bg-white rounded-xl p-4">
+        <h2 className="text-lg font-medium text-gray-800">{formatToday()}</h2>
+        <div className="flex gap-4 mt-2">
+          <div className="text-center">
+            <span className="text-2xl font-medium font-dm">{totalDogs}</span>
+            <p className="text-[10px] text-gray-400">頭</p>
           </div>
-          <Link
-            href="/admin/calendar"
-            className="text-sm text-orange-700 font-medium px-3 py-1.5 rounded-lg bg-orange-100 active:bg-orange-200"
-          >
-            確認する
-          </Link>
+          <div className="h-10 w-px bg-gray-100" />
+          <div className="text-center">
+            <span className="text-2xl font-medium font-dm">{todayRes.length}</span>
+            <p className="text-[10px] text-gray-400">本日CI</p>
+          </div>
+          <div className="text-center">
+            <span className="text-2xl font-medium font-dm">{stayingOver.length}</span>
+            <p className="text-[10px] text-gray-400">宿泊中</p>
+          </div>
+          <div className="h-10 w-px bg-gray-100" />
+          {capacity && (
+            <>
+              <div className="text-center">
+                <span className={`text-2xl font-medium font-dm ${capacity.day_booked >= capacity.day_limit ? "text-red-500" : ""}`}>
+                  {capacity.day_booked}/{capacity.day_limit}
+                </span>
+                <p className="text-[10px] text-gray-400">日中枠</p>
+              </div>
+              <div className="text-center">
+                <span className={`text-2xl font-medium font-dm ${capacity.stay_booked >= capacity.stay_limit ? "text-red-500" : ""}`}>
+                  {capacity.stay_booked}/{capacity.stay_limit}
+                </span>
+                <p className="text-[10px] text-gray-400">宿泊枠</p>
+              </div>
+            </>
+          )}
         </div>
-      )}
-
-      {/* 日付ナビ */}
-      <div className="flex items-center justify-between bg-white rounded-xl p-3">
-        <button
-          onClick={() => changeDate(-1)}
-          className="p-3 rounded-lg active:bg-gray-100"
-        >
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div className="text-center">
-          <p className="font-medium">{formatDate(selectedDate)}</p>
-          {isToday && <p className="text-xs text-[#B87942]">今日</p>}
-        </div>
-        <button
-          onClick={() => changeDate(1)}
-          className="p-3 rounded-lg active:bg-gray-100"
-        >
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
 
-      {/* 空き状況バー */}
-      {capacity && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl p-3">
-            <p className="text-xs text-gray-500 mb-1">日帰り</p>
-            <div className="flex items-end gap-1">
-              <span className="text-2xl font-medium font-dm">
-                {capacity.day_booked}
+      {/* 確認待ち予約 */}
+      {pendingRes.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-medium text-orange-600">確認待ち（{pendingRes.length}件）</h3>
+          {pendingRes.map((r) => {
+            const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
+            const formatD = (d: string) => {
+              const dt = new Date(d + "T00:00:00");
+              return `${dt.getMonth() + 1}/${dt.getDate()}（${"日月火水木金土"[dt.getDay()]}）`;
+            };
+            return (
+              <Link key={r.id} href={`/admin/reservations/${r.id}`} className="block bg-orange-50 border border-orange-200 rounded-xl p-4 active:bg-orange-100">
+                <div className="flex items-start justify-between mb-1">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {r.customers.last_name} {r.customers.first_name} 様
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {formatD(r.date)} {r.checkin_time.slice(0, 5)} / {PLAN_LABELS[r.plan]}
+                    </p>
+                  </div>
+                  <span className="text-xs text-orange-600 font-medium">確認待ち</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {dogs.map((dog, i) => (
+                    <span key={i} className="text-xs text-gray-600 bg-white px-2 py-0.5 rounded">
+                      {dog.name}（{dog.breed} / {dog.weight}kg）
+                    </span>
+                  ))}
+                </div>
+                {r.notes && (
+                  <p className="text-xs text-gray-500">{r.notes}</p>
+                )}
+                <p className="text-xs text-orange-500 mt-2 flex items-center gap-1">
+                  タップして確認・確定
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 注意事項（アレルギー・投薬・食事） */}
+      {allAlerts.length > 0 && (
+        <div className="bg-white rounded-xl p-4 space-y-2">
+          <h3 className="text-xs font-medium text-gray-500">本日の注意事項</h3>
+          {allAlerts.map((a, i) => (
+            <div key={i} className={`px-3 py-2 rounded-lg text-xs ${
+              a.type === "allergy" ? "bg-red-50 text-red-700" :
+              a.type === "med" ? "bg-purple-50 text-purple-700" :
+              "bg-amber-50 text-amber-700"
+            }`}>
+              <span className="font-medium">
+                {a.type === "allergy" ? "⚠️" : a.type === "med" ? "💊" : "🍽️"} {a.name}
               </span>
-              <span className="text-sm text-gray-400 mb-0.5">
-                / {capacity.day_limit}
-              </span>
+              ：{a.text}
             </div>
-            <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  capacity.day_booked >= capacity.day_limit
-                    ? "bg-red-400"
-                    : capacity.day_booked >= capacity.day_limit - 2
-                      ? "bg-orange-400"
-                      : "bg-green-400"
-                }`}
-                style={{
-                  width: `${Math.min(100, (capacity.day_booked / capacity.day_limit) * 100)}%`,
-                }}
-              />
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-3">
-            <p className="text-xs text-gray-500 mb-1">宿泊</p>
-            <div className="flex items-end gap-1">
-              <span className="text-2xl font-medium font-dm">
-                {capacity.stay_booked}
-              </span>
-              <span className="text-sm text-gray-400 mb-0.5">
-                / {capacity.stay_limit}
-              </span>
-            </div>
-            <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  capacity.stay_booked >= capacity.stay_limit
-                    ? "bg-red-400"
-                    : capacity.stay_booked >= capacity.stay_limit - 2
-                      ? "bg-orange-400"
-                      : "bg-green-400"
-                }`}
-                style={{
-                  width: `${Math.min(100, (capacity.stay_booked / capacity.stay_limit) * 100)}%`,
-                }}
-              />
-            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 宿泊中（前日以前からの継続） */}
+      {stayingOver.length > 0 && (
+        <div>
+          <h3 className="text-xs font-medium text-gray-500 mb-2">
+            宿泊中（{stayingOver.length}件）
+          </h3>
+          <div className="space-y-2">
+            {stayingOver.map((r) => (
+              <ReservationCard key={r.id} r={r} isStayOver />
+            ))}
           </div>
         </div>
       )}
 
-      {/* 予約一覧 */}
+      {/* 今日のタイムライン */}
       <div>
-        <h2 className="text-sm font-medium text-gray-500 mb-2">
-          予約一覧（{reservations.length}件）
-        </h2>
-        {loading ? (
-          <div className="bg-white rounded-xl p-8 text-center">
-            <div className="animate-spin w-6 h-6 border-2 border-[#B87942] border-t-transparent rounded-full mx-auto" />
-          </div>
-        ) : reservations.length === 0 ? (
+        <h3 className="text-xs font-medium text-gray-500 mb-2">
+          本日のチェックイン（{todayRes.length}件）
+        </h3>
+        {todayRes.length === 0 ? (
           <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-400">
-            この日の予約はありません
+            本日のチェックイン予約はありません
           </div>
         ) : (
           <div className="space-y-2">
-            {reservations.map((r) => {
-              const statusInfo = STATUS_STYLES[r.status] || STATUS_STYLES.confirmed;
-              const customer = r.customers;
-              const dogs = r.reservation_dogs.map((rd) => rd.dogs);
-              return (
-                <Link
-                  key={r.id}
-                  href={`/admin/reservations/${r.id}`}
-                  className="block bg-white rounded-xl p-4 active:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-medium font-dm">
-                        {r.checkin_time.slice(0, 5)}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {PLAN_LABELS[r.plan] || r.plan}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {dogs.some((d) => d.allergies || d.medication_notes) && (
-                        <span className="text-xs text-red-500 font-medium">⚠️</span>
-                      )}
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusInfo.color}`}>
-                        {statusInfo.label}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-sm font-medium">
-                    {customer.last_name} {customer.first_name} 様
-                  </p>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {dogs.map((dog, i) => (
-                      <span key={i} className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
-                        {dog.name}（{dog.breed} / {dog.weight}kg）
-                      </span>
-                    ))}
-                  </div>
-                  {dogs.some((d) => d.allergies) && (
-                    <div className="mt-2 px-2 py-1.5 bg-red-50 rounded-lg">
-                      {dogs.filter((d) => d.allergies).map((d, i) => (
-                        <p key={i} className="text-xs text-red-600">⚠️ {d.name}: {d.allergies}</p>
-                      ))}
-                    </div>
-                  )}
-                  {dogs.some((d) => d.medication_notes) && (
-                    <div className="mt-1 px-2 py-1.5 bg-purple-50 rounded-lg">
-                      {dogs.filter((d) => d.medication_notes).map((d, i) => (
-                        <p key={i} className="text-xs text-purple-700">💊 {d.name}: {d.medication_notes}</p>
-                      ))}
-                    </div>
-                  )}
-                  {r.walk_option && (
-                    <span className="text-xs text-blue-600 mt-1 inline-block">
-                      🦮 散歩オプション
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+            {groupByTime(todayRes).map(([time, rsvs]) => (
+              <div key={time}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-sm font-medium font-dm text-gray-700">{time}</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+                <div className="space-y-2 ml-1">
+                  {rsvs.map((r) => (
+                    <ReservationCard key={r.id} r={r} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function ReservationCard({ r, isStayOver }: { r: ReservationRow; isStayOver?: boolean }) {
+  const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
+  const hasAlert = dogs.some((d) => d.allergies || d.medication_notes);
+  const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
+
+  return (
+    <Link
+      href={`/admin/reservations/${r.id}`}
+      className="block bg-white rounded-xl p-4 active:bg-gray-50"
+    >
+      <div className="flex items-start justify-between mb-1.5">
+        <div className="flex items-center gap-2">
+          {isStayOver ? (
+            <span className="text-xs text-purple-600 font-medium">
+              CO {r.checkout_date ? `${new Date(r.checkout_date + "T00:00:00").getMonth() + 1}/${new Date(r.checkout_date + "T00:00:00").getDate()}` : ""}
+            </span>
+          ) : (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${planColor}`}>
+              {PLAN_LABELS[r.plan]}
+            </span>
+          )}
+          {r.status === "pending" && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-medium">
+              確認待ち
+            </span>
+          )}
+          {hasAlert && <span className="text-xs">⚠️</span>}
+        </div>
+        <a href={`tel:${r.customers.phone}`} className="text-xs text-[#B87942]" onClick={(e) => e.stopPropagation()}>
+          {r.customers.phone}
+        </a>
+      </div>
+
+      <p className="text-sm font-medium mb-1.5">
+        {r.customers.last_name} {r.customers.first_name} 様
+      </p>
+
+      {/* ワンちゃん詳細 */}
+      <div className="space-y-1.5">
+        {dogs.map((dog, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-0.5 rounded shrink-0">
+              {dog.name}
+            </span>
+            <span className="text-xs text-gray-400">
+              {dog.breed} / {dog.weight}kg
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* 備考 */}
+      {r.notes && (
+        <p className="text-xs text-gray-500 mt-2 bg-gray-50 px-2 py-1.5 rounded">
+          {r.notes}
+        </p>
+      )}
+    </Link>
   );
 }

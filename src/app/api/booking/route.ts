@@ -18,12 +18,83 @@ export async function POST(req: NextRequest) {
     if (!body.plan || !body.date || !body.checkin_time) {
       return NextResponse.json({ error: "プラン・日程情報が不足しています" }, { status: 400 });
     }
+
+    // サーバー側：定休日チェック（水=3, 木=4）
+    const closedWeekdays = [3, 4];
+    const checkinDay = new Date(body.date).getDay();
+    if (closedWeekdays.includes(checkinDay)) {
+      return NextResponse.json({ error: "定休日（水・木）のご予約は承れません" }, { status: 400 });
+    }
+
+    // サーバー側：宿泊期間中の定休日チェック
+    if (body.plan === "stay" && body.checkout_date) {
+      const start = new Date(body.date);
+      const end = new Date(body.checkout_date);
+      const d = new Date(start);
+      while (d <= end) {
+        if (closedWeekdays.includes(d.getDay())) {
+          return NextResponse.json({ error: "お預かり期間中に定休日（水・木）が含まれています" }, { status: 400 });
+        }
+        d.setDate(d.getDate() + 1);
+      }
+    }
     if (!body.dogs.length || body.dogs.some((d) => !d.name || !d.breed || !d.weight || !d.sex)) {
       return NextResponse.json({ error: "ワンちゃん情報が不足しています" }, { status: 400 });
     }
     const c = body.customer;
     if (!c.last_name || !c.first_name || !c.phone) {
       return NextResponse.json({ error: "お客様情報が不足しています" }, { status: 400 });
+    }
+
+    // サーバー側：容量チェック
+    const dogCount = body.dogs.length;
+    {
+      const capacityColumn = body.plan === "stay" ? "stay_booked" : "day_booked";
+      const limitColumn = body.plan === "stay" ? "stay_limit" : "day_limit";
+      const datesToCheck: string[] = [];
+
+      if (body.plan === "stay" && body.checkout_date) {
+        // 宿泊：CI日〜CO前日のstay枠 + CO日のday枠
+        const d = new Date(body.date);
+        const end = new Date(body.checkout_date);
+        while (d < end) {
+          datesToCheck.push(d.toISOString().split("T")[0]);
+          d.setDate(d.getDate() + 1);
+        }
+      } else {
+        datesToCheck.push(body.date);
+      }
+
+      // 宿泊枠 or 日帰り枠のチェック
+      for (const date of datesToCheck) {
+        const { data: cap } = await supabase
+          .from("daily_capacity")
+          .select("*")
+          .eq("date", date)
+          .maybeSingle();
+
+        if (cap) {
+          if (cap.closed) {
+            return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
+          }
+          if (cap[capacityColumn] + dogCount > cap[limitColumn]) {
+            return NextResponse.json({ error: `${date}の${body.plan === "stay" ? "宿泊" : "日帰り"}枠が満室です` }, { status: 400 });
+          }
+        }
+      }
+
+      // 宿泊CO日のday枠チェック（犬が午前中在館するため）
+      if (body.plan === "stay" && body.checkout_date) {
+        const { data: coCap } = await supabase
+          .from("daily_capacity")
+          .select("*")
+          .eq("date", body.checkout_date)
+          .maybeSingle();
+
+        if (coCap && coCap.day_booked + dogCount > coCap.day_limit) {
+          return NextResponse.json({ error: `チェックアウト日（${body.checkout_date}）の日帰り枠が満室です` }, { status: 400 });
+        }
+      }
     }
 
     // 電話番号正規化
@@ -142,10 +213,17 @@ export async function POST(req: NextRequest) {
         checkin_time: body.checkin_time,
         checkout_date: body.plan === "stay" ? body.checkout_date || null : null,
         status,
+        dog_count: dogCount,
         walk_option: body.walk_option,
         destination: body.destination || null,
         early_morning: body.early_morning || false,
         referral_source: body.referral_source || null,
+        checkin_extension_from: body.checkin_extension && body.checkin_extension_from
+          ? body.checkin_extension_from
+          : null,
+        checkout_extension_until: body.checkout_extension && body.checkout_extension_until
+          ? body.checkout_extension_until
+          : null,
         notes: [
           body.notes || "",
           body.checkin_extension && body.checkin_extension_from
@@ -172,26 +250,50 @@ export async function POST(req: NextRequest) {
     }));
     await supabase.from("reservation_dogs").insert(rdInserts);
 
-    // 6. daily_capacity 更新
+    // 6. daily_capacity 更新（宿泊は全泊日分、日帰りはチェックイン日のみ）
     const capacityColumn = body.plan === "stay" ? "stay_booked" : "day_booked";
-    const { data: existing } = await supabase
-      .from("daily_capacity")
-      .select("*")
-      .eq("date", body.date)
-      .maybeSingle();
+    const datesToUpdate: string[] = [];
 
-    if (existing) {
-      await supabase
-        .from("daily_capacity")
-        .update({
-          [capacityColumn]: existing[capacityColumn] + 1,
-        })
-        .eq("date", body.date);
+    if (body.plan === "stay" && body.checkout_date) {
+      // 宿泊：チェックイン日〜チェックアウト前日まで全日分
+      const d = new Date(body.date);
+      const end = new Date(body.checkout_date);
+      while (d < end) {
+        datesToUpdate.push(d.toISOString().split("T")[0]);
+        d.setDate(d.getDate() + 1);
+      }
     } else {
-      await supabase.from("daily_capacity").insert({
-        date: body.date,
-        [capacityColumn]: 1,
-      });
+      datesToUpdate.push(body.date);
+    }
+
+    // 容量を頭数分で更新する共通関数
+    const updateCapacity = async (date: string, column: string, delta: number) => {
+      const { data: existing } = await supabase
+        .from("daily_capacity")
+        .select("*")
+        .eq("date", date)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from("daily_capacity")
+          .update({ [column]: Math.max(0, existing[column] + delta) })
+          .eq("date", date);
+      } else if (delta > 0) {
+        await supabase.from("daily_capacity").insert({
+          date,
+          [column]: delta,
+        });
+      }
+    };
+
+    for (const date of datesToUpdate) {
+      await updateCapacity(date, capacityColumn, dogCount);
+    }
+
+    // 宿泊のCO日：犬は午前中まで在館するためday_bookedに加算
+    if (body.plan === "stay" && body.checkout_date) {
+      await updateCapacity(body.checkout_date, "day_booked", dogCount);
     }
 
     // 7. メール送信（失敗しても予約自体は成功扱い）

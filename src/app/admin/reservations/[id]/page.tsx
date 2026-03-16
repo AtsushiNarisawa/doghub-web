@@ -89,11 +89,20 @@ export default function ReservationDetailPage() {
 
   const updateStatus = async (newStatus: string) => {
     setSaving(true);
-    await supabase
-      .from("reservations")
-      .update({ status: newStatus })
-      .eq("id", id);
-    await fetchReservation();
+    try {
+      const resp = await fetch("/api/admin/update-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservation_id: id, status: newStatus }),
+      });
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        alert(data.error || "更新に失敗しました");
+      }
+      await fetchReservation();
+    } catch {
+      alert("通信エラーが発生しました");
+    }
     setSaving(false);
   };
 
@@ -138,6 +147,30 @@ export default function ReservationDetailPage() {
         </svg>
         戻る
       </button>
+
+      {/* 確認待ち → 確定アクション */}
+      {res.status === "pending" && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-orange-700">この予約は確認待ちです</p>
+          <p className="text-xs text-orange-600">内容を確認のうえ、確定またはキャンセルしてください。</p>
+          <button
+            type="button"
+            onClick={() => updateStatus("confirmed")}
+            disabled={saving}
+            className="w-full py-4 bg-green-600 text-white rounded-xl text-base font-medium active:bg-green-700 disabled:opacity-50"
+          >
+            {saving ? "処理中..." : "予約を確定する"}
+          </button>
+          <button
+            type="button"
+            onClick={() => updateStatus("cancelled")}
+            disabled={saving}
+            className="w-full py-3 border border-red-300 text-red-600 rounded-xl text-sm font-medium active:bg-red-50 disabled:opacity-50"
+          >
+            キャンセルする
+          </button>
+        </div>
+      )}
 
       {/* ステータス変更 */}
       <div className="bg-white rounded-xl p-4 space-y-3">

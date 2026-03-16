@@ -113,9 +113,13 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
       <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:#3C200F;">ご来店時のお願い</p>
       <ul style="margin:0;padding:0 0 0 18px;color:#888;font-size:13px;line-height:1.8;">
         <li>ワクチン証明書（狂犬病・混合）をご持参ください</li>
-        <li>お支払いは現地にて（現金・カード対応）</li>
+        <li>本人確認できるもの（免許証等）をご持参ください</li>
+        <li>お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）</li>
         <li>引き取り最終時間は17:00です（超過¥1,100/時間）</li>
       </ul>
+      <div style="margin-top:10px;">
+        <a href="https://dog-hub.shop/booking/cancel/${reservationId}" style="color:#B87942;font-size:13px;">予約のキャンセルはこちら</a>
+      </div>
     </div>
 
     ${form.notes ? `
@@ -128,8 +132,8 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
   <!-- フッター -->
   <div style="text-align:center;padding:16px 0;">
     <p style="margin:0 0 4px;font-size:13px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
-    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原817-7</p>
-    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460838223" style="color:#B87942;">0460-83-8223</a></p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原928-15</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460800290" style="color:#B87942;">0460-80-0290</a></p>
     <p style="margin:0;font-size:12px;color:#888;">営業時間: 金〜火 9:00〜17:00（水・木定休）</p>
     <p style="margin:12px 0 0;font-size:11px;color:#bbb;">予約番号: ${reservationId.slice(0, 8).toUpperCase()}</p>
   </div>

@@ -150,7 +150,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
           ※ 超過料金 ¥{EXTRA_HOUR_FEE.toLocaleString()}/時間が別途発生する場合があります
         </p>
         <p className="text-[12px] text-[#888]">
-          ※ お支払いは現地にて（現金・カード対応）
+          ※ お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）
         </p>
       </div>
 
