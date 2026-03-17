@@ -5,6 +5,7 @@ import type { BookingFormData } from "@/types/booking";
 import { PLANS, DAY_DESTINATIONS, DAY_DESTINATIONS_4H, STAY_DESTINATIONS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
+import { HOLIDAYS } from "@/lib/holidays";
 
 interface Props {
   form: BookingFormData;
@@ -24,6 +25,10 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   const [bookingWindowDays, setBookingWindowDays] = useState(180);
   const [closedWeekdays, setClosedWeekdays] = useState<number[]>([3, 4]);
   const [showOtherInput, setShowOtherInput] = useState(false);
+  const [calMonth, setCalMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
 
   // 設定を取得
   useEffect(() => {
@@ -282,47 +287,127 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         </div>
       </div>
 
-      {/* 日付選択 */}
-      {form.plan && (
-        <div>
-          <h2 className="text-lg font-medium mb-3">日程を選択</h2>
-          <input
-            type="date"
-            value={form.date}
-            min={getMinDate()}
-            max={getMaxDate()}
-            onChange={(e) => onChange({ ...form, date: e.target.value })}
-            className="w-full px-4 py-5 rounded-xl border-2 border-[#E5DDD8] text-lg bg-white focus:border-[#B87942] focus:outline-none"
-          />
-          {form.date && isClosedDay(form.date) && (
-            <p className="text-red-500 text-sm mt-2">
-              {closedWeekdayNames()}曜日は定休日です。別の日程をお選びください。
-            </p>
-          )}
-          {capacity?.closed && (
-            <p className="text-red-500 text-sm mt-2">
-              この日は臨時休業です。別の日程をお選びください。
-            </p>
-          )}
-          {capacity && !capacity.closed && form.date && !isClosedDay(form.date) && (
-            <div className="flex gap-3 mt-2">
-              <span className={`text-sm ${
-                capacity.day_remaining <= 2 ? "text-orange-500" : "text-[#888]"
-              }`}>
-                日帰り: 残り{capacity.day_remaining}枠
-              </span>
-              <span className={`text-sm ${
-                capacity.stay_remaining <= 2 ? "text-orange-500" : "text-[#888]"
-              }`}>
-                宿泊: 残り{capacity.stay_remaining}枠
-              </span>
+      {/* 日付選択（カレンダー） */}
+      {form.plan && (() => {
+        const WDAYS = ["日","月","火","水","木","金","土"];
+        const minDate = getMinDate();
+        const maxDate = getMaxDate();
+        const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+
+        // カレンダー日付生成
+        const first = new Date(calMonth.year, calMonth.month, 1);
+        const startDay = new Date(first); startDay.setDate(1 - first.getDay());
+        const last = new Date(calMonth.year, calMonth.month + 1, 0);
+        const endDay = new Date(last); endDay.setDate(last.getDate() + (6 - last.getDay()));
+        const days: Date[] = [];
+        const d = new Date(startDay);
+        while (d <= endDay) { days.push(new Date(d)); d.setDate(d.getDate() + 1); }
+
+        const fmtD = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+
+        return (
+          <div>
+            <h2 className="text-lg font-medium mb-3">日程を選択</h2>
+            <div className="bg-white rounded-xl border-2 border-[#E5DDD8] p-3">
+              {/* 月ナビ */}
+              <div className="flex items-center justify-between mb-2">
+                <button type="button" onClick={() => setCalMonth((p) => { let m = p.month - 1, y = p.year; if (m < 0) { m = 11; y--; } return { year: y, month: m }; })} className="p-1.5 text-[#888] active:text-[#3C200F]">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <span className="text-sm font-medium">{calMonth.year}年{calMonth.month + 1}月</span>
+                <button type="button" onClick={() => setCalMonth((p) => { let m = p.month + 1, y = p.year; if (m > 11) { m = 0; y++; } return { year: y, month: m }; })} className="p-1.5 text-[#888] active:text-[#3C200F]">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+              {/* 曜日ヘッダー */}
+              <div className="grid grid-cols-7 gap-0.5 mb-1">
+                {WDAYS.map((w, i) => (
+                  <div key={i} className={`text-center text-[11px] font-medium py-1 ${i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-[#888]"}`}>{w}</div>
+                ))}
+              </div>
+              {/* 日付グリッド */}
+              <div className="grid grid-cols-7 gap-0.5">
+                {days.map((date) => {
+                  const dateStr = fmtD(date);
+                  const isThisMonth = date.getMonth() === calMonth.month;
+                  const isClosed = closedWeekdays.includes(date.getDay());
+                  const holiday = HOLIDAYS[dateStr];
+                  const isOutOfRange = dateStr < minDate || dateStr > maxDate;
+                  const isDisabled = !isThisMonth || isClosed || isOutOfRange;
+                  const isSelected = dateStr === form.date;
+                  const isToday = dateStr === todayStr;
+
+                  return (
+                    <button
+                      key={dateStr}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => onChange({ ...form, date: dateStr })}
+                      className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-all ${
+                        isSelected
+                          ? "bg-[#B87942] text-white font-medium"
+                          : !isThisMonth
+                            ? "text-[#ccc]"
+                            : isDisabled
+                              ? "text-[#ccc] bg-gray-50"
+                              : isToday
+                                ? "bg-[#B87942]/10 text-[#B87942] font-bold"
+                                : holiday
+                                  ? "text-orange-500 active:bg-orange-50"
+                                  : date.getDay() === 0
+                                    ? "text-red-400 active:bg-red-50"
+                                    : date.getDay() === 6
+                                      ? "text-blue-400 active:bg-blue-50"
+                                      : "text-[#3C200F] active:bg-[#F8F5F0]"
+                      }`}
+                    >
+                      {date.getDate()}
+                      {holiday && isThisMonth && !isSelected && (
+                        <span className="text-[7px] text-orange-400 leading-none">{holiday.length > 2 ? holiday.slice(0, 2) : holiday}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* 凡例 */}
+              <div className="flex gap-3 mt-2 text-[10px] text-[#888]">
+                <span>グレー: 定休日</span>
+                <span className="text-orange-400">オレンジ: 祝日</span>
+              </div>
             </div>
-          )}
-          {loadingCapacity && (
-            <p className="text-[#888] text-sm mt-2">空き状況を確認中...</p>
-          )}
-        </div>
-      )}
+
+            {/* 選択日の情報 */}
+            {form.date && !isClosedDay(form.date) && (
+              <div className="mt-2">
+                {loadingCapacity ? (
+                  <p className="text-[#888] text-sm">空き状況を確認中...</p>
+                ) : capacity && !capacity.closed ? (
+                  <div className="flex gap-3">
+                    {form.plan === "stay" ? (
+                      capacity.stay_remaining <= 0
+                        ? <span className="text-red-500 text-sm font-medium">× 満室</span>
+                        : capacity.stay_remaining < 5
+                          ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
+                          : <span className="text-green-600 text-sm">○ 空きあり</span>
+                    ) : (
+                      capacity.day_remaining <= 0
+                        ? <span className="text-red-500 text-sm font-medium">× 満室</span>
+                        : capacity.day_remaining < 5
+                          ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
+                          : <span className="text-green-600 text-sm">○ 空きあり</span>
+                    )}
+                  </div>
+                ) : capacity?.closed ? (
+                  <p className="text-red-500 text-sm">この日は臨時休業です。別の日程をお選びください。</p>
+                ) : null}
+              </div>
+            )}
+            {form.date && isClosedDay(form.date) && (
+              <p className="text-red-500 text-sm mt-2">{closedWeekdayNames()}曜日は定休日です。別の日程をお選びください。</p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 早朝プラン（日帰りプランのみ） */}
       {selectedPlan?.earlyMorning && form.date && !isClosedDay(form.date) && capacity && !capacity.closed && (

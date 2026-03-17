@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/booking"],
+      disallow: ["/admin", "/api"],
     },
     sitemap: "https://dog-hub.shop/sitemap.xml",
   };

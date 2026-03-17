@@ -114,10 +114,20 @@ export default function SettingsPage() {
       .gte("date", fmtDate(rangeStart))
       .lte("date", fmtDate(rangeEnd));
 
-    if (capData) {
-      // closedがtrue（臨時休業）またはfalse（臨時営業＝定休日を営業に変更）のレコードを取得
-      // daily_capacityに行がある＝何らかの設定がされている日
-      setOverrides(capData.map((r) => ({ date: r.date, closed: r.closed })));
+    if (capData && settingsData) {
+      const cw = settingsData
+        ? ((() => { const m: Record<string, string> = {}; for (const row of settingsData) m[row.key] = row.value; return m.closed_weekdays ? m.closed_weekdays.split(",").map(Number).filter((n: number) => !isNaN(n)) : [3, 4]; })())
+        : [3, 4];
+
+      // 臨時休業（通常営業日なのにclosed=true）または臨時営業（定休日なのにclosed=false）のみ抽出
+      const overrideList = capData.filter((r) => {
+        const d = new Date(r.date + "T00:00:00");
+        const isRegularClosed = cw.includes(d.getDay());
+        if (isRegularClosed && !r.closed) return true;  // 定休日 → 臨時営業
+        if (!isRegularClosed && r.closed) return true;   // 営業日 → 臨時休業
+        return false;
+      });
+      setOverrides(overrideList.map((r) => ({ date: r.date, closed: r.closed })));
     } else {
       setOverrides([]);
     }
@@ -150,29 +160,27 @@ export default function SettingsPage() {
     const todayStr = fmtDate(new Date());
     if (dateStr < todayStr) return;
 
-    const currentOverride = overrides.find((o) => o.date === dateStr);
-
     setSavingDate(dateStr);
 
-    if (currentOverride) {
+    const isRegularClosed = settings.closed_weekdays.includes(date.getDay());
+    const currentlyOverridden = isOverridden(date);
+
+    if (currentlyOverridden) {
       // オーバーライド済み → デフォルトに戻す
+      const defaultClosed = isRegularClosed;
       const { data: existing } = await supabase
         .from("daily_capacity")
-        .select("date, day_booked, stay_booked")
+        .select("date")
         .eq("date", dateStr)
         .maybeSingle();
 
-      if (existing && existing.day_booked === 0 && existing.stay_booked === 0) {
-        // 予約がなければ行ごと削除
-        await supabase.from("daily_capacity").delete().eq("date", dateStr);
-      } else {
-        await supabase.from("daily_capacity").update({ closed: false }).eq("date", dateStr);
+      if (existing) {
+        await supabase.from("daily_capacity").update({ closed: defaultClosed }).eq("date", dateStr);
       }
       setOverrides((prev) => prev.filter((o) => o.date !== dateStr));
     } else {
-      // オーバーライドなし → 現在の状態を反転
-      const currentlyClosed = isDayClosed(date);
-      const newClosed = !currentlyClosed;
+      // デフォルト状態 → 反転してオーバーライド
+      const newClosed = isRegularClosed ? false : true;
 
       const { data: existing } = await supabase
         .from("daily_capacity")
@@ -185,7 +193,6 @@ export default function SettingsPage() {
       } else {
         await supabase.from("daily_capacity").insert({ date: dateStr, closed: newClosed });
       }
-      // closed=true（臨時休業）もclosed=false（臨時営業）もオーバーライドとして記録
       setOverrides((prev) => [...prev.filter((o) => o.date !== dateStr), { date: dateStr, closed: newClosed }]);
     }
 
