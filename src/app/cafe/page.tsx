@@ -58,7 +58,7 @@ export default function CafePage() {
             style={{ height: "clamp(160px, 30vw, 423px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>その他サービス</h1>
+            <h1 style={{ fontSize: "clamp(22px, 3.5vw, 36px)", fontWeight: 400 }}>箱根 犬連れランチ＆カフェ</h1>
           </div>
         </div>
 
@@ -213,6 +213,31 @@ export default function CafePage() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Dog-friendly lunch info */}
+        <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根で犬連れランチならDogHub</h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                { title: "室内で犬と一緒に食事OK", body: "店内にイートインスペースを完備。リード着用で愛犬と一緒にお食事いただけます。テイクアウトも可能なので、ドッグラン横のベンチで食べるのもおすすめです。" },
+                { title: "予約不要・頭数制限なし", body: "カフェのご利用に予約は不要です。わんちゃんの頭数制限もございません。お散歩やドライブの途中にお気軽にお立ち寄りください。" },
+                { title: "ドッグラン併設で食後も遊べる", body: "併設の専用ドッグランは飼い主様同伴でリードなしOK。ランチの後にわんちゃんを思いっきり遊ばせてあげられます。" },
+              ].map((item) => (
+                <div key={item.title} className="border border-[#E5DDD8] p-6">
+                  <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "18px", fontWeight: 400 }}>{item.title}</h3>
+                  <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>{item.body}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 bg-[#F7F7F7] p-6">
+              <p className="text-[#3C200F] mb-2" style={{ fontSize: "16px", fontWeight: 400 }}>ペットホテルご利用のお客様へ</p>
+              <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
+                お預かり中のお迎え前後にカフェをご利用いただくこともできます。ゴルフや観光の帰りにおむすびとスープで一息つきながら、愛犬との再会をお楽しみください。
+              </p>
             </div>
           </div>
         </section>

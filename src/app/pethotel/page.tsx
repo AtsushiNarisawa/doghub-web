@@ -7,8 +7,8 @@ import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
-  title: "箱根で犬と泊まれる宿に泊まるなら｜日中預かり×ペット可ホテル｜DogHub箱根仙石原",
-  description: "ペット可の宿に泊まりながら、観光中の愛犬はDogHubで日中お預かり。レジーナ仙石原など近隣施設からのご案内多数。チェックイン前・チェックアウト後の観光を自由に。半日4時間¥3,300〜、ドッグラン併設。",
+  title: "箱根 ペットホテル × 日中預かり｜観光中の愛犬をお預け｜DogHub箱根仙石原",
+  description: "箱根のペットホテルDogHub。ペット可の宿に泊まりながら観光中は愛犬をお預け。半日4時間¥3,300〜。レジーナ仙石原など近隣ペット可施設からのご案内多数。24時間スタッフ常駐・完全個室・ドッグラン併設。",
   alternates: { canonical: "/pethotel" },
 };
 

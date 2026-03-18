@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}/news/${a.slug}`,
     lastModified: now,
     changeFrequency: "monthly" as const,
-    priority: 0.5,
+    priority: 0.7,
   }));
 
   return [
@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/guide/pet-hotel-tips`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/guide/sengokuhara`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${baseUrl}/cafe`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/cafe`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/spots`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/booking`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${baseUrl}/access`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },

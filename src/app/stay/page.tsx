@@ -7,8 +7,8 @@ import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 
 export const metadata: Metadata = {
-  title: "箱根 犬 ホテル 宿泊プラン｜DogHub箱根仙石原 ペットホテル",
-  description: "箱根仙石原の犬の宿泊ペットホテル。1泊¥7,700〜。24時間スタッフ常駐・完全個室・ドッグラン併設。愛犬と泊まれる宿に空きがない時、宿泊する宿がペット不可の時に。チェックイン14時〜、チェックアウト〜11時。",
+  title: "箱根 犬のホテル 宿泊・お預かり｜24時間常駐・完全個室｜DogHub箱根仙石原",
+  description: "箱根で犬のホテルをお探しなら、DogHub箱根仙石原。宿泊1泊¥7,700〜、日帰り預かり¥3,300〜。24時間スタッフ常駐・完全個室・専用ドッグラン併設。ペット不可の旅館に泊まる時、ゴルフや温泉の間にも。箱根仙石原の犬専門ペットホテル。",
   alternates: { canonical: "/stay" },
 };
 
@@ -86,7 +86,7 @@ export default function StayPage() {
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
-            <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>宿泊プラン</h1>
+            <h1 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 400 }}>箱根の犬のホテル<br /><span style={{ fontSize: "clamp(16px, 2.5vw, 24px)" }}>宿泊・お預かり</span></h1>
           </div>
         </div>
 
@@ -228,6 +228,141 @@ export default function StayPage() {
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥3,300 / 4時間</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>温泉やユネッサンの間にちょこっとお預け。日帰り旅行にぴったり。</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Why Hakone needs a dog hotel */}
+        <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根で犬のホテルが必要な理由</h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
+                  箱根は関東屈指の人気観光地ですが、犬連れの旅行者にとって意外なハードルがあります。
+                  箱根吟遊、富士屋ホテル、強羅花壇など人気の高級旅館はほとんどがペット不可。
+                  温泉施設や美術館も犬の入場を認めていない施設が大半です。
+                </p>
+                <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
+                  「せっかくの箱根旅行なのに、愛犬を車の中で待たせるのはかわいそう…」
+                  「ペット可の宿に泊まっても、チェックイン前後の観光が制限される…」
+                  そんなお悩みを解決するのが、DogHub箱根仙石原です。
+                </p>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { title: "ペット不可の旅館に泊まりたい時", desc: "愛犬はDogHubで一泊、飼い主様は憧れの旅館を満喫" },
+                  { title: "温泉・ユネッサンを楽しみたい時", desc: "半日預かり¥3,300で、温泉もユネッサンも自由に" },
+                  { title: "ゴルフの朝、早朝から預けたい時", desc: "朝7時からお預かり対応。大箱根CC提携" },
+                  { title: "美術館をゆっくり巡りたい時", desc: "ポーラ美術館から車4分。預けて美術館めぐり" },
+                ].map((item) => (
+                  <div key={item.title} className="border border-[#E5DDD8] p-4">
+                    <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>{item.title}</h3>
+                    <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* DogHub difference */}
+        <section className="py-16 px-6 bg-[#F7F7F7]">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>DogHub箱根仙石原が選ばれる理由</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse" style={{ fontSize: "15px" }}>
+                <thead>
+                  <tr className="border-b-2 border-[#3C200F]">
+                    <th className="py-3 px-4 text-[#3C200F]" style={{ fontWeight: 400 }}>比較項目</th>
+                    <th className="py-3 px-4 text-[#B87942]" style={{ fontWeight: 400 }}>DogHub箱根仙石原</th>
+                    <th className="py-3 px-4 text-[#8F7B65]" style={{ fontWeight: 400 }}>一般的なペットホテル</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[#3C200F]">
+                  {[
+                    ["お預かり環境", "完全個室（壁で仕切り）", "ケージ・サークル"],
+                    ["スタッフ体制", "24時間常駐", "夜間無人の場合あり"],
+                    ["運動環境", "専用ドッグラン併設", "散歩のみ or なし"],
+                    ["早朝対応", "朝7時から可能", "9時〜が一般的"],
+                    ["立地", "箱根仙石原（観光地の中心）", "市街地が多い"],
+                    ["カフェ併設", "犬同伴ランチOK", "なし"],
+                    ["料金（1泊）", "¥7,700〜", "¥5,000〜¥15,000"],
+                  ].map((row) => (
+                    <tr key={row[0]} className="border-b border-[#E5DDD8]">
+                      <td className="py-3 px-4" style={{ fontWeight: 400 }}>{row[0]}</td>
+                      <td className="py-3 px-4 text-[#B87942]" style={{ fontWeight: 400 }}>{row[1]}</td>
+                      <td className="py-3 px-4 text-[#8F7B65]" style={{ fontWeight: 400 }}>{row[2]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-16 px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根の犬のホテル よくある質問</h2>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  { "@type": "Question", name: "箱根で犬を預けられるペットホテルはありますか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原では、宿泊（1泊¥7,700〜）と日帰り預かり（半日¥3,300〜）の両方に対応しています。24時間スタッフ常駐、完全個室、専用ドッグラン併設で、安心してお預けいただけます。" }},
+                  { "@type": "Question", name: "箱根のペット不可の旅館に泊まる場合、犬はどうすればいいですか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原の宿泊プランをご利用ください。チェックイン14時〜、チェックアウト〜11時。愛犬を完全個室でお預かりし、飼い主様はペット不可の旅館での特別な時間をお楽しみいただけます。" }},
+                  { "@type": "Question", name: "犬のホテルの料金はいくらですか？", acceptedAnswer: { "@type": "Answer", text: "宿泊1泊¥7,700〜、1日預かり（8時間）¥5,500、半日預かり（4時間）¥3,300、スポット利用1時間¥1,100〜です。箱根町在住の方は宿泊¥5,500〜の地元割引もございます。すべて税込料金です。" }},
+                  { "@type": "Question", name: "早朝からの預かりは可能ですか？", acceptedAnswer: { "@type": "Answer", text: "はい、朝7時からお預かり対応しています。大箱根カントリークラブとも提携しており、早朝のゴルフ前にお預けいただくお客様も多くいらっしゃいます。" }},
+                  { "@type": "Question", name: "犬種や体重の制限はありますか？", acceptedAnswer: { "@type": "Answer", text: "体重15kgまでの犬をお預かりしています。小型犬・中型犬が対象です。犬種による制限は特にございません。" }},
+                  { "@type": "Question", name: "当日の予約は可能ですか？", acceptedAnswer: { "@type": "Answer", text: "空きがあれば当日予約も承っております。ただし、繁忙期（GW、夏休み、年末年始、紅葉シーズン）は満室になることが多いため、お早めのご予約をおすすめします。" }},
+                ],
+              }) }}
+            />
+            <div className="space-y-4">
+              {[
+                { q: "箱根で犬を預けられるペットホテルはありますか？", a: "DogHub箱根仙石原では、宿泊（1泊¥7,700〜）と日帰り預かり（半日¥3,300〜）の両方に対応しています。24時間スタッフ常駐、完全個室、専用ドッグラン併設で、安心してお預けいただけます。" },
+                { q: "箱根のペット不可の旅館に泊まる場合、犬はどうすればいいですか？", a: "DogHub箱根仙石原の宿泊プランをご利用ください。チェックイン14時〜、チェックアウト〜11時。愛犬を完全個室でお預かりし、飼い主様はペット不可の旅館での特別な時間をお楽しみいただけます。" },
+                { q: "犬のホテルの料金はいくらですか？", a: "宿泊1泊¥7,700〜、1日預かり（8時間）¥5,500、半日預かり（4時間）¥3,300、スポット利用1時間¥1,100〜です。箱根町在住の方は宿泊¥5,500〜の地元割引もございます。すべて税込料金です。" },
+                { q: "早朝からの預かりは可能ですか？", a: "はい、朝7時からお預かり対応しています。大箱根カントリークラブとも提携しており、早朝のゴルフ前にお預けいただくお客様も多くいらっしゃいます。" },
+                { q: "犬種や体重の制限はありますか？", a: "体重15kgまでの犬をお預かりしています。小型犬・中型犬が対象です。犬種による制限は特にございません。" },
+                { q: "当日の予約は可能ですか？", a: "空きがあれば当日予約も承っております。ただし、繁忙期（GW、夏休み、年末年始、紅葉シーズン）は満室になることが多いため、お早めのご予約をおすすめします。" },
+              ].map((faq) => (
+                <details key={faq.q} className="border border-[#E5DDD8] group">
+                  <summary className="flex items-center justify-between cursor-pointer p-6 text-[#3C200F] hover:bg-[#F7F7F7] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
+                    <span>{faq.q}</span>
+                    <span className="ml-4 text-[#B87942] group-open:rotate-45 transition-transform" style={{ fontSize: "24px" }}>+</span>
+                  </summary>
+                  <div className="px-6 pb-6 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
+                    {faq.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Related articles */}
+        <section className="py-16 px-6 bg-[#F7F7F7]">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根の犬連れ旅行に役立つ記事</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <Link href="/news/hakone-dog-trip-guide" className="block bg-white border border-[#E5DDD8] p-6 hover:shadow-md transition-shadow group">
+                <p className="text-[#B87942] mb-2" style={{ fontSize: "13px", fontWeight: 400 }}>犬連れ旅行ガイド</p>
+                <h3 className="text-[#3C200F] mb-2 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>箱根 犬連れ旅行ガイド</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>犬と一緒に行ける箱根のスポットや注意点をまとめました</p>
+              </Link>
+              <Link href="/news/hakone-pet-hotel-comparison" className="block bg-white border border-[#E5DDD8] p-6 hover:shadow-md transition-shadow group">
+                <p className="text-[#B87942] mb-2" style={{ fontSize: "13px", fontWeight: 400 }}>ペットホテル選び</p>
+                <h3 className="text-[#3C200F] mb-2 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>箱根のペットホテル比較</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>箱根エリアのペットホテルの特徴を比較しました</p>
+              </Link>
+              <Link href="/news/hakone-dog-friendly-hotels" className="block bg-white border border-[#E5DDD8] p-6 hover:shadow-md transition-shadow group">
+                <p className="text-[#B87942] mb-2" style={{ fontSize: "13px", fontWeight: 400 }}>ペット可の宿</p>
+                <h3 className="text-[#3C200F] mb-2 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>箱根のペット可旅館・ホテル</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>犬と泊まれる箱根の宿を紹介します</p>
               </Link>
             </div>
           </div>
