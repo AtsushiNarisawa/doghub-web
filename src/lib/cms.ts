@@ -58,6 +58,26 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "屋根付きドッグラン", images: ["/images/img-022.jpg"] },
     { keyword: "美術館めぐり", images: ["/images/img-006.jpg"] },
   ],
+  "hakone-yumoto-pet-hotel": [
+    { keyword: "DogHub箱根仙石原へのアクセス", images: ["/images/img-041.jpg"] },
+  ],
+  "hakone-ashinoko-dog-guide": [
+    { keyword: "湖畔の散歩", images: ["/images/img-008.jpg"] },
+  ],
+  "hakone-dog-cafe-guide": [
+    { keyword: "OMUSUBI & SOUP CAFE", images: ["/images/img-063.webp", "/images/img-045.jpg"] },
+  ],
+  "hakone-owakudani-dog-guide": [
+    { keyword: "犬を預けて大涌谷", images: ["/images/img-041.jpg"] },
+  ],
+  "hakone-dog-spot-sengokuhara": [
+    { keyword: "すすき草原", images: ["/images/img-008.jpg", "/images/img-011.jpg"] },
+    { keyword: "DogHub箱根仙石原", images: ["/images/img-041.jpg"] },
+  ],
+  "pet-hotel-first-time-tips": [
+    { keyword: "預かり環境を確認する", images: ["/images/img-035.png", "/images/img-041.jpg"] },
+    { keyword: "当日の流れ", images: ["/images/img-037.jpg"] },
+  ],
 };
 
 function decodeHtmlEntities(text: string): string {
