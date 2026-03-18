@@ -40,6 +40,24 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
   "hakone-museum-dog-guide": [
     { keyword: "ペットホテルを活用", images: ["/images/img-041.jpg"] },
   ],
+  "hakone-dog-hotel-guide": [
+    { keyword: "ペットホテル専門施設", images: ["/images/img-041.jpg", "/images/img-035.png"] },
+    { keyword: "犬のホテルを選ぶ5つのポイント", images: ["/images/img-037.jpg"] },
+    { keyword: "犬のホテル活用モデルコース", images: ["/images/img-028.png"] },
+  ],
+  "hakone-dog-lunch-guide": [
+    { keyword: "OMUSUBI & SOUP CAFE", images: ["/images/img-063.webp", "/images/img-045.jpg"] },
+    { keyword: "犬連れランチで気をつけたい", images: ["/images/img-042.jpg"] },
+  ],
+  "hakone-dog-travel-model-course": [
+    { keyword: "犬OKのスポットと犬NGのスポット", images: ["/images/img-008.jpg"] },
+    { keyword: "コースB", images: ["/images/img-006.jpg"] },
+    { keyword: "コースE", images: ["/images/img-035.png"] },
+  ],
+  "hakone-dog-rainy-day": [
+    { keyword: "屋根付きドッグラン", images: ["/images/img-022.jpg"] },
+    { keyword: "美術館めぐり", images: ["/images/img-006.jpg"] },
+  ],
 };
 
 function decodeHtmlEntities(text: string): string {
