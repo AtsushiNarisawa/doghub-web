@@ -52,6 +52,66 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/cafe",
     btnLabel: "カフェメニュー・アクセスを見る",
   },
+  "hakone-dog-hotel-guide": {
+    text: "箱根の犬のホテルならDogHub箱根仙石原",
+    subtext: "24時間スタッフ常駐・完全個室・ドッグラン併設。宿泊¥7,700〜、半日預かり¥3,300〜。",
+    href: "/stay",
+    btnLabel: "宿泊・預かりプランを見る",
+  },
+  "hakone-dog-lunch-guide": {
+    text: "箱根で犬連れランチならDogHubのカフェへ",
+    subtext: "室内で犬と一緒に食事OK。予約不要・頭数制限なし。ドッグラン併設で食後も遊べます。",
+    href: "/cafe",
+    btnLabel: "カフェメニューを見る",
+  },
+  "hakone-dog-travel-model-course": {
+    text: "箱根旅行の拠点にDogHub箱根仙石原",
+    subtext: "預かり・カフェ・ドッグランが一か所に。箱根観光の自由度が格段に上がります。",
+    href: "/service",
+    btnLabel: "料金・サービスを見る",
+  },
+  "hakone-dog-rainy-day": {
+    text: "雨の日でも安心。屋根付きドッグラン併設",
+    subtext: "天候を気にせず愛犬を遊ばせられます。カフェで室内ランチもOK。",
+    href: "/dogrun",
+    btnLabel: "ドッグラン詳細を見る",
+  },
+  "hakone-yumoto-pet-hotel": {
+    text: "箱根湯本から車で約20分",
+    subtext: "箱根湯本の温泉や旅館を楽しむ間、愛犬はDogHubで安心のお預かり。",
+    href: "/onsen",
+    btnLabel: "温泉×お預かりプランを見る",
+  },
+  "hakone-ashinoko-dog-guide": {
+    text: "芦ノ湖観光の前後にお預け",
+    subtext: "桃源台から車10分、元箱根から車20分。半日預かり¥3,300〜。",
+    href: "/service",
+    btnLabel: "お預かりプランを見る",
+  },
+  "hakone-dog-cafe-guide": {
+    text: "箱根で室内犬連れOKのカフェ",
+    subtext: "DogHubのOMUSUBI & SOUP CAFE。予約不要・頭数制限なし・ドッグラン併設。",
+    href: "/cafe",
+    btnLabel: "カフェの詳細を見る",
+  },
+  "hakone-owakudani-dog-guide": {
+    text: "大涌谷観光中の愛犬はDogHubへ",
+    subtext: "大涌谷から車約15分。硫黄ガスの心配なく、愛犬を安心してお預けください。",
+    href: "/4h",
+    btnLabel: "半日お預かりプランを見る",
+  },
+  "hakone-dog-spot-sengokuhara": {
+    text: "仙石原の犬連れ旅行の拠点に",
+    subtext: "ペットホテル・カフェ・ドッグランが仙石原の中心にあります。",
+    href: "/service",
+    btnLabel: "DogHubのサービスを見る",
+  },
+  "pet-hotel-first-time-tips": {
+    text: "初めてのペットホテルはDogHubで",
+    subtext: "完全個室で安心。まずは1時間¥1,100〜のスポット利用から始められます。",
+    href: "/guide",
+    btnLabel: "ご利用ガイドを見る",
+  },
 };
 
 const DEFAULT_CTA = {
