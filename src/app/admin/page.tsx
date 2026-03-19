@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -8,6 +8,8 @@ interface DogInfo {
   name: string;
   breed: string;
   weight: number;
+  age: number | null;
+  sex: string | null;
   allergies: string | null;
   meal_notes: string | null;
   medication_notes: string | null;
@@ -32,11 +34,11 @@ interface ReservationRow {
   reservation_dogs: { dogs: DogInfo | null }[];
 }
 
-interface CapacityRow {
-  stay_limit: number;
-  day_limit: number;
-  stay_booked: number;
-  day_booked: number;
+interface DaySummary {
+  date: string;
+  total: number;
+  checkinCount: number;
+  stayOverCount: number;
 }
 
 interface CustomerHistory {
@@ -53,116 +55,168 @@ const PLAN_COLORS: Record<string, string> = {
   stay: "bg-purple-100 text-purple-700",
   spot: "bg-gray-100 text-gray-600",
 };
+const CLOSED_WEEKDAYS = [3, 4]; // 水・木
+const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 export default function AdminDashboard() {
   const [todayRes, setTodayRes] = useState<ReservationRow[]>([]);
   const [stayingOver, setStayingOver] = useState<ReservationRow[]>([]);
-  const [capacity, setCapacity] = useState<CapacityRow | null>(null);
   const [pendingRes, setPendingRes] = useState<ReservationRow[]>([]);
   const [customerHistories, setCustomerHistories] = useState<Record<string, CustomerHistory>>({});
+  const [calSummaries, setCalSummaries] = useState<DaySummary[]>([]);
+  const [calView, setCalView] = useState<"week" | "month">("week");
   const [loading, setLoading] = useState(true);
 
-  const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const realToday = fmtDate(new Date());
   const [selectedDate, setSelectedDate] = useState(realToday);
+  const [calOffset, setCalOffset] = useState(0);
+
+  // 週の開始日（月曜）
+  const getWeekStart = (offset: number) => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff + offset * 7);
+    return d;
+  };
+
+  // 月の日付一覧（カレンダー表示用、前後の空白含む）
+  const getMonthDates = (offset: number) => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + offset);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const firstDay = new Date(year, month, 1).getDay(); // 0=日
+    const startPad = firstDay === 0 ? 6 : firstDay - 1; // 月曜始まり
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const dates: (string | null)[] = [];
+    for (let i = 0; i < startPad; i++) dates.push(null);
+    for (let i = 1; i <= daysInMonth; i++) {
+      dates.push(fmtDate(new Date(year, month, i)));
+    }
+    return { dates, year, month };
+  };
+
+  // カレンダーの日付範囲
+  const getCalDates = (): string[] => {
+    if (calView === "week") {
+      const start = getWeekStart(calOffset);
+      return Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        return fmtDate(d);
+      });
+    } else {
+      const { dates } = getMonthDates(calOffset);
+      return dates.filter(Boolean) as string[];
+    }
+  };
+
+  // カレンダーのタイトル
+  const getCalTitle = () => {
+    if (calView === "week") {
+      const start = getWeekStart(calOffset);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      const sm = start.getMonth() + 1;
+      const em = end.getMonth() + 1;
+      if (sm === em) return `${start.getFullYear()}年${sm}月`;
+      return `${sm}月〜${em}月`;
+    } else {
+      const { year, month } = getMonthDates(calOffset);
+      return `${year}年${month + 1}月`;
+    }
+  };
 
   useEffect(() => {
-    fetchData();
+    fetchCalSummaries();
+  }, [calOffset, calView]);
+
+  useEffect(() => {
+    fetchDayData();
   }, [selectedDate]);
 
-  const fetchData = async () => {
+  const fetchCalSummaries = async () => {
+    const dates = getCalDates();
+    if (dates.length === 0) return;
+    const firstDate = dates[0];
+    const lastDate = dates[dates.length - 1];
+
+    const [{ data: res }, { data: stayRes }] = await Promise.all([
+      supabase.from("reservations")
+        .select("date, plan, dog_count, checkout_date, status")
+        .in("status", ["confirmed", "pending"])
+        .gte("date", firstDate).lte("date", lastDate),
+      supabase.from("reservations")
+        .select("date, plan, dog_count, checkout_date, status")
+        .eq("plan", "stay").in("status", ["confirmed", "pending"])
+        .lt("date", firstDate).gte("checkout_date", firstDate),
+    ]);
+
+    const summaries: DaySummary[] = dates.map((date) => {
+      // チェックイン = その日が予約日の犬
+      const checkinRes = (res || []).filter((r) => r.date === date);
+      // 宿泊中 = 予約日 < 当日 && CO日 >= 当日
+      const stayOverRes = [...(stayRes || []), ...(res || []).filter((r) => r.plan === "stay" && r.date < date)]
+        .filter((r) => r.checkout_date && r.checkout_date >= date && r.date < date);
+      let checkinCount = 0, stayOverCount = 0;
+      for (const r of checkinRes) { checkinCount += (r.dog_count || 1); }
+      for (const r of stayOverRes) { stayOverCount += r.dog_count || 1; }
+      return { date, total: checkinCount + stayOverCount, checkinCount, stayOverCount };
+    });
+
+    setCalSummaries(summaries);
+  };
+
+  const fetchDayData = async () => {
     setLoading(true);
 
-    // 選択日のチェックイン予約
-    const { data: todayData } = await supabase
-      .from("reservations")
-      .select(`
-        id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
-        customers!inner(id, last_name, first_name, phone),
-        reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
-      `)
-      .eq("date", selectedDate)
-      .neq("status", "cancelled")
-      .order("checkin_time");
+    const selectFields = `
+      id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
+      customers!inner(id, last_name, first_name, phone),
+      reservation_dogs(dogs(name, breed, weight, age, sex, allergies, meal_notes, medication_notes))
+    `;
 
-    // 宿泊中（チェックイン日 < 選択日 && チェックアウト日 >= 選択日）
-    const { data: stayData } = await supabase
-      .from("reservations")
-      .select(`
-        id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
-        customers!inner(id, last_name, first_name, phone),
-        reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
-      `)
-      .eq("plan", "stay")
-      .lt("date", selectedDate)
-      .gte("checkout_date", selectedDate)
-      .neq("status", "cancelled");
-
-    // 容量
-    const { data: capData } = await supabase
-      .from("daily_capacity")
-      .select("*")
-      .eq("date", selectedDate)
-      .maybeSingle();
-
-    // 確認待ち予約（全日程）
-    const { data: pendingData } = await supabase
-      .from("reservations")
-      .select(`
-        id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
-        customers!inner(id, last_name, first_name, phone),
-        reservation_dogs(dogs(name, breed, weight, allergies, meal_notes, medication_notes))
-      `)
-      .eq("status", "pending")
-      .order("date")
-      .order("checkin_time");
+    const [{ data: todayData }, { data: stayData }, { data: pendingData }] = await Promise.all([
+      supabase.from("reservations").select(selectFields).eq("date", selectedDate).neq("status", "cancelled").order("checkin_time"),
+      supabase.from("reservations").select(selectFields).eq("plan", "stay").lt("date", selectedDate).gte("checkout_date", selectedDate).neq("status", "cancelled"),
+      supabase.from("reservations").select(selectFields).eq("status", "pending").order("date").order("checkin_time"),
+    ]);
 
     const allData = [...(todayData || []), ...(stayData || []), ...(pendingData || [])] as unknown as ReservationRow[];
     const customerIds = [...new Set(allData.map((r) => r.customers.id))];
+    const displayedIds = allData.map((r) => r.id);
 
-    // 各顧客の過去の予約履歴を取得
     const histories: Record<string, CustomerHistory> = {};
     if (customerIds.length > 0) {
       const { data: pastRes } = await supabase
         .from("reservations")
-        .select("customer_id, date, status")
+        .select("id, customer_id, date, status")
         .in("customer_id", customerIds)
         .in("status", ["confirmed", "completed"])
         .lt("date", selectedDate)
         .order("date", { ascending: false });
 
       for (const cid of customerIds) {
-        const visits = (pastRes || []).filter((r) => r.customer_id === cid);
-        histories[cid] = {
-          visitCount: visits.length,
-          lastVisitDate: visits.length > 0 ? visits[0].date : null,
-        };
+        const visits = (pastRes || []).filter((r) => r.customer_id === cid && !displayedIds.includes(r.id));
+        histories[cid] = { visitCount: visits.length, lastVisitDate: visits.length > 0 ? visits[0].date : null };
       }
     }
 
     setCustomerHistories(histories);
     setTodayRes((todayData as unknown as ReservationRow[]) || []);
     setStayingOver((stayData as unknown as ReservationRow[]) || []);
-    setCapacity(capData || { stay_limit: 10, day_limit: 9, stay_booked: 0, day_booked: 0 });
     setPendingRes((pendingData as unknown as ReservationRow[]) || []);
     setLoading(false);
   };
 
-  const changeDate = (offset: number) => {
-    const d = new Date(selectedDate + "T00:00:00");
-    d.setDate(d.getDate() + offset);
-    setSelectedDate(fmtDate(d));
-  };
-
   const formatDisplayDate = (dateStr: string) => {
     const d = new Date(dateStr + "T00:00:00");
-    const days = ["日", "月", "火", "水", "木", "金", "土"];
-    return `${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
+    return `${d.getMonth() + 1}月${d.getDate()}日（${DAYS[d.getDay()]}）`;
   };
 
-  const isToday = selectedDate === realToday;
-
-  // 時間帯ごとにグループ化
   const groupByTime = (reservations: ReservationRow[]) => {
     const groups: Record<string, ReservationRow[]> = {};
     for (const r of reservations) {
@@ -173,274 +227,317 @@ export default function AdminDashboard() {
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   };
 
-  // アラートがある犬
-  const getAlerts = (dogs: (DogInfo | null)[]) => {
-    const alerts: { name: string; type: string; text: string }[] = [];
-    for (const d of dogs) {
-      if (!d) continue;
-      if (d.allergies) alerts.push({ name: d.name, type: "allergy", text: d.allergies });
-      if (d.medication_notes) alerts.push({ name: d.name, type: "med", text: d.medication_notes });
-      if (d.meal_notes) alerts.push({ name: d.name, type: "meal", text: d.meal_notes });
-    }
-    return alerts;
-  };
-
-  // 全予約からアラートを集める
   const allReservations = [...stayingOver, ...todayRes];
-  const allAlerts = allReservations.flatMap((r) =>
-    getAlerts(r.reservation_dogs.map((rd) => rd.dogs))
-  );
-
   const totalDogs = allReservations.reduce((sum, r) => sum + (r.dog_count || r.reservation_dogs.length), 0);
-
-  if (loading) {
-    return (
-      <div className="py-16 text-center">
-        <div className="animate-spin w-6 h-6 border-2 border-[#B87942] border-t-transparent rounded-full mx-auto" />
-      </div>
-    );
-  }
+  const isToday = selectedDate === realToday;
 
   return (
     <div className="space-y-4">
-      {/* 日付ナビ + 概要 */}
-      <div className="bg-white rounded-xl p-4">
-        <div className="flex items-center justify-between mb-1">
-          <button onClick={() => changeDate(-1)} className="p-3 -ml-2 rounded-lg active:bg-gray-100">
-            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      {/* カレンダー */}
+      <div className="bg-white rounded-xl p-3">
+        {/* ヘッダー: 月表示 + ナビ + 切替 */}
+        <div className="flex items-center justify-between mb-2">
+          <button onClick={() => setCalOffset((o) => o - 1)} className="p-2 rounded-lg active:bg-gray-100">
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div className="text-center">
-            <h2 className="text-lg font-medium text-gray-800">{formatDisplayDate(selectedDate)}</h2>
-            {!isToday && (
-              <button onClick={() => setSelectedDate(realToday)} className="text-xs text-[#B87942] font-medium">
-                今日に戻る
-              </button>
-            )}
-            {isToday && <p className="text-xs text-[#B87942]">今日</p>}
+          <div className="flex items-center gap-3">
+            <button onClick={() => { setCalOffset(0); setSelectedDate(realToday); }} className="text-sm font-medium text-gray-700 active:text-[#B87942]">
+              {getCalTitle()}
+            </button>
+            <div className="flex bg-gray-100 rounded-lg p-0.5">
+              <button
+                onClick={() => { setCalView("week"); setCalOffset(0); }}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${calView === "week" ? "bg-white text-gray-700 shadow-sm" : "text-gray-400"}`}
+              >週</button>
+              <button
+                onClick={() => { setCalView("month"); setCalOffset(0); }}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${calView === "month" ? "bg-white text-gray-700 shadow-sm" : "text-gray-400"}`}
+              >月</button>
+            </div>
           </div>
-          <button onClick={() => changeDate(1)} className="p-3 -mr-2 rounded-lg active:bg-gray-100">
-            <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <button onClick={() => setCalOffset((o) => o + 1)} className="p-2 rounded-lg active:bg-gray-100">
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
-        <div className="flex gap-4 mt-2">
-          <div className="text-center">
-            <span className="text-2xl font-medium font-dm">{totalDogs}</span>
-            <p className="text-xs text-gray-500">頭</p>
+
+        {/* 曜日ヘッダー */}
+        {calView === "month" && (
+          <div className="grid grid-cols-7 mb-1">
+            {DAYS.slice(1).concat(DAYS[0]).map((day) => (
+              <div key={day} className="text-center text-[10px] text-gray-400">{day}</div>
+            ))}
           </div>
-          <div className="h-10 w-px bg-gray-100" />
-          <div className="text-center">
-            <span className="text-2xl font-medium font-dm">{todayRes.length}</span>
-            <p className="text-xs text-gray-500">本日CI</p>
-          </div>
-          <div className="text-center">
-            <span className="text-2xl font-medium font-dm">{stayingOver.length}</span>
-            <p className="text-xs text-gray-500">宿泊中</p>
-          </div>
-          <div className="h-10 w-px bg-gray-100" />
-          {capacity && (
-            <>
-              <div className="text-center">
-                <span className={`text-2xl font-medium font-dm ${capacity.day_booked >= capacity.day_limit ? "text-red-500" : ""}`}>
-                  {capacity.day_booked}/{capacity.day_limit}
-                </span>
-                <p className="text-xs text-gray-500">日中枠</p>
-              </div>
-              <div className="text-center">
-                <span className={`text-2xl font-medium font-dm ${capacity.stay_booked >= capacity.stay_limit ? "text-red-500" : ""}`}>
-                  {capacity.stay_booked}/{capacity.stay_limit}
-                </span>
-                <p className="text-xs text-gray-500">宿泊枠</p>
-              </div>
-            </>
+        )}
+
+        {/* カレンダーグリッド */}
+        <div className="grid grid-cols-7 gap-1">
+          {calView === "month" ? (
+            // 月表示
+            (() => {
+              const { dates } = getMonthDates(calOffset);
+              return dates.map((dateStr, i) => {
+                if (!dateStr) return <div key={`pad-${i}`} />;
+                const d = new Date(dateStr + "T00:00:00");
+                const summary = calSummaries.find((s) => s.date === dateStr);
+                const isClosed = CLOSED_WEEKDAYS.includes(d.getDay());
+                const isSelected = dateStr === selectedDate;
+                const isTodayDate = dateStr === realToday;
+                return (
+                  <button
+                    key={dateStr}
+                    onClick={() => setSelectedDate(dateStr)}
+                    className={`flex flex-col items-center py-1 rounded-lg text-center transition-colors ${
+                      isSelected ? "bg-[#B87942] text-white" :
+                      isClosed ? "bg-gray-50 text-gray-300" :
+                      "active:bg-gray-100"
+                    }`}
+                  >
+                    <span className={`text-xs font-dm ${isTodayDate && !isSelected ? "text-[#B87942] font-bold" : ""}`}>
+                      {d.getDate()}
+                    </span>
+                    {summary && summary.total > 0 && (
+                      <span className={`text-[9px] font-dm ${isSelected ? "text-white/90" : "text-gray-500"}`}>
+                        {summary.total}<span className={`${isSelected ? "text-white/60" : "text-gray-300"}`}>/{summary.checkinCount}</span>
+                      </span>
+                    )}
+                  </button>
+                );
+              });
+            })()
+          ) : (
+            // 週表示
+            calSummaries.map((s) => {
+              const d = new Date(s.date + "T00:00:00");
+              const isClosed = CLOSED_WEEKDAYS.includes(d.getDay());
+              const isSelected = s.date === selectedDate;
+              const isTodayDate = s.date === realToday;
+              return (
+                <button
+                  key={s.date}
+                  onClick={() => setSelectedDate(s.date)}
+                  className={`flex flex-col items-center py-2 rounded-lg text-center transition-colors ${
+                    isSelected ? "bg-[#B87942] text-white" :
+                    isClosed ? "bg-gray-50 text-gray-300" :
+                    "active:bg-gray-100"
+                  }`}
+                >
+                  <span className={`text-[10px] ${isSelected ? "text-white/80" : isClosed ? "text-gray-300" : "text-gray-400"}`}>
+                    {DAYS[d.getDay()]}
+                  </span>
+                  <span className={`text-sm font-medium font-dm ${isTodayDate && !isSelected ? "text-[#B87942]" : ""}`}>
+                    {d.getDate()}
+                  </span>
+                  {s.total > 0 && (
+                    <span className={`text-[10px] font-dm mt-0.5 ${isSelected ? "text-white/90" : "text-gray-500"}`}>
+                      {s.total}<span className={`${isSelected ? "text-white/60" : "text-gray-300"}`}>/{s.checkinCount}</span>
+                    </span>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
       </div>
 
-      {/* 確認待ち予約 */}
-      {pendingRes.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-orange-600">確認待ち（{pendingRes.length}件）</h3>
-          {pendingRes.map((r) => {
-            const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
-            const formatD = (d: string) => {
-              const dt = new Date(d + "T00:00:00");
-              return `${dt.getMonth() + 1}/${dt.getDate()}（${"日月火水木金土"[dt.getDay()]}）`;
-            };
-            return (
-              <Link key={r.id} href={`/admin/reservations/${r.id}`} className="block bg-orange-50 border border-orange-200 rounded-xl p-4 active:bg-orange-100">
-                <div className="flex items-start justify-between mb-1">
-                  <div>
-                    <p className="text-base font-medium text-gray-800">
-                      {r.customers.last_name} {r.customers.first_name} 様
-                    </p>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {formatD(r.date)} {r.checkin_time.slice(0, 5)} / {PLAN_LABELS[r.plan]}
-                    </p>
-                  </div>
-                  <span className="text-sm text-orange-600 font-medium">確認待ち</span>
-                </div>
-                <div className="flex flex-wrap gap-1 mb-1">
-                  {dogs.map((dog, i) => (
-                    <span key={i} className="text-sm text-gray-600 bg-white px-2 py-1 rounded">
-                      {dog.name}（{dog.breed} / {dog.weight}kg）
-                    </span>
-                  ))}
-                </div>
-                {r.notes && (
-                  <p className="text-xs text-gray-500">{r.notes}</p>
-                )}
-                <p className="text-xs text-orange-500 mt-2 flex items-center gap-1">
-                  タップして確認・確定
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </p>
-              </Link>
-            );
-          })}
+      {/* 選択日の概要 */}
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-lg font-medium text-gray-800">{formatDisplayDate(selectedDate)}</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-medium font-dm">{totalDogs}頭</span>
+          {(() => {
+            const half = allReservations.filter((r) => r.plan === "4h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+            const full = allReservations.filter((r) => r.plan === "8h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+            const stay = allReservations.filter((r) => r.plan === "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+            const parts = [];
+            if (half > 0) parts.push(`半日${half}`);
+            if (full > 0) parts.push(`1日${full}`);
+            if (stay > 0) parts.push(`宿泊${stay}`);
+            return parts.length > 0 ? <span className="text-xs text-gray-400">{parts.join(" / ")}</span> : null;
+          })()}
         </div>
-      )}
-
-      {/* 注意事項（アレルギー・投薬・食事） */}
-      {allAlerts.length > 0 && (
-        <div className="bg-white rounded-xl p-4 space-y-2">
-          <h3 className="text-sm font-medium text-gray-500">本日の注意事項</h3>
-          {allAlerts.map((a, i) => (
-            <div key={i} className={`px-3 py-2 rounded-lg text-sm ${
-              a.type === "allergy" ? "bg-red-50 text-red-700" :
-              a.type === "med" ? "bg-purple-50 text-purple-700" :
-              "bg-amber-50 text-amber-700"
-            }`}>
-              <span className="font-medium">
-                {a.type === "allergy" ? "⚠️" : a.type === "med" ? "💊" : "🍽️"} {a.name}
-              </span>
-              ：{a.text}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 宿泊中（前日以前からの継続） */}
-      {stayingOver.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-2">
-            宿泊中（{stayingOver.length}件）
-          </h3>
-          <div className="space-y-2">
-            {stayingOver.map((r) => (
-              <ReservationCard key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 今日のタイムライン */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-500 mb-2">
-          本日のチェックイン（{todayRes.length}件）
-        </h3>
-        {todayRes.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-500">
-            本日のチェックイン予約はありません
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {groupByTime(todayRes).map(([time, rsvs]) => (
-              <div key={time}>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-base font-medium font-dm text-gray-700">{time}</span>
-                  <div className="flex-1 h-px bg-gray-200" />
-                </div>
-                <div className="space-y-2 ml-1">
-                  {rsvs.map((r) => (
-                    <ReservationCard key={r.id} r={r} history={customerHistories[r.customers.id]} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
+
+      {loading ? (
+        <div className="py-12 text-center">
+          <div className="animate-spin w-6 h-6 border-2 border-[#B87942] border-t-transparent rounded-full mx-auto" />
+        </div>
+      ) : (
+        <>
+          {/* 確認待ち予約 */}
+          {pendingRes.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-orange-600">確認待ち（{pendingRes.length}件）</h3>
+              {pendingRes.map((r) => {
+                const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
+                const formatD = (dd: string) => {
+                  const dt = new Date(dd + "T00:00:00");
+                  return `${dt.getMonth() + 1}/${dt.getDate()}（${DAYS[dt.getDay()]}）`;
+                };
+                return (
+                  <Link key={r.id} href={`/admin/reservations/${r.id}`} className="block bg-orange-50 border border-orange-200 rounded-xl p-4 active:bg-orange-100">
+                    <div className="flex items-start justify-between mb-1">
+                      <div>
+                        <p className="text-base font-medium text-gray-800">
+                          {r.customers.last_name} {r.customers.first_name} 様
+                        </p>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          {formatD(r.date)} {r.checkin_time.slice(0, 5)} / {PLAN_LABELS[r.plan]}
+                        </p>
+                      </div>
+                      <span className="text-sm text-orange-600 font-medium">確認待ち</span>
+                    </div>
+                    {dogs.map((dog, i) => (
+                      <DogLine key={i} dog={dog} />
+                    ))}
+                    <p className="text-xs text-orange-500 mt-2 flex items-center gap-1">
+                      タップして確認・確定
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* チェックイン */}
+          <div>
+            <h3 className="text-sm font-medium text-[#B87942] mb-2">
+              チェックイン（{todayRes.length}件）
+            </h3>
+            {todayRes.length === 0 ? (
+              <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-500">
+                チェックイン予約はありません
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {groupByTime(todayRes).map(([time, rsvs]) => (
+                  <div key={time}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-base font-medium font-dm text-[#B87942]">{time}</span>
+                      <div className="flex-1 h-px bg-[#E5DDD8]" />
+                    </div>
+                    <div className="space-y-2 ml-1">
+                      {rsvs.map((r) => (
+                        <ReservationCards key={r.id} r={r} history={customerHistories[r.customers.id]} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 宿泊中 → チェックアウト */}
+          {stayingOver.length > 0 && (
+            <div className="opacity-70">
+              <h3 className="text-sm font-medium text-gray-400 mb-2">
+                宿泊中 → チェックアウト（{stayingOver.length}件）
+              </h3>
+              <div className="space-y-2">
+                {stayingOver.map((r) => (
+                  <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-function ReservationCard({ r, isStayOver, history }: { r: ReservationRow; isStayOver?: boolean; history?: CustomerHistory }) {
+/** 犬情報1行表示（統一フォーマット） */
+function DogLine({ dog }: { dog: DogInfo }) {
+  const sexLabel = dog.sex === "male" ? "オス" : dog.sex === "female" ? "メス" : "";
+  const details = [dog.breed, sexLabel, dog.age != null ? `${dog.age}歳` : "", `${dog.weight}kg`].filter(Boolean).join(" / ");
+  return (
+    <p className="text-sm">
+      <span className="font-medium text-gray-700">{dog.name}</span>
+      <span className="text-gray-400 ml-2">{details}</span>
+    </p>
+  );
+}
+
+/** 1予約を犬ごとに分割してカードを生成 */
+function ReservationCards({ r, isStayOver, history }: { r: ReservationRow; isStayOver?: boolean; history?: CustomerHistory }) {
   const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
-  const hasAlert = dogs.some((d) => d.allergies || d.medication_notes);
+  const dogCount = r.dog_count || dogs.length || 1;
+
+  if (dogs.length > 1) {
+    return <>{dogs.map((dog, i) => (
+      <SingleDogCard key={`${r.id}-${i}`} r={r} dog={dog} dogIndex={i + 1} totalDogs={dogs.length} isStayOver={isStayOver} history={history} />
+    ))}</>;
+  }
+  if (dogCount > 1 && dogs.length <= 1) {
+    return <>{Array.from({ length: dogCount }, (_, i) => (
+      <SingleDogCard key={`${r.id}-${i}`} r={r} dog={dogs[0] || null} dogIndex={i + 1} totalDogs={dogCount} isStayOver={isStayOver} history={history} />
+    ))}</>;
+  }
+  return <SingleDogCard r={r} dog={dogs[0] || null} dogIndex={0} totalDogs={1} isStayOver={isStayOver} history={history} />;
+}
+
+function SingleDogCard({ r, dog, dogIndex, totalDogs, isStayOver, history }: {
+  r: ReservationRow; dog: DogInfo | null; dogIndex: number; totalDogs: number;
+  isStayOver?: boolean; history?: CustomerHistory;
+}) {
+  const hasAlert = dog && (dog.allergies || dog.meal_notes || dog.medication_notes);
   const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
   const isRepeater = history && history.visitCount > 0;
-
-  const formatShortDate = (d: string) => {
-    const date = new Date(d + "T00:00:00");
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  };
+  const isFirst = dogIndex <= 1;
 
   return (
     <Link
       href={`/admin/reservations/${r.id}`}
       className="block bg-white rounded-xl p-4 active:bg-gray-50"
     >
-      <div className="flex items-start justify-between mb-1.5">
+      {/* 上段: プランバッジ + 電話 */}
+      <div className="flex items-start justify-between mb-1">
         <div className="flex items-center gap-2 flex-wrap">
           {isStayOver ? (
             <span className="text-sm text-purple-600 font-medium">
               CO {r.checkout_date ? `${new Date(r.checkout_date + "T00:00:00").getMonth() + 1}/${new Date(r.checkout_date + "T00:00:00").getDate()}` : ""}
             </span>
           ) : (
-            <span className={`text-sm px-1.5 py-1 rounded font-medium ${planColor}`}>
+            <span className={`text-sm px-1.5 py-0.5 rounded font-medium ${planColor}`}>
               {PLAN_LABELS[r.plan]}
             </span>
           )}
-          {isRepeater && (
-            <span className="text-sm px-1.5 py-1 rounded bg-blue-100 text-blue-700 font-medium">
-              リピーター（{history.visitCount}回目）
-            </span>
+          {totalDogs > 1 && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{dogIndex}/{totalDogs}頭</span>
           )}
-          {r.status === "pending" && (
-            <span className="text-sm px-1.5 py-1 rounded bg-orange-100 text-orange-700 font-medium">
-              確認待ち
-            </span>
+          {isRepeater && isFirst && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">リピーター</span>
+          )}
+          {r.status === "pending" && isFirst && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">確認待ち</span>
           )}
           {hasAlert && <span className="text-xs">⚠️</span>}
         </div>
-        <a href={`tel:${r.customers.phone}`} className="text-sm text-[#B87942]" onClick={(e) => e.stopPropagation()}>
+        <a href={`tel:${r.customers.phone}`} className="text-xs text-[#B87942]" onClick={(e) => e.stopPropagation()}>
           {r.customers.phone}
         </a>
       </div>
 
-      <p className="text-base font-medium mb-1.5">
+      {/* 中段: お客様名 */}
+      <p className="text-base font-medium text-gray-800">
         {r.customers.last_name} {r.customers.first_name} 様
-        {isRepeater && history.lastVisitDate && (
-          <span className="text-sm text-gray-500 font-normal ml-2">
-            前回 {formatShortDate(history.lastVisitDate)}
-          </span>
-        )}
       </p>
 
-      {/* ワンちゃん詳細 */}
-      <div className="space-y-1.5">
-        {dogs.map((dog, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <span className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded shrink-0">
-              {dog.name}
-            </span>
-            <span className="text-sm text-gray-500">
-              {dog.breed} / {dog.weight}kg
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* 犬情報（統一フォーマット） */}
+      {dog && (
+        <div className="mt-1.5">
+          <DogLine dog={dog} />
+        </div>
+      )}
 
-      {/* 備考 */}
-      {r.notes && (
-        <p className="text-xs text-gray-500 mt-2 bg-gray-50 px-2 py-1.5 rounded">
-          {r.notes}
-        </p>
+      {isFirst && r.notes && (
+        <p className="text-xs text-gray-400 mt-1.5">備考記載あり</p>
       )}
     </Link>
   );

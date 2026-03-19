@@ -177,13 +177,12 @@ export const STAY_DESTINATIONS = [
 ] as const;
 
 export const REFERRAL_SOURCES = [
-  "Google検索",
-  "Instagram",
-  "旅行サイト（じゃらん等）",
-  "ゴルフ場からの紹介",
-  "宿泊施設からの紹介",
+  "Googleで検索した",
+  "Googleマップで見つけた",
+  "Instagramで見つけた",
+  "ホテル・ゴルフ場で紹介された",
   "知人・友人の紹介",
-  "リピーター",
+  "福利厚生（リロクラブ等）",
   "その他",
 ] as const;
 

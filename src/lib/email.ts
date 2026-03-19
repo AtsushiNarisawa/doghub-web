@@ -122,6 +122,14 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
       </div>
     </div>
 
+    <!-- はじめてガイド -->
+    <div style="margin-top:16px;text-align:center;">
+      <a href="https://dog-hub.shop/guide" style="display:inline-block;padding:12px 24px;background:#B87942;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">
+        はじめてガイドを見る
+      </a>
+      <p style="margin:8px 0 0;font-size:12px;color:#888;">初めてのご利用の方はぜひご確認ください</p>
+    </div>
+
     ${form.notes ? `
     <div style="margin-top:16px;padding:12px 14px;border:1px solid #f0ebe5;border-radius:8px;">
       <p style="margin:0 0 4px;font-size:12px;color:#888;">備考</p>

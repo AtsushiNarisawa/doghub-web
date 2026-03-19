@@ -26,17 +26,28 @@ export default function CustomersPage() {
 
   const fetchCustomers = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("customers")
-      .select(`
-        id, last_name, first_name, phone, email, created_at,
-        dogs(name, breed),
-        reservations(id)
-      `)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    // 全顧客を取得（Supabaseデフォルト1000件制限を回避）
+    let allCustomers: CustomerRow[] = [];
+    let from = 0;
+    const batchSize = 500;
+    while (true) {
+      const { data } = await supabase
+        .from("customers")
+        .select(`
+          id, last_name, first_name, phone, email, created_at,
+          dogs(name, breed),
+          reservations(id)
+        `)
+        .order("created_at", { ascending: false })
+        .range(from, from + batchSize - 1);
 
-    setCustomers((data as unknown as CustomerRow[]) || []);
+      if (!data || data.length === 0) break;
+      allCustomers = [...allCustomers, ...(data as unknown as CustomerRow[])];
+      if (data.length < batchSize) break;
+      from += batchSize;
+    }
+
+    setCustomers(allCustomers);
     setLoading(false);
   };
 

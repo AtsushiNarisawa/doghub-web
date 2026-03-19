@@ -38,7 +38,10 @@ export const metadata: Metadata = {
     "箱根仙石原のプレミアムドッグホテル。ゴルフ、温泉旅館、ユネッサンなど、愛犬を預けて心置きなく箱根を楽しめます。広いドッグランでワンちゃんも大満足。半日¥3,300〜、宿泊¥7,700〜。",
   metadataBase: new URL("https://dog-hub.shop"),
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
     apple: "/apple-touch-icon.png",
   },
   openGraph: {

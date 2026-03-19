@@ -184,38 +184,14 @@ function DogForm({
         </label>
       </div>
 
-      {/* アレルギー */}
+      {/* 注意事項（アレルギー・食事・投薬） */}
       <div>
-        <label className="text-sm text-[#888] block mb-1">アレルギー</label>
-        <input
-          type="text"
+        <label className="text-sm text-[#888] block mb-1">注意事項（アレルギー・食事・投薬など）</label>
+        <textarea
           value={dog.allergies}
           onChange={(e) => onUpdate({ ...dog, allergies: e.target.value })}
-          placeholder="特になし"
-          className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
-        />
-      </div>
-
-      {/* 食事 */}
-      <div>
-        <label className="text-sm text-[#888] block mb-1">食事に関する注意事項</label>
-        <textarea
-          value={dog.meal_notes}
-          onChange={(e) => onUpdate({ ...dog, meal_notes: e.target.value })}
-          placeholder="持参フードのみ、量は○g など"
-          rows={2}
-          className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none resize-none"
-        />
-      </div>
-
-      {/* 投薬 */}
-      <div>
-        <label className="text-sm text-[#888] block mb-1">投薬に関する注意事項</label>
-        <textarea
-          value={dog.medication_notes}
-          onChange={(e) => onUpdate({ ...dog, medication_notes: e.target.value })}
-          placeholder="特になし"
-          rows={2}
+          placeholder="例: 鶏肉アレルギーあり、持参フード80g×2回、朝食後に心臓の薬1錠"
+          rows={3}
           className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none resize-none"
         />
       </div>

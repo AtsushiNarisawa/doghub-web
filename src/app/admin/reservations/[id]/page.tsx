@@ -19,6 +19,7 @@ interface Reservation {
   notes: string | null;
   admin_notes: string | null;
   source: string;
+  dog_count: number;
   created_at: string;
   customers: {
     id: string;
@@ -49,43 +50,42 @@ interface Reservation {
   }[];
 }
 
-const PLAN_LABELS: Record<string, string> = { spot: "スポット（1時間〜）", "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
-const STATUS_OPTIONS = [
-  { value: "confirmed", label: "確定", color: "bg-green-100 text-green-700" },
-  { value: "pending", label: "確認待ち", color: "bg-orange-100 text-orange-700" },
-  { value: "completed", label: "完了", color: "bg-blue-100 text-blue-700" },
-  { value: "cancelled", label: "キャンセル", color: "bg-gray-100 text-gray-500" },
-];
+const PLAN_LABELS: Record<string, string> = { spot: "スポット", "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
+const PLAN_COLORS: Record<string, string> = {
+  "4h": "bg-sky-100 text-sky-700",
+  "8h": "bg-amber-100 text-amber-700",
+  stay: "bg-purple-100 text-purple-700",
+  spot: "bg-gray-100 text-gray-600",
+};
+const STATUS_MAP: Record<string, { label: string; color: string }> = {
+  confirmed: { label: "確定", color: "bg-green-100 text-green-700" },
+  pending: { label: "確認待ち", color: "bg-orange-100 text-orange-700" },
+  completed: { label: "完了", color: "bg-blue-100 text-blue-700" },
+  cancelled: { label: "キャンセル", color: "bg-gray-100 text-gray-500" },
+};
 
 export default function ReservationDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [res, setRes] = useState<Reservation | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
-  const [pastVisits, setPastVisits] = useState<{ id: string; date: string; plan: string; status: string }[]>([]);
+  const [pastVisits, setPastVisits] = useState<{ id: string; date: string; plan: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [memoSaved, setMemoSaved] = useState(false);
 
-  useEffect(() => {
-    fetchReservation();
-  }, [id]);
+  useEffect(() => { fetchReservation(); }, [id]);
 
   const fetchReservation = async () => {
     const { data } = await supabase
       .from("reservations")
-      .select(`
-        *,
-        customers!inner(*),
-        reservation_dogs(dogs(*))
-      `)
+      .select("*, customers!inner(*), reservation_dogs(dogs(*))")
       .eq("id", id)
       .single();
 
     if (data) {
       setRes(data as unknown as Reservation);
       setAdminNotes(data.admin_notes || "");
-
-      // 過去の来店履歴を取得
       const customerId = (data as unknown as Reservation).customers.id;
       const { data: history } = await supabase
         .from("reservations")
@@ -101,6 +101,7 @@ export default function ReservationDetailPage() {
   };
 
   const updateStatus = async (newStatus: string) => {
+    if (newStatus === "cancelled" && !confirm("この予約をキャンセルしますか？")) return;
     setSaving(true);
     try {
       const resp = await fetch("/api/admin/update-status", {
@@ -121,16 +122,23 @@ export default function ReservationDetailPage() {
 
   const saveAdminNotes = async () => {
     setSaving(true);
-    await supabase
+    setMemoSaved(false);
+    const { error } = await supabase
       .from("reservations")
       .update({ admin_notes: adminNotes })
       .eq("id", id);
     setSaving(false);
+    if (error) {
+      alert("メモの保存に失敗しました");
+    } else {
+      setMemoSaved(true);
+      setTimeout(() => setMemoSaved(false), 2000);
+    }
   };
 
-  const formatDate = (d: string) => {
-    const date = new Date(d);
-    return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}（${"日月火水木金土"[date.getDay()]}）`;
+  const fmtDate = (d: string) => {
+    const date = new Date(d + "T00:00:00");
+    return `${date.getMonth() + 1}/${date.getDate()}（${"日月火水木金土"[date.getDay()]}）`;
   };
 
   if (loading) {
@@ -141,205 +149,207 @@ export default function ReservationDetailPage() {
     );
   }
 
-  if (!res) {
-    return <p className="text-center text-gray-500 py-8">予約が見つかりません</p>;
-  }
+  if (!res) return <p className="text-center text-gray-500 py-8">予約が見つかりません</p>;
 
   const customer = res.customers;
   const dogs = res.reservation_dogs.map((rd) => rd.dogs);
+  const status = STATUS_MAP[res.status] || STATUS_MAP.confirmed;
+  const planColor = PLAN_COLORS[res.plan] || PLAN_COLORS.spot;
+  const stayNights = res.plan === "stay" && res.checkout_date
+    ? Math.max(1, Math.round((new Date(res.checkout_date).getTime() - new Date(res.date).getTime()) / 86400000))
+    : 0;
 
   return (
-    <div className="space-y-4">
-      {/* 戻るボタン */}
-      <button
-        onClick={() => router.back()}
-        className="text-sm text-gray-500 flex items-center gap-1"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        戻る
-      </button>
+    <div className="space-y-3">
+      {/* ヘッダー: 戻る + ステータスバッジ */}
+      <div className="flex items-center justify-between">
+        <button onClick={() => router.back()} className="text-sm text-gray-500 flex items-center gap-1">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          戻る
+        </button>
+        <span className={`text-sm px-3 py-1 rounded-full font-medium ${status.color}`}>{status.label}</span>
+      </div>
 
-      {/* 確認待ち → 確定アクション */}
+      {/* 確認待ちアクション */}
       {res.status === "pending" && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-3">
-          <p className="text-base font-medium text-orange-700">この予約は確認待ちです</p>
-          <p className="text-sm text-orange-600">内容を確認のうえ、確定またはキャンセルしてください。</p>
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-2">
+          <p className="text-sm font-medium text-orange-700">この予約は確認待ちです</p>
           <button
-            type="button"
             onClick={() => updateStatus("confirmed")}
             disabled={saving}
-            className="w-full py-4 bg-green-600 text-white rounded-xl text-base font-medium active:bg-green-700 disabled:opacity-50"
+            className="w-full py-3 bg-green-600 text-white rounded-xl text-sm font-medium active:bg-green-700 disabled:opacity-50"
           >
             {saving ? "処理中..." : "予約を確定する"}
           </button>
           <button
-            type="button"
             onClick={() => updateStatus("cancelled")}
             disabled={saving}
-            className="w-full py-3 border border-red-300 text-red-600 rounded-xl text-sm font-medium active:bg-red-50 disabled:opacity-50"
+            className="w-full py-2.5 border border-red-300 text-red-600 rounded-xl text-xs active:bg-red-50 disabled:opacity-50"
           >
             キャンセルする
           </button>
         </div>
       )}
 
-      {/* ステータス変更 */}
-      <div className="bg-white rounded-xl p-4 space-y-3">
-        <h3 className="text-base font-medium text-gray-500">ステータス</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {STATUS_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => updateStatus(opt.value)}
-              disabled={saving}
-              className={`py-3 rounded-lg text-sm font-medium transition-all ${
-                res.status === opt.value
-                  ? `${opt.color} ring-2 ring-offset-1 ring-gray-300`
-                  : "bg-gray-50 text-gray-500 active:bg-gray-100"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+      {/* メインカード: お客様 + 予約概要 */}
+      <div className="bg-white rounded-xl p-4">
+        {/* お客様名 + 電話 */}
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <p className="text-lg font-medium text-gray-800">
+              {customer.last_name} {customer.first_name} 様
+            </p>
+            <p className="text-xs text-gray-400">
+              {customer.last_name_kana} {customer.first_name_kana}
+              {pastVisits.length > 0 && <span className="ml-2 text-blue-500">リピーター（{pastVisits.length + 1}回目）</span>}
+            </p>
+          </div>
+          <a href={`tel:${customer.phone}`} className="text-sm text-[#B87942] font-medium" onClick={(e) => e.stopPropagation()}>
+            {customer.phone}
+          </a>
         </div>
-      </div>
 
-      {/* 予約情報 */}
-      <div className="bg-white rounded-xl p-4 space-y-2">
-        <h3 className="text-base font-medium text-gray-500">予約情報</h3>
-        <div className="space-y-1 text-sm">
-          <p><span className="text-gray-500 inline-block w-24">プラン</span>{PLAN_LABELS[res.plan]}</p>
-          <p><span className="text-gray-500 inline-block w-24">日付</span>{formatDate(res.date)}</p>
-          <p><span className="text-gray-500 inline-block w-24">チェックイン</span>{res.checkin_time.slice(0, 5)}</p>
+        {/* 予約概要: プラン + 日時 を横並び */}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className={`text-sm px-2 py-1 rounded font-medium ${planColor}`}>{PLAN_LABELS[res.plan]}</span>
+          <span className="text-sm text-gray-700">{fmtDate(res.date)} {res.checkin_time.slice(0, 5)}</span>
           {res.checkout_date && (
-            <p><span className="text-gray-500 inline-block w-24">チェックアウト</span>{formatDate(res.checkout_date)}</p>
-          )}
-          <p><span className="text-gray-500 inline-block w-24">散歩</span>{res.walk_option ? "あり" : "なし"}</p>
-          <p><span className="text-gray-500 inline-block w-24">予約元</span>{res.source}</p>
-          {res.referral_source && (
-            <p><span className="text-gray-500 inline-block w-24">きっかけ</span>{res.referral_source}</p>
-          )}
-          {res.notes && (
-            <p><span className="text-gray-500 inline-block w-24">備考</span>{res.notes}</p>
+            <span className="text-sm text-gray-500">→ CO {fmtDate(res.checkout_date)}{stayNights > 1 ? `（${stayNights}泊）` : ""}</span>
           )}
         </div>
-      </div>
+        {res.walk_option && <p className="text-xs text-[#B87942] mb-2">🐕 お散歩オプションあり</p>}
 
-      {/* お客様情報 */}
-      <div className="bg-white rounded-xl p-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-medium text-gray-500">お客様情報</h3>
-          {pastVisits.length > 0 && (
-            <span className="text-sm px-2 py-1 rounded bg-blue-100 text-blue-700 font-medium">
-              リピーター（{pastVisits.length + 1}回目）
-            </span>
-          )}
-        </div>
-        <div className="space-y-1 text-sm">
-          <p className="text-base font-medium">
-            {customer.last_name} {customer.first_name}
-            <span className="text-gray-500 ml-2 font-normal text-sm">
-              （{customer.last_name_kana} {customer.first_name_kana}）
-            </span>
-          </p>
-          <p>
-            <a href={`tel:${customer.phone}`} className="text-[#B87942] underline">
-              {customer.phone}
-            </a>
-          </p>
-          <p>{customer.email}</p>
-          {customer.address && (
-            <p className="text-gray-500">〒{customer.postal_code} {customer.address}</p>
-          )}
-        </div>
-
-        {/* 過去の来店履歴 */}
-        {pastVisits.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <p className="text-sm font-medium text-gray-500 mb-2">過去の来店</p>
-            <div className="space-y-1.5">
-              {pastVisits.map((v) => {
-                const d = new Date(v.date + "T00:00:00");
-                const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}（${"日月火水木金土"[d.getDay()]}）`;
-                return (
-                  <Link
-                    key={v.id}
-                    href={`/admin/reservations/${v.id}`}
-                    className="flex items-center justify-between text-sm py-1.5 px-2 rounded-lg hover:bg-gray-50 active:bg-gray-100"
-                  >
-                    <span className="text-gray-700">{dateStr}</span>
-                    <span className="text-gray-500">{PLAN_LABELS[v.plan] || v.plan}</span>
-                  </Link>
-                );
-              })}
-            </div>
+        {/* 備考（あれば目立たせる） */}
+        {res.notes && (
+          <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
+            <p className="text-xs text-gray-500 mb-0.5">お客様備考</p>
+            <p className="text-sm text-gray-700">{res.notes}</p>
           </div>
         )}
 
-        <Link
-          href={`/admin/customers/${customer.id}`}
-          className="block text-center text-sm text-[#B87942] py-2.5 border border-[#B87942] rounded-xl mt-3 active:bg-orange-50"
-        >
-          顧客詳細・予約履歴 →
-        </Link>
+        {/* 区切り線 */}
+        <div className="border-t border-gray-100 pt-3">
+          {/* ワンちゃん一覧 */}
+          <div className="space-y-3">
+            {dogs.map((dog, i) => {
+              const sexLabel = dog.sex === "male" ? "オス" : dog.sex === "female" ? "メス" : "";
+              const details = [dog.breed, sexLabel, dog.age != null ? `${dog.age}歳` : "", `${dog.weight}kg`, dog.neutered ? "去勢済" : ""].filter(Boolean).join(" / ");
+              const hasAlert = dog.allergies || dog.meal_notes || dog.medication_notes;
+              return (
+                <div key={i}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-base font-medium text-gray-800">
+                      {dogs.length > 1 && <span className="text-gray-400 mr-1">{i + 1}.</span>}
+                      {dog.name}
+                    </p>
+                    {hasAlert && <span className="text-xs">⚠️</span>}
+                  </div>
+                  <p className="text-sm text-gray-500">{details}</p>
+
+                  {(dog.allergies || dog.meal_notes || dog.medication_notes) && (
+                    <div className="mt-1.5 bg-amber-50 rounded-lg px-3 py-2 text-sm space-y-1">
+                      <p className="text-amber-700 font-medium text-xs">注意事項</p>
+                      {dog.allergies && <p className="text-amber-800">{dog.allergies}</p>}
+                      {dog.meal_notes && <p className="text-amber-800">{dog.meal_notes}</p>}
+                      {dog.medication_notes && <p className="text-amber-800">{dog.medication_notes}</p>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* ワンちゃん情報 */}
-      {dogs.map((dog, i) => (
-        <div key={i} className="bg-white rounded-xl p-4 space-y-2">
-          <h3 className="text-base font-medium text-gray-500">
-            🐾 {dogs.length > 1 ? `ワンちゃん ${i + 1}` : "ワンちゃん情報"}
-          </h3>
-          <div className="space-y-1 text-sm">
-            <p className="text-base font-medium">{dog.name}（{dog.breed}）</p>
-            <p>
-              <span className="text-gray-500">体重:</span> {dog.weight}kg
-              {dog.age != null && <><span className="text-gray-500 ml-3">年齢:</span> {dog.age}歳</>}
-              <span className="text-gray-500 ml-3">{dog.sex === "male" ? "オス" : "メス"}</span>
-              <span className="text-gray-500 ml-3">{dog.neutered ? "去勢済" : "未去勢"}</span>
-            </p>
-          </div>
-          {dog.allergies && (
-            <div className="bg-red-50 border border-red-100 rounded-lg p-3">
-              <p className="text-sm font-medium text-red-600 mb-1">⚠️ アレルギー・注意事項</p>
-              <p className="text-sm text-red-700">{dog.allergies}</p>
-            </div>
-          )}
-          {dog.meal_notes && (
-            <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3">
-              <p className="text-sm font-medium text-yellow-700 mb-1">🍚 食事メモ</p>
-              <p className="text-sm text-yellow-800">{dog.meal_notes}</p>
-            </div>
-          )}
-          {dog.medication_notes && (
-            <div className="bg-purple-50 border border-purple-100 rounded-lg p-3">
-              <p className="text-sm font-medium text-purple-700 mb-1">💊 投薬メモ</p>
-              <p className="text-sm text-purple-800">{dog.medication_notes}</p>
-            </div>
-          )}
-        </div>
-      ))}
-
       {/* スタッフメモ */}
-      <div className="bg-white rounded-xl p-4 space-y-3">
-        <h3 className="text-base font-medium text-gray-500">スタッフメモ</h3>
+      <div className="bg-white rounded-xl p-4">
         <textarea
           value={adminNotes}
           onChange={(e) => setAdminNotes(e.target.value)}
-          placeholder="内部メモを入力..."
-          rows={3}
+          placeholder="スタッフメモを入力..."
+          rows={2}
           className="w-full p-3 rounded-lg border border-gray-200 text-sm focus:border-[#B87942] focus:outline-none resize-none"
         />
-        <button
-          onClick={saveAdminNotes}
-          disabled={saving}
-          className="px-4 py-3 rounded-lg bg-gray-100 text-sm text-gray-700 active:bg-gray-200 disabled:opacity-50"
-        >
-          {saving ? "保存中..." : "メモを保存"}
-        </button>
+        <div className="flex items-center gap-3 mt-2">
+          <button
+            onClick={saveAdminNotes}
+            disabled={saving}
+            className="px-4 py-2 rounded-lg bg-gray-100 text-sm text-gray-700 active:bg-gray-200 disabled:opacity-50"
+          >
+            {saving ? "保存中..." : "メモを保存"}
+          </button>
+          {memoSaved && <span className="text-sm text-green-600">保存しました</span>}
+        </div>
       </div>
+
+      {/* アクション */}
+      {res.status !== "pending" && res.status !== "cancelled" && (
+        <div className="bg-white rounded-xl p-4 space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            {res.status !== "completed" && (
+              <button
+                onClick={() => updateStatus("completed")}
+                disabled={saving}
+                className="py-2.5 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium active:bg-blue-100 disabled:opacity-50"
+              >
+                完了にする
+              </button>
+            )}
+            {res.status === "completed" && (
+              <button
+                onClick={() => updateStatus("confirmed")}
+                disabled={saving}
+                className="py-2.5 rounded-lg bg-green-50 text-green-600 text-sm font-medium active:bg-green-100 disabled:opacity-50"
+              >
+                確定に戻す
+              </button>
+            )}
+            <button
+              onClick={() => updateStatus("cancelled")}
+              disabled={saving}
+              className="py-2.5 rounded-lg bg-red-50 text-red-500 text-sm font-medium active:bg-red-100 disabled:opacity-50"
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* お客様詳細（折りたたみ） */}
+      <details className="bg-white rounded-xl">
+        <summary className="p-4 text-sm text-gray-500 cursor-pointer active:bg-gray-50 list-none flex items-center justify-between">
+          <span>お客様詳細・来店履歴</span>
+          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div className="px-4 pb-4 space-y-2 text-sm">
+          {customer.email && <p className="text-gray-600">{customer.email}</p>}
+          {customer.address && <p className="text-gray-500">〒{customer.postal_code} {customer.address}</p>}
+          <p className="text-gray-400 text-xs">予約元: {res.source}{res.referral_source ? ` / ${res.referral_source}` : ""}</p>
+
+          {pastVisits.length > 0 && (
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-1.5">過去の来店</p>
+              {pastVisits.map((v) => (
+                <Link key={v.id} href={`/admin/reservations/${v.id}`} className="flex justify-between py-1.5 text-sm active:bg-gray-50 rounded">
+                  <span className="text-gray-600">{fmtDate(v.date)}</span>
+                  <span className="text-gray-400">{PLAN_LABELS[v.plan] || v.plan}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          <Link
+            href={`/admin/customers/${customer.id}`}
+            className="block text-center text-sm text-[#B87942] py-2.5 border border-[#B87942] rounded-xl mt-2 active:bg-orange-50"
+          >
+            顧客詳細ページへ
+          </Link>
+        </div>
+      </details>
     </div>
   );
 }
