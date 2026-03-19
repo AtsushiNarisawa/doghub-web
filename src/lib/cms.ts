@@ -74,6 +74,10 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "すすき草原", images: ["/images/img-008.jpg", "/images/img-011.jpg"] },
     { keyword: "DogHub箱根仙石原", images: ["/images/img-041.jpg"] },
   ],
+  "hakone-dog-hotel-cost-comparison": [
+    { keyword: "パターンA", images: ["/images/img-035.png"] },
+    { keyword: "DogHubに預けた場合", images: ["/images/img-041.jpg"] },
+  ],
   "pet-hotel-first-time-tips": [
     { keyword: "預かり環境を確認する", images: ["/images/img-035.png", "/images/img-041.jpg"] },
     { keyword: "当日の流れ", images: ["/images/img-037.jpg"] },

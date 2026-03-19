@@ -106,6 +106,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/service",
     btnLabel: "DogHubのサービスを見る",
   },
+  "hakone-dog-hotel-cost-comparison": {
+    text: "1泊¥7,700〜で愛犬を安心してお預け",
+    subtext: "24時間スタッフ常駐・個室・ドッグラン併設。飼い主さんは憧れの旅館を満喫できます。",
+    href: "/stay",
+    btnLabel: "宿泊プランを見る",
+  },
   "pet-hotel-first-time-tips": {
     text: "初めてのペットホテルはDogHubで",
     subtext: "完全個室で安心。まずは1時間¥1,100〜のスポット利用から始められます。",
