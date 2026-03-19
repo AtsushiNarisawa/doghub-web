@@ -32,6 +32,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/guide/sengokuhara`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/cafe`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/hakone`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${baseUrl}/beginner`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/spots`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/booking`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${baseUrl}/access`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
