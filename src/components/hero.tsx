@@ -28,7 +28,7 @@ export function Hero() {
           <img
             key={src}
             src={src}
-            alt="DogHub 箱根仙石原"
+            alt="箱根ペットホテル DogHub箱根仙石原 犬連れ旅行の拠点 ドッグランと自然に囲まれた施設"
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
             style={{ opacity: i === current ? 1 : 0 }}
           />

@@ -260,6 +260,14 @@ export default function OnsenPage() {
           </div>
         </section>
 
+        <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto text-center">
+            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              箱根 犬連れ旅行ガイド トップへ →
+            </Link>
+          </div>
+        </section>
+
         <Reservation />
         <QuickNav />
       </main>

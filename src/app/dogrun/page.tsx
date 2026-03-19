@@ -22,7 +22,7 @@ export default function DogrunPage() {
         <div className="relative">
           <img
             src="/images/img-021.jpg"
-            alt="DogHub箱根仙石原 ドッグラン"
+            alt="箱根ドッグラン DogHub箱根仙石原の専用ドッグラン 仙石原の自然の中で犬が走り回れる空間"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
@@ -70,7 +70,7 @@ export default function DogrunPage() {
               <div>
                 <img
                   src="/images/img-022.jpg"
-                  alt="DogHub箱根仙石原 ドッグランで遊ぶ犬"
+                  alt="箱根ドッグラン DogHub箱根仙石原の屋根付きエリアで犬が安心して遊べる空間"
                   className="w-full h-auto"
                 />
               </div>
@@ -125,12 +125,12 @@ export default function DogrunPage() {
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>ドッグランの様子</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { src: "/images/img-011.jpg", alt: "ドッグランで走る犬" },
-                { src: "/images/img-012.jpg", alt: "ドッグラン全景" },
-                { src: "/images/img-022.jpg", alt: "ドッグランで遊ぶ犬" },
-                { src: "/images/img-019.jpg", alt: "お預かり中の様子" },
-                { src: "/images/img-008.jpg", alt: "お散歩" },
-                { src: "/images/img-048.jpg", alt: "完全個室" },
+                { src: "/images/img-011.jpg", alt: "箱根ドッグラン DogHub箱根仙石原で2匹の犬が元気に走り回る様子" },
+                { src: "/images/img-012.jpg", alt: "箱根ドッグラン DogHub箱根仙石原の専用ドッグラン全景 仙石原の自然に囲まれた環境" },
+                { src: "/images/img-022.jpg", alt: "箱根ドッグラン DogHub箱根仙石原の屋根付きエリアで犬が安心して遊ぶ様子" },
+                { src: "/images/img-019.jpg", alt: "箱根ペットホテル DogHub箱根仙石原でお預かり中の犬のリラックスした様子" },
+                { src: "/images/img-008.jpg", alt: "箱根 犬連れ散歩 仙石原の自然の中を愛犬と歩くお散歩の様子" },
+                { src: "/images/img-048.jpg", alt: "箱根ペットホテル DogHub箱根仙石原の完全個室 ケージではない壁で囲まれた空間" },
               ].map((img) => (
                 <img key={img.src} src={img.src} alt={img.alt} className="w-full h-48 object-cover" />
               ))}
@@ -161,6 +161,14 @@ export default function DogrunPage() {
             <p className="mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>はじめてご利用の方はご予約前に必ずこちらをご覧ください</p>
             <Link href="/guide" className="inline-flex items-center gap-2 border border-white text-white px-8 py-3 hover:bg-white hover:text-[#3C200F] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
               ご利用ガイド・注意事項はこちら →
+            </Link>
+          </div>
+        </section>
+
+        <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto text-center">
+            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              箱根 犬連れ旅行ガイド トップへ →
             </Link>
           </div>
         </section>

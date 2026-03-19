@@ -36,7 +36,7 @@ export default function BeginnerPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"初めての方へ",href:"/beginner"}]} />
         {/* Hero */}
         <div className="relative">
-          <img src="/images/img-009.jpg" alt="DogHub箱根仙石原 初めての方へ" className="w-full object-cover" style={{ height: "clamp(180px, 30vw, 424px)" }} />
+          <img src="/images/img-009.jpg" alt="箱根ペットホテル DogHub箱根仙石原 初めての方へ ドッグランで2匹の犬が楽しく遊ぶ様子" className="w-full object-cover" style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 400 }}>初めての方へ</h1>
             <p className="mt-2" style={{ fontSize: "clamp(14px, 2vw, 18px)", fontWeight: 400 }}>DogHub箱根仙石原のご利用案内</p>
@@ -74,7 +74,7 @@ export default function BeginnerPage() {
               </div>
             </div>
             <div>
-              <img src="/images/img-041.jpg" alt="DogHub箱根仙石原の施設" className="w-full h-auto" />
+              <img src="/images/img-041.jpg" alt="箱根ペットホテル DogHub箱根仙石原の施設内観 カフェ・ドッグラン併設の温かみのある空間" className="w-full h-auto" />
             </div>
           </div>
         </section>

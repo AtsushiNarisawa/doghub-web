@@ -75,7 +75,7 @@ export default function GolfPage() {
         <div className="relative">
           <img
             src="/images/img-007.jpg"
-            alt="箱根ゴルフ × ペットホテル"
+            alt="箱根ゴルフ 愛犬を預けてプレーを満喫 DogHub箱根仙石原のペットホテル"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
@@ -149,12 +149,12 @@ export default function GolfPage() {
               <div>
                 <img
                   src="/images/img-012.jpg"
-                  alt="DogHub箱根仙石原 ドッグラン"
+                  alt="箱根ドッグラン DogHub箱根仙石原の専用ドッグラン ゴルフ中も愛犬がのびのび遊べる環境"
                   className="w-full h-auto"
                 />
                 <img
                   src="/images/img-021.jpg"
-                  alt="DogHub箱根仙石原 ドッグランで遊ぶ犬"
+                  alt="箱根ドッグラン DogHub箱根仙石原で犬が楽しく遊ぶ様子 大箱根CC提携ペットホテル"
                   className="w-full h-auto mt-4"
                 />
               </div>
@@ -260,6 +260,14 @@ export default function GolfPage() {
             <p className="mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>はじめてご利用の方はご予約前に必ずこちらをご覧ください</p>
             <Link href="/guide" className="inline-flex items-center gap-2 border border-white text-white px-8 py-3 hover:bg-white hover:text-[#3C200F] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
               ご利用ガイド・注意事項はこちら →
+            </Link>
+          </div>
+        </section>
+
+        <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto text-center">
+            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              箱根 犬連れ旅行ガイド トップへ →
             </Link>
           </div>
         </section>

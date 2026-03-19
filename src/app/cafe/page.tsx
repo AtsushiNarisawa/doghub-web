@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
@@ -53,7 +54,7 @@ export default function CafePage() {
         <div className="relative">
           <img
             src="/images/img-044.jpg"
-            alt="カフェ・グッズ販売"
+            alt="箱根 犬連れランチ DogHub箱根仙石原のOMUSUBI & SOUP CAFE 愛犬同伴で楽しめるカフェ"
             className="w-full object-cover"
             style={{ height: "clamp(160px, 30vw, 423px)" }}
           />
@@ -109,7 +110,7 @@ export default function CafePage() {
               <div>
                 <img
                   src="/images/img-063.webp"
-                  alt="DogHub箱根仙石原のおにぎりと手作りスープ"
+                  alt="箱根ドッグカフェ DogHub箱根仙石原のこだわりおむすびとスープメニュー 犬連れランチにおすすめ"
                   width={630}
                   height={480}
                   className="w-full h-auto"
@@ -188,7 +189,7 @@ export default function CafePage() {
               <div>
                 <img
                   src="/images/img-045.jpg"
-                  alt="DogHub箱根仙石原のおむすびセット"
+                  alt="箱根ドッグカフェ DogHub箱根仙石原の人気メニュー しらすヤンギンおむすびセット"
                   className="w-full h-auto object-cover"
                   style={{ maxWidth: "524px", aspectRatio: "524/270" }}
                 />
@@ -202,7 +203,7 @@ export default function CafePage() {
               <div>
                 <img
                   src="/images/img-030.jpg"
-                  alt="DogHub箱根仙石原の手作りスープ"
+                  alt="箱根ドッグカフェ DogHub箱根仙石原のこだわり手作りスープ 牛カルビスープと鶏スープ"
                   className="w-full h-auto object-cover"
                   style={{ maxWidth: "523px", aspectRatio: "523/270" }}
                 />
@@ -242,6 +243,44 @@ export default function CafePage() {
           </div>
         </section>
 
+        {/* FAQ */}
+        <section className="py-16 px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根 犬連れランチ よくある質問</h2>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  { "@type": "Question", name: "箱根で犬と一緒に室内で食事できるお店はありますか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原のOMUSUBI & SOUP CAFEでは、室内のイートインスペースで犬と一緒にお食事いただけます。リード着用でご利用ください。予約不要、犬の頭数制限なし。営業時間11:00〜17:00。" }},
+                  { "@type": "Question", name: "テイクアウトはできますか？", acceptedAnswer: { "@type": "Answer", text: "はい、テイクアウトもOKです。天気の良い日は併設ドッグランの横のベンチで食べるのもおすすめです。" }},
+                  { "@type": "Question", name: "カフェだけの利用でもドッグランを使えますか？", acceptedAnswer: { "@type": "Answer", text: "はい、カフェをご利用いただければ、併設の専用ドッグランもご利用いただけます。飼い主様同伴でリードなしOKです。" }},
+                  { "@type": "Question", name: "メニューの内容は？", acceptedAnswer: { "@type": "Answer", text: "おむすび（しらすヤンギン¥300、たらこヤンギン¥330、しゃけ¥330など）、スープ（牛カルビスープ¥500、鶏スープ¥400）、日替わりおかず、ドリンク各種。おむすび2個+スープ+おかずのセットが人気です。" }},
+                ],
+              }) }}
+            />
+            <div className="space-y-4">
+              {[
+                { q: "箱根で犬と一緒に室内で食事できるお店はありますか？", a: "DogHub箱根仙石原のOMUSUBI & SOUP CAFEでは、室内のイートインスペースで犬と一緒にお食事いただけます。リード着用でご利用ください。予約不要、犬の頭数制限なし。営業時間11:00〜17:00。" },
+                { q: "テイクアウトはできますか？", a: "はい、テイクアウトもOKです。天気の良い日は併設ドッグランの横のベンチで食べるのもおすすめです。" },
+                { q: "カフェだけの利用でもドッグランを使えますか？", a: "はい、カフェをご利用いただければ、併設の専用ドッグランもご利用いただけます。飼い主様同伴でリードなしOKです。" },
+                { q: "メニューの内容は？", a: "おむすび（しらすヤンギン¥300、たらこヤンギン¥330、しゃけ¥330など）、スープ（牛カルビスープ¥500、鶏スープ¥400）、日替わりおかず、ドリンク各種。おむすび2個+スープ+おかずのセットが人気です。" },
+              ].map((faq) => (
+                <details key={faq.q} className="border border-[#E5DDD8] group">
+                  <summary className="flex items-center justify-between cursor-pointer p-6 text-[#3C200F] hover:bg-[#F7F7F7] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
+                    <span>{faq.q}</span>
+                    <span className="ml-4 text-[#B87942] group-open:rotate-45 transition-transform" style={{ fontSize: "24px" }}>+</span>
+                  </summary>
+                  <div className="px-6 pb-6 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
+                    {faq.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* GOODS */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-7xl mx-auto">
@@ -262,7 +301,7 @@ export default function CafePage() {
               <div>
                 <img
                   src="/images/img-049.jpg"
-                  alt="DogHub箱根仙石原のグッズ一覧"
+                  alt="DogHub箱根仙石原の愛犬グッズセレクトショップ 犬用おもちゃや雑貨の販売コーナー"
                   width={630}
                   height={480}
                   className="w-full h-auto"
@@ -275,18 +314,27 @@ export default function CafePage() {
             <div className="mt-10 grid grid-cols-2 gap-4">
               <img
                 src="/images/img-014.jpg"
-                alt="グッズ商品"
+                alt="DogHub箱根仙石原で販売中の犬用グッズ おしゃれな愛犬アイテム"
                 className="w-full h-auto object-cover"
               />
               <img
                 src="/images/img-001.jpg"
-                alt="グッズ商品"
+                alt="DogHub箱根仙石原のセレクト雑貨 愛犬家向けの厳選アイテム"
                 className="w-full h-auto object-cover"
               />
             </div>
           </div>
         </section>
 
+        <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto text-center">
+            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              箱根 犬連れ旅行ガイド トップへ →
+            </Link>
+          </div>
+        </section>
+
+        <Reservation />
         <QuickNav />
       </main>
       <Footer />

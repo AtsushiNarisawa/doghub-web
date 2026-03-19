@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
@@ -169,19 +170,15 @@ export default function SpotsPage() {
           </div>
         </section>
 
-        {/* Reservation */}
-        <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
-          <div className="max-w-7xl mx-auto">
-            <a
-              href="/booking"
-              className="block w-full border border-[#3C200F] py-10 text-center hover:bg-[#F7F7F7] transition-colors"
-            >
-              <p className="text-[#3C200F] mb-2 flex items-center justify-center gap-3" style={{ fontSize: "clamp(24px,4vw,38.4px)", fontWeight: 400, letterSpacing: "2.7px" }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> RESERVATION</p>
-              <p className="text-[#8F7B65]" style={{ fontSize: "clamp(14px,2vw,20px)", fontWeight: 400 }}>DogHub箱根仙石原ご予約はこちら</p>
-            </a>
+        <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto text-center">
+            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              箱根 犬連れ旅行ガイド トップへ →
+            </Link>
           </div>
         </section>
 
+        <Reservation />
         <QuickNav />
       </main>
       <Footer />

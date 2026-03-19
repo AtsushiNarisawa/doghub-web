@@ -42,7 +42,7 @@ export function Concept() {
           <div>
             <img
               src="/images/img-077.jpg"
-              alt="箱根仙石原エリアマップ"
+              alt="箱根仙石原 犬連れ観光エリアマップ DogHubから主要スポットへのアクセス案内"
               width={636}
               height={408}
               className="w-full h-auto"

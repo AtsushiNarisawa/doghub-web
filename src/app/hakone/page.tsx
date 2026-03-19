@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 };
 
 const scenes = [
-  { href: "/golf", label: "ゴルフ × 預かり", desc: "早朝7時からお預かり対応。大箱根CC提携。", img: "/images/img-003.jpg" },
-  { href: "/onsen", label: "温泉 × 預かり", desc: "温泉を楽しむ間、愛犬はDogHubへ。", img: "/images/img-096.jpg" },
-  { href: "/museum", label: "美術館 × 預かり", desc: "ポーラ美術館まで車4分。", img: "/images/img-006.jpg" },
-  { href: "/yunessun", label: "ユネッサン × 預かり", desc: "ユネッサンまで車約15分。", img: "/images/img-021.jpg" },
-  { href: "/ryokan", label: "高級旅館 × 預かり", desc: "ペット不可の憧れの宿に泊まれる。", img: "/images/img-035.png" },
-  { href: "/pethotel", label: "ペット可ホテル × 預かり", desc: "チェックイン前後の観光を自由に。", img: "/images/img-011.jpg" },
+  { href: "/golf", label: "ゴルフ × 預かり", desc: "早朝7時からお預かり対応。大箱根CC提携。", img: "/images/img-003.jpg", imgAlt: "箱根ゴルフ場の緑豊かなコース 愛犬を預けてプレーを満喫" },
+  { href: "/onsen", label: "温泉 × 預かり", desc: "温泉を楽しむ間、愛犬はDogHubへ。", img: "/images/img-096.jpg", imgAlt: "箱根 犬のホテル DogHub箱根仙石原の宿泊プラン 温泉旅行の拠点に" },
+  { href: "/museum", label: "美術館 × 預かり", desc: "ポーラ美術館まで車4分。", img: "/images/img-006.jpg", imgAlt: "箱根仙石原の美術館イメージ ポーラ美術館やガラスの森へのアクセス良好" },
+  { href: "/yunessun", label: "ユネッサン × 預かり", desc: "ユネッサンまで車約15分。", img: "/images/img-021.jpg", imgAlt: "箱根ドッグラン DogHub箱根仙石原 ユネッサンへ行く間も愛犬が遊べる環境" },
+  { href: "/ryokan", label: "高級旅館 × 預かり", desc: "ペット不可の憧れの宿に泊まれる。", img: "/images/img-035.png", imgAlt: "箱根ペットホテル DogHub箱根仙石原の完全個室 高級旅館宿泊中も愛犬が安心" },
+  { href: "/pethotel", label: "ペット可ホテル × 預かり", desc: "チェックイン前後の観光を自由に。", img: "/images/img-011.jpg", imgAlt: "箱根ドッグラン DogHub箱根仙石原で2匹の犬が元気に遊ぶ様子" },
 ];
 
 const articles = [
@@ -38,7 +38,7 @@ export default function HakonePage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"箱根 犬連れガイド",href:"/hakone"}]} />
         {/* Hero */}
         <div className="relative">
-          <img src="/images/img-008.jpg" alt="箱根 犬連れ旅行" className="w-full object-cover" style={{ height: "clamp(180px, 30vw, 424px)" }} />
+          <img src="/images/img-008.jpg" alt="箱根 犬連れ旅行ガイド 愛犬と仙石原の自然の中を散歩する様子" className="w-full object-cover" style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 400 }}>箱根 犬連れ旅行ガイド</h1>
             <p className="mt-2" style={{ fontSize: "clamp(14px, 2vw, 18px)", fontWeight: 400 }}>犬と箱根を楽しむすべてがここに</p>
@@ -80,7 +80,7 @@ export default function HakonePage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {scenes.map((s) => (
                 <Link key={s.href} href={s.href} className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors group overflow-hidden">
-                  <img src={s.img} alt={s.label} className="w-full h-40 object-cover" />
+                  <img src={s.img} alt={s.imgAlt} className="w-full h-40 object-cover" />
                   <div className="p-5">
                     <h3 className="text-[#3C200F] mb-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "18px", fontWeight: 400 }}>{s.label}</h3>
                     <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>{s.desc}</p>
@@ -138,6 +138,44 @@ export default function HakonePage() {
                 </p>
                 <Link href="/dogrun" className="text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>ドッグラン →</Link>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-16 px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根 犬連れ旅行 よくある質問</h2>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  { "@type": "Question", name: "箱根で犬と一緒に行ける観光スポットは？", acceptedAnswer: { "@type": "Answer", text: "すすき草原（仙石原）、芦ノ湖畔の遊歩道、箱根神社、恩賜箱根公園などが犬連れOKです。一方、美術館（ポーラ、ガラスの森等）、温泉施設、ユネッサンはペット不可です。" }},
+                  { "@type": "Question", name: "犬連れで箱根のレストランに入れますか？", acceptedAnswer: { "@type": "Answer", text: "テラス席のみ犬OKのお店はいくつかあります。室内で犬と食事できるお店は限られていますが、DogHub箱根仙石原のOMUSUBI & SOUP CAFEは室内犬同伴OKです。" }},
+                  { "@type": "Question", name: "箱根に犬のペットホテルはありますか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原が箱根エリアのペットホテルです。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。仙石原の中心にあり、強羅・芦ノ湖・ユネッサンなど主要観光地へアクセス良好です。" }},
+                  { "@type": "Question", name: "犬連れの箱根旅行で車は必要ですか？", acceptedAnswer: { "@type": "Answer", text: "車での移動がおすすめです。箱根登山鉄道はキャリーバッグに入れれば犬も乗車可能ですが、観光の自由度を考えると車が一番便利です。" }},
+                ],
+              }) }}
+            />
+            <div className="space-y-4">
+              {[
+                { q: "箱根で犬と一緒に行ける観光スポットは？", a: "すすき草原（仙石原）、芦ノ湖畔の遊歩道、箱根神社、恩賜箱根公園などが犬連れOKです。一方、美術館（ポーラ、ガラスの森等）、温泉施設、ユネッサンはペット不可です。" },
+                { q: "犬連れで箱根のレストランに入れますか？", a: "テラス席のみ犬OKのお店はいくつかあります。室内で犬と食事できるお店は限られていますが、DogHub箱根仙石原のOMUSUBI & SOUP CAFEは室内犬同伴OKです。" },
+                { q: "箱根に犬のペットホテルはありますか？", a: "DogHub箱根仙石原が箱根エリアのペットホテルです。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。仙石原の中心にあり、強羅・芦ノ湖・ユネッサンなど主要観光地へアクセス良好です。" },
+                { q: "犬連れの箱根旅行で車は必要ですか？", a: "車での移動がおすすめです。箱根登山鉄道はキャリーバッグに入れれば犬も乗車可能ですが、観光の自由度を考えると車が一番便利です。" },
+              ].map((faq) => (
+                <details key={faq.q} className="border border-[#E5DDD8] group">
+                  <summary className="flex items-center justify-between cursor-pointer p-6 text-[#3C200F] hover:bg-[#F7F7F7] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
+                    <span>{faq.q}</span>
+                    <span className="ml-4 text-[#B87942] group-open:rotate-45 transition-transform" style={{ fontSize: "24px" }}>+</span>
+                  </summary>
+                  <div className="px-6 pb-6 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
+                    {faq.a}
+                  </div>
+                </details>
+              ))}
             </div>
           </div>
         </section>

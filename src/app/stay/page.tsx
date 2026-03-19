@@ -81,7 +81,7 @@ export default function StayPage() {
         <div className="relative">
           <img
             src="/images/img-096.jpg"
-            alt="DogHub箱根仙石原 宿泊プラン"
+            alt="箱根 犬のホテル DogHub箱根仙石原の宿泊プラン 愛犬を預けて箱根旅行を満喫"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
@@ -153,7 +153,7 @@ export default function StayPage() {
               <div>
                 <img
                   src="/images/img-035.png"
-                  alt="DogHub箱根仙石原 宿泊用個室"
+                  alt="箱根ペットホテル DogHub箱根仙石原の完全個室 犬がリラックスして過ごせる空間"
                   className="w-full h-auto"
                 />
               </div>
@@ -204,7 +204,7 @@ export default function StayPage() {
               <div className="p-6">
                 <img
                   src="/images/img-028.png"
-                  alt="宿泊プラン モデルケース タイムライン"
+                  alt="箱根ペットホテル宿泊プランのモデルケース 1泊2日のタイムライン例"
                   className="w-full h-auto"
                 />
               </div>
@@ -380,6 +380,14 @@ export default function StayPage() {
                 よくある質問 →
               </Link>
             </div>
+          </div>
+        </section>
+
+        <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-7xl mx-auto text-center">
+            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              箱根 犬連れ旅行ガイド トップへ →
+            </Link>
           </div>
         </section>
 

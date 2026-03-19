@@ -8,7 +8,7 @@ export function CafeGoods() {
         <div>
           <img
             src="/images/img-070.jpg"
-            alt="OMUSUBI & SOUP CAFE"
+            alt="箱根 犬連れランチ DogHubのOMUSUBI & SOUP CAFE 愛犬と一緒に食事できる店内"
             className="w-full h-auto block"
           />
           <div className="p-6 md:p-10">
@@ -29,7 +29,7 @@ export function CafeGoods() {
         <div>
           <img
             src="/images/img-068.jpg"
-            alt="GOODS"
+            alt="DogHub箱根仙石原 愛犬グッズ・犬用雑貨セレクトショップ 厳選アイテムの販売コーナー"
             className="w-full h-auto block"
           />
           <div className="p-6 md:p-10">

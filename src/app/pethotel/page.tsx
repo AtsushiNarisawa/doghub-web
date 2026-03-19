@@ -35,7 +35,7 @@ export default function PetHotelPage() {
         <div className="relative">
           <img
             src="/images/img-006.jpg"
-            alt="ペット可ホテル × 日中預かり"
+            alt="箱根ペットホテル DogHub箱根仙石原 ペット可ホテル宿泊中の日中預かりサービス"
             className="w-full object-cover"
             style={{ height: "clamp(180px, 30vw, 424px)" }}
           />
@@ -115,12 +115,12 @@ export default function PetHotelPage() {
               <div>
                 <img
                   src="/images/img-011.jpg"
-                  alt="DogHub箱根仙石原 ドッグラン"
+                  alt="箱根ドッグラン DogHub箱根仙石原の専用ドッグランで2匹の犬が元気に遊ぶ様子"
                   className="w-full h-auto"
                 />
                 <img
                   src="/images/img-035.png"
-                  alt="DogHub箱根仙石原 お預かりスペース"
+                  alt="箱根ペットホテル DogHub箱根仙石原の完全個室 犬がリラックスして過ごせる空間"
                   className="w-full h-auto mt-4"
                 />
               </div>
@@ -219,6 +219,42 @@ export default function PetHotelPage() {
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>ペット不可の憧れの宿に</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-16 px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>ペット可ホテル × 預かり よくある質問</h2>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  { "@type": "Question", name: "ペット可の宿に泊まっていても預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい、もちろんです。チェックイン前やチェックアウト後の観光時間に、日中預かりとしてご利用いただくお客様が多くいらっしゃいます。レジーナリゾート仙石原など、近隣のペット可施設からのご案内も多数いただいています。" }},
+                  { "@type": "Question", name: "当日でも預けられますか？", acceptedAnswer: { "@type": "Answer", text: "空きがあれば当日予約も承っています。お電話（0460-80-0290）でご確認ください。" }},
+                  { "@type": "Question", name: "短時間でも預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい、1時間¥1,100〜のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" }},
+                ],
+              }) }}
+            />
+            <div className="space-y-4">
+              {[
+                { q: "ペット可の宿に泊まっていても預けられますか？", a: "はい、もちろんです。チェックイン前やチェックアウト後の観光時間に、日中預かりとしてご利用いただくお客様が多くいらっしゃいます。レジーナリゾート仙石原など、近隣のペット可施設からのご案内も多数いただいています。" },
+                { q: "当日でも預けられますか？", a: "空きがあれば当日予約も承っています。お電話（0460-80-0290）でご確認ください。" },
+                { q: "短時間でも預けられますか？", a: "はい、1時間¥1,100〜のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" },
+              ].map((faq) => (
+                <details key={faq.q} className="border border-[#E5DDD8] group">
+                  <summary className="flex items-center justify-between cursor-pointer p-6 text-[#3C200F] hover:bg-[#F7F7F7] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
+                    <span>{faq.q}</span>
+                    <span className="ml-4 text-[#B87942] group-open:rotate-45 transition-transform" style={{ fontSize: "24px" }}>+</span>
+                  </summary>
+                  <div className="px-6 pb-6 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
+                    {faq.a}
+                  </div>
+                </details>
+              ))}
             </div>
           </div>
         </section>

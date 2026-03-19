@@ -39,7 +39,7 @@ export function DogHotel() {
           <div>
             <img
               src="/images/img-035.png"
-              alt="DogHub お預かりスペース"
+              alt="箱根ペットホテル DogHub箱根仙石原の完全個室 犬がリラックスして過ごせる空間"
               width={621}
               height={603}
               className="w-full h-auto"
