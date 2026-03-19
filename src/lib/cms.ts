@@ -58,8 +58,8 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "屋根付きドッグラン", images: ["/images/img-022.jpg"] },
     { keyword: "美術館めぐり", images: ["/images/img-006.jpg"] },
   ],
-  "hakone-yumoto-pet-hotel": [
-    { keyword: "DogHub箱根仙石原へのアクセス", images: ["/images/img-041.jpg"] },
+  "hakone-pet-hotel-area-guide": [
+    { keyword: "DogHubのある仙石原エリア", images: ["/images/img-041.jpg"] },
   ],
   "hakone-ashinoko-dog-guide": [
     { keyword: "湖畔の散歩", images: ["/images/img-008.jpg"] },

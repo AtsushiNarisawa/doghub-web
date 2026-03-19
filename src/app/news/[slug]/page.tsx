@@ -76,11 +76,11 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/dogrun",
     btnLabel: "ドッグラン詳細を見る",
   },
-  "hakone-yumoto-pet-hotel": {
-    text: "箱根湯本から車で約20分",
-    subtext: "箱根湯本の温泉や旅館を楽しむ間、愛犬はDogHubで安心のお預かり。",
-    href: "/onsen",
-    btnLabel: "温泉×お預かりプランを見る",
+  "hakone-pet-hotel-area-guide": {
+    text: "仙石原の中心にあるペットホテル",
+    subtext: "強羅から車10分、芦ノ湖から車20分。箱根のどこからでもアクセスしやすい立地です。",
+    href: "/service",
+    btnLabel: "料金・サービスを見る",
   },
   "hakone-ashinoko-dog-guide": {
     text: "芦ノ湖観光の前後にお預け",
