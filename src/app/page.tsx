@@ -7,6 +7,7 @@ import { Pricing } from "@/components/pricing";
 import { Testimonials } from "@/components/testimonials";
 import { ModelCase } from "@/components/model-case";
 import { CafeGoods } from "@/components/cafe-goods";
+import { HakoneGuide } from "@/components/hakone-guide";
 import { News } from "@/components/news";
 import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
@@ -28,6 +29,7 @@ export default function HomePage() {
         <Testimonials />
         <ModelCase limit={1} />
         <CafeGoods />
+        <HakoneGuide />
         <News />
         <Reservation />
         <QuickNav />

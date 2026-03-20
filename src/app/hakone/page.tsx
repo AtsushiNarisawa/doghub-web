@@ -197,6 +197,23 @@ export default function HakonePage() {
           </div>
         </section>
 
+        {/* 関連記事 */}
+        <section className="px-6 py-8 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="p-6 bg-[#F8F5F0] rounded-xl">
+              <p className="text-[#3C200F] font-medium mb-2" style={{ fontSize: "16px" }}>あわせて読みたい</p>
+              <div className="space-y-2">
+                <Link href="/news/hakone-dog-trip-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 箱根 犬連れ旅行ガイド｜1泊2日モデルコース
+                </Link>
+                <Link href="/news/hakone-dog-travel-model-course" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 箱根 犬連れ旅行モデルコース｜日帰り＆1泊2日プラン
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <Reservation />
         <QuickNav />
       </main>
