@@ -41,10 +41,10 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     btnLabel: "ペット可ホテル×日中預かりプランを見る",
   },
   "hakone-dog-trip-guide": {
-    text: "箱根旅行をもっと自由に楽しむ",
-    subtext: "温泉・美術館・ユネッサンなどペット不可スポットも、DogHubにお預けで安心。半日¥3,300〜。",
-    href: "/beginner",
-    btnLabel: "はじめての方はこちら（利用の流れ）",
+    text: "箱根観光中の愛犬のお預かり",
+    subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。半日¥3,300〜、早朝7時から対応。",
+    href: "/service",
+    btnLabel: "お預かりプラン・料金を見る",
   },
   "spring-walk-guide": {
     text: "お散歩のついでに立ち寄れます",
