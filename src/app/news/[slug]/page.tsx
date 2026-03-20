@@ -7,6 +7,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { getArticles, getArticle } from "@/lib/cms";
+import { ArticleFloatingBar } from "@/components/article-floating-bar";
 
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string; btnLabel: string }> = {
@@ -166,12 +167,12 @@ export default async function NewsDetailPage({ params }: Props) {
   const { article, html } = result;
   const cta = ARTICLE_CTA[slug] ?? DEFAULT_CTA;
 
-  // 関連記事を取得（同カテゴリ優先、最大3件）
+  // 関連記事を取得（同カテゴリ優先、最大2件）+ 関連サービスページ1つ
   const allArticles = await getArticles();
   const relatedArticles = allArticles
     .filter((a) => a.slug !== slug)
     .sort((a, b) => (a.category === article.category ? -1 : 1) - (b.category === article.category ? -1 : 1))
-    .slice(0, 3);
+    .slice(0, 2);
 
   return (
     <>
@@ -236,7 +237,7 @@ export default async function NewsDetailPage({ params }: Props) {
         <section className="py-12 px-6 bg-white">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
-              <span className="text-[#8F7B65]" style={{ fontSize: "14px" }}>公開: {article.date}　|　最終更新: 2026-03-19</span>
+              <span className="text-[#8F7B65]" style={{ fontSize: "14px" }}>公開: {article.date}　|　最終更新: 2026-03-20</span>
               <span className="text-[#B87942] border border-[#B87942] px-2 py-0.5" style={{ fontSize: "12px" }}>
                 {article.category}
               </span>
@@ -247,16 +248,25 @@ export default async function NewsDetailPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: html }}
             />
 
-            {/* 記事末CTA */}
-            <div className="article-cta">
-              <p className="cta-main-text" style={{ fontSize: "17px", fontWeight: 500, color: "#1A1A1A", marginBottom: "0.4em" }}>{cta.text}</p>
-              <p style={{ marginBottom: "1.2em" }}>{cta.subtext}</p>
-              <a href={cta.href}>{cta.btnLabel}</a>
+            {/* 記事末CTA — スタッフからのひとこと */}
+            <div className="article-cta staff-note">
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "1em" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#E5DDD8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", flexShrink: 0 }}>🐕</div>
+                <div>
+                  <p style={{ fontSize: "14px", fontWeight: 500, color: "#3C200F", margin: 0 }}>DogHub箱根仙石原 スタッフ</p>
+                  <p style={{ fontSize: "12px", color: "#8F7B65", margin: 0 }}>仙石原で犬と暮らしています</p>
+                </div>
+              </div>
+              <p style={{ fontSize: "15px", color: "#3C200F", marginBottom: "1.2em", textAlign: "left" }}>{cta.subtext}</p>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <a href={cta.href}>{cta.btnLabel}</a>
+                <a href="tel:0460-80-0290" className="article-cta-secondary">電話で相談する</a>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Related articles */}
+        {/* Related articles + service page */}
         {relatedArticles.length > 0 && (
           <section className="px-6 py-12 bg-[#F7F7F7] border-t border-[#E5DDD8]">
             <div className="max-w-4xl mx-auto">
@@ -271,6 +281,16 @@ export default async function NewsDetailPage({ params }: Props) {
                     </div>
                   </Link>
                 ))}
+                {/* 関連サービスページへのブリッジ */}
+                <Link href={cta.href} className="block bg-[#F8F5F0] border border-[#E5DDD8] hover:border-[#B87942] transition-colors group">
+                  <div className="w-full h-32 bg-[#E5DDD8] flex items-center justify-center">
+                    <span style={{ fontSize: "32px" }}>🐕</span>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-[#B87942] mb-1" style={{ fontSize: "12px" }}>DogHub箱根仙石原</p>
+                    <h3 className="text-[#3C200F] group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.6" }}>{cta.btnLabel}</h3>
+                  </div>
+                </Link>
               </div>
             </div>
           </section>
@@ -314,6 +334,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
         <Reservation />
         <QuickNav />
+        <ArticleFloatingBar href={cta.href} label={cta.btnLabel} />
       </main>
       <Footer />
     </>
