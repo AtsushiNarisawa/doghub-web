@@ -113,7 +113,6 @@ export const DAY_DESTINATIONS = [
   "ユネッサン",
   "ポーラ美術館",
   "ガラスの森美術館",
-  "箱根の湯（仙石原）",
   "天山湯治郷",
   "箱根の外へお出かけ",
   "その他",
@@ -123,7 +122,6 @@ export const DAY_DESTINATIONS = [
 export const DAY_DESTINATIONS_4H = [
   "ポーラ美術館",
   "ガラスの森美術館",
-  "箱根の湯（仙石原）",
   "天山湯治郷",
   "箱根の外へお出かけ",
   "その他",
