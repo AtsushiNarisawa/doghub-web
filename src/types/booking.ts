@@ -22,8 +22,11 @@ export interface DogFormData {
   age: string;        // 年齢（0歳の場合はage_monthsを使用）
   age_months: string; // 月齢（age="0"の時のみ使用）
   sex: "male" | "female" | "";
-  has_rabies_vaccine: boolean; // 狂犬病ワクチン接種済み
-  has_mixed_vaccine: boolean;  // 混合ワクチン接種済み
+  has_rabies_vaccine: boolean; // 狂犬病ワクチン接種済み（後方互換）
+  has_mixed_vaccine: boolean;  // 混合ワクチン接種済み（後方互換）
+  rabies_vaccine_status: "" | "within_1year" | "within_3years" | "unable"; // 狂犬病ワクチン状況
+  mixed_vaccine_status: "" | "within_1year" | "within_3years" | "unable";  // 混合ワクチン状況
+  vaccine_unable_reason: string; // 接種できない事情
   allergies: string;
   meal_notes: string;
   medication_notes: string;
@@ -195,6 +198,9 @@ export const INITIAL_DOG: DogFormData = {
   sex: "",
   has_rabies_vaccine: false,
   has_mixed_vaccine: false,
+  rabies_vaccine_status: "",
+  mixed_vaccine_status: "",
+  vaccine_unable_reason: "",
   allergies: "",
   meal_notes: "",
   medication_notes: "",

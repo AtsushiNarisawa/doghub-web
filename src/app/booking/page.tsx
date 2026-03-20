@@ -18,7 +18,7 @@ function pushEvent(event: string, params?: Record<string, unknown>) {
 export default function BookingPage() {
   const [step, setStep] = useState<BookingStep>(1);
   const [form, setForm] = useState<BookingFormData>({ ...INITIAL_FORM });
-  const [result, setResult] = useState<"success" | "error" | null>(null);
+  const [result, setResult] = useState<"success" | "success_no_email" | "error" | null>(null);
 
   // 予約開始イベント
   useEffect(() => {
@@ -46,12 +46,13 @@ export default function BookingPage() {
         body: JSON.stringify(form),
       });
       if (res.ok) {
+        const data = await res.json();
         pushEvent("booking_complete", {
           plan: form.plan,
           dog_count: form.dogs.length,
           date: form.date,
         });
-        setResult("success");
+        setResult(data.email_failed ? "success_no_email" : "success");
       } else {
         pushEvent("booking_error", { error_type: "api_error" });
         setResult("error");
@@ -64,7 +65,7 @@ export default function BookingPage() {
   };
 
   // 送信完了画面
-  if (result === "success") {
+  if (result === "success" || result === "success_no_email") {
     const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) >= 15);
     return (
       <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center p-4">
@@ -82,6 +83,11 @@ export default function BookingPage() {
               ? "スタッフが確認後、メールにてご連絡いたします。しばらくお待ちください。"
               : "確認メールをお送りしました。当日お気をつけてお越しください。"}
           </p>
+          {result === "success_no_email" && (
+            <p className="text-sm text-orange-600 bg-orange-50 p-3 rounded-lg leading-relaxed">
+              予約は完了しましたが、確認メールの送信に失敗しました。お手数ですがお電話（0460-80-0290）で予約内容をご確認ください。
+            </p>
+          )}
           <div className="text-sm text-[#888] text-left space-y-1">
             <p>ワクチン証明書（狂犬病・混合）を当日ご持参ください。</p>
             <p>住所: 箱根町仙石原1246-125</p>

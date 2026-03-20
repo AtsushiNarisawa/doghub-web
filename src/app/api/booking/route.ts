@@ -324,11 +324,13 @@ export async function POST(req: NextRequest) {
       await updateCapacity(body.checkout_date, "day_booked", dogCount);
     }
 
-    // 7. メール送信（失敗しても予約自体は成功扱い）
+    // 7. メール送信（失敗しても予約自体は成功扱い、ただしフロントに通知）
+    let emailFailed = false;
     try {
       await sendBookingEmails(body, reservation.id, status);
     } catch (err) {
       console.error("Email send error:", err);
+      emailFailed = true;
     }
 
     // 8. LINE通知（line_idがある場合のみ）
@@ -354,6 +356,7 @@ export async function POST(req: NextRequest) {
       success: true,
       reservation_id: reservation.id,
       status,
+      email_failed: emailFailed,
     });
   } catch (error) {
     console.error("Booking error:", error);

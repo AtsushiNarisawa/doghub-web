@@ -159,29 +159,81 @@ function DogForm({
       </div>
 
       {/* ワクチン接種確認 */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <p className="text-sm text-[#888]">
           ワクチン接種 <span className="text-red-400">*</span>
-          <span className="text-[12px] block mt-0.5">当日、狂犬病・混合ワクチンの証明書をご持参ください（スマホの写真でもOK）。未接種の場合はお預かりできません。</span>
+          <span className="text-[12px] block mt-0.5">当日、証明書をご持参ください（スマホの写真でもOK）。</span>
         </p>
-        <label className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F5F0]">
-          <input
-            type="checkbox"
-            checked={dog.has_rabies_vaccine}
-            onChange={(e) => onUpdate({ ...dog, has_rabies_vaccine: e.target.checked })}
-            className="w-5 h-5 rounded accent-[#B87942]"
-          />
-          <span className="text-sm">狂犬病ワクチン接種済み</span>
-        </label>
-        <label className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F5F0]">
-          <input
-            type="checkbox"
-            checked={dog.has_mixed_vaccine}
-            onChange={(e) => onUpdate({ ...dog, has_mixed_vaccine: e.target.checked })}
-            className="w-5 h-5 rounded accent-[#B87942]"
-          />
-          <span className="text-sm">混合ワクチン接種済み</span>
-        </label>
+
+        {/* 狂犬病ワクチン */}
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-[#3C200F]">狂犬病ワクチン</p>
+          <div className="space-y-1">
+            {([
+              { value: "within_1year", label: "接種済み（1年以内）" },
+              { value: "within_3years", label: "接種済み（3年有効ワクチン）" },
+              { value: "unable", label: "事情により未接種" },
+            ] as const).map((opt) => (
+              <label key={opt.value} className="flex items-center gap-3 p-2.5 rounded-lg bg-[#F8F5F0] cursor-pointer">
+                <input
+                  type="radio"
+                  name={`rabies-${index}`}
+                  checked={dog.rabies_vaccine_status === opt.value}
+                  onChange={() => onUpdate({
+                    ...dog,
+                    rabies_vaccine_status: opt.value,
+                    has_rabies_vaccine: opt.value !== "unable",
+                  })}
+                  className="w-4 h-4 accent-[#B87942]"
+                />
+                <span className="text-sm">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* 混合ワクチン */}
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-[#3C200F]">混合ワクチン</p>
+          <div className="space-y-1">
+            {([
+              { value: "within_1year", label: "接種済み（1年以内）" },
+              { value: "within_3years", label: "接種済み（3年有効ワクチン）" },
+              { value: "unable", label: "事情により未接種" },
+            ] as const).map((opt) => (
+              <label key={opt.value} className="flex items-center gap-3 p-2.5 rounded-lg bg-[#F8F5F0] cursor-pointer">
+                <input
+                  type="radio"
+                  name={`mixed-${index}`}
+                  checked={dog.mixed_vaccine_status === opt.value}
+                  onChange={() => onUpdate({
+                    ...dog,
+                    mixed_vaccine_status: opt.value,
+                    has_mixed_vaccine: opt.value !== "unable",
+                  })}
+                  className="w-4 h-4 accent-[#B87942]"
+                />
+                <span className="text-sm">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* 事情により未接種の場合の理由入力 */}
+        {(dog.rabies_vaccine_status === "unable" || dog.mixed_vaccine_status === "unable") && (
+          <div>
+            <label className="text-sm text-[#888] block mb-1">
+              未接種の事情をお聞かせください <span className="text-red-400">*</span>
+            </label>
+            <textarea
+              value={dog.vaccine_unable_reason}
+              onChange={(e) => onUpdate({ ...dog, vaccine_unable_reason: e.target.value })}
+              placeholder="例: 持病（心臓病）のため獣医師の判断で接種を見合わせています"
+              rows={2}
+              className="w-full px-3 py-2 border border-[#E5DDD8] rounded-lg text-sm focus:outline-none focus:border-[#B87942]"
+            />
+          </div>
+        )}
       </div>
 
       {/* 注意事項（アレルギー・食事・投薬） */}
@@ -212,11 +264,17 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
 
     const normalized = phoneInput.replace(/[-\s]/g, "");
 
-    const { data: customer } = await supabase
+    const { data: customer, error: customerError } = await supabase
       .from("customers")
       .select("*")
       .eq("phone", normalized)
       .maybeSingle();
+
+    if (customerError) {
+      console.error("Customer lookup error:", customerError);
+      setLookupState("not_found");
+      return;
+    }
 
     if (customer) {
       const { data: dogs } = await supabase
@@ -237,6 +295,9 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
               sex: d.sex as "male" | "female",
               has_rabies_vaccine: d.has_rabies_vaccine || false,
               has_mixed_vaccine: d.has_mixed_vaccine || false,
+              rabies_vaccine_status: d.rabies_vaccine_status || (d.has_rabies_vaccine ? "within_1year" : ""),
+              mixed_vaccine_status: d.mixed_vaccine_status || (d.has_mixed_vaccine ? "within_1year" : ""),
+              vaccine_unable_reason: d.vaccine_unable_reason || "",
               allergies: d.allergies || "",
               meal_notes: d.meal_notes || "",
               medication_notes: d.medication_notes || "",
@@ -285,7 +346,10 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
   };
 
   const isValid = form.dogs.every(
-    (d) => d.name && d.breed && d.weight && d.age && d.sex
+    (d) =>
+      d.name && d.breed && d.weight && d.age && d.sex &&
+      d.rabies_vaccine_status && d.mixed_vaccine_status &&
+      ((d.rabies_vaccine_status !== "unable" && d.mixed_vaccine_status !== "unable") || d.vaccine_unable_reason.trim())
   );
 
   return (
