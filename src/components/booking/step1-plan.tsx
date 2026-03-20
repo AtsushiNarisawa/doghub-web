@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { BookingFormData } from "@/types/booking";
-import { PLANS, DAY_DESTINATIONS, DAY_DESTINATIONS_4H, STAY_DESTINATIONS } from "@/types/booking";
+import { PLANS, DAY_DESTINATIONS, DAY_DESTINATIONS_4H, STAY_DESTINATIONS, DESTINATION_SUGGESTIONS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { HOLIDAYS } from "@/lib/holidays";
@@ -469,7 +469,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           form.plan === "stay" ? STAY_DESTINATIONS :
           form.plan === "4h" ? DAY_DESTINATIONS_4H : DAY_DESTINATIONS;
         const isListItem = (destinations as readonly string[]).includes(form.destination);
-        const selectValue = showOtherInput ? "その他（自由記入）" : isListItem ? form.destination : form.destination ? "その他（自由記入）" : "";
+        const selectValue = showOtherInput ? "その他" : isListItem ? form.destination : form.destination ? "その他" : "";
 
         return (
           <div>
@@ -480,7 +480,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             <select
               value={selectValue}
               onChange={(e) => {
-                if (e.target.value === "その他（自由記入）") {
+                if (e.target.value === "その他") {
                   setShowOtherInput(true);
                   onChange({ ...form, destination: "" });
                 } else {
@@ -495,14 +495,22 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                 <option key={dest} value={dest}>{dest}</option>
               ))}
             </select>
-            {(showOtherInput || (!isListItem && form.destination !== "")) && (
-              <input
-                type="text"
-                value={form.destination === "その他（自由記入）" ? "" : form.destination}
-                onChange={(e) => onChange({ ...form, destination: e.target.value })}
-                placeholder="行き先を入力してください"
-                className="mt-2 w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
-              />
+            {(showOtherInput || (!isListItem && form.destination !== "" && form.destination !== "箱根の外へお出かけ")) && (
+              <>
+                <input
+                  type="text"
+                  list="destination-suggestions"
+                  value={form.destination === "その他" ? "" : form.destination}
+                  onChange={(e) => onChange({ ...form, destination: e.target.value })}
+                  placeholder="施設名を入力（候補が表示されます）"
+                  className="mt-2 w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+                />
+                <datalist id="destination-suggestions">
+                  {DESTINATION_SUGGESTIONS.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+              </>
             )}
           </div>
         );
