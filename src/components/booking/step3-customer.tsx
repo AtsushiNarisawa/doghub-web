@@ -25,12 +25,19 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
     return form.customer.address || "";
   });
 
+  const [zipError, setZipError] = useState("");
+
   // 郵便番号から住所自動入力
   const fetchAddress = async (postalCode: string) => {
     const code = postalCode.replace(/-/g, "");
     if (code.length !== 7) return;
+    setZipError("");
     try {
       const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${code}`);
+      if (!res.ok) {
+        setZipError("住所の自動入力ができませんでした。手動で入力してください。");
+        return;
+      }
       const json = await res.json();
       if (json.results?.[0]) {
         const r = json.results[0];
@@ -44,9 +51,11 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
           ...form,
           customer: { ...form.customer, postal_code: postalCode, address: base },
         });
+      } else {
+        setZipError("該当する住所が見つかりませんでした。手動で入力してください。");
       }
     } catch {
-      // 静かに失敗
+      setZipError("住所の自動入力ができませんでした。手動で入力してください。");
     }
   };
 
@@ -185,6 +194,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               placeholder="250-0631"
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
             />
+            {zipError && <p className="text-orange-500 text-xs mt-1">{zipError}</p>}
           </div>
 
           {/* 住所（自動入力部分） */}

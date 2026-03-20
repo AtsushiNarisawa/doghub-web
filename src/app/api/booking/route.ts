@@ -10,9 +10,30 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// 直近の送信を追跡（二重送信防止）
+const recentSubmissions = new Map<string, number>();
+
+function isDuplicate(body: BookingFormData): boolean {
+  const key = `${body.customer.phone}-${body.date}-${body.plan}`;
+  const now = Date.now();
+  const last = recentSubmissions.get(key);
+  if (last && now - last < 30000) return true; // 30秒以内の同一予約をブロック
+  recentSubmissions.set(key, now);
+  // 古いエントリを掃除（5分以上前）
+  for (const [k, t] of recentSubmissions) {
+    if (now - t > 300000) recentSubmissions.delete(k);
+  }
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: BookingFormData = await req.json();
+
+    // 二重送信チェック
+    if (isDuplicate(body)) {
+      return NextResponse.json({ error: "同じ内容の予約が直前に送信されています。しばらくお待ちください。" }, { status: 429 });
+    }
 
     // バリデーション
     if (!body.plan || !body.date || !body.checkin_time) {

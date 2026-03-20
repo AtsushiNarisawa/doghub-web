@@ -385,13 +385,13 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   <div className="flex gap-3">
                     {form.plan === "stay" ? (
                       capacity.stay_remaining <= 0
-                        ? <span className="text-red-500 text-sm font-medium">× 満室</span>
+                        ? <span className="text-red-500 text-sm font-medium">× 満室（別の日程をお選びください）</span>
                         : capacity.stay_remaining < 5
                           ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
                           : <span className="text-green-600 text-sm">○ 空きあり</span>
                     ) : (
                       capacity.day_remaining <= 0
-                        ? <span className="text-red-500 text-sm font-medium">× 満室</span>
+                        ? <span className="text-red-500 text-sm font-medium">× 満室（別の日程をお選びください）</span>
                         : capacity.day_remaining < 5
                           ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
                           : <span className="text-green-600 text-sm">○ 空きあり</span>
