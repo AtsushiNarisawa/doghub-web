@@ -93,6 +93,9 @@ export default function BookingPage() {
             <p>住所: 箱根町仙石原1246-125</p>
             <p>TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
           </div>
+          <div className="text-sm text-[#888] text-left bg-[#F8F5F0] p-3 rounded-lg leading-relaxed">
+            <p>翌日も預けたい場合や、宿泊＋日中預かりなど複数日のご利用は「続けて予約する」から追加できます。お客さま・ワンちゃんの情報は入力不要です。</p>
+          </div>
           <div className="flex flex-col gap-3 mt-4">
             <button
               onClick={() => {
@@ -108,7 +111,7 @@ export default function BookingPage() {
               }}
               className="w-full px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
             >
-              続けて予約する
+              続けて予約する（翌日の預かり追加など）
             </button>
             <Link
               href="/"
