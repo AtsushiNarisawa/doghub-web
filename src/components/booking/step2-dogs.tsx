@@ -171,7 +171,7 @@ function DogForm({
           <div className="space-y-1">
             {([
               { value: "within_1year", label: "接種済み（1年以内）" },
-              { value: "within_3years", label: "接種済み（3年有効ワクチン）" },
+              { value: "multi_year", label: "接種済み（複数年有効ワクチン）" },
               { value: "unable", label: "事情により未接種" },
             ] as const).map((opt) => (
               <label key={opt.value} className="flex items-center gap-3 p-2.5 rounded-lg bg-[#F8F5F0] cursor-pointer">
@@ -198,7 +198,7 @@ function DogForm({
           <div className="space-y-1">
             {([
               { value: "within_1year", label: "接種済み（1年以内）" },
-              { value: "within_3years", label: "接種済み（3年有効ワクチン）" },
+              { value: "multi_year", label: "接種済み（複数年有効ワクチン）" },
               { value: "unable", label: "事情により未接種" },
             ] as const).map((opt) => (
               <label key={opt.value} className="flex items-center gap-3 p-2.5 rounded-lg bg-[#F8F5F0] cursor-pointer">

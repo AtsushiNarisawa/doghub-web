@@ -24,8 +24,8 @@ export interface DogFormData {
   sex: "male" | "female" | "";
   has_rabies_vaccine: boolean; // 狂犬病ワクチン接種済み（後方互換）
   has_mixed_vaccine: boolean;  // 混合ワクチン接種済み（後方互換）
-  rabies_vaccine_status: "" | "within_1year" | "within_3years" | "unable"; // 狂犬病ワクチン状況
-  mixed_vaccine_status: "" | "within_1year" | "within_3years" | "unable";  // 混合ワクチン状況
+  rabies_vaccine_status: "" | "within_1year" | "multi_year" | "unable"; // 狂犬病ワクチン状況
+  mixed_vaccine_status: "" | "within_1year" | "multi_year" | "unable";  // 混合ワクチン状況
   vaccine_unable_reason: string; // 接種できない事情
   allergies: string;
   meal_notes: string;

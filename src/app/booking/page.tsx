@@ -85,7 +85,7 @@ export default function BookingPage() {
           </p>
           {result === "success_no_email" && (
             <p className="text-sm text-orange-600 bg-orange-50 p-3 rounded-lg leading-relaxed">
-              予約は完了しましたが、確認メールの送信に失敗しました。お手数ですがお電話（0460-80-0290）で予約内容をご確認ください。
+              予約は完了しましたが、確認メールの送信がうまくいきませんでした。スタッフから折り返しご連絡いたしますので、しばらくお待ちください。
             </p>
           )}
           <div className="text-sm text-[#888] text-left space-y-1">
