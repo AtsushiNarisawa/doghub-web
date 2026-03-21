@@ -96,9 +96,10 @@ export default function CustomersPage() {
       ) : (
         <div className="space-y-2">
           {filtered.map((c) => (
-            <div
+            <Link
               key={c.id}
-              className="bg-white rounded-xl p-4 active:bg-gray-50 transition-colors"
+              href={`/admin/customers/${c.id}`}
+              className="block bg-white rounded-xl p-4 active:bg-gray-50 transition-colors"
             >
               <div className="flex items-start justify-between mb-1">
                 <p className="font-medium text-base">
@@ -122,7 +123,7 @@ export default function CustomersPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       )}
