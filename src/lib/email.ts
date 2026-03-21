@@ -250,3 +250,108 @@ export async function sendBookingEmails(
     }
   });
 }
+
+// ──────────────────────────────────────────
+// お礼メール（利用完了後に送信）
+// ──────────────────────────────────────────
+
+const GOOGLE_REVIEW_URL = "https://search.google.com/local/writereview?placeid=ChIJZ4GCMaOfGWAR9WTxcF0Jkpk";
+
+function buildThankYouEmailHtml(
+  customerName: string,
+  dogNames: string[],
+  planName: string,
+  isFirstVisit: boolean,
+): string {
+  const dogText = dogNames.length > 0
+    ? dogNames.map(n => `${n}ちゃん`).join("と")
+    : "わんちゃん";
+
+  const reviewSection = isFirstVisit
+    ? `
+    <div style="margin:24px 0;padding:20px;background:#F8F5F0;border-radius:12px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:14px;color:#3C200F;font-weight:600;">よろしければ、ご感想をお聞かせください</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#888;">皆さまの声が私たちの励みになります</p>
+      <a href="${GOOGLE_REVIEW_URL}" style="display:inline-block;padding:12px 32px;background:#B87942;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;">Googleで口コミを書く</a>
+      <p style="margin:8px 0 0;font-size:11px;color:#bbb;">1分で完了します</p>
+    </div>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<body style="margin:0;padding:0;background:#F7F7F7;font-family:'Helvetica Neue',Arial,'Hiragino Sans',sans-serif;">
+<div style="max-width:480px;margin:0 auto;padding:24px 16px;">
+
+  <!-- ヘッダー -->
+  <div style="text-align:center;padding:24px 0 16px;">
+    <p style="margin:0;font-size:20px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+  </div>
+
+  <!-- メインカード -->
+  <div style="background:white;border-radius:16px;padding:28px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+
+    <p style="margin:0 0 20px;font-size:15px;color:#3C200F;line-height:1.8;">
+      ${customerName} 様<br><br>
+      先日はDogHub箱根仙石原をご利用いただき、<br>
+      ありがとうございました。<br><br>
+      ${dogText}は${planName}の間、<br>
+      元気に過ごしていましたよ。<br><br>
+      また箱根にいらっしゃる際は、<br>
+      ぜひお立ち寄りくださいね。
+    </p>
+
+    ${reviewSection}
+
+    <!-- 次回予約 -->
+    <div style="margin:20px 0;text-align:center;">
+      <a href="https://dog-hub.shop/booking" style="display:inline-block;padding:12px 32px;border:1px solid #B87942;color:#B87942;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;">次回のご予約はこちら</a>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <div style="text-align:center;padding:20px 0;">
+    <p style="margin:0 0 4px;font-size:13px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原928-15</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460800290" style="color:#B87942;">0460-80-0290</a></p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">営業時間: 金〜火 9:00〜17:00（水・木定休）</p>
+    <p style="margin:12px 0 0;">
+      <a href="https://www.instagram.com/doghub.hakone__/" style="color:#B87942;font-size:12px;text-decoration:none;">Instagram: @doghub.hakone__</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>`;
+}
+
+export async function sendThankYouEmail(
+  email: string,
+  customerName: string,
+  dogNames: string[],
+  planName: string,
+  isFirstVisit: boolean,
+) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn("Email not configured");
+    return;
+  }
+
+  const dogText = dogNames.length > 0
+    ? dogNames.map(n => `${n}ちゃん`).join("と")
+    : "わんちゃん";
+
+  const subject = `${dogText}のお迎えありがとうございました｜DogHub箱根仙石原`;
+
+  try {
+    await transporter.sendMail({
+      from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
+      replyTo: "info@dog-hub.shop",
+      to: email,
+      subject,
+      html: buildThankYouEmailHtml(customerName, dogNames, planName, isFirstVisit),
+    });
+    console.log(`Thank-you email sent to ${email}`);
+  } catch (err) {
+    console.error("Thank-you email failed:", err);
+  }
+}

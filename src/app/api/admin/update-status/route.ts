@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendThankYouEmail } from "@/lib/email";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -103,6 +104,58 @@ export async function POST(req: NextRequest) {
     } else if (!wasActive && isActive) {
       // キャンセル/完了 → 確定/確認待ち：容量を加算
       await adjustCapacity(reservation_id, 1);
+    }
+
+    // completedに変更された場合、お礼メールを送信
+    if (status === "completed" && oldStatus !== "completed") {
+      try {
+        // 予約の顧客情報と犬情報を取得
+        const { data: reservation } = await supabase
+          .from("reservations")
+          .select("customer_id, plan")
+          .eq("id", reservation_id)
+          .single();
+
+        if (reservation) {
+          const { data: customer } = await supabase
+            .from("customers")
+            .select("email, last_name, first_name")
+            .eq("id", reservation.customer_id)
+            .single();
+
+          const { data: dogs } = await supabase
+            .from("dogs")
+            .select("name")
+            .eq("customer_id", reservation.customer_id);
+
+          // 初回利用かどうか判定（completedの予約が他にあるか）
+          const { count } = await supabase
+            .from("reservations")
+            .select("id", { count: "exact", head: true })
+            .eq("customer_id", reservation.customer_id)
+            .eq("status", "completed")
+            .neq("id", reservation_id);
+
+          const isFirstVisit = (count ?? 0) === 0;
+
+          const planNames: Record<string, string> = {
+            spot: "スポット利用", "4h": "半日お預かり", "8h": "1日お預かり", stay: "ご宿泊",
+          };
+
+          if (customer?.email) {
+            await sendThankYouEmail(
+              customer.email,
+              `${customer.last_name}${customer.first_name || ""}`,
+              dogs?.map(d => d.name) || [],
+              planNames[reservation.plan] || "お預かり",
+              isFirstVisit,
+            );
+          }
+        }
+      } catch (emailErr) {
+        console.error("Thank-you email error:", emailErr);
+        // メール送信失敗しても予約ステータス更新は成功として返す
+      }
     }
 
     return NextResponse.json({ success: true });
