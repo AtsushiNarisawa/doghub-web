@@ -183,6 +183,36 @@ function enhanceArticleHtml(html: string, slug?: string): string {
     }
   }
 
+  // 記事本文内の自然な内部リンク挿入（各キーワードは記事内で最初の1回のみ）
+  const internalLinks: { pattern: RegExp; href: string; label: string }[] = [
+    { pattern: /半日預かり（4時間）/g, href: "/4h", label: "半日預かり（4時間）" },
+    { pattern: /半日（4時間）/g, href: "/4h", label: "半日（4時間）" },
+    { pattern: /半日お預かり（4時間/g, href: "/4h", label: "半日お預かり（4時間" },
+    { pattern: /1日預かり（8時間）/g, href: "/8h", label: "1日預かり（8時間）" },
+    { pattern: /1日（8時間）/g, href: "/8h", label: "1日（8時間）" },
+    { pattern: /1日お預かり（8時間/g, href: "/8h", label: "1日お預かり（8時間" },
+    { pattern: /宿泊プラン（1泊/g, href: "/stay", label: "宿泊プラン（1泊" },
+    { pattern: /宿泊1泊/g, href: "/stay", label: "宿泊1泊" },
+    { pattern: /OMUSUBI &amp; SOUP CAFE/g, href: "/cafe", label: "OMUSUBI & SOUP CAFE" },
+    { pattern: /OMUSUBI & SOUP CAFE/g, href: "/cafe", label: "OMUSUBI & SOUP CAFE" },
+  ];
+
+  for (const link of internalLinks) {
+    // 既にaタグ内にあるテキストはスキップ（<a>タグ内のマッチを除外）
+    const firstMatch = html.match(link.pattern);
+    if (!firstMatch) continue;
+    const idx = html.indexOf(firstMatch[0]);
+    // このマッチが<a>タグ内かチェック
+    const beforeMatch = html.slice(Math.max(0, idx - 200), idx);
+    if (/<a[^>]*>[^<]*$/.test(beforeMatch)) continue;
+    // 最初の1回だけ置換
+    html = html.replace(link.pattern, (match) => {
+      // 1回だけ置換するためにフラグで管理
+      if (html.indexOf(`href="${link.href}"`) !== -1) return match; // 既にリンク済み
+      return `<a href="${link.href}">${link.label}</a>`;
+    });
+  }
+
   // 目次を生成（h2が2つ以上ある場合のみ）
   let toc = "";
   if (headings.length >= 2) {
