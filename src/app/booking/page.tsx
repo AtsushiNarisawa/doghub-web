@@ -90,7 +90,7 @@ export default function BookingPage() {
           )}
           <div className="text-sm text-[#888] text-left space-y-1">
             <p>ワクチン証明書（狂犬病・混合）を当日ご持参ください。</p>
-            <p>住所: 箱根町仙石原1246-125</p>
+            <p>住所: 箱根町仙石原928-15</p>
             <p>TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
           </div>
           <div className="text-sm text-[#888] text-left bg-[#F8F5F0] p-3 rounded-lg leading-relaxed">

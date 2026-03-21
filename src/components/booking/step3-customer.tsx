@@ -216,7 +216,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               type="text"
               value={detailAddress}
               onChange={(e) => handleDetailChange(e.target.value)}
-              placeholder={autoAddress ? "1246-125 メゾン仙石原102号" : "自動入力されます"}
+              placeholder={autoAddress ? "928-15 ○○マンション102号" : "自動入力されます"}
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
             />
             {autoAddress && !detailAddress && (
