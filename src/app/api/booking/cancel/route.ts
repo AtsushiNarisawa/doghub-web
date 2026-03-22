@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       await updateCapacity(reservation.checkout_date, "day_booked", -dogCount);
     }
 
-    // スタッフへキャンセル通知メール
+    // キャンセル通知メール（お客様 + スタッフ）
     try {
       if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
         const transporter = nodemailer.createTransport({
@@ -99,17 +99,69 @@ export async function POST(req: NextRequest) {
 
         const customer = reservation.customers as unknown as { last_name: string; first_name: string; phone: string; email: string } | null;
         const PLAN_NAMES: Record<string, string> = {
-          "4h": "半日お預かり", "8h": "1日お預かり", stay: "宿泊お預かり",
+          spot: "スポット利用", "4h": "半日お預かり", "8h": "1日お預かり", stay: "宿泊お預かり",
         };
         const days = ["日", "月", "火", "水", "木", "金", "土"];
         const d = new Date(reservation.date);
         const dateStr = `${d.getMonth() + 1}/${d.getDate()}（${days[d.getDay()]}）`;
 
-        await transporter.sendMail({
-          from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
-          to: "narisawa@dog-hub.shop",
-          subject: `【キャンセル】${customer?.last_name || ""}様 ${dateStr} ${reservation.checkin_time} ${dogCount}頭`,
-          html: `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
+        const emails = [];
+
+        // お客様へのキャンセル完了メール
+        if (customer?.email) {
+          emails.push(
+            transporter.sendMail({
+              from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
+              replyTo: "info@dog-hub.shop",
+              to: customer.email,
+              subject: `【DogHub箱根】ご予約キャンセルのご確認（${dateStr}）`,
+              html: `<!DOCTYPE html>
+<html lang="ja">
+<body style="margin:0;padding:0;background:#F7F7F7;font-family:'Helvetica Neue',Arial,'Hiragino Sans',sans-serif;">
+<div style="max-width:480px;margin:0 auto;padding:24px 16px;">
+  <div style="text-align:center;padding:24px 0 16px;">
+    <p style="margin:0;font-size:20px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+  </div>
+  <div style="background:white;border-radius:16px;padding:28px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+    <p style="margin:0 0 20px;font-size:15px;color:#3C200F;line-height:1.8;">
+      ${customer.last_name}${customer.first_name || ""} 様<br><br>
+      以下のご予約のキャンセルを承りました。
+    </p>
+    <div style="padding:16px;background:#F8F5F0;border-radius:10px;margin:0 0 20px;">
+      <table style="font-size:14px;color:#3C200F;border-collapse:collapse;width:100%;">
+        <tr><td style="padding:4px 12px 4px 0;color:#888;">プラン</td><td>${PLAN_NAMES[reservation.plan] || reservation.plan}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#888;">日程</td><td>${dateStr} ${reservation.checkin_time}</td></tr>
+        ${reservation.checkout_date ? `<tr><td style="padding:4px 12px 4px 0;color:#888;">チェックアウト</td><td>${new Date(reservation.checkout_date).getMonth() + 1}/${new Date(reservation.checkout_date).getDate()}</td></tr>` : ""}
+      </table>
+    </div>
+    <p style="margin:0 0 20px;font-size:14px;color:#888;line-height:1.7;">
+      またのご利用をお待ちしております。<br>
+      ご不明な点がございましたらお気軽にご連絡ください。
+    </p>
+    <div style="text-align:center;">
+      <a href="https://dog-hub.shop/booking" style="display:inline-block;padding:12px 32px;border:1px solid #B87942;color:#B87942;border-radius:8px;text-decoration:none;font-size:14px;">再度ご予約はこちら</a>
+    </div>
+  </div>
+  <div style="text-align:center;padding:20px 0;">
+    <p style="margin:0 0 4px;font-size:13px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原928-15</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460800290" style="color:#B87942;">0460-80-0290</a></p>
+    <p style="margin:0;font-size:12px;color:#888;">営業時間: 金〜火 9:00〜17:00（水・木定休）</p>
+  </div>
+</div>
+</body>
+</html>`,
+            })
+          );
+        }
+
+        // スタッフへのキャンセル通知メール
+        emails.push(
+          transporter.sendMail({
+            from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
+            to: "narisawa@dog-hub.shop",
+            subject: `【キャンセル】${customer?.last_name || ""}様 ${dateStr} ${reservation.checkin_time} ${dogCount}頭`,
+            html: `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
             <h2 style="color:#c2410c;">予約がキャンセルされました</h2>
             <table style="font-size:14px;border-collapse:collapse;">
               <tr><td style="padding:6px 12px 6px 0;color:#888;">お客様</td><td>${customer?.last_name || ""} ${customer?.first_name || ""}</td></tr>
@@ -120,7 +172,10 @@ export async function POST(req: NextRequest) {
             </table>
             <p style="margin-top:16px;"><a href="https://dog-hub.shop/admin/reservations/${reservation_id}" style="color:#B87942;">管理画面で確認する</a></p>
           </div>`,
-        });
+          })
+        );
+
+        await Promise.allSettled(emails);
       }
     } catch (emailErr) {
       console.error("Cancel notification email error:", emailErr);
