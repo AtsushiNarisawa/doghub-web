@@ -397,6 +397,9 @@ export default function StayPage() {
             <div className="p-6 bg-[#F8F5F0] rounded-xl">
               <p className="text-[#3C200F] font-medium mb-2" style={{ fontSize: "16px" }}>あわせて読みたい</p>
               <div className="space-y-2">
+                <Link href="/news/hakone-dog-hotel-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 箱根で犬のホテルを探している方へ｜預かり・宿泊・選び方のポイント
+                </Link>
                 <Link href="/news/hakone-dog-friendly-hotels" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
                   → 箱根で犬と泊まれる宿｜ペット可の宿リスト＆ペット不可の宿を楽しむ方法
                 </Link>

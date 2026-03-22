@@ -19,6 +19,7 @@ const scenes = [
   { href: "/yunessun", label: "ユネッサン × 預かり", desc: "ユネッサンまで車約15分。", img: "/images/img-021.jpg", imgAlt: "箱根ドッグラン DogHub箱根仙石原 ユネッサンへ行く間も愛犬が遊べる環境" },
   { href: "/ryokan", label: "高級旅館 × 預かり", desc: "ペット不可の憧れの宿に泊まれる。", img: "/images/img-035.png", imgAlt: "箱根ペットホテル DogHub箱根仙石原の完全個室 高級旅館宿泊中も愛犬が安心" },
   { href: "/pethotel", label: "ペット可ホテル × 預かり", desc: "チェックイン前後の観光を自由に。", img: "/images/img-011.jpg", imgAlt: "箱根ドッグラン DogHub箱根仙石原で2匹の犬が元気に遊ぶ様子" },
+  { href: "/yumoto", label: "箱根湯本エリア", desc: "湯本から犬のホテルをお探しの方へ。", img: "/images/img-041.jpg", imgAlt: "DogHub箱根仙石原 箱根湯本からのアクセスも便利な犬のホテル" },
 ];
 
 const articles = [
