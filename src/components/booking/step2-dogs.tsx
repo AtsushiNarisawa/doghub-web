@@ -161,8 +161,8 @@ function DogForm({
       {/* ワクチン接種確認 */}
       <div className="space-y-3">
         <p className="text-sm text-[#888]">
-          ワクチン接種 <span className="text-red-400">*</span>
-          <span className="text-[12px] block mt-0.5">当日、証明書をご持参ください（スマホの写真でもOK）。</span>
+          ワクチン接種
+          <span className="text-[12px] block mt-0.5 text-orange-600 font-medium">当日、狂犬病・混合ワクチンの証明書が必要です（スマホの写真でもOK）。未接種の場合はお預かりできません。</span>
         </p>
 
         {/* 狂犬病ワクチン */}
@@ -348,7 +348,6 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
   const isValid = form.dogs.every(
     (d) =>
       d.name && d.breed && d.weight && d.age && d.sex &&
-      d.rabies_vaccine_status && d.mixed_vaccine_status &&
       ((d.rabies_vaccine_status !== "unable" && d.mixed_vaccine_status !== "unable") || d.vaccine_unable_reason.trim())
   );
 
