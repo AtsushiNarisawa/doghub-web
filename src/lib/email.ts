@@ -263,10 +263,6 @@ function buildThankYouEmailHtml(
   planName: string,
   isFirstVisit: boolean,
 ): string {
-  const dogText = dogNames.length > 0
-    ? dogNames.map(n => `${n}ちゃん`).join("と")
-    : "わんちゃん";
-
   const reviewSection = isFirstVisit
     ? `
     <div style="margin:24px 0;padding:20px;background:#F8F5F0;border-radius:12px;text-align:center;">
@@ -290,14 +286,13 @@ function buildThankYouEmailHtml(
   <!-- メインカード -->
   <div style="background:white;border-radius:16px;padding:28px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
 
-    <p style="margin:0 0 20px;font-size:15px;color:#3C200F;line-height:1.8;">
-      ${customerName} 様<br><br>
-      先日はDogHub箱根仙石原をご利用いただき、<br>
-      ありがとうございました。<br><br>
-      ${dogText}は${planName}の間、<br>
-      元気に過ごしていましたよ。<br><br>
-      また箱根にいらっしゃる際は、<br>
-      ぜひお立ち寄りくださいね。
+    <p style="margin:0 0 24px;font-size:15px;color:#3C200F;line-height:2;">
+      ${customerName} 様
+    </p>
+
+    <p style="margin:0 0 24px;font-size:15px;color:#3C200F;line-height:2;">
+      この度はDogHub箱根仙石原をご利用いただき、ありがとうございました。
+      またのお越しをスタッフ一同お待ちしております。
     </p>
 
     ${reviewSection}
@@ -336,11 +331,7 @@ export async function sendThankYouEmail(
     return;
   }
 
-  const dogText = dogNames.length > 0
-    ? dogNames.map(n => `${n}ちゃん`).join("と")
-    : "わんちゃん";
-
-  const subject = `${dogText}のお迎えありがとうございました｜DogHub箱根仙石原`;
+  const subject = "ご利用ありがとうございました｜DogHub箱根仙石原";
 
   try {
     await transporter.sendMail({
