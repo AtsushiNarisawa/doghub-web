@@ -291,8 +291,11 @@ function buildThankYouEmailHtml(
     </p>
 
     <p style="margin:0 0 24px;font-size:15px;color:#3C200F;line-height:2;">
-      この度はDogHub箱根仙石原をご利用いただき、ありがとうございました。
-      またのお越しをスタッフ一同お待ちしております。
+      先日はDogHub箱根仙石原にお越しいただき、ありがとうございました。わんちゃんとの箱根旅行はいかがでしたか？
+    </p>
+
+    <p style="margin:0 0 24px;font-size:15px;color:#3C200F;line-height:2;">
+      看板犬のポロ・ぱんち・ムックともども、またお会いできるのを楽しみにしています。
     </p>
 
     ${reviewSection}
