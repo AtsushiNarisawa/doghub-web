@@ -256,8 +256,8 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
         <h3 className="font-medium">当日のご案内</h3>
         <div className="text-[13px] text-[#666] space-y-1.5">
           <p><span className="font-medium text-[#3C200F]">持ち物:</span> ワクチン証明書（狂犬病・混合）、リード、普段の食事（宿泊の場合）</p>
-          <p><span className="font-medium text-[#3C200F]">場所:</span> 神奈川県足柄下郡箱根町仙石原928-15（ポーラ美術館から車4分）</p>
-          <p><span className="font-medium text-[#3C200F]">駐車場:</span> 施設前に無料駐車スペースあり</p>
+          <p><span className="font-medium text-[#3C200F]">場所:</span> 神奈川県足柄下郡箱根町仙石原928-15（<a href="https://maps.google.com/?q=35.2547,139.0295" style={{color:"#B87942",textDecoration:"underline"}}>Googleマップ</a>）</p>
+          <p><span className="font-medium text-[#3C200F]">駐車場:</span> 施設前に無料駐車スペースあり（3台）</p>
           <p><span className="font-medium text-[#3C200F]">お支払い:</span> 現地にて（現金・クレジットカード・電子マネー・QR決済対応）</p>
         </div>
       </div>
