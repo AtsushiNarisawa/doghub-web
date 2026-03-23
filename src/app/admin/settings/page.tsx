@@ -65,6 +65,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDate, setSavingDate] = useState<string | null>(null);
+  const [calendarSaved, setCalendarSaved] = useState<string | null>(null);
   const [calMonth, setCalMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -197,6 +198,10 @@ export default function SettingsPage() {
     }
 
     setSavingDate(null);
+    // 保存フィードバック
+    const isNowClosed = isDayClosed(date);
+    setCalendarSaved(isNowClosed ? "臨時休業に変更しました" : "営業日に変更しました");
+    setTimeout(() => setCalendarSaved(null), 2000);
   };
 
   const navigateMonth = (dir: number) => {
@@ -245,6 +250,11 @@ export default function SettingsPage() {
         <div>
           <h3 className="text-base font-medium mb-1">営業日</h3>
           <p className="text-sm text-gray-500">タップで臨時休業・臨時営業を切り替え</p>
+          {calendarSaved && (
+            <p className="text-sm text-green-600 font-medium bg-green-50 rounded-lg px-3 py-2 mt-1">
+              ✓ {calendarSaved}
+            </p>
+          )}
         </div>
 
         {/* 月ナビ */}
