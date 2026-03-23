@@ -40,6 +40,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "プラン・日程情報が不足しています" }, { status: 400 });
     }
 
+    // サーバー側：当日予約の早朝チェック
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+    const checkinHour = parseInt(body.checkin_time.split(":")[0]);
+    if (body.date === todayStr && checkinHour < 9) {
+      return NextResponse.json({ error: "当日の早朝（9時前）のお預かりは前日までのご予約が必要です" }, { status: 400 });
+    }
+
     // サーバー側：定休日チェック（水=3, 木=4）
     const closedWeekdays = [3, 4];
     const checkinDay = new Date(body.date).getDay();

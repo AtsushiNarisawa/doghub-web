@@ -14,8 +14,12 @@ import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const routes = await getAllPublishedRoutes();
-  return routes.map((r) => ({ slug: r.slug }));
+  try {
+    const routes = await getAllPublishedRoutes();
+    return routes.filter((r) => r.slug && typeof r.slug === "string").map((r) => ({ slug: r.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({

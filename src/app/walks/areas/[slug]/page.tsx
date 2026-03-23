@@ -8,8 +8,12 @@ import Link from "next/link";
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const areas = await getAreas();
-  return areas.map((area) => ({ slug: area.slug }));
+  try {
+    const areas = await getAreas();
+    return areas.filter((a) => a.slug && typeof a.slug === "string").map((a) => ({ slug: a.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({

@@ -38,16 +38,22 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     });
   }, []);
 
-  // 受付期限チェック: 前日17時まで
+  // 受付期限チェック: 当日予約OK（早朝は前日まで）
   const getMinDate = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // 営業時間（17時）を過ぎたら翌日から
     if (now.getHours() >= 17) {
-      today.setDate(today.getDate() + 2);
-    } else {
       today.setDate(today.getDate() + 1);
     }
     return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+  };
+
+  // 当日かどうか判定
+  const isToday = (dateStr: string) => {
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+    return dateStr === todayStr;
   };
 
   // 受付上限日
@@ -195,7 +201,15 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     const actualEnd = endHour < startHour ? startHour : endHour;
 
     const options: string[] = [];
+    const now = new Date();
+    const currentHour = now.getHours();
+    const isTodayBooking = form.date && isToday(form.date);
+
     for (let h = startHour; h <= actualEnd; h++) {
+      // 当日予約: 過ぎた時間はスキップ（1時間のバッファ）
+      if (isTodayBooking && h <= currentHour) continue;
+      // 当日予約: 早朝（9時前）は前日までの予約が必要
+      if (isTodayBooking && h < 9) continue;
       options.push(`${String(h).padStart(2, "0")}:00`);
     }
     return options;
@@ -409,8 +423,8 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         );
       })()}
 
-      {/* 早朝プラン（日帰りプランのみ） */}
-      {selectedPlan?.earlyMorning && form.date && !isClosedDay(form.date) && capacity && !capacity.closed && (
+      {/* 早朝プラン（日帰りプランのみ、当日予約では非表示） */}
+      {selectedPlan?.earlyMorning && form.date && !isClosedDay(form.date) && !isToday(form.date) && capacity && !capacity.closed && (
         <label className="flex items-center gap-3 p-4 rounded-xl bg-[#F8F5F0]">
           <input
             type="checkbox"
@@ -438,28 +452,40 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             }
             〜{selectedPlan?.checkinRange.end}の間でお選びください
           </p>
-          <div className="grid grid-cols-4 gap-2">
-            {getTimeOptions().map((time) => (
-              <button
-                key={time}
-                type="button"
-                onClick={() => onChange({ ...form, checkin_time: time })}
-                className={`py-3 rounded-lg text-sm font-medium transition-all ${
-                  form.checkin_time === time
-                    ? "bg-[#B87942] text-white"
-                    : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
-                }`}
-              >
-                {time}
-              </button>
-            ))}
-          </div>
+          {getTimeOptions().length > 0 ? (
+            <div className="grid grid-cols-4 gap-2">
+              {getTimeOptions().map((time) => (
+                <button
+                  key={time}
+                  type="button"
+                  onClick={() => onChange({ ...form, checkin_time: time })}
+                  className={`py-3 rounded-lg text-sm font-medium transition-all ${
+                    form.checkin_time === time
+                      ? "bg-[#B87942] text-white"
+                      : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                  }`}
+                >
+                  {time}
+                </button>
+              ))}
+            </div>
+          ) : form.date && isToday(form.date) ? (
+            <p className="text-red-500 text-sm p-3 bg-red-50 rounded-lg">
+              本日の受付可能時間が過ぎています。明日以降の日程をお選びいただくか、お電話（<a href="tel:0460800290" className="underline font-medium">0460-80-0290</a>）でご相談ください。
+            </p>
+          ) : null}
           <p className="text-[13px] text-[#888] mt-2">
             お引き取り最終: 17:00（超過: ¥1,100/時間）
           </p>
-          <p className="text-[12px] text-[#888] mt-1">
-            ※ 前日17:00までのご予約が必要です
-          </p>
+          {form.date && isToday(form.date) ? (
+            <p className="text-[12px] text-[#B87942] mt-1">
+              ※ 当日予約のため、早朝（9時前）のお預かりはお電話でご相談ください
+            </p>
+          ) : (
+            <p className="text-[12px] text-[#888] mt-1">
+              ※ 早朝（7:00〜）のお預かりは前日までのご予約が必要です
+            </p>
+          )}
         </div>
       )}
 
