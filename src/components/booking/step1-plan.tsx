@@ -491,53 +491,62 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
       {/* 行き先（チェックイン時間選択後） */}
       {form.plan && form.checkin_time && (() => {
-        const destinations =
-          form.plan === "stay" ? STAY_DESTINATIONS :
-          form.plan === "4h" ? DAY_DESTINATIONS_4H : DAY_DESTINATIONS;
-        const isListItem = (destinations as readonly string[]).includes(form.destination);
-        const selectValue = showOtherInput ? "その他" : isListItem ? form.destination : form.destination ? "その他" : "";
+        const quickButtons =
+          form.plan === "stay" ? STAY_DESTINATIONS.filter(d => d !== "未定" && d !== "その他（自由記入）") :
+          form.plan === "4h" ? DAY_DESTINATIONS_4H.filter(d => d !== "その他") :
+          DAY_DESTINATIONS.filter(d => d !== "その他");
+
+        const allSuggestions = [
+          ...DESTINATION_SUGGESTIONS,
+          ...(form.plan === "stay" ? STAY_DESTINATIONS.filter(d => d !== "未定" && d !== "その他（自由記入）") : []),
+        ];
 
         return (
           <div>
             <h2 className="text-lg font-medium mb-2">お預かり中の行き先</h2>
             <p className="text-[12px] text-[#888] mb-3">
-              具体的な施設名がわかると助かります
+              入力するか、下のボタンから選べます
             </p>
-            <select
-              value={selectValue}
-              onChange={(e) => {
-                if (e.target.value === "その他") {
-                  setShowOtherInput(true);
-                  onChange({ ...form, destination: "" });
-                } else {
-                  setShowOtherInput(false);
-                  onChange({ ...form, destination: e.target.value });
-                }
-              }}
-              className="w-full px-4 py-5 rounded-xl border-2 border-[#E5DDD8] text-lg bg-white focus:border-[#B87942] focus:outline-none"
-            >
-              <option value="">選択してください</option>
-              {destinations.map((dest) => (
-                <option key={dest} value={dest}>{dest}</option>
+            <input
+              type="text"
+              list="destination-suggestions"
+              value={form.destination}
+              onChange={(e) => onChange({ ...form, destination: e.target.value })}
+              placeholder="施設名を入力（候補が表示されます）"
+              className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+            />
+            <datalist id="destination-suggestions">
+              {allSuggestions.map((s) => (
+                <option key={s} value={s} />
               ))}
-            </select>
-            {(showOtherInput || (!isListItem && form.destination !== "" && form.destination !== "箱根の外へお出かけ")) && (
-              <>
-                <input
-                  type="text"
-                  list="destination-suggestions"
-                  value={form.destination === "その他" ? "" : form.destination}
-                  onChange={(e) => onChange({ ...form, destination: e.target.value })}
-                  placeholder="施設名を入力（候補が表示されます）"
-                  className="mt-2 w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
-                />
-                <datalist id="destination-suggestions">
-                  {DESTINATION_SUGGESTIONS.map((s) => (
-                    <option key={s} value={s} />
-                  ))}
-                </datalist>
-              </>
-            )}
+            </datalist>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {quickButtons.map((dest) => (
+                <button
+                  key={dest}
+                  type="button"
+                  onClick={() => onChange({ ...form, destination: dest })}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
+                    form.destination === dest
+                      ? "bg-[#B87942] text-white border-[#B87942]"
+                      : "bg-white text-[#3C200F] border-[#E5DDD8] hover:border-[#B87942]"
+                  }`}
+                >
+                  {dest}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => onChange({ ...form, destination: "未定" })}
+                className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
+                  form.destination === "未定"
+                    ? "bg-[#B87942] text-white border-[#B87942]"
+                    : "bg-white text-[#888] border-[#E5DDD8] hover:border-[#B87942]"
+                }`}
+              >
+                未定
+              </button>
+            </div>
           </div>
         );
       })()}
