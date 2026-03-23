@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 interface ReservationRow {
   id: string;
+  customer_id: string;
   plan: string;
   date: string;
   checkin_time: string;
@@ -60,6 +61,7 @@ export default function ReservationsPage() {
   const [selectedDate, setSelectedDate] = useState<string>(formatDateKey(new Date()));
   const [search, setSearch] = useState("");
   const [capacityMap, setCapacityMap] = useState<Record<string, { day_booked: number; day_limit: number; stay_booked: number; stay_limit: number; closed: boolean }>>({});
+  const [visitCounts, setVisitCounts] = useState<Record<string, number>>({});
 
   // カレンダーの表示範囲を計算
   const getDateRange = useCallback(() => {
@@ -101,7 +103,7 @@ export default function ReservationsPage() {
     let q = supabase
       .from("reservations")
       .select(`
-        id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count,
+        id, customer_id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count,
         customers!inner(last_name, first_name, phone),
         reservation_dogs(dogs(name, breed, weight, allergies))
       `)
@@ -115,7 +117,7 @@ export default function ReservationsPage() {
       q = supabase
         .from("reservations")
         .select(`
-          id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count,
+          id, customer_id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count,
           customers!inner(last_name, first_name, phone),
           reservation_dogs(dogs(name, breed, weight, allergies))
         `)
@@ -125,7 +127,25 @@ export default function ReservationsPage() {
     }
 
     const { data } = await q;
-    setReservations((data as unknown as ReservationRow[]) || []);
+    const rows = (data as unknown as ReservationRow[]) || [];
+    setReservations(rows);
+
+    // 顧客ごとの利用回数を取得
+    const customerIds = [...new Set(rows.map(r => r.customer_id).filter(Boolean))];
+    if (customerIds.length > 0) {
+      const { data: allRes } = await supabase
+        .from("reservations")
+        .select("customer_id, status")
+        .in("customer_id", customerIds)
+        .in("status", ["confirmed", "completed"]);
+      const counts: Record<string, number> = {};
+      if (allRes) {
+        for (const r of allRes) {
+          counts[r.customer_id] = (counts[r.customer_id] || 0) + 1;
+        }
+      }
+      setVisitCounts(counts);
+    }
 
     // カレンダーモード：容量データも取得
     if (viewMode !== "list") {
@@ -418,15 +438,24 @@ export default function ReservationsPage() {
                     </span>
                   </div>
                 </div>
-                <p className="text-base font-medium">
-                  {r.customers.last_name} {r.customers.first_name} 様
+                <p className="text-base font-medium flex items-center flex-wrap gap-1">
+                  <span>{r.customers.last_name} {r.customers.first_name} 様</span>
+                  {di === 0 && visitCounts[r.customer_id] && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                      visitCounts[r.customer_id] === 1
+                        ? "bg-green-50 text-green-600 border border-green-200"
+                        : "bg-orange-50 text-orange-600 border border-orange-200"
+                    }`}>
+                      {visitCounts[r.customer_id] === 1 ? "初回" : `${visitCounts[r.customer_id]}回目`}
+                    </span>
+                  )}
                   {dog && (
-                    <span className="text-sm text-gray-500 ml-1.5">
+                    <span className="text-sm text-gray-500">
                       {dog.name}
                     </span>
                   )}
                   {dogs.length > 1 && (
-                    <span className="text-xs text-gray-500 ml-1">
+                    <span className="text-xs text-gray-500">
                       ({di + 1}/{dogs.length})
                     </span>
                   )}
