@@ -10,10 +10,9 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 旧Wix URLリダイレクト（middleware で処理し二重リダイレクトを防止）
+  // ※ /hakone, /beginner は新規ページを作成したためリダイレクト対象から除外
   const legacyRedirects: Record<string, string> = {
     "/blog": "/news",
-    "/beginner": "/guide",
-    "/hakone": "/spots",
     "/dog-run": "/spots",
     "/home": "/booking",
     "/service-page": "/service",
@@ -111,5 +110,5 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/beginner", "/hakone", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*"],
+  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*"],
 };
