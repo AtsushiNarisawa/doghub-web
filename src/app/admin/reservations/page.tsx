@@ -401,7 +401,13 @@ export default function ReservationsPage() {
       ) : (
         <div className="space-y-2">
           {selectedReservations.flatMap((r) => {
-            const st = STATUS_STYLES[r.status] || STATUS_STYLES.confirmed;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const endDate = r.plan === "stay" && r.checkout_date
+              ? new Date(r.checkout_date + "T00:00:00")
+              : new Date(r.date + "T00:00:00");
+            const effectiveStatus = (r.status === "confirmed" && endDate < today) ? "completed" : r.status;
+            const st = STATUS_STYLES[effectiveStatus] || STATUS_STYLES.confirmed;
             const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
             const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean);
             const dogCards = dogs.length > 1 ? dogs : [dogs[0] || null];

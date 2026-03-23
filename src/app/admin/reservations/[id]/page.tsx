@@ -153,8 +153,17 @@ export default function ReservationDetailPage() {
 
   const customer = res.customers;
   const dogs = res.reservation_dogs.map((rd) => rd.dogs);
-  const status = STATUS_MAP[res.status] || STATUS_MAP.confirmed;
   const planColor = PLAN_COLORS[res.plan] || PLAN_COLORS.spot;
+
+  // 日付ベースの自動完了判定
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const endDate = res.plan === "stay" && res.checkout_date
+    ? new Date(res.checkout_date + "T00:00:00")
+    : new Date(res.date + "T00:00:00");
+  const isPast = endDate < today;
+  const effectiveStatus = (res.status === "confirmed" && isPast) ? "completed" : res.status;
+  const status = STATUS_MAP[effectiveStatus] || STATUS_MAP.confirmed;
   const stayNights = res.plan === "stay" && res.checkout_date
     ? Math.max(1, Math.round((new Date(res.checkout_date).getTime() - new Date(res.date).getTime()) / 86400000))
     : 0;
@@ -285,37 +294,19 @@ export default function ReservationDetailPage() {
       </div>
 
       {/* アクション */}
-      {res.status !== "pending" && res.status !== "cancelled" && (
+      {effectiveStatus !== "pending" && effectiveStatus !== "cancelled" && (
         <div className="bg-white rounded-xl p-4 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            {res.status !== "completed" && (
-              <button
-                onClick={() => updateStatus("completed")}
-                disabled={saving}
-                className="py-2.5 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium active:bg-blue-100 disabled:opacity-50"
-              >
-                完了にする
-              </button>
-            )}
-            {res.status === "completed" && (
-              <button
-                onClick={() => updateStatus("confirmed")}
-                disabled={saving}
-                className="py-2.5 rounded-lg bg-green-50 text-green-600 text-sm font-medium active:bg-green-100 disabled:opacity-50"
-              >
-                確定に戻す
-              </button>
-            )}
+          {!isPast && (
             <button
               onClick={() => updateStatus("cancelled")}
               disabled={saving}
-              className="py-2.5 rounded-lg bg-red-50 text-red-500 text-sm font-medium active:bg-red-100 disabled:opacity-50"
+              className="w-full py-2.5 rounded-lg bg-red-50 text-red-500 text-sm font-medium active:bg-red-100 disabled:opacity-50"
             >
               キャンセル
             </button>
-          </div>
+          )}
           {/* お礼メール送信ボタン */}
-          {res.status === "completed" && (
+          {effectiveStatus === "completed" && (
             <button
               onClick={async () => {
                 if (!confirm(`${customer.last_name}様にお礼メールを送信しますか？`)) return;
