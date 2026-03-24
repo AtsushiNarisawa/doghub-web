@@ -16,6 +16,19 @@ export function middleware(req: NextRequest) {
     "/dog-run": "/spots",
     "/home": "/booking",
     "/service-page": "/service",
+    // 旧Wixサイト・旧AirReserveのURL
+    "/hotel": "/service",
+    "/dog-hotel": "/service",
+    "/pet-hotel": "/service",
+    "/doghotel": "/service",
+    "/reservation": "/booking",
+    "/plan": "/service",
+    "/pricing": "/service",
+    "/menu": "/cafe",
+    "/contact": "/faq",
+    "/about": "/",
+    "/gallery": "/",
+    "/doghubhakone/calendar": "/booking",
   };
 
   const redirectTarget = legacyRedirects[pathname] || (pathname.startsWith("/blog/") ? "/news" : null) || (pathname.startsWith("/post/") ? "/news" : null) || (pathname.startsWith("/service-page/") ? "/service" : null);
@@ -110,5 +123,5 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*"],
+  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*", "/hotel", "/dog-hotel", "/pet-hotel", "/doghotel", "/reservation", "/plan", "/pricing", "/menu", "/contact", "/about", "/gallery", "/doghubhakone/:path*"],
 };
