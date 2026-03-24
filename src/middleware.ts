@@ -31,7 +31,7 @@ export function middleware(req: NextRequest) {
     "/doghubhakone/calendar": "/booking",
   };
 
-  const redirectTarget = legacyRedirects[pathname] || (pathname.startsWith("/blog/") ? "/news" : null) || (pathname.startsWith("/post/") ? "/news" : null) || (pathname.startsWith("/service-page/") ? "/service" : null);
+  const redirectTarget = legacyRedirects[pathname] || (pathname.startsWith("/blog/") ? "/news" : null) || (pathname.startsWith("/post/") ? "/news" : null) || (pathname.startsWith("/service-page/") ? "/service" : null) || (pathname.startsWith("/doghubhakone") ? "/booking" : null);
   if (redirectTarget) {
     const url = req.nextUrl.clone();
     url.pathname = redirectTarget;
