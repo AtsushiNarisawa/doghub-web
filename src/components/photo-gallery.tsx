@@ -1,3 +1,4 @@
+import Image from "next/image";
 const photos = [
   { src: "/images/img-010.jpg", alt: "DogHub箱根仙石原のわんちゃんたち" },
   { src: "/images/img-061.jpg", alt: "DogHub箱根仙石原のグッズ" },
@@ -41,15 +42,7 @@ export function PhotoGallery() {
       `}</style>
       <div className="gallery-track">
         {allPhotos.map((photo, i) => (
-          <img
-            key={i}
-            src={photo.src}
-            alt={photo.alt}
-            width={368}
-            height={276}
-            className="flex-shrink-0 object-cover"
-            style={{ width: "368px", height: "276px" }}
-          />
+          <Image key={i} src="photo.src" alt="" className="flex-shrink-0 object-cover" width={700} height={400} priority style={{ width: "368px", height: "276px" }} />
         ))}
       </div>
     </section>

@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 犬連れランチ＆ドッグカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
@@ -52,12 +53,7 @@ export default function CafePage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"カフェ・グッズ",href:"/cafe"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-044.jpg"
-            alt="箱根 犬連れランチ DogHub箱根仙石原のOMUSUBI & SOUP CAFE 愛犬同伴で楽しめるカフェ"
-            className="w-full object-cover"
-            style={{ height: "clamp(160px, 30vw, 423px)" }}
-          />
+          <Image src="/images/img-044.jpg" alt="箱根 犬連れランチ DogHub箱根仙石原のOMUSUBI & SOUP CAFE 愛犬同伴で楽しめるカフェ" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(160px, 30vw, 423px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(22px, 3.5vw, 36px)", fontWeight: 400 }}>箱根 犬連れランチ＆カフェ</h1>
           </div>
@@ -108,14 +104,7 @@ export default function CafePage() {
                 </a>
               </div>
               <div>
-                <img
-                  src="/images/img-063.webp"
-                  alt="箱根ドッグカフェ DogHub箱根仙石原のこだわりおむすびとスープメニュー 犬連れランチにおすすめ"
-                  width={630}
-                  height={480}
-                  className="w-full h-auto"
-                  style={{ maxWidth: "630px" }}
-                />
+                <Image src="/images/img-063.webp" alt="箱根ドッグカフェ DogHub箱根仙石原のこだわりおむすびとスープメニュー 犬連れランチにおすすめ" className="w-full h-auto" width={600} height={400} style={{ maxWidth: "630px" }} />
               </div>
             </div>
           </div>
@@ -187,12 +176,7 @@ export default function CafePage() {
             <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>RECCOMMEND MENU</h2>
             <div className="grid md:grid-cols-2 gap-10">
               <div>
-                <img
-                  src="/images/img-045.jpg"
-                  alt="箱根ドッグカフェ DogHub箱根仙石原の人気メニュー しらすヤンギンおむすびセット"
-                  className="w-full h-auto object-cover"
-                  style={{ maxWidth: "524px", aspectRatio: "524/270" }}
-                />
+                <Image src="/images/img-045.jpg" alt="箱根ドッグカフェ DogHub箱根仙石原の人気メニュー しらすヤンギンおむすびセット" className="w-full h-auto object-cover" width={700} height={400} style={{ maxWidth: "524px", aspectRatio: "524/270" }} />
                 <div className="mt-4">
                   <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "20px", fontWeight: 400 }}>しらすヤンギン</h3>
                   <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
@@ -201,12 +185,7 @@ export default function CafePage() {
                 </div>
               </div>
               <div>
-                <img
-                  src="/images/img-030.jpg"
-                  alt="箱根ドッグカフェ DogHub箱根仙石原のこだわり手作りスープ 牛カルビスープと鶏スープ"
-                  className="w-full h-auto object-cover"
-                  style={{ maxWidth: "523px", aspectRatio: "523/270" }}
-                />
+                <Image src="/images/img-030.jpg" alt="箱根ドッグカフェ DogHub箱根仙石原のこだわり手作りスープ 牛カルビスープと鶏スープ" className="w-full h-auto object-cover" width={700} height={400} style={{ maxWidth: "523px", aspectRatio: "523/270" }} />
                 <div className="mt-4">
                   <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "20px", fontWeight: 400 }}>DogHubこだわりスープ</h3>
                   <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
@@ -299,29 +278,14 @@ export default function CafePage() {
                 </div>
               </div>
               <div>
-                <img
-                  src="/images/img-049.jpg"
-                  alt="DogHub箱根仙石原の愛犬グッズセレクトショップ 犬用おもちゃや雑貨の販売コーナー"
-                  width={630}
-                  height={480}
-                  className="w-full h-auto"
-                  style={{ maxWidth: "630px" }}
-                />
+                <Image src="/images/img-049.jpg" alt="DogHub箱根仙石原の愛犬グッズセレクトショップ 犬用おもちゃや雑貨の販売コーナー" className="w-full h-auto" width={600} height={400} style={{ maxWidth: "630px" }} />
               </div>
             </div>
 
             {/* Items photos */}
             <div className="mt-10 grid grid-cols-2 gap-4">
-              <img
-                src="/images/img-014.jpg"
-                alt="DogHub箱根仙石原で販売中の犬用グッズ おしゃれな愛犬アイテム"
-                className="w-full h-auto object-cover"
-              />
-              <img
-                src="/images/img-001.jpg"
-                alt="DogHub箱根仙石原のセレクト雑貨 愛犬家向けの厳選アイテム"
-                className="w-full h-auto object-cover"
-              />
+              <Image src="/images/img-014.jpg" alt="DogHub箱根仙石原で販売中の犬用グッズ おしゃれな愛犬アイテム" className="w-full h-auto object-cover" width={700} height={400} />
+              <Image src="/images/img-001.jpg" alt="DogHub箱根仙石原のセレクト雑貨 愛犬家向けの厳選アイテム" className="w-full h-auto object-cover" width={700} height={400} />
             </div>
           </div>
         </section>

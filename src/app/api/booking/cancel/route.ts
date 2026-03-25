@@ -156,12 +156,8 @@ export async function POST(req: NextRequest) {
         }
 
         // スタッフへのキャンセル通知メール
-        emails.push(
-          transporter.sendMail({
-            from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
-            to: "narisawa@dog-hub.shop",
-            subject: `【キャンセル】${customer?.last_name || ""}様 ${dateStr} ${reservation.checkin_time} ${dogCount}頭`,
-            html: `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
+        const cancelStaffSubject = `【キャンセル】${customer?.last_name || ""}様 ${dateStr} ${reservation.checkin_time} ${dogCount}頭`;
+        const cancelStaffHtml = `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
             <h2 style="color:#c2410c;">予約がキャンセルされました</h2>
             <table style="font-size:14px;border-collapse:collapse;">
               <tr><td style="padding:6px 12px 6px 0;color:#888;">お客様</td><td>${customer?.last_name || ""} ${customer?.first_name || ""}</td></tr>
@@ -171,7 +167,23 @@ export async function POST(req: NextRequest) {
               <tr><td style="padding:6px 12px 6px 0;color:#888;">頭数</td><td>${dogCount}頭</td></tr>
             </table>
             <p style="margin-top:16px;"><a href="https://dog-hub.shop/admin/reservations/${reservation_id}" style="color:#B87942;">管理画面で確認する</a></p>
-          </div>`,
+          </div>`;
+        // オーナー
+        emails.push(
+          transporter.sendMail({
+            from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
+            to: "narisawa@dog-hub.shop",
+            subject: cancelStaffSubject,
+            html: cancelStaffHtml,
+          })
+        );
+        // スタッフ
+        emails.push(
+          transporter.sendMail({
+            from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
+            to: "koi02121957@gmail.com",
+            subject: cancelStaffSubject,
+            html: cancelStaffHtml,
           })
         );
 

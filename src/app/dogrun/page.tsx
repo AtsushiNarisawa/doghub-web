@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 ドッグラン｜DogHub箱根仙石原 専用ドッグラン併設ペットホテル",
@@ -20,12 +21,7 @@ export default function DogrunPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"ドッグラン",href:"/dogrun"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-021.jpg"
-            alt="箱根ドッグラン DogHub箱根仙石原の専用ドッグラン 仙石原の自然の中で犬が走り回れる空間"
-            className="w-full object-cover"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-021.jpg" alt="箱根ドッグラン DogHub箱根仙石原の専用ドッグラン 仙石原の自然の中で犬が走り回れる空間" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 400 }}>
               専用ドッグラン併設
@@ -68,11 +64,7 @@ export default function DogrunPage() {
               </div>
 
               <div>
-                <img
-                  src="/images/img-022.jpg"
-                  alt="箱根ドッグラン DogHub箱根仙石原の屋根付きエリアで犬が安心して遊べる空間"
-                  className="w-full h-auto"
-                />
+                <Image src="/images/img-022.jpg" alt="箱根ドッグラン DogHub箱根仙石原の屋根付きエリアで犬が安心して遊べる空間" className="w-full h-auto" width={600} height={400} />
               </div>
             </div>
           </div>
@@ -132,7 +124,7 @@ export default function DogrunPage() {
                 { src: "/images/img-008.jpg", alt: "箱根 犬連れ散歩 仙石原の自然の中を愛犬と歩くお散歩の様子" },
                 { src: "/images/img-048.jpg", alt: "箱根ペットホテル DogHub箱根仙石原の完全個室 ケージではない壁で囲まれた空間" },
               ].map((img) => (
-                <img key={img.src} src={img.src} alt={img.alt} className="w-full h-48 object-cover" />
+                <Image key={img.src} src="img.src" alt="" className="w-full h-48 object-cover" width={800} height={400} />
               ))}
             </div>
           </div>

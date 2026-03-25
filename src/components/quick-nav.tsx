@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const cards = [
   {
@@ -30,11 +31,7 @@ export function QuickNav() {
           href={card.href}
           className="relative h-36 md:h-44 overflow-hidden group"
         >
-          <img
-            src={card.img}
-            alt={card.ja}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          <Image src="card.img" alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" fill sizes="100vw" priority />
           <div className="absolute inset-0 bg-black/45 group-hover:bg-black/55 transition-colors" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4 text-center">
             <p className="mb-1" style={{ fontSize: "clamp(16px, 2vw, 24px)", fontWeight: 400, letterSpacing: "2px" }}>{card.label}</p>

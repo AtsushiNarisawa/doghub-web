@@ -1,3 +1,4 @@
+import Image from "next/image";
 const stats = [
   { num: "4.8", label: "Googleレビュー評価" },
   { num: "19", label: "最大お部屋数" },
@@ -45,11 +46,7 @@ export function About() {
           {/* Watercolor map illustration */}
           <div className="relative">
             <div className="overflow-hidden relative bg-[#faf8f4]">
-              <img
-                src="/images/img-077.jpg"
-                alt="箱根仙石原エリアマップ"
-                className="w-full h-auto object-cover"
-              />
+              <Image src="/images/img-077.jpg" alt="箱根仙石原エリアマップ" className="w-full h-auto object-cover" width={700} height={400} priority />
             </div>
             <div className="absolute -bottom-6 -left-6 w-40 h-40 border border-[#C49A3C]/20 -z-10" />
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#2A5C45]/5 -z-10" />

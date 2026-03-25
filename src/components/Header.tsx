@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 // Hotel & Cafe 系メニュー
 const hotelNavItems = [
@@ -48,11 +49,7 @@ export function Header() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E5DDD8]">
         <div className="w-full px-3 pr-4 lg:pr-[90px] h-[60px] lg:h-[80px] flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <img
-              src="/images/img-046.png"
-              alt="DogHub箱根仙石原"
-              className="h-[60px] w-auto"
-            />
+            <Image src="/images/img-046.png" alt="DogHub箱根仙石原" className="h-[60px] w-auto" width={600} height={400} />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-5">

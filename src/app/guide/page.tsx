@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "ご利用ガイド・ご予約方法｜DogHub箱根仙石原 ペットホテル",
@@ -80,12 +81,7 @@ export default function GuidePage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"はじめてガイド",href:"/guide"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-018.jpg"
-            alt="はじめてガイド"
-            className="w-full object-cover"
-            style={{ height: "clamp(140px, 18vw, 249px)" }}
-          />
+          <Image src="/images/img-018.jpg" alt="はじめてガイド" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>はじめての方へ</h1>
           </div>
@@ -126,7 +122,7 @@ export default function GuidePage() {
               {steps.map((s) => (
                 <div key={s.num} className="bg-white p-4 sm:p-8">
                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                    <img src={s.img} alt={s.title} width={227} height={126} className="object-cover flex-shrink-0 w-full sm:w-[227px] h-auto sm:h-[126px]" />
+                    <Image src="s.img" alt="" className="object-cover flex-shrink-0 w-full sm:w-[227px] h-auto sm:h-[126px]" width={700} height={400} />
                     <div>
                       <p className="text-[#311908] mb-1" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>{s.num}</p>
                       <h3 className="text-[#311908] mb-3" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>{s.title}</h3>
@@ -202,14 +198,7 @@ export default function GuidePage() {
         {/* ドッグラン写真 */}
         <section className="px-6 bg-white">
           <div className="max-w-7xl mx-auto">
-            <img
-              src="/images/img-011.jpg"
-              alt="DogHub箱根仙石原のドッグランで走る犬"
-              width={562}
-              height={300}
-              className="w-full h-auto"
-              style={{ maxWidth: "562px" }}
-            />
+            <Image src="/images/img-011.jpg" alt="DogHub箱根仙石原のドッグランで走る犬" className="w-full h-auto" width={600} height={400} style={{ maxWidth: "562px" }} />
           </div>
         </section>
 

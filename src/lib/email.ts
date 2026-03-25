@@ -230,17 +230,25 @@ export async function sendBookingEmails(
       subject: customerSubject,
       html: buildCustomerEmailHtml(form, reservationId, status),
     }),
-    // スタッフへの通知メール
+    // スタッフへの通知メール（オーナー）
     transporter.sendMail({
       from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
       to: "narisawa@dog-hub.shop",
       subject: staffSubject,
       html: buildStaffEmailHtml(form, reservationId, status),
     }),
+    // スタッフへの通知メール（スタッフ）
+    transporter.sendMail({
+      from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
+      to: "koi02121957@gmail.com",
+      subject: staffSubject,
+      html: buildStaffEmailHtml(form, reservationId, status),
+    }),
   ]);
 
   results.forEach((result, i) => {
-    const label = i === 0 ? "customer" : "staff";
+    const labels = ["customer", "staff-owner", "staff-member"];
+    const label = labels[i] || `mail-${i}`;
     if (result.status === "rejected") {
       const err = result.reason as Error & { code?: string; responseCode?: number; response?: string };
       console.error(`Email failed [${label}] code=${err.code}`);

@@ -1,3 +1,4 @@
+import Image from "next/image";
 const features = [
   {
     num: "01",
@@ -29,11 +30,7 @@ export function Facility() {
           {/* Kennels photo */}
           <div className="relative order-2 md:order-1">
             <div className="overflow-hidden">
-              <img
-                src="/images/img-036.jpg"
-                alt="DogHub 個室お部屋"
-                className="w-full h-auto object-cover"
-              />
+              <Image src="/images/img-036.jpg" alt="DogHub 個室お部屋" className="w-full h-auto object-cover" width={700} height={400} priority />
             </div>
             <div className="absolute -bottom-5 -right-5 w-32 h-32 border border-[#C49A3C]/20" />
           </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -8,11 +9,7 @@ export function Footer() {
           {/* Left: Brand + Info */}
           <div>
             <Link href="/" className="inline-block mb-4">
-              <img
-                src="/images/img-046.png"
-                alt="DogHub箱根仙石原"
-                className="h-[50px] w-auto"
-              />
+              <Image src="/images/img-046.png" alt="DogHub箱根仙石原" className="h-[50px] w-auto" width={600} height={400} />
             </Link>
 
             <p className="text-[#3C200F] mb-6" style={{ fontSize: "18px", fontWeight: 400 }}>

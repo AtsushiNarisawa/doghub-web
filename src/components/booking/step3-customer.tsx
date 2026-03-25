@@ -74,7 +74,8 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
   const isValid =
     c.last_name && c.first_name &&
     c.last_name_kana && c.first_name_kana &&
-    c.phone && c.email;
+    c.phone && c.email &&
+    (isReturning || form.referral_source);
 
   return (
     <div className="space-y-6">
@@ -230,7 +231,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
       {/* きっかけ（初回のみ） */}
       {!isReturning && (
         <div>
-          <label className="text-sm text-[#888] block mb-2">ご利用のきっかけ</label>
+          <label className="text-sm text-[#888] block mb-2">ご利用のきっかけ <span className="text-red-400">*</span></label>
           <div className="grid grid-cols-2 gap-2">
             {REFERRAL_SOURCES.map((src) => (
               <button

@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根湯本から犬のホテルをお探しなら｜DogHub箱根仙石原",
@@ -28,7 +29,7 @@ export default function YumotoPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"箱根湯本エリアガイド",href:"/yumoto"}]} />
         {/* Hero */}
         <div className="relative">
-          <img src="/images/img-041.jpg" alt="DogHub箱根仙石原 犬のホテル外観 箱根湯本からのアクセスも便利" className="w-full object-cover" style={{ height: "clamp(180px, 30vw, 424px)" }} />
+          <Image src="/images/img-041.jpg" alt="DogHub箱根仙石原 犬のホテル外観 箱根湯本からのアクセスも便利" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 400 }}>箱根湯本エリアガイド</h1>
             <p className="mt-2" style={{ fontSize: "clamp(14px, 2vw, 18px)", fontWeight: 400 }}>箱根湯本から犬のホテルをお探しの方へ</p>
@@ -154,7 +155,7 @@ export default function YumotoPage() {
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>DogHub箱根仙石原について</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div>
-                <img src="/images/img-035.png" alt="DogHub箱根仙石原 犬の個室 清潔な宿泊環境" className="w-full h-60 object-cover" />
+                <Image src="/images/img-035.png" alt="DogHub箱根仙石原 犬の個室 清潔な宿泊環境" className="w-full h-60 object-cover" width={700} height={400} />
               </div>
               <div>
                 <div className="space-y-4" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>

@@ -6,6 +6,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "よくある質問（FAQ）｜DogHub箱根仙石原 ペットホテル",
@@ -182,12 +183,7 @@ export default function FaqPage() {
         <FaqJsonLd />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-067.jpg"
-            alt="よくある質問"
-            className="w-full object-cover"
-            style={{ height: "clamp(140px, 18vw, 249px)" }}
-          />
+          <Image src="/images/img-067.jpg" alt="よくある質問" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>よくある質問</h1>
           </div>

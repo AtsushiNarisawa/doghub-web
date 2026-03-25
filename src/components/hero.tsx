@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const slides = [
   "/images/img-009.jpg",
@@ -25,13 +26,7 @@ export function Hero() {
       {/* Hero photo slideshow */}
       <section className="relative overflow-hidden" style={{ height: "clamp(320px, 50vw, 719px)" }}>
         {slides.map((src, i) => (
-          <img
-            key={src}
-            src={src}
-            alt="箱根ペットホテル DogHub箱根仙石原 犬連れ旅行の拠点 ドッグランと自然に囲まれた施設"
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
-            style={{ opacity: i === current ? 1 : 0 }}
-          />
+          <Image key={src} src="src" alt="箱根ペットホテル DogHub箱根仙石原 犬連れ旅行の拠点 ドッグランと自然に囲まれた施設" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000" fill sizes="100vw" priority style={{ opacity: i === current ? 1 : 0 }} />
         ))}
 
         {/* Dark overlay */}

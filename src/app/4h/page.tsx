@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
@@ -74,12 +75,7 @@ export default function FourHourPage() {
         />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-020.jpg"
-            alt="DogHub箱根仙石原 半日お預かり"
-            className="w-full object-cover object-top"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-020.jpg" alt="DogHub箱根仙石原 半日お預かり" className="w-full object-cover object-top" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>半日お預かりプラン</h1>
           </div>
@@ -142,16 +138,8 @@ export default function FourHourPage() {
               </div>
 
               <div>
-                <img
-                  src="/images/img-027.png"
-                  alt="DogHub箱根仙石原からの周辺マップ"
-                  className="w-full h-auto"
-                />
-                <img
-                  src="/images/img-022.jpg"
-                  alt="DogHub箱根仙石原 ドッグラン"
-                  className="w-full h-auto mt-4"
-                />
+                <Image src="/images/img-027.png" alt="DogHub箱根仙石原からの周辺マップ" className="w-full h-auto" width={600} height={400} />
+                <Image src="/images/img-022.jpg" alt="DogHub箱根仙石原 ドッグラン" className="w-full h-auto mt-4" width={600} height={400} />
               </div>
             </div>
           </div>
@@ -181,11 +169,7 @@ export default function FourHourPage() {
                 <p className="text-white" style={{ fontSize: "16px", fontWeight: 400 }}>温泉もグルメもショッピングもそして愛犬も満足プラン</p>
               </div>
               <div className="p-6">
-                <img
-                  src="/images/img-040.png"
-                  alt="半日お預かり モデルケース タイムライン"
-                  className="w-full h-auto"
-                />
+                <Image src="/images/img-040.png" alt="半日お預かり モデルケース タイムライン" className="w-full h-auto" width={600} height={400} />
               </div>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "アクセス・店舗情報｜DogHub箱根仙石原 ペットホテル＆カフェ",
@@ -19,12 +20,7 @@ export default function AccessPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"店舗情報・アクセス",href:"/access"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-064.jpg"
-            alt="店舗情報"
-            className="w-full object-cover"
-            style={{ height: "clamp(140px, 18vw, 249px)" }}
-          />
+          <Image src="/images/img-064.jpg" alt="店舗情報" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>店舗情報／アクセス</h1>
           </div>
@@ -95,11 +91,7 @@ export default function AccessPage() {
                     title="DogHub箱根仙石原 地図"
                   />
                 </div>
-                <img
-                  src="/images/img-033.jpg"
-                  alt="DogHub箱根仙石原の外観"
-                  className="w-full h-auto"
-                />
+                <Image src="/images/img-033.jpg" alt="DogHub箱根仙石原の外観" className="w-full h-auto" width={600} height={400} />
               </div>
             </div>
           </div>
@@ -196,11 +188,7 @@ export default function AccessPage() {
 
               {/* 証明書 + スタッフ写真 */}
               <div className="space-y-6">
-                <img
-                  src="/images/img-053.png"
-                  alt="証明書"
-                  className="w-full max-w-xs h-auto mx-auto"
-                />
+                <Image src="/images/img-053.png" alt="証明書" className="w-full max-w-xs h-auto mx-auto" width={600} height={400} />
               </div>
             </div>
           </div>
@@ -228,11 +216,7 @@ export default function AccessPage() {
                 </a>
               </div>
               <div>
-                <img
-                  src="/images/img-024.png"
-                  alt="DogHub箱根仙石原のスタッフたち"
-                  className="w-full h-auto"
-                />
+                <Image src="/images/img-024.png" alt="DogHub箱根仙石原のスタッフたち" className="w-full h-auto" width={600} height={400} />
               </div>
             </div>
           </div>

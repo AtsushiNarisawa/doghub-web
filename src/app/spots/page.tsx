@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 犬連れ観光ガイド｜犬と箱根を楽しむおすすめスポット｜DogHub",
@@ -100,12 +101,7 @@ export default function SpotsPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"おすすめスポット",href:"/spots"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-006.jpg"
-            alt="おすすめスポット"
-            className="w-full object-cover"
-            style={{ height: "clamp(140px, 18vw, 249px)" }}
-          />
+          <Image src="/images/img-006.jpg" alt="おすすめスポット" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 400 }}>おすすめスポット</h1>
           </div>
@@ -142,7 +138,7 @@ export default function SpotsPage() {
               <div key={spot.name} className="border-t border-[#E5DDD8] pt-10">
                 <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-6 md:gap-8">
                   <div className="flex-shrink-0">
-                    <img src={spot.img} alt={spot.name} className="w-full h-auto object-cover" />
+                    <Image src="spot.img" alt="" className="w-full h-auto object-cover" width={700} height={400} />
                   </div>
                   <div>
                     <div className="flex flex-wrap gap-2 mb-3">

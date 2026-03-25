@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根ゴルフ × ペットホテル｜愛犬を預けてプレーを満喫｜DogHub箱根仙石原",
@@ -73,12 +74,7 @@ export default function GolfPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"箱根ゴルフ × ペットホテル",href:"/golf"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-007.jpg"
-            alt="箱根ゴルフ 愛犬を預けてプレーを満喫 DogHub箱根仙石原のペットホテル"
-            className="w-full object-cover"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-007.jpg" alt="箱根ゴルフ 愛犬を預けてプレーを満喫 DogHub箱根仙石原のペットホテル" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 400 }}>
               愛犬を預けて箱根ゴルフを満喫
@@ -147,16 +143,8 @@ export default function GolfPage() {
               </div>
 
               <div>
-                <img
-                  src="/images/img-012.jpg"
-                  alt="箱根ドッグラン DogHub箱根仙石原の専用ドッグラン ゴルフ中も愛犬がのびのび遊べる環境"
-                  className="w-full h-auto"
-                />
-                <img
-                  src="/images/img-021.jpg"
-                  alt="箱根ドッグラン DogHub箱根仙石原で犬が楽しく遊ぶ様子 大箱根CC提携ペットホテル"
-                  className="w-full h-auto mt-4"
-                />
+                <Image src="/images/img-012.jpg" alt="箱根ドッグラン DogHub箱根仙石原の専用ドッグラン ゴルフ中も愛犬がのびのび遊べる環境" className="w-full h-auto" width={600} height={400} />
+                <Image src="/images/img-021.jpg" alt="箱根ドッグラン DogHub箱根仙石原で犬が楽しく遊ぶ様子 大箱根CC提携ペットホテル" className="w-full h-auto mt-4" width={600} height={400} />
               </div>
             </div>
           </div>

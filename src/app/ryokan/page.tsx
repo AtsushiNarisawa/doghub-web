@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 高級旅館 × ペットホテル｜ペット不可の宿でも愛犬と箱根旅行｜DogHub箱根仙石原",
@@ -31,12 +32,7 @@ export default function RyokanPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"箱根旅館 × ペットホテル",href:"/ryokan"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-071.jpg"
-            alt="箱根高級旅館 × ペットホテル"
-            className="w-full object-cover"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-071.jpg" alt="箱根高級旅館 × ペットホテル" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               憧れの宿に泊まりながら、愛犬も安心
@@ -102,16 +98,8 @@ export default function RyokanPage() {
               </div>
 
               <div>
-                <img
-                  src="/images/img-048.jpg"
-                  alt="DogHub箱根仙石原 完全個室"
-                  className="w-full h-auto"
-                />
-                <img
-                  src="/images/img-035.png"
-                  alt="DogHub箱根仙石原 お預かりスペース"
-                  className="w-full h-auto mt-4"
-                />
+                <Image src="/images/img-048.jpg" alt="DogHub箱根仙石原 完全個室" className="w-full h-auto" width={600} height={400} />
+                <Image src="/images/img-035.png" alt="DogHub箱根仙石原 お預かりスペース" className="w-full h-auto mt-4" width={600} height={400} />
               </div>
             </div>
           </div>

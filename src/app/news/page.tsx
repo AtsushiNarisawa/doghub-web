@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getArticles } from "@/lib/cms";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "お知らせ | DogHub箱根仙石原",
@@ -21,12 +22,7 @@ export default async function NewsPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"お知らせ",href:"/news"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-056.jpg"
-            alt="お知らせ"
-            className="w-full object-cover"
-            style={{ height: "clamp(140px, 18vw, 249px)" }}
-          />
+          <Image src="/images/img-056.jpg" alt="お知らせ" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>お知らせ</h1>
           </div>
@@ -44,11 +40,7 @@ export default async function NewsPage() {
                 {articles.map((post) => (
                   <Link key={post.slug} href={`/news/${post.slug}`} className="group block">
                     <div className="overflow-hidden mb-4">
-                      <img
-                        src={post.thumbnail}
-                        alt={post.title}
-                        className="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
+                      <Image src="post.thumbnail" alt="" className="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" width={700} height={400} />
                     </div>
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>{post.date}</span>

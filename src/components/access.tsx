@@ -1,3 +1,4 @@
+import Image from "next/image";
 export function Access() {
   return (
     <section className="py-32 px-6 bg-[#1A1A1A]">
@@ -67,11 +68,7 @@ export function Access() {
           {/* Building exterior photo */}
           <div className="space-y-4">
             <div className="overflow-hidden">
-              <img
-                src="/images/img-071.jpg"
-                alt="DogHub箱根仙石原 外観"
-                className="w-full h-auto object-cover"
-              />
+              <Image src="/images/img-071.jpg" alt="DogHub箱根仙石原 外観" className="w-full h-auto object-cover" width={700} height={400} priority />
             </div>
             <div className="aspect-[4/3]">
               <iframe

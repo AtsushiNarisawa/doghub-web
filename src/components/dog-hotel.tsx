@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function DogHotel() {
   return (
@@ -37,14 +38,7 @@ export function DogHotel() {
 
           {/* Room photo */}
           <div>
-            <img
-              src="/images/img-035.png"
-              alt="箱根ペットホテル DogHub箱根仙石原の完全個室 犬がリラックスして過ごせる空間"
-              width={621}
-              height={603}
-              className="w-full h-auto"
-              style={{ maxWidth: "621px" }}
-            />
+            <Image src="/images/img-035.png" alt="箱根ペットホテル DogHub箱根仙石原の完全個室 犬がリラックスして過ごせる空間" className="w-full h-auto" width={600} height={400} style={{ maxWidth: "621px" }} />
           </div>
         </div>
       </div>

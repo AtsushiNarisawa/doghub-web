@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { AuthGuard } from "@/components/admin/auth-guard";
+import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "予約", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
@@ -12,7 +13,64 @@ const NAV_ITEMS = [
   { href: "/admin/settings", label: "設定", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
 ] as const;
 
-function AdminNav() {
+// 通知音を鳴らす
+function playNotificationSound() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    gain.gain.value = 0.3;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch {
+    // AudioContext not available
+  }
+}
+
+function useNewReservationBadge() {
+  const [count, setCount] = useState(0);
+  const lastSeenRef = useRef<string>(
+    typeof window !== "undefined"
+      ? localStorage.getItem("admin_last_seen") || new Date().toISOString()
+      : new Date().toISOString()
+  );
+  const prevCountRef = useRef(0);
+
+  const checkNew = useCallback(async () => {
+    const { count: newCount } = await supabase
+      .from("reservations")
+      .select("*", { count: "exact", head: true })
+      .gt("created_at", lastSeenRef.current);
+    const c = newCount || 0;
+    if (c > prevCountRef.current && prevCountRef.current >= 0) {
+      playNotificationSound();
+    }
+    prevCountRef.current = c;
+    setCount(c);
+  }, []);
+
+  const markSeen = useCallback(() => {
+    const now = new Date().toISOString();
+    lastSeenRef.current = now;
+    localStorage.setItem("admin_last_seen", now);
+    prevCountRef.current = 0;
+    setCount(0);
+  }, []);
+
+  useEffect(() => {
+    checkNew();
+    const interval = setInterval(checkNew, 30000);
+    return () => clearInterval(interval);
+  }, [checkNew]);
+
+  return { count, markSeen };
+}
+
+function AdminNav({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeClear: () => void }) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
@@ -22,10 +80,14 @@ function AdminNav() {
       <div className="max-w-lg mx-auto flex">
         {NAV_ITEMS.map(({ href, label, icon, ...rest }) => {
           const isNew = "isNew" in rest && rest.isNew;
+          const showBadge = href === "/admin" && badgeCount > 0;
           return (
             <Link
               key={href}
               href={href}
+              onClick={() => {
+                if (href === "/admin") onBadgeClear();
+              }}
               className={`flex-1 flex flex-col items-center py-2 pt-3 text-sm ${
                 isNew
                   ? "text-white"
@@ -41,15 +103,22 @@ function AdminNav() {
                   </svg>
                 </div>
               ) : (
-                <svg
-                  className="w-6 h-6 mb-0.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
-                </svg>
+                <div className="relative">
+                  <svg
+                    className="w-6 h-6 mb-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
+                  </svg>
+                  {showBadge && (
+                    <span className="absolute -top-1.5 -right-2.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {badgeCount > 9 ? "9+" : badgeCount}
+                    </span>
+                  )}
+                </div>
               )}
               <span className={isNew ? "text-[#B87942]" : ""}>{label}</span>
             </Link>
@@ -60,7 +129,7 @@ function AdminNav() {
   );
 }
 
-function AdminHeader() {
+function AdminHeader({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeClear: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -70,7 +139,21 @@ function AdminHeader() {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-        <h1 className="text-base font-medium text-gray-900">DogHub 管理</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-base font-medium text-gray-900">DogHub 管理</h1>
+          {badgeCount > 0 && (
+            <Link
+              href="/admin"
+              onClick={onBadgeClear}
+              className="flex items-center gap-1 bg-red-50 text-red-600 text-xs font-medium px-2.5 py-1 rounded-full animate-pulse"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              新着{badgeCount}件
+            </Link>
+          )}
+        </div>
         <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -105,6 +188,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { count, markSeen } = useNewReservationBadge();
 
   // ログインページは認証ガード外
   if (pathname === "/admin/login") {
@@ -114,9 +198,9 @@ export default function AdminLayout({
   return (
     <AuthGuard>
       <div className="min-h-dvh bg-gray-50 pb-20">
-        <AdminHeader />
+        <AdminHeader badgeCount={count} onBadgeClear={markSeen} />
         <main className="max-w-lg mx-auto px-4 py-4">{children}</main>
-        <AdminNav />
+        <AdminNav badgeCount={count} onBadgeClear={markSeen} />
       </div>
     </AuthGuard>
   );

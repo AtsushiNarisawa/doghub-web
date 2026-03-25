@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "初めての方へ｜DogHub箱根仙石原 ペットホテル＆カフェ",
@@ -36,7 +37,7 @@ export default function BeginnerPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"初めての方へ",href:"/beginner"}]} />
         {/* Hero */}
         <div className="relative">
-          <img src="/images/img-009.jpg" alt="箱根ペットホテル DogHub箱根仙石原 初めての方へ ドッグランで2匹の犬が楽しく遊ぶ様子" className="w-full object-cover" style={{ height: "clamp(180px, 30vw, 424px)" }} />
+          <Image src="/images/img-009.jpg" alt="箱根ペットホテル DogHub箱根仙石原 初めての方へ ドッグランで2匹の犬が楽しく遊ぶ様子" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 400 }}>初めての方へ</h1>
             <p className="mt-2" style={{ fontSize: "clamp(14px, 2vw, 18px)", fontWeight: 400 }}>DogHub箱根仙石原のご利用案内</p>
@@ -74,7 +75,7 @@ export default function BeginnerPage() {
               </div>
             </div>
             <div>
-              <img src="/images/img-041.jpg" alt="箱根ペットホテル DogHub箱根仙石原の施設内観 カフェ・ドッグラン併設の温かみのある空間" className="w-full h-auto" />
+              <Image src="/images/img-041.jpg" alt="箱根ペットホテル DogHub箱根仙石原の施設内観 カフェ・ドッグラン併設の温かみのある空間" className="w-full h-auto" width={600} height={400} />
             </div>
           </div>
         </section>

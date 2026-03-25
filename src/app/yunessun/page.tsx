@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "ユネッサン × ペット預かり｜箱根小涌園の間に愛犬をお預け｜DogHub箱根仙石原",
@@ -20,12 +21,7 @@ export default function YunessunPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"ユネッサン × ペットホテル",href:"/yunessun"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-050.jpg"
-            alt="ユネッサン × ペット預かり"
-            className="w-full object-cover"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-050.jpg" alt="ユネッサン × ペット預かり" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               ユネッサンを楽しむ間、愛犬をお預け
@@ -90,16 +86,8 @@ export default function YunessunPage() {
               </div>
 
               <div>
-                <img
-                  src="/images/img-027.png"
-                  alt="DogHub箱根仙石原からの周辺マップ"
-                  className="w-full h-auto"
-                />
-                <img
-                  src="/images/img-022.jpg"
-                  alt="DogHub箱根仙石原 ドッグラン"
-                  className="w-full h-auto mt-4"
-                />
+                <Image src="/images/img-027.png" alt="DogHub箱根仙石原からの周辺マップ" className="w-full h-auto" width={600} height={400} />
+                <Image src="/images/img-022.jpg" alt="DogHub箱根仙石原 ドッグラン" className="w-full h-auto mt-4" width={600} height={400} />
               </div>
             </div>
           </div>

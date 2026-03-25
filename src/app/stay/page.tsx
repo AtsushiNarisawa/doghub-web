@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 犬のホテル 宿泊・お預かり｜24時間常駐・完全個室｜DogHub箱根仙石原",
@@ -79,12 +80,7 @@ export default function StayPage() {
         />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-096.jpg"
-            alt="箱根 犬のホテル DogHub箱根仙石原の宿泊プラン 愛犬を預けて箱根旅行を満喫"
-            className="w-full object-cover"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-096.jpg" alt="箱根 犬のホテル DogHub箱根仙石原の宿泊プラン 愛犬を預けて箱根旅行を満喫" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 400 }}>箱根の犬のホテル<br /><span style={{ fontSize: "clamp(16px, 2.5vw, 24px)" }}>宿泊・お預かり</span></h1>
           </div>
@@ -151,11 +147,7 @@ export default function StayPage() {
               </div>
 
               <div>
-                <img
-                  src="/images/img-035.png"
-                  alt="箱根ペットホテル DogHub箱根仙石原の完全個室 犬がリラックスして過ごせる空間"
-                  className="w-full h-auto"
-                />
+                <Image src="/images/img-035.png" alt="箱根ペットホテル DogHub箱根仙石原の完全個室 犬がリラックスして過ごせる空間" className="w-full h-auto" width={600} height={400} />
               </div>
             </div>
           </div>
@@ -202,11 +194,7 @@ export default function StayPage() {
                 <p className="text-white" style={{ fontSize: "16px", fontWeight: 400 }}>プレミアムホテルでゆったり宿泊 & 愛犬と箱根満喫プラン</p>
               </div>
               <div className="p-6">
-                <img
-                  src="/images/img-028.png"
-                  alt="箱根ペットホテル宿泊プランのモデルケース 1泊2日のタイムライン例"
-                  className="w-full h-auto"
-                />
+                <Image src="/images/img-028.png" alt="箱根ペットホテル宿泊プランのモデルケース 1泊2日のタイムライン例" className="w-full h-auto" width={600} height={400} />
               </div>
             </div>
           </div>

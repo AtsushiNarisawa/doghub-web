@@ -5,6 +5,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { ModelCase } from "@/components/model-case";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根のペット ホテル｜犬の一時預かり・宿泊｜DogHub箱根仙石原",
@@ -66,12 +67,7 @@ export default function ServicePage() {
         />
         {/* Hero Banner */}
         <div className="relative">
-          <img
-            src="/images/img-003.jpg"
-            alt="お預かりサービス"
-            className="w-full object-cover"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-003.jpg" alt="お預かりサービス" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white">
             <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>お預かりサービス</h1>
           </div>
@@ -105,11 +101,7 @@ export default function ServicePage() {
                 </p>
               </div>
               <div>
-                <img
-                  src="/images/img-035.png"
-                  alt="DogHub お預かりスペース"
-                  className="w-full h-auto"
-                />
+                <Image src="/images/img-035.png" alt="DogHub お預かりスペース" className="w-full h-auto" width={600} height={400} />
               </div>
             </div>
           </div>
@@ -125,7 +117,7 @@ export default function ServicePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 md:gap-y-10">
               {features.map((f) => (
                 <div key={f.num}>
-                  <img src={f.img} alt={f.alt} className="w-full h-auto object-cover" />
+                  <Image src="f.img" alt="" className="w-full h-auto object-cover" width={700} height={400} />
                   <div className="mt-4">
                     <p className="text-[#3C200F] mb-1" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>{f.num}</p>
                     <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: 400, lineHeight: "1.5" }}>{f.title}</h3>
@@ -224,24 +216,14 @@ export default function ServicePage() {
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "14px", fontWeight: 400 }}>※一時預かり、宿泊をご利用時に追加可能</p>
             <div className="grid sm:grid-cols-2 gap-8 max-w-2xl">
               <div>
-                <img
-                  src="/images/img-008.jpg"
-                  alt="お散歩"
-                  className="w-full object-cover rounded"
-                  style={{ aspectRatio: "4/3" }}
-                />
+                <Image src="/images/img-008.jpg" alt="お散歩" className="w-full object-cover rounded" width={700} height={400} style={{ aspectRatio: "4/3" }} />
                 <div className="mt-3">
                   <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "18px", fontWeight: 400 }}>お散歩</h3>
                   <p className="text-[#B87942]" style={{ fontSize: "16px", fontWeight: 400 }}>¥550-/1回</p>
                 </div>
               </div>
               <div>
-                <img
-                  src="/images/img-052.webp"
-                  alt="わんちゃんが利用するおもちゃや食べ物"
-                  className="w-full object-cover rounded"
-                  style={{ aspectRatio: "4/3" }}
-                />
+                <Image src="/images/img-052.webp" alt="わんちゃんが利用するおもちゃや食べ物" className="w-full object-cover rounded" width={700} height={400} style={{ aspectRatio: "4/3" }} />
                 <div className="mt-3">
                   <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "18px", fontWeight: 400 }}>持ち物を忘れてしまった時に</h3>
                   <p className="text-[#B87942]" style={{ fontSize: "16px", fontWeight: 400 }}>¥220-</p>
@@ -252,12 +234,7 @@ export default function ServicePage() {
 
             {/* Goods promo */}
             <div className="mt-12 max-w-2xl">
-              <img
-                src="/images/img-057.jpg"
-                alt="DogHub箱根仙石原のグッズ一覧"
-                className="w-full object-cover rounded"
-                style={{ aspectRatio: "16/4" }}
-              />
+              <Image src="/images/img-057.jpg" alt="DogHub箱根仙石原のグッズ一覧" className="w-full object-cover rounded" width={700} height={400} style={{ aspectRatio: "16/4" }} />
               <div className="mt-6 text-center">
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "16px", fontWeight: 400 }}>わんちゃん向けのグッズ・雑貨なども販売中です</p>
                 <Link href="/cafe" className="flex items-center justify-center gap-2 text-black hover:text-[#B87942] transition-colors group" style={{ fontSize: "16px", fontWeight: 400 }}>

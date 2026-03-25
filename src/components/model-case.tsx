@@ -1,3 +1,4 @@
+import Image from "next/image";
 type Step = {
   time: string;
   place: string;
@@ -196,11 +197,7 @@ export function ModelCase({ limit }: { limit?: number } = {}) {
                   {plan.description}
                 </h4>
                 {/* Desktop: original image */}
-                <img
-                  src={plan.img}
-                  alt={plan.imgAlt}
-                  className="hidden md:block w-full h-auto"
-                />
+                <Image src="plan.img" alt="" className="hidden md:block w-full h-auto" width={600} height={400} />
                 {/* Mobile: vertical timeline */}
                 <MobileTimeline days={plan.days} />
               </div>

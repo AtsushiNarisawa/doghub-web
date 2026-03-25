@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 犬連れ旅行ガイド｜犬と箱根を楽しむすべてがここに｜DogHub箱根仙石原",
@@ -39,7 +40,7 @@ export default function HakonePage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"箱根 犬連れガイド",href:"/hakone"}]} />
         {/* Hero */}
         <div className="relative">
-          <img src="/images/img-008.jpg" alt="箱根 犬連れ旅行ガイド 愛犬と仙石原の自然の中を散歩する様子" className="w-full object-cover" style={{ height: "clamp(180px, 30vw, 424px)" }} />
+          <Image src="/images/img-008.jpg" alt="箱根 犬連れ旅行ガイド 愛犬と仙石原の自然の中を散歩する様子" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 400 }}>箱根 犬連れ旅行ガイド</h1>
             <p className="mt-2" style={{ fontSize: "clamp(14px, 2vw, 18px)", fontWeight: 400 }}>犬と箱根を楽しむすべてがここに</p>
@@ -81,7 +82,7 @@ export default function HakonePage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {scenes.map((s) => (
                 <Link key={s.href} href={s.href} className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors group overflow-hidden">
-                  <img src={s.img} alt={s.imgAlt} className="w-full h-40 object-cover" />
+                  <Image src="s.img" alt="" className="w-full h-40 object-cover" width={600} height={300} />
                   <div className="p-5">
                     <h3 className="text-[#3C200F] mb-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "18px", fontWeight: 400 }}>{s.label}</h3>
                     <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>{s.desc}</p>

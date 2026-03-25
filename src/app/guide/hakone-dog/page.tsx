@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 犬連れ 完全ガイド｜愛犬と楽しむ箱根旅行の過ごし方｜DogHub箱根仙石原",
@@ -43,12 +44,7 @@ export default function HakoneDogGuidePage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"はじめてガイド",href:"/guide"},{name:"箱根犬連れガイド",href:"/guide/hakone-dog"}]} />
         {/* Hero */}
         <div className="relative">
-          <img
-            src="/images/img-006.jpg"
-            alt="箱根 犬連れ 完全ガイド"
-            className="w-full object-cover"
-            style={{ height: "clamp(180px, 30vw, 424px)" }}
-          />
+          <Image src="/images/img-006.jpg" alt="箱根 犬連れ 完全ガイド" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
               箱根 犬連れ 完全ガイド

@@ -8,6 +8,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { getArticles, getArticle } from "@/lib/cms";
 import { ArticleFloatingBar } from "@/components/article-floating-bar";
+import Image from "next/image";
 
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string; btnLabel: string }> = {
@@ -268,12 +269,7 @@ export default async function NewsDetailPage({ params }: Props) {
         />
         {/* Hero */}
         <div className="relative">
-          <img
-            src={article.thumbnail}
-            alt={article.title}
-            className="w-full object-cover"
-            style={{ height: "clamp(140px, 18vw, 249px)" }}
-          />
+          <Image src="article.thumbnail" alt="" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(20px, 4vw, 36px)", fontWeight: 400 }}>
               {article.title}
@@ -358,7 +354,7 @@ export default async function NewsDetailPage({ params }: Props) {
               <div className="grid sm:grid-cols-3 gap-6">
                 {relatedArticles.map((ra) => (
                   <Link key={ra.slug} href={`/news/${ra.slug}`} className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors group">
-                    <img src={ra.thumbnail} alt={ra.title} className="w-full h-32 object-cover" />
+                    <Image src="ra.thumbnail" alt="" className="w-full h-32 object-cover" width={600} height={300} />
                     <div className="p-4">
                       <p className="text-[#8F7B65] mb-1" style={{ fontSize: "12px" }}>{ra.date}</p>
                       <h3 className="text-[#3C200F] group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.6" }}>{ra.title}</h3>
