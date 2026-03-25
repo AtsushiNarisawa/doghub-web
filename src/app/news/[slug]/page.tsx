@@ -121,6 +121,64 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
 };
 
+// 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
+const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; description: string }[]> = {
+  "hakone-dog-trip-guide": [
+    { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりでユネッサンをたっぷり満喫" },
+    { label: "ゴルフに行くなら", href: "/golf", description: "早朝7時からお預かり。大箱根CC提携" },
+    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車4分" },
+  ],
+  "hakone-museum-dog-guide": [
+    { label: "美術館×お預かりプラン", href: "/museum", description: "半日で美術館1館＋ランチ" },
+    { label: "温泉も楽しみたいなら", href: "/onsen", description: "美術館のあとに温泉も" },
+  ],
+  "hakone-dog-rainy-day": [
+    { label: "温泉で過ごすなら", href: "/onsen", description: "雨の日の温泉は格別" },
+    { label: "ユネッサンで1日遊ぶなら", href: "/yunessun", description: "屋内温泉プールで天候を気にせず" },
+    { label: "美術館巡りなら", href: "/museum", description: "雨の日こそ美術館日和" },
+  ],
+  "hakone-dog-friendly-hotels": [
+    { label: "高級旅館×お預かり", href: "/ryokan", description: "ペット不可の旅館に泊まりたい時の選択肢" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐" },
+  ],
+  "hakone-dog-travel-model-course": [
+    { label: "ゴルフプラン", href: "/golf", description: "早朝7時〜のお預かりでラウンド" },
+    { label: "ユネッサンプラン", href: "/yunessun", description: "1日お預かりでたっぷり温泉" },
+    { label: "美術館プラン", href: "/museum", description: "半日で美術館1館＋ランチ" },
+  ],
+  "hakone-ashinoko-dog-guide": [
+    { label: "芦ノ湖観光中のお預かり", href: "/service", description: "桃源台から車10分。半日¥3,300〜" },
+  ],
+  "hakone-owakudani-dog-guide": [
+    { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+  ],
+  "hakone-dog-lunch-guide": [
+    { label: "カフェのメニューを見る", href: "/cafe", description: "室内犬連れOK。おむすび＆スープ" },
+  ],
+  "hakone-dog-cafe-guide": [
+    { label: "カフェの詳細", href: "/cafe", description: "メニュー・営業時間・アクセス" },
+  ],
+  "hakone-dog-spot-sengokuhara": [
+    { label: "美術館×お預かり", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "カフェでランチ", href: "/cafe", description: "室内犬連れOK" },
+  ],
+  "hakone-dog-hotel-guide": [
+    { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700〜" },
+    { label: "半日プラン", href: "/4h", description: "¥3,300〜" },
+  ],
+  "hakone-pet-hotel-comparison": [
+    { label: "料金・サービス詳細", href: "/service", description: "プラン・料金・設備のご案内" },
+  ],
+  "hakone-dog-hotel-cost-comparison": [
+    { label: "宿泊プラン詳細", href: "/stay", description: "1泊¥7,700〜 個室・24時間常駐" },
+    { label: "高級旅館×お預かり", href: "/ryokan", description: "憧れの旅館も犬連れで" },
+  ],
+  "pet-hotel-first-time-tips": [
+    { label: "ご利用ガイド", href: "/guide", description: "初めての方向けのご案内" },
+    { label: "料金プラン", href: "/service", description: "スポット1時間¥1,100〜" },
+  ],
+};
+
 const DEFAULT_CTA = {
   text: "箱根旅行中の愛犬のお預かりはDogHubへ",
   subtext: "ドッグランで自由に遊べる環境。宿泊・日帰りプランをご用意しています。",
@@ -166,6 +224,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
   const { article, html } = result;
   const cta = ARTICLE_CTA[slug] ?? DEFAULT_CTA;
+  const sceneBridges = ARTICLE_SCENE_BRIDGES[slug] || [];
 
   // 関連記事を取得（同カテゴリ優先、最大2件）+ 関連サービスページ1つ
   const allArticles = await getArticles();
@@ -247,6 +306,31 @@ export default async function NewsDetailPage({ params }: Props) {
               className="prose-doghub"
               dangerouslySetInnerHTML={{ __html: html }}
             />
+
+            {/* シーンページブリッジ — 記事から具体的なプランへ */}
+            {sceneBridges.length > 0 && (
+              <div style={{ margin: "2em 0", padding: "20px", background: "#F8F5F0", borderRadius: "12px" }}>
+                <p style={{ fontSize: "15px", fontWeight: 600, color: "#3C200F", marginBottom: "12px" }}>
+                  DogHubに預けて箱根を楽しむ
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {sceneBridges.map((bridge) => (
+                    <Link
+                      key={bridge.href}
+                      href={bridge.href}
+                      className="flex items-center justify-between px-4 py-3 bg-white rounded-lg border border-[#E5DDD8] hover:border-[#B87942] transition-colors"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <div>
+                        <span style={{ fontSize: "14px", fontWeight: 500, color: "#3C200F" }}>{bridge.label}</span>
+                        <span style={{ fontSize: "12px", color: "#8F7B65", display: "block", marginTop: "2px" }}>{bridge.description}</span>
+                      </div>
+                      <span style={{ fontSize: "14px", color: "#B87942", fontWeight: 500, flexShrink: 0, marginLeft: "12px" }}>→</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 記事末CTA — スタッフからのひとこと */}
             <div className="article-cta staff-note">

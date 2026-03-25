@@ -23,8 +23,8 @@ export function ArticleFloatingBar({ href, label }: { href: string; label: strin
         className="flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur border border-border rounded-xl shadow-lg"
         style={{ textDecoration: "none" }}
       >
-        <span className="text-text" style={{ fontSize: "13px" }}>DogHub箱根仙石原って？</span>
-        <span className="text-accent" style={{ fontSize: "13px", fontWeight: 500 }}>→ {label}</span>
+        <span className="text-text" style={{ fontSize: "13px" }}>箱根旅行中、わんちゃんをお預かり</span>
+        <span className="text-accent" style={{ fontSize: "13px", fontWeight: 500 }}>半日¥3,300〜 →</span>
       </a>
     </div>
   );
