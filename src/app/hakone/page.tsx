@@ -82,7 +82,7 @@ export default function HakonePage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {scenes.map((s) => (
                 <Link key={s.href} href={s.href} className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors group overflow-hidden">
-                  <Image src="s.img" alt="" className="w-full h-40 object-cover" width={600} height={300} />
+                  <Image src={s.img} alt="" className="w-full h-40 object-cover" width={600} height={300} />
                   <div className="p-5">
                     <h3 className="text-[#3C200F] mb-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "18px", fontWeight: 400 }}>{s.label}</h3>
                     <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>{s.desc}</p>

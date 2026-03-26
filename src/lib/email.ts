@@ -117,8 +117,9 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
         <li>お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）</li>
         <li>引き取り最終時間は17:00です（超過¥1,100/時間）</li>
       </ul>
-      <div style="margin-top:10px;">
-        <a href="https://dog-hub.shop/booking/cancel/${reservationId}" style="color:#B87942;font-size:13px;">予約のキャンセルはこちら</a>
+      <div style="margin-top:10px;display:flex;gap:16px;">
+        <a href="https://dog-hub.shop/booking/modify/${reservationId}" style="color:#B87942;font-size:13px;">予約内容を変更する</a>
+        <a href="https://dog-hub.shop/booking/cancel/${reservationId}" style="color:#888;font-size:13px;">予約をキャンセルする</a>
       </div>
     </div>
 

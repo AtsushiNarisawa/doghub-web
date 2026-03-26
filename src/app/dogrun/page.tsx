@@ -124,7 +124,7 @@ export default function DogrunPage() {
                 { src: "/images/img-008.jpg", alt: "箱根 犬連れ散歩 仙石原の自然の中を愛犬と歩くお散歩の様子" },
                 { src: "/images/img-048.jpg", alt: "箱根ペットホテル DogHub箱根仙石原の完全個室 ケージではない壁で囲まれた空間" },
               ].map((img) => (
-                <Image key={img.src} src="img.src" alt="" className="w-full h-48 object-cover" width={800} height={400} />
+                <Image key={img.src} src={img.src} alt="" className="w-full h-48 object-cover" width={800} height={400} />
               ))}
             </div>
           </div>

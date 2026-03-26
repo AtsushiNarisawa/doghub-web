@@ -117,7 +117,7 @@ export default function ServicePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 md:gap-y-10">
               {features.map((f) => (
                 <div key={f.num}>
-                  <Image src="f.img" alt="" className="w-full h-auto object-cover" width={700} height={400} />
+                  <Image src={f.img} alt="" className="w-full h-auto object-cover" width={700} height={400} />
                   <div className="mt-4">
                     <p className="text-[#3C200F] mb-1" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>{f.num}</p>
                     <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: 400, lineHeight: "1.5" }}>{f.title}</h3>

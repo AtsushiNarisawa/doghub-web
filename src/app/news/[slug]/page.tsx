@@ -114,6 +114,54 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/stay",
     btnLabel: "宿泊プランを見る",
   },
+  "hakone-chokoku-no-mori-dog-guide": {
+    text: "彫刻の森美術館の間、愛犬をお預け",
+    subtext: "美術館まで車15分。半日¥3,300〜で、ピカソ館までゆっくり鑑賞できます。",
+    href: "/museum",
+    btnLabel: "美術館×お預かりプランを見る",
+  },
+  "hakone-pola-museum-dog-guide": {
+    text: "ポーラ美術館の間、愛犬をお預け",
+    subtext: "DogHubから車たった4分。半日¥3,300〜で名画をゆっくり楽しめます。",
+    href: "/museum",
+    btnLabel: "美術館×お預かりプランを見る",
+  },
+  "hakone-jinja-dog-guide": {
+    text: "箱根神社の前後に立ち寄れます",
+    subtext: "芦ノ湖から車20分。参拝後にカフェでおむすび＆スープはいかが？",
+    href: "/cafe",
+    btnLabel: "カフェ・アクセスを見る",
+  },
+  "hakone-ropeway-pirate-ship-dog-guide": {
+    text: "ゴールデンコースの前後にお預け",
+    subtext: "ケージなしで身軽に楽しみたいなら、半日¥3,300〜でお預かり。",
+    href: "/service",
+    btnLabel: "お預かりプラン・料金を見る",
+  },
+  "hakone-en-dog-guide": {
+    text: "箱根園の前後にDogHubへ",
+    subtext: "芦ノ湖エリアから車25分。ふれあい動物園の間だけお預かりも。",
+    href: "/service",
+    btnLabel: "お預かりプラン・料金を見る",
+  },
+  "hakone-gora-park-dog-guide": {
+    text: "強羅エリアのお出かけ拠点に",
+    subtext: "強羅から車10分。クラフト体験の間だけ預けて、庭園は犬と一緒に。",
+    href: "/service",
+    btnLabel: "お預かりプラン・料金を見る",
+  },
+  "hakone-gw-spring-dog-guide": {
+    text: "GWの箱根旅行、愛犬のお預かり",
+    subtext: "GW期間は混み合います。宿泊・半日プランともに早めのご予約がおすすめです。",
+    href: "/service",
+    btnLabel: "プラン・料金を見る",
+  },
+  "hakone-dog-day-trip": {
+    text: "日帰り箱根の拠点にDogHub",
+    subtext: "半日¥3,300〜。仙石原を拠点に美術館も温泉も効率よく。",
+    href: "/service",
+    btnLabel: "日帰りプラン・料金を見る",
+  },
   "pet-hotel-first-time-tips": {
     text: "初めてのペットホテルはDogHubで",
     subtext: "完全個室で安心。まずは1時間¥1,100〜のスポット利用から始められます。",
@@ -128,10 +176,13 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりでユネッサンをたっぷり満喫" },
     { label: "ゴルフに行くなら", href: "/golf", description: "早朝7時からお預かり。大箱根CC提携" },
     { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "温泉に行くなら", href: "/onsen", description: "仙石原周辺の温泉13施設" },
+    { label: "ペット可の宿に泊まるなら", href: "/pethotel", description: "チェックイン前・アウト後のお預かり" },
   ],
   "hakone-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "半日で美術館1館＋ランチ" },
     { label: "温泉も楽しみたいなら", href: "/onsen", description: "美術館のあとに温泉も" },
+    { label: "半日プランの料金", href: "/4h", description: "¥3,300〜で美術館1〜2館分の時間" },
   ],
   "hakone-dog-rainy-day": [
     { label: "温泉で過ごすなら", href: "/onsen", description: "雨の日の温泉は格別" },
@@ -139,6 +190,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "美術館巡りなら", href: "/museum", description: "雨の日こそ美術館日和" },
   ],
   "hakone-dog-friendly-hotels": [
+    { label: "ペット可ホテル×日中預かり", href: "/pethotel", description: "チェックイン前・チェックアウト後の観光に" },
     { label: "高級旅館×お預かり", href: "/ryokan", description: "ペット不可の旅館に泊まりたい時の選択肢" },
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐" },
   ],
@@ -149,12 +201,17 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "hakone-ashinoko-dog-guide": [
     { label: "芦ノ湖観光中のお預かり", href: "/service", description: "桃源台から車10分。半日¥3,300〜" },
+    { label: "海賊船＋遊覧の間に預ける", href: "/4h", description: "半日プランで芦ノ湖をたっぷり満喫" },
+    { label: "カフェでランチ", href: "/cafe", description: "お迎え前後におむすび＆スープ" },
   ],
   "hakone-owakudani-dog-guide": [
     { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+    { label: "ロープウェイ＋芦ノ湖も行くなら", href: "/service", description: "1日プラン¥5,500〜で大涌谷→芦ノ湖コース" },
+    { label: "カフェで一休み", href: "/cafe", description: "お迎え前に仙石原でおむすびランチ" },
   ],
   "hakone-dog-lunch-guide": [
     { label: "カフェのメニューを見る", href: "/cafe", description: "室内犬連れOK。おむすび＆スープ" },
+    { label: "ランチ後に観光するなら", href: "/service", description: "食後にお預けして温泉・美術館へ" },
   ],
   "hakone-dog-cafe-guide": [
     { label: "カフェの詳細", href: "/cafe", description: "メニュー・営業時間・アクセス" },
@@ -173,6 +230,50 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-dog-hotel-cost-comparison": [
     { label: "宿泊プラン詳細", href: "/stay", description: "1泊¥7,700〜 個室・24時間常駐" },
     { label: "高級旅館×お預かり", href: "/ryokan", description: "憧れの旅館も犬連れで" },
+  ],
+  "hakone-chokoku-no-mori-dog-guide": [
+    { label: "美術館×お預かりプラン", href: "/museum", description: "半日で彫刻の森＋ランチ" },
+    { label: "ポーラ美術館も行くなら", href: "/4h", description: "1日プラン¥5,500〜で2館回れる" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+  ],
+  "hakone-pola-museum-dog-guide": [
+    { label: "美術館×お預かりプラン", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "彫刻の森もセットで", href: "/8h", description: "1日プラン¥5,500〜" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+  ],
+  "hakone-jinja-dog-guide": [
+    { label: "温泉も楽しみたいなら", href: "/onsen", description: "参拝後に温泉。犬はDogHubで預かり" },
+    { label: "カフェで休憩", href: "/cafe", description: "仙石原でおむすび＆スープ" },
+    { label: "料金・プラン", href: "/service", description: "半日¥3,300〜" },
+  ],
+  "hakone-ropeway-pirate-ship-dog-guide": [
+    { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+    { label: "温泉も行くなら", href: "/onsen", description: "仙石原周辺の温泉13施設" },
+    { label: "カフェで休憩", href: "/cafe", description: "お迎え前後に" },
+  ],
+  "hakone-en-dog-guide": [
+    { label: "芦ノ湖観光のお預かり", href: "/service", description: "半日¥3,300〜" },
+    { label: "箱根神社もセットで", href: "/service", description: "芦ノ湖エリアを満喫" },
+    { label: "カフェで休憩", href: "/cafe", description: "仙石原でおむすび＆スープ" },
+  ],
+  "hakone-gora-park-dog-guide": [
+    { label: "クラフト体験中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+    { label: "温泉も行くなら", href: "/onsen", description: "強羅エリアの温泉" },
+    { label: "カフェでランチ", href: "/cafe", description: "DogHubのおむすび＆スープ" },
+  ],
+  "hakone-gw-spring-dog-guide": [
+    { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで温泉プール満喫" },
+    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700〜" },
+  ],
+  "hakone-dog-day-trip": [
+    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 美術館1館＋温泉に" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500〜 芦ノ湖方面まで" },
+    { label: "カフェで休憩", href: "/cafe", description: "おむすび＆スープ" },
+  ],
+  "spring-walk-guide": [
+    { label: "お散歩後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+    { label: "ドッグランで遊ぶ", href: "/dogrun", description: "お散歩のあとに自由に走り回れる" },
   ],
   "pet-hotel-first-time-tips": [
     { label: "ご利用ガイド", href: "/guide", description: "初めての方向けのご案内" },
@@ -227,6 +328,19 @@ export default async function NewsDetailPage({ params }: Props) {
   const cta = ARTICLE_CTA[slug] ?? DEFAULT_CTA;
   const sceneBridges = ARTICLE_SCENE_BRIDGES[slug] || [];
 
+  // 記事本文を中盤で分割し、インラインブリッジを挿入
+  const inlineBridge = sceneBridges.length > 0 ? sceneBridges[0] : null;
+  let htmlFirstHalf = html;
+  let htmlSecondHalf = "";
+  if (inlineBridge) {
+    const h2Matches = [...html.matchAll(/<h2[\s>]/gi)];
+    if (h2Matches.length >= 3) {
+      const splitIndex = h2Matches[2].index!;
+      htmlFirstHalf = html.slice(0, splitIndex);
+      htmlSecondHalf = html.slice(splitIndex);
+    }
+  }
+
   // 関連記事を取得（同カテゴリ優先、最大2件）+ 関連サービスページ1つ
   const allArticles = await getArticles();
   const relatedArticles = allArticles
@@ -269,7 +383,7 @@ export default async function NewsDetailPage({ params }: Props) {
         />
         {/* Hero */}
         <div className="relative">
-          <Image src="article.thumbnail" alt="" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
+          <Image src={article.thumbnail} alt="" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(20px, 4vw, 36px)", fontWeight: 400 }}>
               {article.title}
@@ -300,8 +414,31 @@ export default async function NewsDetailPage({ params }: Props) {
 
             <div
               className="prose-doghub"
-              dangerouslySetInnerHTML={{ __html: html }}
+              dangerouslySetInnerHTML={{ __html: htmlFirstHalf }}
             />
+
+            {/* インラインブリッジ — 記事中盤に自然に挿入 */}
+            {inlineBridge && htmlSecondHalf && (
+              <Link
+                href={inlineBridge.href}
+                className="block my-8 px-5 py-4 bg-[#F8F5F0] border-l-4 border-[#B87942] hover:bg-[#F0EBE4] transition-colors"
+                style={{ textDecoration: "none" }}
+              >
+                <span style={{ fontSize: "14px", fontWeight: 500, color: "#3C200F", display: "block" }}>
+                  {inlineBridge.label}
+                </span>
+                <span style={{ fontSize: "13px", color: "#8F7B65", display: "block", marginTop: "2px" }}>
+                  {inlineBridge.description} →
+                </span>
+              </Link>
+            )}
+
+            {htmlSecondHalf && (
+              <div
+                className="prose-doghub"
+                dangerouslySetInnerHTML={{ __html: htmlSecondHalf }}
+              />
+            )}
 
             {/* シーンページブリッジ — 記事から具体的なプランへ */}
             {sceneBridges.length > 0 && (
@@ -354,7 +491,7 @@ export default async function NewsDetailPage({ params }: Props) {
               <div className="grid sm:grid-cols-3 gap-6">
                 {relatedArticles.map((ra) => (
                   <Link key={ra.slug} href={`/news/${ra.slug}`} className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors group">
-                    <Image src="ra.thumbnail" alt="" className="w-full h-32 object-cover" width={600} height={300} />
+                    <Image src={ra.thumbnail} alt="" className="w-full h-32 object-cover" width={600} height={300} />
                     <div className="p-4">
                       <p className="text-[#8F7B65] mb-1" style={{ fontSize: "12px" }}>{ra.date}</p>
                       <h3 className="text-[#3C200F] group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.6" }}>{ra.title}</h3>

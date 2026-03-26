@@ -74,6 +74,34 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "すすき草原", images: ["/images/img-008.jpg", "/images/img-011.jpg"] },
     { keyword: "DogHub箱根仙石原", images: ["/images/img-041.jpg"] },
   ],
+  "hakone-chokoku-no-mori-dog-guide": [
+    { keyword: "うちのお客さまはこうしています", images: ["/images/img-041.jpg"] },
+    { keyword: "モデルプラン", images: ["/images/img-035.png"] },
+  ],
+  "hakone-pola-museum-dog-guide": [
+    { keyword: "DogHubから車4分", images: ["/images/img-041.jpg"] },
+    { keyword: "モデルプラン", images: ["/images/img-035.png"] },
+  ],
+  "hakone-jinja-dog-guide": [
+    { keyword: "参拝ルート", images: ["/images/img-008.jpg"] },
+  ],
+  "hakone-ropeway-pirate-ship-dog-guide": [
+    { keyword: "ゴールデンコース", images: ["/images/img-011.jpg"] },
+  ],
+  "hakone-en-dog-guide": [
+    { keyword: "箱根園水族館", images: ["/images/img-008.jpg"] },
+  ],
+  "hakone-gora-park-dog-guide": [
+    { keyword: "強羅エリア", images: ["/images/img-011.jpg"] },
+  ],
+  "hakone-gw-spring-dog-guide": [
+    { keyword: "コースB", images: ["/images/img-035.png"] },
+    { keyword: "GWの予約", images: ["/images/img-041.jpg"] },
+  ],
+  "hakone-dog-day-trip": [
+    { keyword: "コースB", images: ["/images/img-035.png"] },
+    { keyword: "日帰りプラン", images: ["/images/img-041.jpg"] },
+  ],
   "hakone-yumoto-pet-hotel": [
     { keyword: "DogHub箱根仙石原", images: ["/images/img-041.jpg"] },
     { keyword: "犬のホテルを選ぶ", images: ["/images/img-035.png", "/images/img-037.jpg"] },

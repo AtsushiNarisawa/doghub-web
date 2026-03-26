@@ -138,7 +138,7 @@ export default function SpotsPage() {
               <div key={spot.name} className="border-t border-[#E5DDD8] pt-10">
                 <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-6 md:gap-8">
                   <div className="flex-shrink-0">
-                    <Image src="spot.img" alt="" className="w-full h-auto object-cover" width={700} height={400} />
+                    <Image src={spot.img} alt="" className="w-full h-auto object-cover" width={700} height={400} />
                   </div>
                   <div>
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -184,6 +184,31 @@ export default function SpotsPage() {
                   → 箱根 犬連れ旅行ガイド｜地元スタッフおすすめの1泊2日プラン
                 </Link>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ペット不可スポットの解決策 */}
+        <section className="px-6 py-12 bg-[#F8F5F0] border-t border-[#E5DDD8]">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-[#3C200F] mb-3" style={{ fontSize: "20px", fontWeight: 400 }}>ペット不可のスポットに行きたい時は</h2>
+            <p className="text-[#8F7B65] mb-6" style={{ fontSize: "14px" }}>
+              箱根のメインスポットの多くは犬NG。でも諦める必要はありません。DogHubに預けて、自由に箱根を楽しめます。
+            </p>
+            <div className="grid sm:grid-cols-3 gap-4">
+              {[
+                { href: "/museum", label: "美術館 × 預かり", desc: "ポーラ・彫刻の森へ" },
+                { href: "/yunessun", label: "ユネッサン × 預かり", desc: "温泉プールを満喫" },
+                { href: "/onsen", label: "温泉 × 預かり", desc: "日帰り温泉を堪能" },
+                { href: "/golf", label: "ゴルフ × 預かり", desc: "早朝7時から対応" },
+                { href: "/ryokan", label: "旅館 × 預かり", desc: "憧れの宿に泊まる" },
+                { href: "/service", label: "料金・プラン一覧", desc: "半日¥3,300〜" },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors p-4">
+                  <p className="text-[#3C200F]" style={{ fontSize: "14px", fontWeight: 500 }}>{item.label}</p>
+                  <p className="text-[#8F7B65]" style={{ fontSize: "12px", marginTop: "2px" }}>{item.desc}</p>
+                </Link>
+              ))}
             </div>
           </div>
         </section>

@@ -40,12 +40,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "プラン・日程情報が不足しています" }, { status: 400 });
     }
 
-    // サーバー側：当日予約の早朝チェック
+    // サーバー側：前日17時まで受付（当日予約不可）
     const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-    const checkinHour = parseInt(body.checkin_time.split(":")[0]);
-    if (body.date === todayStr && checkinHour < 9) {
-      return NextResponse.json({ error: "当日の早朝（9時前）のお預かりは前日までのご予約が必要です" }, { status: 400 });
+    const jstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    const bookingDate = new Date(body.date + "T00:00:00+09:00");
+    const todayMidnight = new Date(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate());
+    const diffDays = Math.floor((bookingDate.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 0) {
+      return NextResponse.json({ error: "当日のご予約はお電話（0460-80-0290）にてお願いいたします" }, { status: 400 });
+    }
+    if (diffDays === 1 && jstNow.getHours() >= 17) {
+      return NextResponse.json({ error: "翌日分の受付は17時で締め切りました。お電話（0460-80-0290）にてご相談ください" }, { status: 400 });
     }
 
     // サーバー側：定休日チェック（水=3, 木=4）

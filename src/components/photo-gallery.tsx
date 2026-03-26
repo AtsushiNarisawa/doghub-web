@@ -42,7 +42,7 @@ export function PhotoGallery() {
       `}</style>
       <div className="gallery-track">
         {allPhotos.map((photo, i) => (
-          <Image key={i} src="photo.src" alt="" className="flex-shrink-0 object-cover" width={700} height={400} priority style={{ width: "368px", height: "276px" }} />
+          <Image key={i} src={photo.src} alt="" className="flex-shrink-0 object-cover" width={700} height={400} priority style={{ width: "368px", height: "276px" }} />
         ))}
       </div>
     </section>

@@ -95,9 +95,11 @@ function buildReminderHtml(reservation: {
       <p style="margin:8px 0 0;font-size:12px;color:#888;">初めてのご利用の方はぜひご確認ください</p>
     </div>
 
-    <!-- キャンセルリンク -->
+    <!-- 変更・キャンセルリンク -->
     <div style="margin-top:16px;text-align:center;">
-      <a href="https://dog-hub.shop/booking/cancel/${reservation.id}" style="color:#B87942;font-size:13px;">予約のキャンセルはこちら</a>
+      <a href="https://dog-hub.shop/booking/modify/${reservation.id}" style="color:#B87942;font-size:13px;">予約内容を変更する</a>
+      <span style="color:#E5DDD8;margin:0 8px;">|</span>
+      <a href="https://dog-hub.shop/booking/cancel/${reservation.id}" style="color:#888;font-size:13px;">キャンセルする</a>
     </div>
   </div>
 

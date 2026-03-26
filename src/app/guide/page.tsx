@@ -122,7 +122,7 @@ export default function GuidePage() {
               {steps.map((s) => (
                 <div key={s.num} className="bg-white p-4 sm:p-8">
                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                    <Image src="s.img" alt="" className="object-cover flex-shrink-0 w-full sm:w-[227px] h-auto sm:h-[126px]" width={700} height={400} />
+                    <Image src={s.img} alt="" className="object-cover flex-shrink-0 w-full sm:w-[227px] h-auto sm:h-[126px]" width={700} height={400} />
                     <div>
                       <p className="text-[#311908] mb-1" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>{s.num}</p>
                       <h3 className="text-[#311908] mb-3" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>{s.title}</h3>

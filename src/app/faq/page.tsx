@@ -245,6 +245,30 @@ export default function FaqPage() {
           </div>
         </section>
 
+        {/* 次のステップ導線 */}
+        <section className="px-6 py-12 bg-[#F8F5F0] border-t border-[#E5DDD8]">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-[#3C200F] mb-6" style={{ fontSize: "20px", fontWeight: 400 }}>次のステップ</h2>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <Link href="/service" className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors p-5 text-center">
+                <p style={{ fontSize: "24px", marginBottom: "8px" }}>📋</p>
+                <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 500 }}>料金・プランを見る</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "13px", marginTop: "4px" }}>半日¥3,300〜</p>
+              </Link>
+              <Link href="/booking" className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors p-5 text-center">
+                <p style={{ fontSize: "24px", marginBottom: "8px" }}>📱</p>
+                <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 500 }}>オンライン予約</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "13px", marginTop: "4px" }}>24時間受付・前日17時まで</p>
+              </Link>
+              <Link href="/access" className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors p-5 text-center">
+                <p style={{ fontSize: "24px", marginBottom: "8px" }}>📍</p>
+                <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 500 }}>アクセス</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "13px", marginTop: "4px" }}>仙石原928-15</p>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <Reservation />
         <QuickNav />
       </main>

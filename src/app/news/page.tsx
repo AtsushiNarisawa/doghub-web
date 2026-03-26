@@ -40,7 +40,7 @@ export default async function NewsPage() {
                 {articles.map((post) => (
                   <Link key={post.slug} href={`/news/${post.slug}`} className="group block">
                     <div className="overflow-hidden mb-4">
-                      <Image src="post.thumbnail" alt="" className="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" width={700} height={400} />
+                      <Image src={post.thumbnail} alt="" className="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-105" width={700} height={400} />
                     </div>
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>{post.date}</span>

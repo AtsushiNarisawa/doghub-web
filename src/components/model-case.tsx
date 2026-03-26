@@ -197,7 +197,7 @@ export function ModelCase({ limit }: { limit?: number } = {}) {
                   {plan.description}
                 </h4>
                 {/* Desktop: original image */}
-                <Image src="plan.img" alt="" className="hidden md:block w-full h-auto" width={600} height={400} />
+                <Image src={plan.img} alt="" className="hidden md:block w-full h-auto" width={600} height={400} />
                 {/* Mobile: vertical timeline */}
                 <MobileTimeline days={plan.days} />
               </div>
