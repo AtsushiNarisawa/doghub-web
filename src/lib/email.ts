@@ -123,6 +123,21 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
       </div>
     </div>
 
+    <!-- 箱根での過ごし方 -->
+    <div style="margin-top:16px;background:#f7f5f0;border-radius:10px;padding:14px 16px;">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#3C200F;">箱根での過ごし方</p>
+      <p style="margin:0 0 10px;font-size:12px;color:#888;">ご旅行の参考にどうぞ</p>
+      <p style="margin:0 0 6px;font-size:13px;line-height:1.8;">
+        <a href="https://dog-hub.shop/news/hakone-dog-trip-guide" style="color:#B87942;text-decoration:none;">▸ 犬連れ旅行ガイド</a>
+      </p>
+      <p style="margin:0 0 6px;font-size:13px;line-height:1.8;">
+        <a href="https://dog-hub.shop/news/hakone-dog-lunch-guide" style="color:#B87942;text-decoration:none;">▸ 犬連れランチ情報</a>
+      </p>
+      <p style="margin:0;font-size:13px;line-height:1.8;">
+        <a href="https://dog-hub.shop/spots" style="color:#B87942;text-decoration:none;">▸ 箱根の観光スポット</a>
+      </p>
+    </div>
+
     <!-- はじめてガイド -->
     <div style="margin-top:16px;text-align:center;">
       <a href="https://dog-hub.shop/guide" style="display:inline-block;padding:12px 24px;background:#B87942;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">
