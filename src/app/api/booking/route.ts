@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     // サーバー側：定休日チェック（水=3, 木=4）
     const closedWeekdays = [3, 4];
-    const checkinDay = new Date(body.date).getDay();
+    const checkinDay = new Date(body.date + "T00:00:00+09:00").getDay();
     if (closedWeekdays.includes(checkinDay)) {
       // CI日が定休日の場合、臨時営業オーバーライドを確認
       const { data: ciCap } = await supabase

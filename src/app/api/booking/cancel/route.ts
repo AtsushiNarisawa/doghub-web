@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "この予約は既にキャンセルされています" }, { status: 400 });
     }
 
-    const today = new Date().toISOString().split("T")[0];
+    const jstNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    const today = `${jstNow.getFullYear()}-${String(jstNow.getMonth()+1).padStart(2,"0")}-${String(jstNow.getDate()).padStart(2,"0")}`;
     if (reservation.date < today) {
       return NextResponse.json({ error: "過去の予約はキャンセルできません" }, { status: 400 });
     }

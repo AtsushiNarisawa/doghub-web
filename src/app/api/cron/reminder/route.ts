@@ -126,10 +126,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Email not configured" }, { status: 500 });
   }
 
-  // 前々日 = 今日 + 2日後の予約を取得
-  const targetDate = new Date();
+  // 前々日 = 今日 + 2日後の予約を取得（JST基準）
+  const jstNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  const targetDate = new Date(jstNow);
   targetDate.setDate(targetDate.getDate() + 2);
-  const targetDateStr = targetDate.toISOString().split("T")[0];
+  const targetDateStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,"0")}-${String(targetDate.getDate()).padStart(2,"0")}`;
 
   const { data: reservations, error } = await supabase
     .from("reservations")

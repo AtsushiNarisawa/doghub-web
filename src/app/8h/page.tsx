@@ -6,6 +6,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
+import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   title: "箱根 犬 1日預かり 8時間プラン｜DogHub箱根仙石原 ペットホテル",
@@ -201,6 +202,11 @@ export default function EightHourPage() {
               ご利用ガイド・注意事項はこちら →
             </Link>
           </div>
+        </section>
+
+        {/* Instagram */}
+        <section className="px-6 py-4 max-w-7xl mx-auto">
+          <InstagramFollowLight />
         </section>
 
         <Reservation />

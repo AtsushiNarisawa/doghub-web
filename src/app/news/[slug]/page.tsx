@@ -8,6 +8,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { getArticles, getArticle } from "@/lib/cms";
 import { ArticleFloatingBar } from "@/components/article-floating-bar";
+import { InstagramFollowFull } from "@/components/instagram-follow";
 import Image from "next/image";
 
 // 記事スラッグ別CTA設定
@@ -44,7 +45,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-dog-trip-guide": {
     text: "箱根観光中の愛犬のお預かり",
-    subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。半日¥3,300〜、早朝7時から対応。",
+    subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。半日¥3,300〜、1日¥5,500〜。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
@@ -480,6 +481,13 @@ export default async function NewsDetailPage({ params }: Props) {
                 <a href="tel:0460-80-0290" className="article-cta-secondary">電話で相談する</a>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Instagram follow */}
+        <section className="px-6 py-8">
+          <div className="max-w-4xl mx-auto">
+            <InstagramFollowFull />
           </div>
         </section>
 

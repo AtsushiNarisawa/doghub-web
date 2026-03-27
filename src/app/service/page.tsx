@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { ModelCase } from "@/components/model-case";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
+import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   title: "箱根のペット ホテル｜犬の一時預かり・宿泊｜DogHub箱根仙石原",
@@ -147,10 +148,9 @@ export default function ServicePage() {
                 </p>
                 <p className="text-[#8F7B65] mb-4" style={{ fontSize: "13px", fontWeight: 400 }}>※表示料金はすべて税込です。</p>
                 <div className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  <p>通常プランのお預かり時間：午前9時〜午後5時</p>
-                  <p>早朝プランのお預かり時間：午前7時〜午後3時</p>
-                  <p>お預かり最終受付：15時</p>
-                  <p>お引き取り最終：17時</p>
+                  <p>お預かり時間：午前9時〜午後5時</p>
+                  <p>早朝対応：午前7時〜（1日プランのみ）</p>
+                  <p>お預かり最終受付：15時 ／ お引き取り最終：17時</p>
                 </div>
                 <a
                   href="/booking"
@@ -259,6 +259,11 @@ export default function ServicePage() {
               </Link>
             </div>
           </div>
+        </section>
+
+        {/* Instagram */}
+        <section className="px-6 py-4 max-w-7xl mx-auto">
+          <InstagramFollowLight />
         </section>
 
         {/* Reservation */}

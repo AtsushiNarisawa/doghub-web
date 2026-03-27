@@ -6,6 +6,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
+import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   title: "箱根 犬のホテル 宿泊・お預かり｜24時間常駐・完全個室｜DogHub箱根仙石原",
@@ -397,6 +398,11 @@ export default function StayPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Instagram */}
+        <section className="px-6 py-4 max-w-7xl mx-auto">
+          <InstagramFollowLight />
         </section>
 
         <Reservation />

@@ -6,6 +6,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
+import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
@@ -118,9 +119,8 @@ export default function FourHourPage() {
                     <p>スポット（1時間）：<span className="text-[#B87942]" style={{ fontSize: "24px" }}>¥1,100</span></p>
                   </div>
                   <div className="mt-4 pt-4 border-t border-[#E5DDD8] text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
-                    <p>通常プラン：9時〜17時</p>
-                    <p>早朝プラン：7時〜15時</p>
-                    <p>お預かり最終受付：15時 ／ お引き取り最終：17時</p>
+                    <p>お預かり時間：9時〜17時</p>
+                    <p>受付時間：9時〜13時 ／ お引き取り最終：17時</p>
                     <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
                   </div>
                 </div>
@@ -232,6 +232,11 @@ export default function FourHourPage() {
               ご利用ガイド・注意事項はこちら →
             </Link>
           </div>
+        </section>
+
+        {/* Instagram */}
+        <section className="px-6 py-4 max-w-7xl mx-auto">
+          <InstagramFollowLight />
         </section>
 
         <Reservation />
