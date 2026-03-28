@@ -4,7 +4,8 @@ import { getAreasWithRouteCount, getAllPublishedRoutes } from "@/lib/walks/data"
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 
-export const revalidate = 3600;
+// ISR: 30分ごとに再検証
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "犬と歩く散歩コース | DogHub",

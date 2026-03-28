@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getAreasWithRouteCount } from "@/lib/walks/data";
 
-export const revalidate = 3600;
+// ISR: 30分ごとに再検証
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "エリア一覧 - 犬と歩ける散歩コース | DogHub",

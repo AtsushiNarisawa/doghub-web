@@ -5,7 +5,8 @@ import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import Link from "next/link";
 
-export const revalidate = 3600;
+// ISR: 30分ごとに再検証（ルート追加時のキャッシュ更新を早める）
+export const revalidate = 1800;
 
 export async function generateStaticParams() {
   try {

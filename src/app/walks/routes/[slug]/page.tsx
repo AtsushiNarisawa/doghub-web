@@ -11,7 +11,8 @@ import {
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
 
-export const revalidate = 3600;
+// ISR: 30分ごとに再検証
+export const revalidate = 1800;
 
 export async function generateStaticParams() {
   try {
