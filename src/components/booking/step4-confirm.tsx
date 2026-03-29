@@ -14,6 +14,15 @@ interface Props {
 export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
+  // 前日17時以降の翌日予約か判定
+  const isLateBooking = (() => {
+    if (!form.date) return false;
+    const now = new Date();
+    const bookingDate = new Date(form.date + "T00:00:00");
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    return bookingDate.getTime() === tomorrow.getTime() && now.getHours() >= 17;
+  })();
+
   const plan = PLANS.find((p) => p.id === form.plan);
   const dogCount = form.dogs.length;
   const baseTotal = (plan?.basePrice ?? 0) * dogCount;
@@ -276,6 +285,12 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
         </span>
       </label>
 
+      {isLateBooking && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[13px] text-amber-700">
+          前日17時以降のため<strong>仮予約</strong>となります。翌朝9時までにメールで確定をご連絡します。
+        </div>
+      )}
+
       {/* ナビゲーション */}
       <div className="flex gap-3">
         <button
@@ -295,7 +310,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
               : "bg-[#E5DDD8] text-[#888] cursor-not-allowed"
           }`}
         >
-          {submitting ? "送信中..." : "予約を送信する"}
+          {submitting ? "送信中..." : isLateBooking ? "仮予約を送信する" : "予約を送信する"}
         </button>
       </div>
     </div>

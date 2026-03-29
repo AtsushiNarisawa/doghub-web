@@ -67,21 +67,31 @@ export default function BookingPage() {
   // 送信完了画面
   if (result === "success" || result === "success_no_email") {
     const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) >= 15);
+    const isLate = (() => {
+      if (!form.date) return false;
+      const now = new Date();
+      const bookingDate = new Date(form.date + "T00:00:00");
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      return bookingDate.getTime() === tomorrow.getTime() && now.getHours() >= 17;
+    })();
+    const isPending = hasHeavyDog || isLate;
     return (
       <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center space-y-4">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${isPending ? "bg-amber-100" : "bg-green-100"}`}>
+            <svg className={`w-8 h-8 ${isPending ? "text-amber-600" : "text-green-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <h1 className="text-xl font-medium">
-            {hasHeavyDog ? "予約リクエストを受付しました" : "ご予約ありがとうございます"}
+            {isPending ? "仮予約を受け付けました" : "ご予約ありがとうございます"}
           </h1>
           <p className="text-sm text-[#888] leading-relaxed">
-            {hasHeavyDog
-              ? "スタッフが確認後、メールにてご連絡いたします。しばらくお待ちください。"
-              : "確認メールをお送りしました。当日お気をつけてお越しください。"}
+            {isLate
+              ? "前日17時以降のため、仮予約としてお受けしました。翌朝9時までにスタッフが確認のうえ、メールにて確定のご連絡をいたします。"
+              : hasHeavyDog
+                ? "スタッフが確認後、メールにてご連絡いたします。しばらくお待ちください。"
+                : "確認メールをお送りしました。当日お気をつけてお越しください。"}
           </p>
           {result === "success_no_email" && (
             <p className="text-sm text-orange-600 bg-orange-50 p-3 rounded-lg leading-relaxed">
@@ -163,6 +173,18 @@ export default function BookingPage() {
           <div className="w-16" />
         </div>
       </header>
+
+      {/* 当日予約の案内 */}
+      <div className="max-w-lg mx-auto px-4 pt-3">
+        <div className="bg-white border border-[#E5DDD8] rounded-xl px-4 py-3 flex items-start gap-3">
+          <span className="text-lg leading-none mt-0.5">📞</span>
+          <div>
+            <p className="text-[13px] text-[#3C200F] font-medium">当日のご予約・お問い合わせはお電話で</p>
+            <a href="tel:0460800290" className="text-[14px] text-[#B87942] font-medium">0460-80-0290</a>
+            <p className="text-[11px] text-[#888] mt-0.5">オンライン予約は前日17:00まで受付</p>
+          </div>
+        </div>
+      </div>
 
       {/* ステップインジケーター */}
       <div className="max-w-lg mx-auto px-4">

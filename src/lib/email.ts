@@ -63,8 +63,8 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
   <div style="background:white;border-radius:16px;padding:28px 24px;margin-bottom:16px;">
     ${isPending ? `
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
-      <p style="margin:0;color:#c2410c;font-size:14px;font-weight:600;">&#9888; スタッフ確認中</p>
-      <p style="margin:6px 0 0;color:#c2410c;font-size:13px;">体重15kg以上のワンちゃんがいるため、スタッフが確認後にご予約を確定いたします。確定メールをお待ちください。</p>
+      <p style="margin:0;color:#c2410c;font-size:14px;font-weight:600;">&#9888; 仮予約（スタッフ確認中）</p>
+      <p style="margin:6px 0 0;color:#c2410c;font-size:13px;">スタッフが確認後にご予約を確定いたします。翌朝9時までにメールにてご連絡いたします。</p>
     </div>` : `
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
       <p style="margin:0;color:#15803d;font-size:14px;font-weight:600;">&#10003; ご予約を承りました</p>
@@ -183,7 +183,7 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
     ${isPending ? "⚠️ 新規予約（要確認）" : "✅ 新規予約が入りました"}
   </h2>
 
-  ${isPending ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;margin-bottom:16px;color:#c2410c;font-size:13px;">体重15kg以上のワンちゃんがいます。確認後にステータスを「確定」に変更してください。</div>` : ""}
+  ${isPending ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;margin-bottom:16px;color:#c2410c;font-size:13px;">仮予約です。管理画面で確認し「確定」に変更してください。確定時にお客様へ自動でメールが送信されます。</div>` : ""}
 
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
     <tr><td style="padding:6px 0;color:#888;width:110px;">予約番号</td><td style="padding:6px 0;">${reservationId.slice(0, 8).toUpperCase()}</td></tr>

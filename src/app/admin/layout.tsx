@@ -82,7 +82,7 @@ function AdminNav({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeCle
       <div className="max-w-lg mx-auto flex">
         {NAV_ITEMS.map(({ href, label, icon, ...rest }) => {
           const isNew = "isNew" in rest && rest.isNew;
-          const showBadge = href === "/admin" && badgeCount > 0;
+          const showBadge = false; // 通知はヘッダーに集約
           return (
             <Link
               key={href}

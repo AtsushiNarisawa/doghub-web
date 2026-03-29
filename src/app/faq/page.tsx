@@ -20,7 +20,7 @@ const faqCategories = [
     items: [
       {
         q: "予約は必要ですか？",
-        a: "はい、事前予約制です。前日17時までにオンラインまたはお電話（0460-80-0290）でご予約ください。当日に空き枠があればご案内も可能ですが、ご予約者様優先となります。",
+        a: "はい、事前予約制です。オンラインまたはお電話（0460-80-0290）でご予約ください。前日17時以降のご予約は仮予約として受け付け、翌朝スタッフが確認のうえ確定のご連絡をいたします。当日のご予約はお電話にて承っております。",
       },
       {
         q: "何時から何時まで預けられますか？",
@@ -258,7 +258,7 @@ export default function FaqPage() {
               <Link href="/booking" className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors p-5 text-center">
                 <p style={{ fontSize: "24px", marginBottom: "8px" }}>📱</p>
                 <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 500 }}>オンライン予約</p>
-                <p className="text-[#8F7B65]" style={{ fontSize: "13px", marginTop: "4px" }}>24時間受付・前日17時まで</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "13px", marginTop: "4px" }}>24時間受付・当日はお電話で</p>
               </Link>
               <Link href="/access" className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors p-5 text-center">
                 <p style={{ fontSize: "24px", marginBottom: "8px" }}>📍</p>
