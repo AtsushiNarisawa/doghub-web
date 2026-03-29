@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AuthGuard } from "@/components/admin/auth-guard";
+import { NotificationPanel } from "@/components/admin/notification-panel";
 import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
@@ -44,7 +45,8 @@ function useNewReservationBadge() {
     const { count: newCount } = await supabase
       .from("reservations")
       .select("*", { count: "exact", head: true })
-      .gt("created_at", lastSeenRef.current);
+      .gt("created_at", lastSeenRef.current)
+      .neq("status", "cancelled");
     const c = newCount || 0;
     if (c > prevCountRef.current && prevCountRef.current >= 0) {
       playNotificationSound();
@@ -67,7 +69,7 @@ function useNewReservationBadge() {
     return () => clearInterval(interval);
   }, [checkNew]);
 
-  return { count, markSeen };
+  return { count, markSeen, lastSeen: lastSeenRef.current };
 }
 
 function AdminNav({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeClear: () => void }) {
@@ -129,30 +131,38 @@ function AdminNav({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeCle
   );
 }
 
-function AdminHeader({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeClear: () => void }) {
+function AdminHeader({ badgeCount, onBadgeClear, lastSeen }: { badgeCount: number; onBadgeClear: () => void; lastSeen: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  const handleNotifClick = () => {
+    setNotifOpen(true);
+    onBadgeClear();
+  };
 
   const handleLogout = () => {
     window.location.href = "/api/admin/logout";
   };
 
   return (
+    <>
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-base font-medium text-gray-900">DogHub 管理</h1>
-          {badgeCount > 0 && (
-            <Link
-              href="/admin"
-              onClick={onBadgeClear}
-              className="flex items-center gap-1 bg-red-50 text-red-600 text-xs font-medium px-2.5 py-1 rounded-full animate-pulse"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              新着{badgeCount}件
-            </Link>
-          )}
+          <button
+            onClick={handleNotifClick}
+            className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
+              badgeCount > 0
+                ? "bg-red-50 text-red-600 animate-pulse"
+                : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {badgeCount > 0 ? `新着${badgeCount}件` : "通知"}
+          </button>
         </div>
         <div className="relative">
           <button
@@ -179,6 +189,12 @@ function AdminHeader({ badgeCount, onBadgeClear }: { badgeCount: number; onBadge
         </div>
       </div>
     </header>
+      <NotificationPanel
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+        lastSeen={lastSeen}
+      />
+    </>
   );
 }
 
@@ -188,7 +204,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { count, markSeen } = useNewReservationBadge();
+  const { count, markSeen, lastSeen } = useNewReservationBadge();
 
   // ログインページは認証ガード外
   if (pathname === "/admin/login") {
@@ -198,7 +214,7 @@ export default function AdminLayout({
   return (
     <AuthGuard>
       <div className="min-h-dvh bg-gray-50 pb-20">
-        <AdminHeader badgeCount={count} onBadgeClear={markSeen} />
+        <AdminHeader badgeCount={count} onBadgeClear={markSeen} lastSeen={lastSeen} />
         <main className="max-w-lg mx-auto px-4 py-4">{children}</main>
         <AdminNav badgeCount={count} onBadgeClear={markSeen} />
       </div>

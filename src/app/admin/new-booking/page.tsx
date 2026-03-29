@@ -11,7 +11,7 @@ interface CustomerResult {
   first_name: string;
   phone: string;
   email: string;
-  dogs: { id: string; name: string; breed: string; weight: number; age: number | null }[];
+  dogs: { id: string; name: string; breed: string; weight: number; age: number | null; sex: string; has_rabies_vaccine: boolean; has_mixed_vaccine: boolean; allergies: string | null; meal_notes: string | null; medication_notes: string | null }[];
 }
 
 type Step = "search" | "form";
@@ -22,7 +22,7 @@ interface SearchResult {
   first_name: string;
   phone: string;
   email: string;
-  dogs: { id: string; name: string; breed: string; weight: number; age: number | null }[];
+  dogs: { id: string; name: string; breed: string; weight: number; age: number | null; sex: string; has_rabies_vaccine: boolean; has_mixed_vaccine: boolean; allergies: string | null; meal_notes: string | null; medication_notes: string | null }[];
 }
 
 interface NewDogInput {
@@ -62,7 +62,9 @@ function NewBookingForm() {
   const [date, setDate] = useState("");
   const [checkinTime, setCheckinTime] = useState("");
   const [checkoutDate, setCheckoutDate] = useState("");
-  const [selectedDogIds, setSelectedDogIds] = useState<string[]>([]);  const [notes, setNotes] = useState("");
+  const [selectedDogIds, setSelectedDogIds] = useState<string[]>([]);
+  const [walkOption, setWalkOption] = useState(false);
+  const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -77,7 +79,7 @@ function NewBookingForm() {
   const loadCustomerById = async (customerId: string) => {
     const { data } = await supabase
       .from("customers")
-      .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age)")
+      .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
       .eq("id", customerId)
       .single();
     if (data) {
@@ -102,7 +104,7 @@ function NewBookingForm() {
       const normalized = q.replace(/[-\s]/g, "");
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age)")
+        .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
         .ilike("phone", `%${normalized}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -110,7 +112,7 @@ function NewBookingForm() {
       // 名前検索（姓 or 名に部分一致）
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age)")
+        .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
         .or(`last_name.ilike.%${q}%,first_name.ilike.%${q}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -154,32 +156,45 @@ function NewBookingForm() {
 
     setSubmitting(true);
     setSubmitError("");
-    const makeDogData = (d: { name: string; breed: string; weight: string; age: string; id?: string }) => ({
-      ...(d.id ? { id: d.id } : {}),
-      name: d.name,
-      breed: d.breed || "不明",
-      weight: d.weight || "5",
-      age: d.age || "",
-      age_months: "",
-      sex: "male" as const,
-      has_rabies_vaccine: false,
-      has_mixed_vaccine: false,
-      allergies: "",
-      meal_notes: "",
-      medication_notes: "",
-    });
     try {
+      // 既存顧客の犬: DBの情報をそのまま使う（性別・アレルギー等を上書きしない）
+      // 新規顧客の犬: フォーム入力値を使う
       const selectedDogs = customer && (customer.dogs || []).length > 0
         ? (customer.dogs || [])
             .filter((d) => selectedDogIds.includes(d.id))
-            .map((d) => makeDogData({ ...d, weight: String(d.weight), age: d.age ? String(d.age) : "" }))
-        : newDogs.filter((d) => d.name).map((d) => makeDogData(d));
+            .map((d) => ({
+              id: d.id,
+              name: d.name,
+              breed: d.breed || "不明",
+              weight: String(d.weight) || "5",
+              age: d.age ? String(d.age) : "",
+              age_months: "",
+              sex: (d.sex || "male") as "male" | "female",
+              has_rabies_vaccine: d.has_rabies_vaccine || false,
+              has_mixed_vaccine: d.has_mixed_vaccine || false,
+              allergies: d.allergies || "",
+              meal_notes: d.meal_notes || "",
+              medication_notes: d.medication_notes || "",
+            }))
+        : newDogs.filter((d) => d.name).map((d) => ({
+              name: d.name,
+              breed: d.breed || "不明",
+              weight: d.weight || "5",
+              age: d.age || "",
+              age_months: "",
+              sex: "male" as const,
+              has_rabies_vaccine: false,
+              has_mixed_vaccine: false,
+              allergies: "",
+              meal_notes: "",
+              medication_notes: "",
+            }));
       const body = {
         plan,
         date,
         checkin_time: checkinTime,
         checkout_date: plan === "stay" ? checkoutDate : undefined,
-        walk_option: false,
+        walk_option: walkOption,
         notes,
         dogs: selectedDogs,
         customer: customer
@@ -497,6 +512,9 @@ function NewBookingForm() {
             onChange={(e) => setDate(e.target.value)}
             className="w-full mt-1 px-3 py-2.5 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
           />
+          {date && [3,4].includes(new Date(date + "T00:00:00+09:00").getDay()) && (
+            <p className="text-xs text-orange-600 mt-1">⚠ この日は定休日（水・木）です</p>
+          )}
         </div>
         {plan && (
           <div>
@@ -530,6 +548,20 @@ function NewBookingForm() {
             />
           </div>
         )}
+      </div>
+
+      {/* オプション */}
+      <div className="bg-white rounded-xl p-4 space-y-3">
+        <p className="text-sm font-medium text-gray-500">オプション</p>
+        <label className="flex items-center gap-3 py-2">
+          <input
+            type="checkbox"
+            checked={walkOption}
+            onChange={(e) => setWalkOption(e.target.checked)}
+            className="w-5 h-5 rounded border-gray-300"
+          />
+          <span className="text-sm text-gray-700">お散歩オプション（¥550/回・1頭）</span>
+        </label>
       </div>
 
       {/* メモ */}

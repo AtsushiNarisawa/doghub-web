@@ -30,6 +30,9 @@ interface ReservationRow {
     last_name: string;
     first_name: string;
     phone: string;
+    total_visits: number;
+    first_visit_date: string | null;
+    last_visit_date: string | null;
   };
   reservation_dogs: { dogs: DogInfo | null }[];
 }
@@ -175,7 +178,7 @@ export default function AdminDashboard() {
 
     const selectFields = `
       id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
-      customers!inner(id, last_name, first_name, phone),
+      customers!inner(id, last_name, first_name, phone, total_visits, first_visit_date, last_visit_date),
       reservation_dogs(dogs(name, breed, weight, age, sex, allergies, meal_notes, medication_notes))
     `;
 
@@ -201,7 +204,13 @@ export default function AdminDashboard() {
 
       for (const cid of customerIds) {
         const visits = (pastRes || []).filter((r) => r.customer_id === cid && !displayedIds.includes(r.id));
-        histories[cid] = { visitCount: visits.length, lastVisitDate: visits.length > 0 ? visits[0].date : null };
+        const customer = allData.find((r) => r.customers.id === cid)?.customers;
+        const importedVisits = customer?.total_visits || 0;
+        const dbVisits = visits.length;
+        // インポート済み利用回数 + 新システムの過去予約（重複を避けるため大きい方を採用）
+        const totalCount = Math.max(importedVisits, dbVisits);
+        const lastDate = visits.length > 0 ? visits[0].date : customer?.last_visit_date || null;
+        histories[cid] = { visitCount: totalCount, lastVisitDate: lastDate };
       }
     }
 
@@ -486,9 +495,10 @@ function SingleDogCard({ r, dog, dogIndex, totalDogs, isStayOver, history }: {
   r: ReservationRow; dog: DogInfo | null; dogIndex: number; totalDogs: number;
   isStayOver?: boolean; history?: CustomerHistory;
 }) {
-  const hasAlert = dog && (dog.allergies || dog.meal_notes || dog.medication_notes);
+  const hasDogAlert = dog && (dog.allergies || dog.meal_notes || dog.medication_notes);
+  const hasNotes = r.notes;
   const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
-  const isRepeater = history && history.visitCount > 0;
+  const isRepeater = history && history.visitCount >= 2;
   const isFirst = dogIndex <= 1;
 
   return (
@@ -512,32 +522,35 @@ function SingleDogCard({ r, dog, dogIndex, totalDogs, isStayOver, history }: {
             <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{dogIndex}/{totalDogs}頭</span>
           )}
           {isRepeater && isFirst && (
-            <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">リピーター</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+              {history.visitCount}回利用
+            </span>
           )}
           {r.status === "pending" && isFirst && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">確認待ち</span>
           )}
-          {hasAlert && <span className="text-xs">⚠️</span>}
         </div>
+        <div className="flex items-center gap-1.5">
+          {hasDogAlert && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">⚠ 注意事項</span>}
+          {isFirst && hasNotes && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">📝 備考</span>}
+        </div>
+      </div>
+
+      {/* 中段: お客様名 + 電話 */}
+      <div className="flex items-center justify-between">
+        <p className="text-base font-medium text-gray-800">
+          {r.customers.last_name} {r.customers.first_name} 様
+        </p>
         <a href={`tel:${r.customers.phone}`} className="text-xs text-[#B87942]" onClick={(e) => e.stopPropagation()}>
           {r.customers.phone}
         </a>
       </div>
-
-      {/* 中段: お客様名 */}
-      <p className="text-base font-medium text-gray-800">
-        {r.customers.last_name} {r.customers.first_name} 様
-      </p>
 
       {/* 犬情報（統一フォーマット） */}
       {dog && (
         <div className="mt-1.5">
           <DogLine dog={dog} />
         </div>
-      )}
-
-      {isFirst && r.notes && (
-        <p className="text-xs text-gray-400 mt-1.5">備考記載あり</p>
       )}
     </Link>
   );

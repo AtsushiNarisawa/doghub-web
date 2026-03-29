@@ -153,10 +153,11 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
           <label className="text-sm text-[#888] block mb-1">
             備考・ご要望
           </label>
+          <p className="text-[11px] text-[#aaa] mb-1">特にない場合は空欄のままで大丈夫です</p>
           <textarea
             value={form.notes}
             onChange={(e) => onChange({ ...form, notes: e.target.value })}
-            placeholder="特に伝えておきたいことがあればご記入ください"
+            placeholder="到着が遅れる場合やお伝えしたいことがあればご記入ください"
             rows={3}
             className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none resize-none"
           />

@@ -239,6 +239,7 @@ function DogForm({
       {/* 注意事項（アレルギー・食事・投薬） */}
       <div>
         <label className="text-sm text-[#888] block mb-1">注意事項（アレルギー・食事・投薬など）</label>
+        <p className="text-[11px] text-[#aaa] mb-1">特にない場合は空欄のままで大丈夫です</p>
         <textarea
           value={dog.allergies}
           onChange={(e) => onUpdate({ ...dog, allergies: e.target.value })}
@@ -252,6 +253,9 @@ function DogForm({
 }
 
 export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
+  const [visitType, setVisitType] = useState<"" | "first" | "returning">(
+    form.customer.id ? "returning" : ""
+  );
   const [lookupState, setLookupState] = useState<"idle" | "loading" | "found" | "not_found">(
     form.customer.id ? "found" : "idle"
   );
@@ -353,31 +357,45 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* 電話番号でリピーター検索 */}
-      <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-3">
-        <p className="text-sm font-medium">2回目以降のご利用ですか？</p>
-        <p className="text-[12px] text-[#888]">
-          電話番号を入力するとワンちゃんの情報が自動で入力されます
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="tel"
-            inputMode="tel"
-            value={phoneInput}
-            onChange={(e) => setPhoneInput(e.target.value)}
-            placeholder="090-1234-5678"
-            disabled={lookupState === "found"}
-            className="flex-1 p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none disabled:bg-[#F0EDE8] disabled:text-[#888]"
-          />
-          {lookupState === "found" ? (
+      {/* 初めて / 2回目以降 の選択 */}
+      {!visitType && (
+        <div className="p-5 rounded-xl bg-white border-2 border-[#E5DDD8] space-y-4">
+          <p className="text-base font-medium text-[#3C200F]">DogHubのご利用は初めてですか？</p>
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={resetLookup}
-              className="px-4 py-3 rounded-lg border border-[#E5DDD8] text-[#888] text-sm whitespace-nowrap"
+              onClick={() => setVisitType("first")}
+              className="py-4 rounded-xl border-2 border-[#E5DDD8] text-[#3C200F] text-sm font-medium active:bg-[#F8F5F0] transition-all"
             >
-              クリア
+              初めて
             </button>
-          ) : (
+            <button
+              type="button"
+              onClick={() => setVisitType("returning")}
+              className="py-4 rounded-xl border-2 border-[#B87942] bg-[#FFF8F0] text-[#B87942] text-sm font-medium active:bg-orange-50 transition-all"
+            >
+              2回目以降
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 2回目以降: 電話番号検索 */}
+      {visitType === "returning" && lookupState !== "found" && (
+        <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-3">
+          <p className="text-sm font-medium text-[#3C200F]">ご登録の電話番号で検索</p>
+          <p className="text-[12px] text-[#888]">
+            前回ご利用時の電話番号を入力してください
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              inputMode="tel"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              placeholder="090-1234-5678"
+              className="flex-1 p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+            />
             <button
               type="button"
               onClick={lookupCustomer}
@@ -386,39 +404,72 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
             >
               {lookupState === "loading" ? "..." : "検索"}
             </button>
-          )}
-        </div>
-
-        {lookupState === "found" && (
-          <div className="text-sm text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg">
-            <p className="font-medium">おかえりなさい！</p>
-            {form.dogs.some((d) => d.name && d.name !== "") ? (
-              <>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {form.dogs.filter((d) => d.name).map((d, i) => (
-                    <span key={i} className="bg-white text-green-700 px-2 py-0.5 rounded text-xs font-medium">
-                      {d.name}（{d.breed}）
-                    </span>
-                  ))}
-                </div>
-                <p className="text-[12px] mt-2 text-green-600">
-                  体重・年齢をご確認のうえ必要があれば修正してください。
-                </p>
-              </>
-            ) : (
-              <p className="text-[12px] mt-1 text-green-600">
-                ワンちゃん情報を下記にご入力ください。
-              </p>
-            )}
           </div>
-        )}
-        {lookupState === "not_found" && (
-          <p className="text-sm text-[#888]">初めてのご利用ですね。以下にワンちゃんの情報を入力してください。</p>
-        )}
-      </div>
+          {lookupState === "not_found" && (
+            <div className="text-sm text-[#888] bg-white p-3 rounded-lg border border-[#E5DDD8]">
+              <p>お客様情報が見つかりませんでした。</p>
+              <p className="text-[12px] mt-1">恐れ入りますが、以下にワンちゃんの情報をご入力ください。</p>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => { setVisitType(""); setLookupState("idle"); setPhoneInput(""); resetLookup(); }}
+            className="text-[12px] text-[#888] underline"
+          >
+            戻る
+          </button>
+        </div>
+      )}
 
-      {/* 犬フォーム */}
-      {form.dogs.map((dog, i) => (
+      {/* 2回目以降: 検索成功 */}
+      {visitType === "returning" && lookupState === "found" && (
+        <div className="p-4 rounded-xl bg-green-50 border border-green-200 space-y-3">
+          <p className="text-sm font-medium text-green-700">おかえりなさい！</p>
+          {form.dogs.some((d) => d.name && d.name !== "") ? (
+            <>
+              <div className="flex flex-wrap gap-1.5">
+                {form.dogs.filter((d) => d.name).map((d, i) => (
+                  <span key={i} className="bg-white text-green-700 px-2 py-0.5 rounded text-xs font-medium">
+                    {d.name}（{d.breed}）
+                  </span>
+                ))}
+              </div>
+              <p className="text-[12px] text-green-600">
+                体重・年齢をご確認のうえ必要があれば修正してください。
+              </p>
+            </>
+          ) : (
+            <p className="text-[12px] text-green-600">
+              ワンちゃん情報を下記にご入力ください。
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => { setVisitType(""); setLookupState("idle"); setPhoneInput(""); resetLookup(); }}
+            className="text-[12px] text-green-600 underline"
+          >
+            別のお客様として入力する
+          </button>
+        </div>
+      )}
+
+      {/* 初めて: メッセージ */}
+      {visitType === "first" && (
+        <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-2">
+          <p className="text-sm font-medium text-[#3C200F]">ようこそDogHubへ！</p>
+          <p className="text-[12px] text-[#888]">ワンちゃんの情報を入力してください。</p>
+          <button
+            type="button"
+            onClick={() => setVisitType("")}
+            className="text-[12px] text-[#888] underline"
+          >
+            戻る
+          </button>
+        </div>
+      )}
+
+      {/* 犬フォーム（初めて or 2回目以降で検索完了/not_found の場合のみ表示） */}
+      {(visitType === "first" || (visitType === "returning" && (lookupState === "found" || lookupState === "not_found"))) && form.dogs.map((dog, i) => (
         <DogForm
           key={i}
           dog={dog}
@@ -430,13 +481,15 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
       ))}
 
       {/* もう1頭追加 */}
-      <button
-        type="button"
-        onClick={addDog}
-        className="w-full py-3 rounded-xl border-2 border-dashed border-[#E5DDD8] text-[#888] text-sm font-medium active:bg-[#F8F5F0] transition-all"
-      >
-        + もう1頭追加
-      </button>
+      {(visitType === "first" || (visitType === "returning" && (lookupState === "found" || lookupState === "not_found"))) && (
+        <button
+          type="button"
+          onClick={addDog}
+          className="w-full py-3 rounded-xl border-2 border-dashed border-[#E5DDD8] text-[#888] text-sm font-medium active:bg-[#F8F5F0] transition-all"
+        >
+          + もう1頭追加
+        </button>
+      )}
 
       {/* ナビゲーション */}
       <div className="flex gap-3">

@@ -31,6 +31,7 @@ interface Reservation {
     email: string;
     postal_code: string | null;
     address: string | null;
+    total_visits: number;
   };
   reservation_dogs: {
     dogs: {
@@ -212,7 +213,12 @@ export default function ReservationDetailPage() {
             </p>
             <p className="text-xs text-gray-400">
               {customer.last_name_kana} {customer.first_name_kana}
-              {pastVisits.length > 0 && <span className="ml-2 text-blue-500">リピーター（{pastVisits.length + 1}回目）</span>}
+              {(() => {
+                const visits = Math.max(customer.total_visits || 0, pastVisits.length + 1);
+                return visits >= 2 ? (
+                  <span className="ml-2 text-blue-500">{visits}回利用</span>
+                ) : null;
+              })()}
             </p>
           </div>
           <a href={`tel:${customer.phone}`} className="text-sm text-[#B87942] font-medium" onClick={(e) => e.stopPropagation()}>
@@ -230,10 +236,10 @@ export default function ReservationDetailPage() {
         </div>
         {res.walk_option && <p className="text-xs text-[#B87942] mb-2">🐕 お散歩オプションあり</p>}
 
-        {/* 備考（あれば目立たせる） */}
+        {/* 備考 */}
         {res.notes && (
           <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
-            <p className="text-xs text-gray-500 mb-0.5">お客様備考</p>
+            <p className="text-xs text-gray-500 mb-0.5">📝 備考</p>
             <p className="text-sm text-gray-700">{res.notes}</p>
           </div>
         )}
@@ -253,16 +259,16 @@ export default function ReservationDetailPage() {
                       {dogs.length > 1 && <span className="text-gray-400 mr-1">{i + 1}.</span>}
                       {dog.name}
                     </p>
-                    {hasAlert && <span className="text-xs">⚠️</span>}
+                    {hasAlert && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">⚠ 注意事項</span>}
                   </div>
                   <p className="text-sm text-gray-500">{details}</p>
 
-                  {(dog.allergies || dog.meal_notes || dog.medication_notes) && (
-                    <div className="mt-1.5 bg-amber-50 rounded-lg px-3 py-2 text-sm space-y-1">
-                      <p className="text-amber-700 font-medium text-xs">注意事項</p>
-                      {dog.allergies && <p className="text-amber-800">{dog.allergies}</p>}
-                      {dog.meal_notes && <p className="text-amber-800">{dog.meal_notes}</p>}
-                      {dog.medication_notes && <p className="text-amber-800">{dog.medication_notes}</p>}
+                  {hasAlert && (
+                    <div className="mt-1.5 bg-gray-50 rounded-lg px-3 py-2 text-sm space-y-1">
+                      <p className="text-gray-600 font-medium text-xs">⚠ 注意事項</p>
+                      {dog.allergies && <p className="text-gray-700">{dog.allergies}</p>}
+                      {dog.meal_notes && <p className="text-gray-700">{dog.meal_notes}</p>}
+                      {dog.medication_notes && <p className="text-gray-700">{dog.medication_notes}</p>}
                     </div>
                   )}
                 </div>

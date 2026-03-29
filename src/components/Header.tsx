@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -36,8 +36,6 @@ const hotelNavItems = [
   { label: "お知らせ", href: "/news" },
 ];
 
-// WanWalk（独立サービス）
-const wanwalkNavItem = { label: "散歩コース", href: "/walks" };
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,7 +97,19 @@ export function Header() {
                 </Link>
               )
             )}
-            {/* WanWalk（独立サービス） - 一時非表示 */}
+            {/* WanWalk（独立コンテンツ） */}
+            <div className="h-5 w-px bg-[#E5DDD8] mx-1"></div>
+            <Link
+              href="/walks"
+              className="flex items-center gap-1 text-[#B87942] hover:text-[#8B5E30] transition-colors whitespace-nowrap"
+              style={{ fontSize: "13px", fontWeight: 500 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              散歩コース
+            </Link>
             <div className="flex items-center gap-1 ml-2">
               <a
                 href="https://www.instagram.com/doghub.hakone__/"
@@ -221,7 +231,21 @@ export function Header() {
             >
               ペットホテル予約
             </a>
-            {/* WanWalk（独立サービス） - 一時非表示 */}
+            {/* WanWalk（独立コンテンツ） */}
+            <div className="border-t border-[#E5DDD8] mt-2 pt-3">
+              <Link
+                href="/walks"
+                className="flex items-center gap-2 px-5 py-3 text-[#B87942]"
+                style={{ fontSize: "14px", fontWeight: 500 }}
+                onClick={() => setMenuOpen(false)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                犬と歩ける散歩コース
+              </Link>
+            </div>
           </div>
         )}
       </header>

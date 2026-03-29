@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getArticles } from "@/lib/cms";
+import { getAreas, getAllPublishedRoutes } from "@/lib/walks/data";
 
 // 記事の戦略的priority（トラフィックポテンシャル順）
 const ARTICLE_PRIORITY: Record<string, number> = {
@@ -15,7 +16,11 @@ const ARTICLE_PRIORITY: Record<string, number> = {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://dog-hub.shop";
   const now = new Date();
-  const articles = await getArticles();
+  const [articles, areas, routes] = await Promise.all([
+    getArticles(),
+    getAreas(),
+    getAllPublishedRoutes(),
+  ]);
 
   const articlePages: MetadataRoute.Sitemap = articles.map((a) => ({
     url: `${baseUrl}/news/${a.slug}`,
@@ -58,5 +63,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 記事ページ（priorityは戦略的に設定）
     ...articlePages,
+
+    // WanWalk 散歩コース
+    { url: `${baseUrl}/walks`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.7 },
+    { url: `${baseUrl}/walks/areas`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 },
+    ...areas.filter(a => a.slug).map(a => ({
+      url: `${baseUrl}/walks/areas/${a.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
+    ...routes.map(r => ({
+      url: `${baseUrl}/walks/routes/${r.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
   ];
 }

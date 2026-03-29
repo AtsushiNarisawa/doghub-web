@@ -363,7 +363,10 @@ export async function POST(req: NextRequest) {
       await updateCapacity(body.checkout_date, "day_booked", dogCount);
     }
 
-    // 7. メール送信（失敗しても予約自体は成功扱い、ただしフロントに通知）
+    // 7. 顧客の利用回数を更新
+    try { await supabase.rpc("increment_total_visits", { customer_uuid: customerId }); } catch { /* ignore */ }
+
+    // 8. メール送信（失敗しても予約自体は成功扱い、ただしフロントに通知）
     let emailFailed = false;
     try {
       await sendBookingEmails(body, reservation.id, status);
