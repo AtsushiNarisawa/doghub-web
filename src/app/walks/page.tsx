@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { getAreasWithRouteCount, getAllPublishedRoutes } from "@/lib/walks/data";
 import type { RouteWithArea } from "@/types/walks";
@@ -45,54 +46,65 @@ export default async function WalksTopPage() {
 
   return (
     <>
-      {/* ヒーロー */}
-      <section className="relative bg-gradient-to-br from-[#f5f0ea] via-white to-[#eef2eb] py-16 md:py-24 overflow-hidden">
-        {/* 背景の装飾 */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#5E7254]/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#8B6F47]/5 rounded-full blur-3xl" />
+      {/* ヒーロー: KV + テキスト */}
+      <section>
+        {/* KV画像 */}
+        <div className="relative w-full aspect-[21/9] md:aspect-[3/1]">
+          <Image
+            src="https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/object/public/route-photos/sengokuhara_susuki/01.jpg"
+            alt="仙石原すすき草原と箱根の山々"
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+          {/* 下端フェード: 画像→背景色に自然に溶け込む */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#f5f0ea] to-transparent" />
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 text-center">
-          {/* Branding */}
-          <div className="inline-flex items-center gap-3 mb-6">
-            <span className="text-[#5E7254] text-base font-bold tracking-wide">WanWalk</span>
-            <span className="text-[#8B6F47]/50 text-xs tracking-wide">Supported by 箱根DMO</span>
+        {/* テキストエリア: 確実に背景色の上 */}
+        <div className="bg-[#f5f0ea] pb-12 pt-6">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            {/* Branding */}
+            <div className="inline-flex items-center gap-3 mb-5">
+              <span className="text-[#5E7254] text-base font-bold tracking-wide">WanWalk</span>
+              <span className="text-[#8B6F47]/50 text-xs tracking-wide">Supported by 箱根DMO</span>
+            </div>
+
+            <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">
+              次の休日、どこ歩く？
+            </h1>
+            <p className="text-gray-500 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
+              箱根・鎌倉・伊豆…
+              <br className="hidden md:inline" />
+              犬連れに優しいルートを体験つきで紹介
+            </p>
+
+            {/* 数字 */}
+            <div className="flex items-center justify-center gap-6 md:gap-10 mb-8">
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{routes.length}</p>
+                <p className="text-xs text-gray-400 mt-0.5">散歩コース</p>
+              </div>
+              <div className="w-px h-10 bg-gray-300/40" />
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{activeAreas.length}</p>
+                <p className="text-xs text-gray-400 mt-0.5">エリア</p>
+              </div>
+              <div className="w-px h-10 bg-gray-300/40" />
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">All</p>
+                <p className="text-xs text-gray-400 mt-0.5">犬連れ対応</p>
+              </div>
+            </div>
+
+            <Link
+              href="/walks/areas"
+              className="inline-block bg-[#5E7254] text-white font-semibold px-8 py-3 rounded-full hover:bg-[#4A5E42] transition-colors shadow-sm"
+            >
+              エリアから探す
+            </Link>
           </div>
-
-          <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">
-            次の休日、どこ歩く？
-          </h1>
-          <p className="text-gray-500 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            箱根・鎌倉・伊豆…
-            <br className="hidden md:inline" />
-            犬連れに優しいルートを体験つきで紹介
-          </p>
-
-          {/* 数字で見る WanWalk */}
-          <div className="flex items-center justify-center gap-6 md:gap-10 mb-10">
-            <div className="text-center">
-              <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{routes.length}</p>
-              <p className="text-xs text-gray-400 mt-0.5">散歩コース</p>
-            </div>
-            <div className="w-px h-10 bg-gray-200" />
-            <div className="text-center">
-              <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{activeAreas.length}</p>
-              <p className="text-xs text-gray-400 mt-0.5">エリア</p>
-            </div>
-            <div className="w-px h-10 bg-gray-200" />
-            <div className="text-center">
-              <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">All</p>
-              <p className="text-xs text-gray-400 mt-0.5">犬連れ対応</p>
-            </div>
-          </div>
-
-          <Link
-            href="/walks/areas"
-            className="inline-block bg-[#5E7254] text-white font-semibold px-8 py-3 rounded-full hover:bg-[#4A5E42] transition-colors shadow-sm"
-          >
-            エリアから探す
-          </Link>
         </div>
       </section>
 
