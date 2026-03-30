@@ -9,12 +9,12 @@ import SupportedBadge from "@/components/walks/SupportedBadge";
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: "犬と歩く散歩コース | DogHub",
+  title: "次の休日、どこ歩く？ 犬連れ散歩コース | WanWalk by DogHub",
   description:
-    "愛犬と一緒に楽しめる散歩ルートを紹介。箱根・鎌倉・湘南など人気エリアの犬連れ散歩コースを写真・地図・体験つきで詳しく紹介。",
+    "箱根・鎌倉・伊豆など、犬連れに優しい散歩ルートを体験つきで紹介。駐車場・犬可カフェ・トイレ情報も完備。",
   openGraph: {
-    title: "犬と歩く散歩コース | DogHub",
-    description: "愛犬と一緒に楽しめる散歩ルートを地図・写真・体験つきで詳しく紹介。",
+    title: "次の休日、どこ歩く？ | WanWalk",
+    description: "箱根・鎌倉・伊豆…犬連れに優しいルートを体験つきで紹介。",
   },
 };
 
@@ -44,18 +44,18 @@ export default async function WalksTopPage() {
         <div className="relative max-w-6xl mx-auto px-4 text-center">
           {/* Supported badge */}
           <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-[#5E7254]/15 rounded-full px-4 py-1.5 mb-6">
-            <span className="text-[#5E7254] text-xs font-semibold tracking-wide">WanWalk by DogHub</span>
+            <span className="text-[#5E7254] text-xs font-semibold tracking-wide">WanWalk</span>
             <span className="w-1 h-1 bg-[#8B6F47]/40 rounded-full" />
             <span className="text-[#8B6F47] text-xs tracking-wide">Supported by 箱根DMO</span>
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">
-            犬と歩く、日本の散歩道
+            次の休日、どこ歩く？
           </h1>
           <p className="text-gray-500 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            愛犬と一緒に楽しめる散歩ルートを、
+            箱根・鎌倉・伊豆…
             <br className="hidden md:inline" />
-            地図・写真・体験つきで詳しく紹介
+            犬連れに優しいルートを体験つきで紹介
           </p>
 
           {/* 数字で見る WanWalk */}
