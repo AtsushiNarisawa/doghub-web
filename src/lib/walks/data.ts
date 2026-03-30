@@ -1,6 +1,24 @@
 import { wanwalkSupabase as supabase } from "./supabase";
 import type { Area, OfficialRoute, RouteSpot, RouteWithArea } from "@/types/walks";
 
+export async function getFeaturedRoute(): Promise<RouteWithArea | null> {
+  const { data, error } = await supabase
+    .from("featured_routes")
+    .select("route_id, label, official_routes(*, areas(id, name, slug, prefecture, description))")
+    .eq("is_active", true)
+    .order("display_order")
+    .limit(1);
+
+  if (error || !data || data.length === 0) return null;
+  const routeJson = (data[0] as Record<string, unknown>).official_routes;
+  if (!routeJson) return null;
+  const r = routeJson as Record<string, unknown>;
+  return {
+    ...parseRouteLocation(r),
+    areas: r.areas as unknown as Area,
+  } as RouteWithArea;
+}
+
 export async function getAreas(): Promise<Area[]> {
   const { data, error } = await supabase
     .from("areas")

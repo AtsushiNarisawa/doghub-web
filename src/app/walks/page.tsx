@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { getAreasWithRouteCount, getAllPublishedRoutes } from "@/lib/walks/data";
+import { getAreasWithRouteCount, getAllPublishedRoutes, getFeaturedRoute } from "@/lib/walks/data";
 import type { RouteWithArea } from "@/types/walks";
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
@@ -21,9 +21,10 @@ export const metadata: Metadata = {
 };
 
 export default async function WalksTopPage() {
-  const [areas, routes] = await Promise.all([
+  const [areas, routes, pickupRoute] = await Promise.all([
     getAreasWithRouteCount(),
     getAllPublishedRoutes(),
+    getFeaturedRoute(),
   ]);
 
   const activeAreas = areas.filter((a) => a.route_count > 0);
@@ -31,18 +32,10 @@ export default async function WalksTopPage() {
     .sort((a, b) => b.route_count - a.route_count)
     .slice(0, 8);
 
-  // おすすめ: 箱根4エリア + 鎌倉 + 伊豆（DogHub周遊は除外）
-  const featuredSlugs = [
-    "hakone-ashinoko-onshi-park-walk",       // 箱根・芦ノ湖
-    "hakone-gora-chokoku-park",              // 箱根・強羅
-    "hakone-sengokuhara-susuki-highland-walk",// 箱根・仙石原
-    "hakone-yumoto-onsen-town-walk",         // 箱根・箱根湯本
-    "kamakura-hasedera-daibutsu-walk",       // 鎌倉
-    "izu-shuzenji-onsen",                    // 伊豆
-  ];
-  const featuredRoutes = featuredSlugs
-    .map((slug) => routes.find((r) => r.slug === slug))
-    .filter((r): r is RouteWithArea => r !== undefined);
+  // 最新ルート6件（ピックアップを除外）
+  const latestRoutes = routes
+    .filter((r) => !pickupRoute || r.id !== pickupRoute.id)
+    .slice(0, 6);
 
   return (
     <>
@@ -135,11 +128,46 @@ export default async function WalksTopPage() {
           </div>
         </section>
 
-        {/* ピックアップルート */}
+        {/* おすすめピックアップ */}
+        {pickupRoute && (
+          <section className="py-12">
+            <h2 className="text-2xl font-bold mb-6">おすすめピックアップ</h2>
+            <Link
+              href={`/walks/routes/${pickupRoute.slug}`}
+              className="group block overflow-hidden rounded-2xl border border-[#5E7254]/15 hover:shadow-md transition-shadow"
+            >
+              {pickupRoute.thumbnail_url && (
+                <div className="aspect-[21/9] relative">
+                  <Image
+                    src={pickupRoute.thumbnail_url}
+                    alt={pickupRoute.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 1152px) 100vw, 1152px"
+                  />
+                </div>
+              )}
+              <div className="p-5 bg-white">
+                <h3 className="text-xl font-bold text-gray-800 group-hover:text-[#5E7254] transition-colors">
+                  {pickupRoute.name}
+                </h3>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                  <span>{(pickupRoute.distance_meters / 1000).toFixed(1)}km</span>
+                  <span>約{pickupRoute.estimated_minutes}分</span>
+                  <span className="text-xs px-2 py-0.5 bg-[#5E7254]/10 text-[#5E7254] rounded-full">
+                    {pickupRoute.areas?.name}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          </section>
+        )}
+
+        {/* 最新のルート */}
         <section className="py-12">
-          <h2 className="text-2xl font-bold mb-6">おすすめ散歩コース</h2>
+          <h2 className="text-2xl font-bold mb-6">最新のルート</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredRoutes.map((route) => (
+            {latestRoutes.map((route) => (
               <RouteCard key={route.id} route={route} />
             ))}
           </div>
