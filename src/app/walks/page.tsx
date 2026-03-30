@@ -49,13 +49,13 @@ export default async function WalksTopPage() {
       {/* ヒーロー: KV + テキスト */}
       <section>
         {/* KV画像 */}
-        <div className="relative w-full aspect-[21/9] md:aspect-[3/1]">
+        <div className="relative w-full aspect-[16/9] md:aspect-[21/9]">
           <Image
             src="https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/object/public/route-photos/sengokuhara_susuki/01.jpg"
             alt="仙石原すすき草原と箱根の山々"
             fill
             priority
-            className="object-cover object-center"
+            className="object-cover object-[center_65%]"
             sizes="100vw"
           />
           {/* 下端フェード: 画像→背景色に自然に溶け込む */}
