@@ -10,6 +10,7 @@ import {
 } from "@/lib/walks/data";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import RouteFeedback from "@/components/walks/RouteFeedback";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
 
 // ISR: 30分ごとに再検証
@@ -162,13 +163,6 @@ export default async function RouteDetailPage({
         </div>
       </header>
 
-      {/* コミュニティノート */}
-      <div className="mb-8 px-4 py-3 bg-[#F9F7F4] rounded-lg text-sm text-gray-500 leading-relaxed">
-        <p>
-          このルートの情報は最新でない場合があります。お気づきの点があれば、ぜひ教えてください。みなさんの声でルート情報を一緒に育てていきます。
-        </p>
-      </div>
-
       {/* コース紹介 */}
       {route.description && (
         <section className="mb-10">
@@ -246,6 +240,9 @@ export default async function RouteDetailPage({
           </div>
         </section>
       )}
+
+      {/* コミュニティノート + フィードバック */}
+      <RouteFeedback routeId={route.id} />
 
       {/* ギャラリー */}
       {route.gallery_images && route.gallery_images.length > 0 && (
