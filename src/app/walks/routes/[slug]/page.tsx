@@ -9,6 +9,7 @@ import {
   getRouteLineCoordinates,
 } from "@/lib/walks/data";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import SupportedBadge from "@/components/walks/SupportedBadge";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
 
 // ISR: 30分ごとに再検証
@@ -257,6 +258,7 @@ export default async function RouteDetailPage({
       <div className="mt-12">
         <WalksAppCTA />
       </div>
+      <SupportedBadge />
 
       {/* 構造化データ */}
       <script

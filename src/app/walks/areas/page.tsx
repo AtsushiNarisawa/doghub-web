@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getAreasWithRouteCount } from "@/lib/walks/data";
+import SupportedBadge from "@/components/walks/SupportedBadge";
 
 // ISR: 30分ごとに再検証
 export const revalidate = 1800;
@@ -70,6 +71,8 @@ export default async function AreasPage() {
           </div>
         </section>
       ))}
+
+      <SupportedBadge />
     </div>
   );
 }

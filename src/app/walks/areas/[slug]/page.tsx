@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getAreas, getAreaBySlug, getRoutesByAreaId } from "@/lib/walks/data";
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import SupportedBadge from "@/components/walks/SupportedBadge";
 import Link from "next/link";
 
 // ISR: 30分ごとに再検証（ルート追加時のキャッシュ更新を早める）
@@ -81,6 +82,7 @@ export default async function AreaDetailPage({
       )}
 
       <WalksAppCTA />
+      <SupportedBadge />
     </div>
   );
 }

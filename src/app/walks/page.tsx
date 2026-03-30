@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getAreasWithRouteCount, getAllPublishedRoutes } from "@/lib/walks/data";
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
+import SupportedBadge from "@/components/walks/SupportedBadge";
 
 // ISR: 30分ごとに再検証
 export const revalidate = 1800;
@@ -23,8 +24,8 @@ export default async function WalksTopPage() {
     getAllPublishedRoutes(),
   ]);
 
-  const featuredAreas = areas
-    .filter((a) => a.route_count > 0)
+  const activeAreas = areas.filter((a) => a.route_count > 0);
+  const featuredAreas = [...activeAreas]
     .sort((a, b) => b.route_count - a.route_count)
     .slice(0, 8);
 
@@ -33,20 +34,51 @@ export default async function WalksTopPage() {
   return (
     <>
       {/* ヒーロー */}
-      <section className="relative bg-gradient-to-br from-amber-50 via-white to-orange-50 py-16 md:py-24">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-amber-600 text-sm font-medium mb-2">WanWalk by DogHub</p>
+      <section className="relative bg-gradient-to-br from-[#f5f0ea] via-white to-[#eef2eb] py-16 md:py-24 overflow-hidden">
+        {/* 背景の装飾 */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#5E7254]/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#8B6F47]/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-4 text-center">
+          {/* Supported badge */}
+          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-[#5E7254]/15 rounded-full px-4 py-1.5 mb-6">
+            <span className="text-[#5E7254] text-xs font-semibold tracking-wide">WanWalk by DogHub</span>
+            <span className="w-1 h-1 bg-[#8B6F47]/40 rounded-full" />
+            <span className="text-[#8B6F47] text-xs tracking-wide">Supported by 箱根DMO</span>
+          </div>
+
           <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">
             犬と歩く、日本の散歩道
           </h1>
-          <p className="text-gray-500 text-lg md:text-xl mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-500 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
             愛犬と一緒に楽しめる散歩ルートを、
             <br className="hidden md:inline" />
             地図・写真・体験つきで詳しく紹介
           </p>
+
+          {/* 数字で見る WanWalk */}
+          <div className="flex items-center justify-center gap-6 md:gap-10 mb-10">
+            <div className="text-center">
+              <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{routes.length}</p>
+              <p className="text-xs text-gray-400 mt-0.5">散歩コース</p>
+            </div>
+            <div className="w-px h-10 bg-gray-200" />
+            <div className="text-center">
+              <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{activeAreas.length}</p>
+              <p className="text-xs text-gray-400 mt-0.5">エリア</p>
+            </div>
+            <div className="w-px h-10 bg-gray-200" />
+            <div className="text-center">
+              <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">All</p>
+              <p className="text-xs text-gray-400 mt-0.5">犬連れ対応</p>
+            </div>
+          </div>
+
           <Link
             href="/walks/areas"
-            className="inline-block bg-amber-600 text-white font-semibold px-8 py-3 rounded-full hover:bg-amber-700 transition-colors"
+            className="inline-block bg-[#5E7254] text-white font-semibold px-8 py-3 rounded-full hover:bg-[#4A5E42] transition-colors shadow-sm"
           >
             エリアから探す
           </Link>
@@ -128,6 +160,8 @@ export default async function WalksTopPage() {
         <div className="py-12">
           <WalksAppCTA />
         </div>
+
+        <SupportedBadge />
       </div>
     </>
   );
