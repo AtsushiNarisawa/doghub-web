@@ -15,7 +15,7 @@ export function MobileCta() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (pathname === "/booking" || pathname.startsWith("/admin")) return null;
+  if (pathname === "/booking" || pathname.startsWith("/admin") || pathname.startsWith("/walks")) return null;
 
   return (
     <div

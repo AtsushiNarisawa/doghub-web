@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getAreasWithRouteCount, getAllPublishedRoutes } from "@/lib/walks/data";
+import type { RouteWithArea } from "@/types/walks";
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -29,7 +30,18 @@ export default async function WalksTopPage() {
     .sort((a, b) => b.route_count - a.route_count)
     .slice(0, 8);
 
-  const featuredRoutes = routes.slice(0, 6);
+  // おすすめ: 箱根4エリア + 鎌倉 + 伊豆（DogHub周遊は除外）
+  const featuredSlugs = [
+    "hakone-ashinoko-onshi-park-walk",       // 箱根・芦ノ湖
+    "hakone-gora-chokoku-park",              // 箱根・強羅
+    "hakone-sengokuhara-susuki-highland-walk",// 箱根・仙石原
+    "hakone-yumoto-onsen-town-walk",         // 箱根・箱根湯本
+    "kamakura-hasedera-daibutsu-walk",       // 鎌倉
+    "izu-shuzenji-onsen",                    // 伊豆
+  ];
+  const featuredRoutes = featuredSlugs
+    .map((slug) => routes.find((r) => r.slug === slug))
+    .filter((r): r is RouteWithArea => r !== undefined);
 
   return (
     <>
@@ -42,11 +54,10 @@ export default async function WalksTopPage() {
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 text-center">
-          {/* Supported badge */}
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-[#5E7254]/15 rounded-full px-4 py-1.5 mb-6">
-            <span className="text-[#5E7254] text-xs font-semibold tracking-wide">WanWalk</span>
-            <span className="w-1 h-1 bg-[#8B6F47]/40 rounded-full" />
-            <span className="text-[#8B6F47] text-xs tracking-wide">Supported by 箱根DMO</span>
+          {/* Branding */}
+          <div className="inline-flex items-center gap-3 mb-6">
+            <span className="text-[#5E7254] text-base font-bold tracking-wide">WanWalk</span>
+            <span className="text-[#8B6F47]/50 text-xs tracking-wide">Supported by 箱根DMO</span>
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">
