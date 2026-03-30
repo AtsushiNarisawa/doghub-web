@@ -162,6 +162,13 @@ export default async function RouteDetailPage({
         </div>
       </header>
 
+      {/* コミュニティノート */}
+      <div className="mb-8 px-4 py-3 bg-[#F9F7F4] rounded-lg text-sm text-gray-500 leading-relaxed">
+        <p>
+          このルートの情報は最新でない場合があります。お気づきの点があれば、ぜひ教えてください。みなさんの声でルート情報を一緒に育てていきます。
+        </p>
+      </div>
+
       {/* コース紹介 */}
       {route.description && (
         <section className="mb-10">
