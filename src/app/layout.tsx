@@ -33,9 +33,9 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "DogHub（ドッグハブ）| 箱根仙石原のプレミアムドッグホテル",
+  title: "箱根で犬の預かり・ホテルならDogHub箱根仙石原｜半日¥3,300〜",
   description:
-    "箱根仙石原のプレミアムドッグホテル。ゴルフ、温泉旅館、ユネッサンなど、愛犬を預けて心置きなく箱根を楽しめます。広いドッグランでワンちゃんも大満足。半日¥3,300〜、宿泊¥7,700〜。",
+    "箱根で犬を預けるならDogHub箱根仙石原。犬の一時預かり半日¥3,300〜、宿泊¥7,700〜。ゴルフ・温泉・ユネッサンの間に愛犬をお預け。24時間スタッフ常駐・完全個室・ドッグラン併設。",
   metadataBase: new URL("https://dog-hub.shop"),
   icons: {
     icon: [
@@ -45,8 +45,8 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "DogHub（ドッグハブ）| 箱根仙石原のプレミアムドッグホテル",
-    description: "箱根仙石原のプレミアムドッグホテル。愛犬を預けて心置きなく箱根を楽しめます。半日¥3,300〜、宿泊¥7,700〜。",
+    title: "箱根で犬の預かり・ホテルならDogHub箱根仙石原｜半日¥3,300〜",
+    description: "箱根で犬を預けるならDogHub箱根仙石原。犬の一時預かり半日¥3,300〜、宿泊¥7,700〜。24時間スタッフ常駐・完全個室・ドッグラン併設。",
     url: "https://dog-hub.shop",
     siteName: "DogHub箱根仙石原",
     locale: "ja_JP",

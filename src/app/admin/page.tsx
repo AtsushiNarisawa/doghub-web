@@ -309,8 +309,12 @@ export default function AdminDashboard() {
                       {d.getDate()}
                     </span>
                     {summary && summary.total > 0 && (
-                      <span className={`text-[9px] font-dm ${isSelected ? "text-white/90" : "text-gray-500"}`}>
-                        {summary.total}<span className={`${isSelected ? "text-white/60" : "text-gray-300"}`}>/{summary.checkinCount}</span>
+                      <span className={`text-[9px] font-dm ${
+                        isSelected ? "text-white/90" :
+                        summary.total >= 8 ? "text-red-500 font-bold" :
+                        "text-gray-500"
+                      }`}>
+                        {summary.total}頭
                       </span>
                     )}
                   </button>
@@ -341,8 +345,12 @@ export default function AdminDashboard() {
                     {d.getDate()}
                   </span>
                   {s.total > 0 && (
-                    <span className={`text-[10px] font-dm mt-0.5 ${isSelected ? "text-white/90" : "text-gray-500"}`}>
-                      {s.total}<span className={`${isSelected ? "text-white/60" : "text-gray-300"}`}>/{s.checkinCount}</span>
+                    <span className={`text-[10px] font-dm mt-0.5 ${
+                      isSelected ? "text-white/90" :
+                      s.total >= 8 ? "text-red-500 font-bold" :
+                      "text-gray-500"
+                    }`}>
+                      {s.total}頭
                     </span>
                   )}
                 </button>

@@ -74,6 +74,7 @@ export default function ReservationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [memoSaved, setMemoSaved] = useState(false);
+  const [memoEditing, setMemoEditing] = useState(false);
 
   useEffect(() => { fetchReservation(); }, [id]);
 
@@ -132,8 +133,9 @@ export default function ReservationDetailPage() {
     if (error) {
       alert("メモの保存に失敗しました");
     } else {
+      setMemoEditing(false);
       setMemoSaved(true);
-      setTimeout(() => setMemoSaved(false), 2000);
+      setTimeout(() => setMemoSaved(false), 3000);
     }
   };
 
@@ -280,23 +282,59 @@ export default function ReservationDetailPage() {
 
       {/* スタッフメモ */}
       <div className="bg-white rounded-xl p-4">
-        <textarea
-          value={adminNotes}
-          onChange={(e) => setAdminNotes(e.target.value)}
-          placeholder="スタッフメモを入力..."
-          rows={2}
-          className="w-full p-3 rounded-lg border border-gray-200 text-sm focus:border-[#B87942] focus:outline-none resize-none"
-        />
-        <div className="flex items-center gap-3 mt-2">
-          <button
-            onClick={saveAdminNotes}
-            disabled={saving}
-            className="px-4 py-2 rounded-lg bg-gray-100 text-sm text-gray-700 active:bg-gray-200 disabled:opacity-50"
-          >
-            {saving ? "保存中..." : "メモを保存"}
-          </button>
-          {memoSaved && <span className="text-sm text-green-600">保存しました</span>}
-        </div>
+        <p className="text-xs font-medium text-gray-500 mb-2">スタッフメモ</p>
+        {memoEditing ? (
+          <>
+            <textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              placeholder="メモを入力..."
+              rows={4}
+              autoFocus
+              className="w-full p-3 rounded-lg border border-gray-200 text-sm focus:border-[#B87942] focus:outline-none resize-none"
+            />
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={saveAdminNotes}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830] disabled:opacity-50"
+              >
+                {saving ? "保存中..." : "保存"}
+              </button>
+              <button
+                onClick={() => { setMemoEditing(false); setAdminNotes(res?.admin_notes || ""); }}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-sm text-gray-500 active:bg-gray-200"
+              >
+                キャンセル
+              </button>
+            </div>
+          </>
+        ) : adminNotes ? (
+          <>
+            <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+              {adminNotes}
+            </div>
+            <div className="flex items-center gap-3 mt-2">
+              <button
+                onClick={() => setMemoEditing(true)}
+                className="text-xs text-[#B87942] font-medium active:text-[#A06830]"
+              >
+                メモを修正
+              </button>
+              {memoSaved && <span className="text-xs text-green-600">保存しました</span>}
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMemoEditing(true)}
+              className="text-sm text-[#B87942] font-medium active:text-[#A06830]"
+            >
+              + メモを追加
+            </button>
+            {memoSaved && <span className="text-xs text-green-600">保存しました</span>}
+          </div>
+        )}
       </div>
 
       {/* アクション */}
