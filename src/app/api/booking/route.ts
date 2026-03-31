@@ -30,12 +30,7 @@ export async function POST(req: NextRequest) {
   try {
     const body: BookingFormData = await req.json();
 
-    // 二重送信チェック
-    if (isDuplicate(body)) {
-      return NextResponse.json({ error: "同じ内容の予約が直前に送信されています。しばらくお待ちください。" }, { status: 429 });
-    }
-
-    // バリデーション
+    // バリデーション（重複チェックの前に実行）
     if (!body.plan || !body.date || !body.checkin_time) {
       return NextResponse.json({ error: "プラン・日程情報が不足しています" }, { status: 400 });
     }
@@ -106,7 +101,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "ワンちゃん情報が不足しています" }, { status: 400 });
     }
     const c = body.customer;
-    if (!c.last_name || !c.first_name || !c.phone) {
+    if (!c.last_name || !c.phone) {
       return NextResponse.json({ error: "お客様情報が不足しています" }, { status: 400 });
     }
 
@@ -264,6 +259,11 @@ export async function POST(req: NextRequest) {
     // 3. ステータス決定（15kg以上 or 前日17時以降の翌日予約 → 仮予約）
     const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) >= 15);
     const status = (hasHeavyDog || isLateBooking) ? "pending" : "confirmed";
+
+    // 二重送信チェック（全バリデーション通過後に実行）
+    if (isDuplicate(body)) {
+      return NextResponse.json({ error: "同じ内容の予約が直前に送信されています。しばらくお待ちください。" }, { status: 429 });
+    }
 
     // 4. 予約作成（UUIDを事前生成してSELECT不要にする）
     const reservationId = randomUUID();

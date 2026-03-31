@@ -8,6 +8,8 @@ interface CustomerRow {
   id: string;
   last_name: string;
   first_name: string;
+  last_name_kana: string;
+  first_name_kana: string;
   phone: string;
   email: string;
   created_at: string;
@@ -34,7 +36,7 @@ export default function CustomersPage() {
       const { data } = await supabase
         .from("customers")
         .select(`
-          id, last_name, first_name, phone, email, created_at,
+          id, last_name, first_name, last_name_kana, first_name_kana, phone, email, created_at,
           dogs(name, breed),
           reservations(id)
         `)
@@ -56,9 +58,10 @@ export default function CustomersPage() {
     const q = search.toLowerCase();
     return (
       `${c.last_name}${c.first_name}`.includes(q) ||
+      `${c.last_name_kana}${c.first_name_kana}`.includes(q) ||
       c.phone.includes(q) ||
       c.email.toLowerCase().includes(q) ||
-      c.dogs.some((d) => d.name.includes(q))
+      c.dogs.some((d) => d.name.includes(q) || d.breed.toLowerCase().includes(q))
     );
   });
 
@@ -74,7 +77,7 @@ export default function CustomersPage() {
           inputMode="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="名前・電話番号・犬の名前で検索"
+          placeholder="名前・フリガナ・電話番号・犬の名前・犬種で検索"
           className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-base focus:border-[#B87942] focus:outline-none"
         />
       </div>
