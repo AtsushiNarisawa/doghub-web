@@ -338,9 +338,38 @@ export default function ReservationDetailPage() {
       </div>
 
       {/* アクション */}
-      {effectiveStatus !== "pending" && effectiveStatus !== "cancelled" && (
+      {effectiveStatus !== "cancelled" && (
         <div className="bg-white rounded-xl p-4 space-y-2">
-          {!isPast && (
+          {/* 確認メール再送 */}
+          {customer.email && (
+            <button
+              onClick={async () => {
+                if (!confirm(`${customer.last_name}様（${customer.email}）に確認メールを再送しますか？`)) return;
+                setSaving(true);
+                try {
+                  const r = await fetch("/api/admin/resend-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ reservation_id: id }),
+                  });
+                  const data = await r.json();
+                  if (r.ok) {
+                    alert(`${data.sent_to} にメールを送信しました`);
+                  } else {
+                    alert(`送信失敗: ${data.error}`);
+                  }
+                } catch {
+                  alert("通信エラー");
+                }
+                setSaving(false);
+              }}
+              disabled={saving}
+              className="w-full py-2.5 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium active:bg-blue-100 disabled:opacity-50"
+            >
+              確認メールを再送する
+            </button>
+          )}
+          {!isPast && effectiveStatus !== "pending" && (
             <button
               onClick={() => updateStatus("cancelled")}
               disabled={saving}
