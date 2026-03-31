@@ -105,6 +105,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "お客様情報が不足しています" }, { status: 400 });
     }
 
+    // メールアドレスの全角→半角変換
+    if (c.email) {
+      c.email = c.email.replace(/＠/g, "@").replace(/．/g, ".").trim().toLowerCase();
+    }
+
     // サーバー側：容量チェック
     const dogCount = body.dogs.length;
     {
