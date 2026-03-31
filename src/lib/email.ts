@@ -373,3 +373,86 @@ export async function sendThankYouEmail(
     console.error("Thank-you email failed:", err);
   }
 }
+
+// ──────────────────────────────────────────
+// 確認メール再送（DBの予約データから直接送信）
+// ──────────────────────────────────────────
+export async function resendConfirmationEmail(
+  reservation: {
+    id: string;
+    plan: string;
+    date: string;
+    checkin_time: string;
+    checkout_date: string | null;
+    status: string;
+    walk_option: boolean;
+    destination: string | null;
+    notes: string | null;
+  },
+  customer: {
+    last_name: string;
+    first_name: string;
+    email: string;
+  },
+  dogList: { name: string; breed: string; weight: number }[],
+) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return;
+
+  // BookingFormDataに変換してbuildCustomerEmailHtmlを再利用
+  const form: BookingFormData = {
+    plan: reservation.plan as "spot" | "4h" | "8h" | "stay",
+    date: reservation.date,
+    checkin_time: reservation.checkin_time?.slice(0, 5) || "",
+    checkout_date: reservation.checkout_date || "",
+    checkin_extension: false,
+    checkin_extension_from: "",
+    checkout_extension: false,
+    checkout_extension_until: "",
+    early_morning: false,
+    walk_option: reservation.walk_option,
+    destination: reservation.destination || "",
+    referral_source: "",
+    agreed: true,
+    notes: reservation.notes || "",
+    dogs: dogList.map((d) => ({
+      name: d.name,
+      breed: d.breed,
+      weight: String(d.weight),
+      age: "",
+      age_months: "",
+      sex: "male" as const,
+      has_rabies_vaccine: false,
+      has_mixed_vaccine: false,
+      allergies: "",
+      meal_notes: "",
+      medication_notes: "",
+      rabies_vaccine_status: "" as const,
+      mixed_vaccine_status: "" as const,
+      vaccine_unable_reason: "",
+    })),
+    customer: {
+      last_name: customer.last_name,
+      first_name: customer.first_name || "",
+      last_name_kana: "",
+      first_name_kana: "",
+      phone: "",
+      email: customer.email,
+      postal_code: "",
+      address: "",
+    },
+  };
+
+  const html = buildCustomerEmailHtml(form, reservation.id, reservation.status);
+  const dateStr = formatDate(reservation.date);
+  const subject = reservation.status === "confirmed"
+    ? `【DogHub箱根】ご予約確認（${dateStr}）`
+    : `【DogHub箱根】予約リクエストを受け付けました（${dateStr}）`;
+
+  await transporter.sendMail({
+    from: `"DogHub箱根仙石原" <${process.env.GMAIL_USER}>`,
+    replyTo: "info@dog-hub.shop",
+    to: customer.email,
+    subject,
+    html,
+  });
+}
