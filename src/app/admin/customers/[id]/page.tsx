@@ -64,6 +64,10 @@ export default function CustomerDetailPage() {
   const [saving, setSaving] = useState(false);
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [editingDogId, setEditingDogId] = useState<string | null>(null);
+  const [editDog, setEditDog] = useState<Partial<Dog>>({});
+  const [savingDog, setSavingDog] = useState(false);
+  const [dogSaved, setDogSaved] = useState(false);
 
   useEffect(() => { fetchData(); }, [id]);
 
@@ -102,6 +106,32 @@ export default function CustomerDetailPage() {
     setSavingNotes(true);
     await supabase.from("customers").update({ notes }).eq("id", id);
     setSavingNotes(false);
+  };
+
+  const startEditDog = (dog: Dog) => {
+    setEditingDogId(dog.id);
+    setEditDog({ ...dog });
+    setDogSaved(false);
+  };
+
+  const saveDog = async () => {
+    if (!editingDogId) return;
+    setSavingDog(true);
+    await supabase.from("dogs").update({
+      name: editDog.name,
+      breed: editDog.breed,
+      weight: editDog.weight,
+      age: editDog.age,
+      sex: editDog.sex,
+      allergies: editDog.allergies || null,
+      meal_notes: editDog.meal_notes || null,
+      medication_notes: editDog.medication_notes || null,
+    }).eq("id", editingDogId);
+    setDogs((prev) => prev.map((d) => d.id === editingDogId ? { ...d, ...editDog } as Dog : d));
+    setEditingDogId(null);
+    setSavingDog(false);
+    setDogSaved(true);
+    setTimeout(() => setDogSaved(false), 3000);
   };
 
   const formatDate = (d: string) => {
@@ -167,46 +197,43 @@ export default function CustomerDetailPage() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-sm text-gray-500">姓</label>
-                <input
-                  value={editData.last_name || ""}
-                  onChange={(e) => setEditData({ ...editData, last_name: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
-                />
+                <label className="text-xs text-gray-500">姓</label>
+                <input value={editData.last_name || ""} onChange={(e) => setEditData({ ...editData, last_name: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
               </div>
               <div>
-                <label className="text-sm text-gray-500">名</label>
-                <input
-                  value={editData.first_name || ""}
-                  onChange={(e) => setEditData({ ...editData, first_name: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
-                />
+                <label className="text-xs text-gray-500">名</label>
+                <input value={editData.first_name || ""} onChange={(e) => setEditData({ ...editData, first_name: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-gray-500">せい</label>
+                <input value={editData.last_name_kana || ""} onChange={(e) => setEditData({ ...editData, last_name_kana: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">めい</label>
+                <input value={editData.first_name_kana || ""} onChange={(e) => setEditData({ ...editData, first_name_kana: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
               </div>
             </div>
             <div>
-              <label className="text-sm text-gray-500">電話番号</label>
-              <input
-                value={editData.phone || ""}
-                onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                type="tel"
-                className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
-              />
+              <label className="text-xs text-gray-500">電話番号</label>
+              <input value={editData.phone || ""} onChange={(e) => setEditData({ ...editData, phone: e.target.value })} type="tel" className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
             </div>
             <div>
-              <label className="text-sm text-gray-500">メール</label>
-              <input
-                value={editData.email || ""}
-                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                type="email"
-                className="w-full mt-1 px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
-              />
+              <label className="text-xs text-gray-500">メール</label>
+              <input value={editData.email || ""} onChange={(e) => setEditData({ ...editData, email: e.target.value })} type="email" className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
             </div>
-            <button
-              onClick={() => setEditMode(false)}
-              className="w-full py-2 text-sm text-gray-500 bg-gray-50 rounded-xl"
-            >
-              キャンセル
-            </button>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="text-xs text-gray-500">郵便番号</label>
+                <input value={editData.postal_code || ""} onChange={(e) => setEditData({ ...editData, postal_code: e.target.value })} placeholder="1500001" className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+              </div>
+              <div className="col-span-2">
+                <label className="text-xs text-gray-500">住所</label>
+                <input value={editData.address || ""} onChange={(e) => setEditData({ ...editData, address: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+              </div>
+            </div>
+            <button onClick={() => { setEditMode(false); setEditData(customer || {}); }} className="w-full py-2 text-sm text-gray-500 bg-gray-50 rounded-xl">キャンセル</button>
           </div>
         ) : (
           <div className="space-y-2">
@@ -240,27 +267,75 @@ export default function CustomerDetailPage() {
 
       {/* ワンちゃん */}
       <div className="bg-white rounded-xl p-4">
-        <p className="text-sm font-medium text-gray-500 mb-3">登録ワンちゃん（{dogs.length}頭）</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium text-gray-500">登録ワンちゃん（{dogs.length}頭）</p>
+          {dogSaved && <span className="text-xs text-green-600">保存しました</span>}
+        </div>
         {dogs.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-2">ワンちゃん情報なし</p>
         ) : (
           <div className="space-y-3">
             {dogs.map((dog) => (
               <div key={dog.id} className="border-b border-gray-50 pb-3 last:border-0 last:pb-0">
-                <p className="text-base font-medium">{dog.name}（{dog.breed}）</p>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {dog.weight}kg
-                  {dog.age != null && ` / ${dog.age}歳`}
-                  {" / "}{dog.sex === "male" ? "オス" : "メス"}
-                </p>
-                {dog.allergies && (
-                  <p className="text-sm text-red-600 mt-1">⚠️ {dog.allergies}</p>
-                )}
-                {dog.meal_notes && (
-                  <p className="text-sm text-yellow-700 mt-0.5">🍚 {dog.meal_notes}</p>
-                )}
-                {dog.medication_notes && (
-                  <p className="text-sm text-purple-700 mt-0.5">💊 {dog.medication_notes}</p>
+                {editingDogId === dog.id ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-gray-500">名前</label>
+                        <input value={editDog.name || ""} onChange={(e) => setEditDog({ ...editDog, name: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">犬種</label>
+                        <input value={editDog.breed || ""} onChange={(e) => setEditDog({ ...editDog, breed: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="text-xs text-gray-500">体重(kg)</label>
+                        <input type="number" step="0.1" min="0" value={editDog.weight ?? ""} onChange={(e) => setEditDog({ ...editDog, weight: parseFloat(e.target.value) || 0 })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">年齢</label>
+                        <input type="number" min="0" value={editDog.age ?? ""} onChange={(e) => setEditDog({ ...editDog, age: parseInt(e.target.value) || null })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">性別</label>
+                        <select value={editDog.sex || "male"} onChange={(e) => setEditDog({ ...editDog, sex: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none">
+                          <option value="male">オス</option>
+                          <option value="female">メス</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500">注意事項（アレルギー・食事・投薬など）</label>
+                      <textarea value={editDog.allergies || ""} onChange={(e) => setEditDog({ ...editDog, allergies: e.target.value })} rows={2} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none resize-none" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={saveDog} disabled={savingDog} className="flex-1 py-2 bg-[#B87942] text-white text-sm rounded-lg font-medium disabled:opacity-50">
+                        {savingDog ? "保存中..." : "保存"}
+                      </button>
+                      <button onClick={() => setEditingDogId(null)} className="px-4 py-2 bg-gray-100 text-sm text-gray-500 rounded-lg">キャンセル</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div onClick={() => startEditDog(dog)} className="active:bg-gray-50 -mx-2 px-2 py-1 rounded-lg cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <p className="text-base font-medium">{dog.name}（{dog.breed}）</p>
+                      <span className="text-xs text-[#B87942]">編集</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {dog.weight}kg
+                      {dog.age != null && ` / ${dog.age}歳`}
+                      {" / "}{dog.sex === "male" ? "オス" : "メス"}
+                    </p>
+                    {(dog.allergies || dog.meal_notes || dog.medication_notes) && (
+                      <div className="mt-1 text-sm text-gray-600 bg-gray-50 rounded-lg p-2">
+                        {dog.allergies && <p>{dog.allergies}</p>}
+                        {dog.meal_notes && <p>{dog.meal_notes}</p>}
+                        {dog.medication_notes && <p>{dog.medication_notes}</p>}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
