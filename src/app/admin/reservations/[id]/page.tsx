@@ -20,6 +20,7 @@ interface Reservation {
   admin_notes: string | null;
   source: string;
   dog_count: number;
+  cancel_reason: string | null;
   created_at: string;
   customers: {
     id: string;
@@ -237,6 +238,14 @@ export default function ReservationDetailPage() {
           )}
         </div>
         {res.walk_option && <p className="text-xs text-[#B87942] mb-2">🐕 お散歩オプションあり</p>}
+
+        {/* キャンセル理由 */}
+        {res.status === "cancelled" && res.cancel_reason && (
+          <div className="bg-red-50 rounded-lg px-3 py-2 mb-3">
+            <p className="text-xs text-red-500 mb-0.5">キャンセル理由</p>
+            <p className="text-sm text-red-700">{res.cancel_reason}</p>
+          </div>
+        )}
 
         {/* 備考 */}
         {res.notes && (

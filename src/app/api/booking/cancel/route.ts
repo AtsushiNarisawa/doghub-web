@@ -25,7 +25,7 @@ async function updateCapacity(date: string, column: string, delta: number) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { reservation_id } = await req.json();
+    const { reservation_id, cancel_reason } = await req.json();
 
     if (!reservation_id) {
       return NextResponse.json({ error: "予約IDが必要です" }, { status: 400 });
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     // ステータスをcancelledに更新
     const { error: updateError } = await supabase
       .from("reservations")
-      .update({ status: "cancelled" })
+      .update({ status: "cancelled", cancel_reason: cancel_reason || null })
       .eq("id", reservation_id);
 
     if (updateError) {
@@ -166,6 +166,7 @@ export async function POST(req: NextRequest) {
               <tr><td style="padding:6px 12px 6px 0;color:#888;">プラン</td><td>${PLAN_NAMES[reservation.plan] || reservation.plan}</td></tr>
               <tr><td style="padding:6px 12px 6px 0;color:#888;">日程</td><td>${dateStr} ${reservation.checkin_time}</td></tr>
               <tr><td style="padding:6px 12px 6px 0;color:#888;">頭数</td><td>${dogCount}頭</td></tr>
+              ${cancel_reason ? `<tr><td style="padding:6px 12px 6px 0;color:#888;">理由</td><td>${cancel_reason}</td></tr>` : ""}
             </table>
             <p style="margin-top:16px;"><a href="https://dog-hub.shop/admin/reservations/${reservation_id}" style="color:#B87942;">管理画面で確認する</a></p>
           </div>`;

@@ -39,6 +39,7 @@ export default function CancelPage() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -72,7 +73,7 @@ export default function CancelPage() {
       const res = await fetch("/api/booking/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reservation_id: id }),
+        body: JSON.stringify({ reservation_id: id, cancel_reason: cancelReason }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -164,11 +165,36 @@ export default function CancelPage() {
                   この予約をキャンセルする
                 </button>
               ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-center text-red-600 font-medium">本当にキャンセルしますか？この操作は取り消せません。</p>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-[#3C200F] font-medium mb-2">キャンセルの理由を教えてください（任意）</p>
+                    <div className="space-y-2">
+                      {[
+                        "予定が変更になったため",
+                        "宿泊先が見つかったため",
+                        "体調不良のため",
+                        "天候の影響",
+                        "その他",
+                      ].map((reason) => (
+                        <button
+                          key={reason}
+                          type="button"
+                          onClick={() => setCancelReason(cancelReason === reason ? "" : reason)}
+                          className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors ${
+                            cancelReason === reason
+                              ? "bg-[#B87942] text-white"
+                              : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                          }`}
+                        >
+                          {reason}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm text-center text-red-600 font-medium">この操作は取り消せません。</p>
                   <div className="flex gap-3">
                     <button
-                      onClick={() => setConfirming(false)}
+                      onClick={() => { setConfirming(false); setCancelReason(""); }}
                       className="flex-1 py-3 rounded-xl border border-[#E5DDD8] text-sm font-medium"
                       disabled={cancelling}
                     >
