@@ -161,14 +161,30 @@ export default function SettingsPage() {
     const todayStr = fmtDate(new Date());
     if (dateStr < todayStr) return;
 
-    setSavingDate(dateStr);
-
     const isRegularClosed = settings.closed_weekdays.includes(date.getDay());
     const currentlyOverridden = isOverridden(date);
+    const DAYS_JP = ["日", "月", "火", "水", "木", "金", "土"];
+    const dateLabel = `${date.getMonth() + 1}/${date.getDate()}（${DAYS_JP[date.getDay()]}）`;
+
+    // 変更内容を判定
+    let actionLabel: string;
+    let newClosed: boolean;
+    if (currentlyOverridden) {
+      newClosed = isRegularClosed;
+      actionLabel = isRegularClosed ? `${dateLabel} を定休日に戻しますか？` : `${dateLabel} を営業日に戻しますか？`;
+    } else {
+      newClosed = !isRegularClosed;
+      actionLabel = newClosed
+        ? `${dateLabel} を臨時休業にしますか？\n\nこの日は営業日です。臨時休業にすると、お客様からの予約を受け付けなくなります。`
+        : `${dateLabel} を臨時営業にしますか？`;
+    }
+
+    if (!confirm(actionLabel)) return;
+
+    setSavingDate(dateStr);
 
     if (currentlyOverridden) {
       // オーバーライド済み → デフォルトに戻す
-      const defaultClosed = isRegularClosed;
       const { data: existing } = await supabase
         .from("daily_capacity")
         .select("date")
@@ -176,13 +192,11 @@ export default function SettingsPage() {
         .maybeSingle();
 
       if (existing) {
-        await supabase.from("daily_capacity").update({ closed: defaultClosed }).eq("date", dateStr);
+        await supabase.from("daily_capacity").update({ closed: newClosed }).eq("date", dateStr);
       }
       setOverrides((prev) => prev.filter((o) => o.date !== dateStr));
     } else {
       // デフォルト状態 → 反転してオーバーライド
-      const newClosed = isRegularClosed ? false : true;
-
       const { data: existing } = await supabase
         .from("daily_capacity")
         .select("date")
@@ -198,9 +212,7 @@ export default function SettingsPage() {
     }
 
     setSavingDate(null);
-    // 保存フィードバック
-    const isNowClosed = isDayClosed(date);
-    setCalendarSaved(isNowClosed ? "臨時休業に変更しました" : "営業日に変更しました");
+    setCalendarSaved(newClosed ? "臨時休業に変更しました" : "営業日に変更しました");
     setTimeout(() => setCalendarSaved(null), 2000);
   };
 

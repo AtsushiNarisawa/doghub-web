@@ -36,6 +36,18 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       setBookingWindowDays(s.bookingWindowDays);
       setClosedWeekdays(s.closedWeekdays);
     });
+    // 臨時休業/臨時営業のオーバーライドを取得
+    supabase
+      .from("daily_capacity")
+      .select("date, closed")
+      .gte("date", new Date().toISOString().split("T")[0])
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, boolean> = {};
+          data.forEach((r) => { map[r.date] = r.closed; });
+          setClosedOverrides(map);
+        }
+      });
   }, []);
 
   // 受付期限: 当日予約不可（翌日以降）。17時以降の翌日予約は仮予約として受付
@@ -72,8 +84,13 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   };
 
   // 定休日チェック（設定から取得）
+  // 容量データからclosed状態を取得（カレンダー表示で使用）
+  const [closedOverrides, setClosedOverrides] = useState<Record<string, boolean>>({});
+
   const isClosedDay = (dateStr: string) => {
-    const d = new Date(dateStr);
+    // daily_capacityにオーバーライドがあればそちらを優先
+    if (dateStr in closedOverrides) return closedOverrides[dateStr];
+    const d = new Date(dateStr + "T00:00:00");
     return closedWeekdays.includes(d.getDay());
   };
 
@@ -90,32 +107,31 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
   const checkClosedDaysInStay = useCallback(async (checkin: string, checkout: string) => {
     const start = new Date(checkin);
-    const end = new Date(checkout); // CO日は除外するので end 未満
-    const datesToCheck: string[] = [];
+    const end = new Date(checkout);
+    const allDates: string[] = [];
     const d = new Date(start);
     while (d < end) { // CO日を除外
-      if (closedWeekdays.includes(d.getDay())) {
-        datesToCheck.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
-      }
+      allDates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
       d.setDate(d.getDate() + 1);
     }
 
-    if (datesToCheck.length === 0) {
+    if (allDates.length === 0) {
       setStayClosedDates([]);
       return;
     }
 
-    // 臨時営業オーバーライドを確認
+    // daily_capacityから全日のclosed状態を取得
     const { data } = await supabase
       .from("daily_capacity")
       .select("date, closed")
-      .in("date", datesToCheck);
+      .in("date", allDates);
 
-    const actualClosed = datesToCheck.filter((date) => {
-      const override = data?.find((r) => r.date === date);
-      // override で closed=false なら臨時営業 → OK
-      if (override && !override.closed) return false;
-      return true; // デフォルト定休日のまま → NG
+    const actualClosed = allDates.filter((date) => {
+      const cap = data?.find((r) => r.date === date);
+      const dayOfWeek = new Date(date + "T00:00:00").getDay();
+      const regularClosed = closedWeekdays.includes(dayOfWeek);
+      // daily_capacityにレコードがあればそのclosed値、なければ曜日で判定
+      return cap ? cap.closed : regularClosed;
     });
 
     setStayClosedDates(actualClosed);
