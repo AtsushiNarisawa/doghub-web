@@ -298,7 +298,16 @@ export interface Article {
   docId: string;
 }
 
+// ビルド時のAPI呼び出しをキャッシュ（Quota超過防止）
+let articlesCache: Article[] | null = null;
+let articlesCacheTime = 0;
+
 export async function getArticles(): Promise<Article[]> {
+  // キャッシュが5分以内ならそのまま返す（ビルド中の重複API呼び出し防止）
+  if (articlesCache && Date.now() - articlesCacheTime < 5 * 60 * 1000) {
+    return articlesCache;
+  }
+
   if (!SPREADSHEET_ID) return [];
   let res;
   try {
@@ -306,14 +315,16 @@ export async function getArticles(): Promise<Article[]> {
       spreadsheetId: SPREADSHEET_ID,
       range: "記事一覧!A2:G100",
     });
-  } catch {
+  } catch (e) {
+    console.error("[cms] getArticles error:", (e as Error).message?.slice(0, 200));
+    if (articlesCache) return articlesCache; // Quota超過時は古いキャッシュを返す
     return [];
   }
 
   const rows = res.data.values;
   if (!rows || rows.length === 0) return [];
 
-  return rows
+  const result = rows
     .filter((row) => row[0])
     .map((row) => ({
       slug: row[0] || "",
@@ -325,6 +336,12 @@ export async function getArticles(): Promise<Article[]> {
       docId: row[6] || "",
     }))
     .sort((a, b) => (a.date > b.date ? -1 : 1));
+
+  // キャッシュを更新
+  articlesCache = result;
+  articlesCacheTime = Date.now();
+
+  return result;
 }
 
 export async function getArticle(

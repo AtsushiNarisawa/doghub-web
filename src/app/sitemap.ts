@@ -16,11 +16,13 @@ const ARTICLE_PRIORITY: Record<string, number> = {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://dog-hub.shop";
   const now = new Date();
-  const [articles, areas, routes] = await Promise.all([
-    getArticles(),
-    getAreas(),
-    getAllPublishedRoutes(),
-  ]);
+  const articlesResult = await getArticles().catch((e) => { console.error("[sitemap] articles error:", e); return []; });
+  const areasResult = await getAreas().catch((e) => { console.error("[sitemap] areas error:", e); return []; });
+  const routesResult = await getAllPublishedRoutes().catch((e) => { console.error("[sitemap] routes error:", e); return []; });
+  const articles = articlesResult;
+  const areas = areasResult;
+  const routes = routesResult;
+  console.log(`[sitemap] articles=${articles.length}, areas=${areas.length}, routes=${routes.length}`);
 
   const articlePages: MetadataRoute.Sitemap = articles.map((a) => ({
     url: `${baseUrl}/news/${a.slug}`,
