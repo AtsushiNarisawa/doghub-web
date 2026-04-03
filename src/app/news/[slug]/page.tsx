@@ -21,7 +21,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-yunessun-pet-guide": {
     text: "ユネッサンを愛犬なしで楽しむために",
-    subtext: "DogHubは日帰り4時間プランあり。ユネッサンまで車で約10分の立地です。",
+    subtext: "DogHubは日帰り4時間プランあり。ユネッサンまで車で約15分の立地です。",
     href: "/yunessun",
     btnLabel: "日帰りお預かりプランを見る",
   },

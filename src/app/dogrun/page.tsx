@@ -9,7 +9,7 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根 ドッグラン｜DogHub箱根仙石原 専用ドッグラン併設ペットホテル",
-  description: "DogHub箱根仙石原は専用ドッグラン併設のペットホテル。屋根付きエリアあり、雨の日でもOK。お預かり中は1日2回以上ドッグランで遊べます。仙石原の自然の中で愛犬ものびのび。",
+  description: "DogHub箱根仙石原は専用ドッグラン併設のペットホテル。屋根付きエリアあり、雨の日でもOK。お預かり中は1日2回以上お散歩にお連れします。仙石原の自然の中で愛犬ものびのび。",
   alternates: { canonical: "/dogrun" },
 };
 
@@ -53,7 +53,7 @@ export default function DogrunPage() {
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   屋根付きエリアもあるので、雨の日でも安心して遊べます。
-                  お預かり中のわんちゃんは、朝・夕の1日2回以上ドッグランで遊ぶ時間を設けています。
+                  お預かり中のわんちゃんは、朝・夕の1日2回以上お散歩にお連れしています。
                   ケージに閉じ込めっぱなしにはしません。
                 </p>
                 <div className="bg-[#FFF8F3] border-l-4 border-[#B87942] px-4 py-3 mb-6">

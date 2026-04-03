@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { BookingFormData, DogFormData } from "@/types/booking";
 import { INITIAL_DOG } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
@@ -260,6 +260,58 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
     form.customer.id ? "found" : "idle"
   );
   const [phoneInput, setPhoneInput] = useState(form.customer.phone || "");
+  const [lineAutoLooked, setLineAutoLooked] = useState(false);
+
+  // LINE IDがある場合に自動で顧客検索
+  useEffect(() => {
+    if (!form.line_id || lineAutoLooked || form.customer.id) return;
+    setLineAutoLooked(true);
+
+    (async () => {
+      setLookupState("loading");
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("*")
+        .eq("line_id", form.line_id!)
+        .maybeSingle();
+
+      if (customer) {
+        const { data: dogs } = await supabase
+          .from("dogs")
+          .select("*")
+          .eq("customer_id", customer.id);
+
+        const dogData: DogFormData[] = dogs && dogs.length > 0
+          ? dogs.map((d) => ({
+              id: d.id, name: d.name, breed: d.breed, weight: String(d.weight),
+              age: d.age ? String(d.age) : "", age_months: d.age_months ? String(d.age_months) : "",
+              sex: d.sex as "male" | "female",
+              has_rabies_vaccine: d.has_rabies_vaccine || false, has_mixed_vaccine: d.has_mixed_vaccine || false,
+              rabies_vaccine_status: d.rabies_vaccine_status || (d.has_rabies_vaccine ? "within_1year" : ""),
+              mixed_vaccine_status: d.mixed_vaccine_status || (d.has_mixed_vaccine ? "within_1year" : ""),
+              vaccine_unable_reason: d.vaccine_unable_reason || "",
+              allergies: d.allergies || "", meal_notes: d.meal_notes || "", medication_notes: d.medication_notes || "",
+            }))
+          : [{ ...INITIAL_DOG }];
+
+        onChange({
+          ...form,
+          customer: {
+            id: customer.id, last_name: customer.last_name, first_name: customer.first_name,
+            last_name_kana: customer.last_name_kana, first_name_kana: customer.first_name_kana,
+            phone: customer.phone, email: customer.email,
+            postal_code: customer.postal_code || "", address: customer.address || "",
+          },
+          dogs: dogData,
+        });
+        setVisitType("returning");
+        setLookupState("found");
+      } else {
+        setVisitType("");
+        setLookupState("idle");
+      }
+    })();
+  }, [form.line_id]);
 
   // リピーター検索（STEP2の最上部で実行）
   const lookupCustomer = async () => {

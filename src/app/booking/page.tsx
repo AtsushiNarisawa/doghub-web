@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import liff from "@line/liff";
 import type { BookingStep, BookingFormData } from "@/types/booking";
 import { INITIAL_FORM } from "@/types/booking";
 import { StepIndicator } from "@/components/booking/step-indicator";
@@ -9,6 +10,8 @@ import { Step1Plan } from "@/components/booking/step1-plan";
 import { Step2Dogs } from "@/components/booking/step2-dogs";
 import { Step3Customer } from "@/components/booking/step3-customer";
 import { Step4Confirm } from "@/components/booking/step4-confirm";
+
+const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID || "";
 
 function pushEvent(event: string, params?: Record<string, unknown>) {
   window.dataLayer = window.dataLayer || [];
@@ -19,10 +22,26 @@ export default function BookingPage() {
   const [step, setStep] = useState<BookingStep>(1);
   const [form, setForm] = useState<BookingFormData>({ ...INITIAL_FORM });
   const [result, setResult] = useState<"success" | "success_no_email" | "error" | null>(null);
+  const [isLiff, setIsLiff] = useState(false);
 
-  // 予約開始イベント
+  // LIFF初期化 + LINE ID取得
   useEffect(() => {
     pushEvent("begin_booking");
+
+    if (!LIFF_ID) return;
+
+    liff.init({ liffId: LIFF_ID }).then(() => {
+      if (liff.isInClient()) {
+        setIsLiff(true);
+        liff.getProfile().then((profile) => {
+          setForm((prev) => ({
+            ...prev,
+            line_id: profile.userId,
+            source: "line",
+          }));
+        }).catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   const goNext = () => {

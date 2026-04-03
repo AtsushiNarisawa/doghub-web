@@ -68,8 +68,8 @@ export default function PetHotelPage() {
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   美術館、温泉、ユネッサン、ショッピング…
                   ペット不可の施設を諦めず、DogHubに愛犬を預けて箱根を満喫できます。
-                  近隣のレジーナリゾート仙石原をはじめ、多くのペット可宿泊施設から
-                  お客様をご案内いただいています。
+                  レジーナリゾート仙石原をはじめ、近隣のペット可宿泊施設にお泊まりの
+                  お客様にも多くご利用いただいています。
                 </p>
                 <p className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   ドッグラン併設だから、お預かり中も愛犬はのびのび。
@@ -152,9 +152,9 @@ export default function PetHotelPage() {
         {/* Nearby pet-friendly hotels */}
         <section className="py-16 px-6 bg-white">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400 }}>DogHubをご案内いただいている近隣のペット可施設</h2>
+            <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400 }}>近隣のペット可宿泊施設</h2>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
-              以下のペット可宿泊施設から、日中のお預かり先としてDogHubをご案内いただいています。
+              以下のペット可宿泊施設にお泊まりのお客様にも、日中のお預かり先としてDogHubをご利用いただいています。
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {petHotels.map((h) => (
