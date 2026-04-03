@@ -71,10 +71,12 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
 
   const c = form.customer;
 
+  const isLineBooking = !!form.line_id;
+
   const isValid =
     c.last_name && c.first_name &&
     c.last_name_kana && c.first_name_kana &&
-    c.phone && c.email &&
+    c.phone && (isLineBooking || c.email) &&
     (isReturning || form.referral_source);
 
   return (
@@ -166,7 +168,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
           {/* メール */}
           <div>
             <label className="text-sm text-[#888] block mb-1">
-              メールアドレス <span className="text-red-400">*</span>
+              メールアドレス {isLineBooking ? <span className="text-[#888]">（任意）</span> : <span className="text-red-400">*</span>}
             </label>
             <input
               type="email"
