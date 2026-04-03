@@ -189,7 +189,10 @@ export default function BookingPage() {
             ← トップへ
           </Link>
           <h1 className="font-medium text-[15px]">ご予約</h1>
-          <div className="w-16" />
+          {isLiff && (
+            <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full">LINE連携中</span>
+          )}
+          {!isLiff && <div className="w-16" />}
         </div>
       </header>
 
