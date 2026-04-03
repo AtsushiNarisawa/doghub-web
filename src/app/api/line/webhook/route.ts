@@ -33,9 +33,24 @@ async function handleEvent(event: LineEvent) {
   if (!userId) return;
 
   switch (event.type) {
-    // 友だち追加 → ウェルカムメッセージ
+    // 友だち追加 → ウェルカムメッセージ + リッチメニュー設定
     case "follow":
       await sendLinePushMessage(userId, buildWelcomeMessage());
+      // リッチメニューを設定
+      if (process.env.LINE_CHANNEL_ACCESS_TOKEN) {
+        const rmRes = await fetch("https://api.line.me/v2/bot/user/all/richmenu", {
+          headers: { Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}` },
+        });
+        if (rmRes.ok) {
+          const { richMenuId } = await rmRes.json();
+          if (richMenuId) {
+            await fetch(`https://api.line.me/v2/bot/user/${userId}/richmenu/${richMenuId}`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}` },
+            });
+          }
+        }
+      }
       break;
 
     // メッセージ受信 → 予約フォームURLを案内
