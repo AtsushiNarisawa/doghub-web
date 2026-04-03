@@ -50,7 +50,7 @@ async function handleEvent(event: LineEvent) {
           await sendLinePushMessage(userId, [
             {
               type: "text",
-              text: "ご予約はこちらからどうぞ👇\nhttps://dog-hub.shop/booking",
+              text: "ご予約はこちらからどうぞ👇\nhttps://liff.line.me/2009688745-qZi2jM4g",
             },
           ]);
         } else {
@@ -58,7 +58,7 @@ async function handleEvent(event: LineEvent) {
           await sendLinePushMessage(userId, [
             {
               type: "text",
-              text: "メッセージありがとうございます🐾\nご予約はこちら → https://dog-hub.shop/booking\n\nその他のお問い合わせはスタッフが確認次第ご返信します。",
+              text: "メッセージありがとうございます🐾\nご予約はこちら → https://liff.line.me/2009688745-qZi2jM4g\n\nその他のお問い合わせはスタッフが確認次第ご返信します。",
             },
           ]);
         }

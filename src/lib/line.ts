@@ -115,7 +115,7 @@ export function buildWelcomeMessage(): LineMessage[] {
           {
             type: "uri",
             label: "予約する",
-            uri: "https://dog-hub.shop/booking",
+            uri: "https://liff.line.me/2009688745-qZi2jM4g",
           },
           {
             type: "uri",
