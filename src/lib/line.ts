@@ -86,6 +86,12 @@ export function buildBookingConfirmMessage(params: {
         "",
         "ご不明な点はこちらのLINEにご返信ください。",
         "当日お待ちしております🐾",
+        "",
+        `📝 予約内容を変更する`,
+        `https://dog-hub.shop/booking/modify/${reservationId}`,
+        "",
+        `❌ 予約をキャンセルする`,
+        `https://dog-hub.shop/booking/cancel/${reservationId}`,
       ].join("\n"),
     },
   ];
