@@ -76,6 +76,10 @@ export default function ReservationDetailPage() {
   const [saving, setSaving] = useState(false);
   const [memoSaved, setMemoSaved] = useState(false);
   const [memoEditing, setMemoEditing] = useState(false);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [newDate, setNewDate] = useState("");
+  const [newCheckinTime, setNewCheckinTime] = useState("");
+  const [newCheckoutDate, setNewCheckoutDate] = useState("");
 
   useEffect(() => { fetchReservation(); }, [id]);
 
@@ -119,6 +123,41 @@ export default function ReservationDetailPage() {
       await fetchReservation();
     } catch {
       alert("通信エラーが発生しました");
+    }
+    setSaving(false);
+  };
+
+  const startReschedule = () => {
+    if (!res) return;
+    setNewDate(res.date);
+    setNewCheckinTime(res.checkin_time?.slice(0, 5) || "");
+    setNewCheckoutDate(res.checkout_date || "");
+    setRescheduling(true);
+  };
+
+  const saveReschedule = async () => {
+    if (!newDate) return;
+    setSaving(true);
+    try {
+      const resp = await fetch("/api/admin/reschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reservation_id: id,
+          new_date: newDate,
+          new_checkin_time: newCheckinTime,
+          new_checkout_date: newCheckoutDate || undefined,
+        }),
+      });
+      if (resp.ok) {
+        setRescheduling(false);
+        await fetchReservation();
+      } else {
+        const data = await resp.json().catch(() => ({}));
+        alert(data.error || "変更に失敗しました");
+      }
+    } catch {
+      alert("通信エラー");
     }
     setSaving(false);
   };
@@ -229,14 +268,53 @@ export default function ReservationDetailPage() {
           </a>
         </div>
 
-        {/* 予約概要: プラン + 日時 を横並び */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <span className={`text-sm px-2 py-1 rounded font-medium ${planColor}`}>{PLAN_LABELS[res.plan]}</span>
-          <span className="text-sm text-gray-700">{fmtDate(res.date)} {res.checkin_time.slice(0, 5)}</span>
-          {res.checkout_date && (
-            <span className="text-sm text-gray-500">→ CO {fmtDate(res.checkout_date)}{stayNights > 1 ? `（${stayNights}泊）` : ""}</span>
-          )}
-        </div>
+        {/* 予約概要: プラン + 日時 */}
+        {rescheduling ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 space-y-2">
+            <p className="text-sm font-medium text-amber-800">日程変更</p>
+            <div>
+              <label className="text-xs text-gray-500">日付</label>
+              <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)}
+                className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500">チェックイン時間</label>
+              <input type="time" value={newCheckinTime} onChange={(e) => setNewCheckinTime(e.target.value)}
+                className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+            </div>
+            {res.plan === "stay" && (
+              <div>
+                <label className="text-xs text-gray-500">チェックアウト日</label>
+                <input type="date" value={newCheckoutDate} onChange={(e) => setNewCheckoutDate(e.target.value)}
+                  min={newDate}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none" />
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button onClick={saveReschedule} disabled={saving}
+                className="flex-1 py-2 bg-[#B87942] text-white text-sm rounded-lg font-medium disabled:opacity-50">
+                {saving ? "変更中..." : "変更を保存"}
+              </button>
+              <button onClick={() => setRescheduling(false)}
+                className="px-4 py-2 bg-gray-100 text-sm text-gray-500 rounded-lg">
+                キャンセル
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className={`text-sm px-2 py-1 rounded font-medium ${planColor}`}>{PLAN_LABELS[res.plan]}</span>
+            <span className="text-sm text-gray-700">{fmtDate(res.date)} {res.checkin_time.slice(0, 5)}</span>
+            {res.checkout_date && (
+              <span className="text-sm text-gray-500">→ CO {fmtDate(res.checkout_date)}{stayNights > 1 ? `（${stayNights}泊）` : ""}</span>
+            )}
+            {res.status !== "cancelled" && (
+              <button onClick={startReschedule} className="text-xs text-[#B87942] font-medium ml-1">
+                日程変更
+              </button>
+            )}
+          </div>
+        )}
         {res.walk_option && <p className="text-xs text-[#B87942] mb-2">🐕 お散歩オプションあり</p>}
 
         {/* キャンセル理由 */}
