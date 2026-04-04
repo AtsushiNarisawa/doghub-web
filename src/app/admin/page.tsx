@@ -361,21 +361,30 @@ export default function AdminDashboard() {
       </div>
 
       {/* 選択日の概要 */}
-      <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-medium text-gray-800">{formatDisplayDate(selectedDate)}</h2>
-        <div className="flex items-center gap-2">
+      <div className="px-1">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium text-gray-800">{formatDisplayDate(selectedDate)}</h2>
           <span className="text-lg font-medium font-dm">{totalDogs}頭</span>
-          {(() => {
-            const half = allReservations.filter((r) => r.plan === "4h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-            const full = allReservations.filter((r) => r.plan === "8h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-            const stay = allReservations.filter((r) => r.plan === "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-            const parts = [];
-            if (half > 0) parts.push(`半日${half}`);
-            if (full > 0) parts.push(`1日${full}`);
-            if (stay > 0) parts.push(`宿泊${stay}`);
-            return parts.length > 0 ? <span className="text-xs text-gray-400">{parts.join(" / ")}</span> : null;
-          })()}
         </div>
+        {totalDogs > 0 && (() => {
+          const ciHalf = todayRes.filter((r) => r.plan === "4h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          const ciFull = todayRes.filter((r) => r.plan === "8h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          const ciStay = todayRes.filter((r) => r.plan === "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          const stayOver = stayingOver.reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          const ciTotal = ciHalf + ciFull + ciStay;
+          return (
+            <div className="flex gap-3 mt-1 text-xs text-gray-400">
+              {ciTotal > 0 && (
+                <span>CI {ciTotal}頭（{[
+                  ciHalf > 0 && `半日${ciHalf}`,
+                  ciFull > 0 && `1日${ciFull}`,
+                  ciStay > 0 && `宿泊${ciStay}`,
+                ].filter(Boolean).join("・")}）</span>
+              )}
+              {stayOver > 0 && <span>宿泊中 {stayOver}頭</span>}
+            </div>
+          );
+        })()}
       </div>
 
       {loading ? (
