@@ -314,7 +314,7 @@ export default function AdminDashboard() {
                         summary.total >= 8 ? "text-red-500 font-bold" :
                         "text-gray-500"
                       }`}>
-                        {summary.total}頭
+                        {summary.checkinCount}/({summary.total})
                       </span>
                     )}
                   </button>
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
                       s.total >= 8 ? "text-red-500 font-bold" :
                       "text-gray-500"
                     }`}>
-                      {s.total}頭
+                      {s.checkinCount}/({s.total})
                     </span>
                   )}
                 </button>
