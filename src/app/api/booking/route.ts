@@ -349,13 +349,9 @@ export async function POST(req: NextRequest) {
           .update({ [column]: Math.max(0, existing[column] + delta) })
           .eq("date", date);
       } else if (delta > 0) {
-        // 定休日のclosedフラグを保持（falseがデフォルトだと臨時営業と誤判定されるため）
-        const dayOfWeek = new Date(date).getDay();
-        const isClosed = closedWeekdays.includes(dayOfWeek);
         await supabase.from("daily_capacity").insert({
           date,
           [column]: delta,
-          closed: isClosed,
         });
       }
     };
