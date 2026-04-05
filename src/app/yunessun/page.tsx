@@ -9,7 +9,7 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "ユネッサン × ペット預かり｜箱根小涌園の間に愛犬をお預け｜DogHub箱根仙石原",
-  description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。半日4時間¥3,300でユネッサンを満喫。24時間スタッフ常駐・完全個室・ドッグラン併設のペットホテル。",
+  description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。1日8時間¥5,500〜でユネッサンを満喫。24時間スタッフ常駐・完全個室のペットホテル。",
   alternates: { canonical: "/yunessun" },
 };
 
@@ -53,8 +53,7 @@ export default function YunessunPage() {
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   DogHub箱根仙石原はユネッサンから車で約15分。
-                  ユネッサンの温泉プールだけなら半日プラン（4時間 ¥3,300）、
-                  隣接する森の湯もセットで楽しむなら1日プラン（8時間 ¥5,500）がおすすめ。
+                  ユネッサンは移動時間を含めると4時間では足りないため、1日プラン（8時間 ¥5,500）がおすすめです。
                   ほとんどのお客様がユネッサンと森の湯をセットで楽しまれています。
                 </p>
 
@@ -62,14 +61,14 @@ export default function YunessunPage() {
                   <h4 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>おすすめプラン</h4>
                   <div className="space-y-4 text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                     <div className="pb-3 border-b border-[#E5DDD8]">
-                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>半日お預かり（4時間）</p>
-                      <p style={{ fontSize: "24px" }}>¥3,300</p>
-                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサンの温泉プールだけなら半日プラン</p>
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>1日お預かり（8時間）— おすすめ</p>
+                      <p style={{ fontSize: "24px" }}>¥5,500</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサン＋移動時間にちょうどいい</p>
                     </div>
                     <div>
-                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>1日お預かり（8時間）</p>
-                      <p style={{ fontSize: "24px" }}>¥5,500</p>
-                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサン + 森の湯をセットで楽しむなら1日プラン</p>
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>宿泊お預かり（1泊）</p>
+                      <p style={{ fontSize: "24px" }}>¥7,700〜</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサン＋温泉＋翌日の観光もセットで</p>
                     </div>
                   </div>
                   <p className="text-[#8F7B65] mt-3" style={{ fontSize: "13px" }}>※表示料金はすべて税込です。</p>
@@ -133,7 +132,7 @@ export default function YunessunPage() {
             <div className="grid sm:grid-cols-3 gap-8">
               {[
                 { title: "ユネッサンから車15分", body: "箱根仙石原に位置するDogHubは、ユネッサンから車で約15分。お預け・お迎えがスムーズです。" },
-                { title: "半日¥3,300から", body: "ユネッサンだけなら半日プラン（4時間 ¥3,300）で十分。スポット利用なら1時間¥1,100から。" },
+                { title: "1日¥5,500から", body: "ユネッサンは移動含めて4時間では足りないため、1日プラン（8時間 ¥5,500）がおすすめです。" },
                 { title: "完全個室＆お散歩付き", body: "ケージではなく完全個室。スタッフがお散歩にお連れするので、わんちゃんもストレスフリーです。" },
               ].map((item) => (
                 <div key={item.title} className="bg-[#F7F7F7] p-6">

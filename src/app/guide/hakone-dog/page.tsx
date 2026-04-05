@@ -22,10 +22,10 @@ const dogFriendlySpots = [
 ];
 
 const petNGSpots = [
-  { name: "箱根小涌園ユネッサン", type: "温泉施設", solution: "DogHub半日お預かり（車15分）" },
-  { name: "ポーラ美術館", type: "美術館", solution: "DogHubスポット利用（車4分）" },
-  { name: "箱根ガラスの森美術館", type: "美術館", solution: "DogHubスポット利用（車3分）" },
-  { name: "彫刻の森美術館", type: "美術館", solution: "DogHub半日お預かり（車13分）" },
+  { name: "箱根小涌園ユネッサン", type: "温泉施設", solution: "DogHub1日お預かり（車15分）" },
+  { name: "ポーラ美術館", type: "美術館", solution: "DogHubスポット利用（車6分）" },
+  { name: "箱根ガラスの森美術館", type: "美術館", solution: "DogHubスポット利用（車4分）" },
+  { name: "彫刻の森美術館", type: "美術館", solution: "DogHub半日お預かり（車12分）" },
   { name: "箱根ロープウェイ", type: "交通", solution: "DogHub1日お預かり" },
   { name: "箱根海賊船", type: "観光", solution: "DogHub1日お預かり" },
   { name: "大涌谷", type: "観光", solution: "DogHub1日お預かり（有毒ガスのため犬NG）" },

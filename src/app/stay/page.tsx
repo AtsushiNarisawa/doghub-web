@@ -242,9 +242,9 @@ export default function StayPage() {
               <div className="space-y-4">
                 {[
                   { title: "ペット不可の旅館に泊まりたい時", desc: "愛犬はDogHubで一泊、飼い主様は憧れの旅館を満喫" },
-                  { title: "温泉・ユネッサンを楽しみたい時", desc: "半日預かり¥3,300で、温泉もユネッサンも自由に" },
+                  { title: "温泉・ユネッサンを楽しみたい時", desc: "温泉なら半日¥3,300、ユネッサンなら1日¥5,500で自由に" },
                   { title: "ゴルフの朝、早朝から預けたい時", desc: "朝7時からお預かり対応。大箱根CC提携" },
-                  { title: "美術館をゆっくり巡りたい時", desc: "ポーラ美術館から車4分。預けて美術館めぐり" },
+                  { title: "美術館をゆっくり巡りたい時", desc: "ポーラ美術館から車6分。預けて美術館めぐり" },
                 ].map((item) => (
                   <div key={item.title} className="border border-[#E5DDD8] p-4">
                     <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>{item.title}</h3>

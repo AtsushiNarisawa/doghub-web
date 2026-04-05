@@ -10,14 +10,14 @@ import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
-  description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。ユネッサンや温泉、美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐・ドッグラン併設。",
+  description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
   alternates: { canonical: "/4h" },
 };
 
 const scenes = [
   {
     title: "ユネッサンを楽しむ間に",
-    body: "箱根小涌園ユネッサンはペット同伴不可。DogHubから車で約15分。4時間プランでユネッサンを満喫して、お迎えに来ていただければOKです。",
+    body: "箱根小涌園ユネッサンはペット同伴不可。DogHubから車で約15分。ユネッサンは移動含めると半日では足りないため、1日プラン（¥5,500）がおすすめです。",
     keyword: "ユネッサン ペット 預かり",
   },
   {
@@ -27,7 +27,7 @@ const scenes = [
   },
   {
     title: "美術館めぐりの間に",
-    body: "ポーラ美術館、箱根ガラスの森美術館、箱根ラリック美術館はDogHubから車で2〜4分。美術館を楽しんだ後にすぐお迎えに来られる距離です。",
+    body: "ポーラ美術館（車6分）、箱根ガラスの森美術館（車4分）、箱根ラリック美術館（車2分）と、いずれもDogHubから近い距離です。",
     keyword: "箱根 美術館 犬",
   },
   {
@@ -59,7 +59,7 @@ export default function FourHourPage() {
             "@context": "https://schema.org",
             "@type": "Service",
             name: "犬の半日お預かり（4時間）",
-            description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。ユネッサンや温泉、美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐・ドッグラン併設。",
+            description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
             provider: {
               "@type": "LocalBusiness",
               name: "DogHub箱根仙石原",
@@ -100,7 +100,7 @@ export default function FourHourPage() {
               <div>
                 <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "32px", fontWeight: 400, letterSpacing: "1.6px" }}>TEMPORARY SERVICE</h2>
                 <h3 className="text-[#3C200F] mb-6" style={{ fontSize: "26px", fontWeight: 400, lineHeight: "1.6" }}>
-                  温泉もユネッサンも美術館も。<br />半日預けて、箱根をもっと自由に
+                  温泉も美術館も。<br />半日預けて、箱根をもっと自由に
                 </h3>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   「この温泉に入りたいけど、わんちゃんは入れない」「ユネッサンに行きたいけど、愛犬をどうしよう」
@@ -181,10 +181,10 @@ export default function FourHourPage() {
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>DogHubから近い観光スポット</h2>
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { name: "ポーラ美術館", time: "車で4分", href: "/spots" },
-                { name: "箱根ガラスの森美術館", time: "車で3分", href: "/spots" },
+                { name: "ポーラ美術館", time: "車で6分", href: "/spots" },
+                { name: "箱根ガラスの森美術館", time: "車で4分", href: "/spots" },
                 { name: "箱根ラリック美術館", time: "車で2分", href: "/spots" },
-                { name: "仙石原すすき草原", time: "車で3分", href: "/spots" },
+                { name: "仙石原すすき草原", time: "車で4分", href: "/spots" },
                 { name: "箱根湿生花園", time: "車で2分", href: "/spots" },
                 { name: "箱根小涌園ユネッサン", time: "車で15分", href: "/spots" },
               ].map((spot) => (

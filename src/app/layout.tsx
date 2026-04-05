@@ -35,7 +35,7 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   title: "箱根で犬の預かり・ホテルならDogHub箱根仙石原｜半日¥3,300〜",
   description:
-    "箱根で犬を預けるならDogHub箱根仙石原。犬の一時預かり半日¥3,300〜、宿泊¥7,700〜。ゴルフ・温泉・ユネッサンの間に愛犬をお預け。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+    "箱根で犬を預けるならDogHub箱根仙石原。犬の一時預かり半日¥3,300〜、宿泊¥7,700〜。ゴルフ・温泉・美術館の間に愛犬をお預け。24時間スタッフ常駐・完全個室。",
   metadataBase: new URL("https://dog-hub.shop"),
   icons: {
     icon: [

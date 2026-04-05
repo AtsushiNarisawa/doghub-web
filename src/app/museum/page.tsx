@@ -9,7 +9,7 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根美術館 × ペット預かり｜美術館めぐりの間に愛犬をお預け｜DogHub箱根仙石原",
-  description: "箱根の美術館はペット入館不可。DogHub箱根仙石原はポーラ美術館から車4分、ガラスの森から車3分。半日4時間¥3,300。美術館めぐりの間に愛犬を安心してお預けください。",
+  description: "箱根の美術館はペット入館不可。DogHub箱根仙石原はポーラ美術館から車6分、ガラスの森から車3分。半日4時間¥3,300。美術館めぐりの間に愛犬を安心してお預けください。",
   alternates: { canonical: "/museum" },
 };
 
@@ -183,7 +183,7 @@ export default function MuseumPage() {
                 <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>スポット利用 ¥2,200（2時間）</p>
                 <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                   <p>10:00 DogHubにお預け</p>
-                  <p>10:05 ポーラ美術館到着（車4分）</p>
+                  <p>10:05 ポーラ美術館到着（車6分）</p>
                   <p>11:30 鑑賞終了・カフェでひと息</p>
                   <p>12:00 DogHubでお迎え</p>
                   <p>12:15 愛犬と仙石原ランチ</p>
@@ -195,8 +195,8 @@ export default function MuseumPage() {
                 <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                   <p>9:00 DogHubにお預け</p>
                   <p>9:05 箱根ラリック美術館（車2分）</p>
-                  <p>10:30 箱根ガラスの森美術館（車3分）</p>
-                  <p>12:00 ポーラ美術館（車4分）</p>
+                  <p>10:30 箱根ガラスの森美術館（車4分）</p>
+                  <p>12:00 ポーラ美術館（車6分）</p>
                   <p>13:00 DogHubでお迎え</p>
                 </div>
               </div>

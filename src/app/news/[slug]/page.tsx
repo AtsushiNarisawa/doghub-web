@@ -21,13 +21,13 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-yunessun-pet-guide": {
     text: "ユネッサンを愛犬なしで楽しむために",
-    subtext: "DogHubは日帰り4時間プランあり。ユネッサンまで車で約15分の立地です。",
+    subtext: "DogHubは1日8時間プランあり。ユネッサンまで車で約15分の立地です。",
     href: "/yunessun",
     btnLabel: "日帰りお預かりプランを見る",
   },
   "hakone-museum-dog-guide": {
     text: "美術館めぐりの間、愛犬をお預け",
-    subtext: "ポーラ美術館まで車4分。2時間¥2,200〜のスポット利用で気軽にお預けできます。",
+    subtext: "ポーラ美術館まで車6分。2時間¥2,200〜のスポット利用で気軽にお預けできます。",
     href: "/museum",
     btnLabel: "美術館×お預かりのモデルコースを見る",
   },
@@ -176,7 +176,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-dog-trip-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりでユネッサンをたっぷり満喫" },
     { label: "ゴルフに行くなら", href: "/golf", description: "早朝7時からお預かり。大箱根CC提携" },
-    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車6分" },
     { label: "温泉に行くなら", href: "/onsen", description: "仙石原周辺の温泉13施設" },
     { label: "ペット可の宿に泊まるなら", href: "/pethotel", description: "チェックイン前・アウト後のお預かり" },
   ],
@@ -218,7 +218,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "カフェの詳細", href: "/cafe", description: "メニュー・営業時間・アクセス" },
   ],
   "hakone-dog-spot-sengokuhara": [
-    { label: "美術館×お預かり", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "美術館×お預かり", href: "/museum", description: "ポーラ美術館まで車6分" },
     { label: "カフェでランチ", href: "/cafe", description: "室内犬連れOK" },
   ],
   "hakone-dog-hotel-guide": [
@@ -238,7 +238,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
   ],
   "hakone-pola-museum-dog-guide": [
-    { label: "美術館×お預かりプラン", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "美術館×お預かりプラン", href: "/museum", description: "ポーラ美術館まで車6分" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
     { label: "彫刻の森もセットで", href: "/8h", description: "1日プラン¥5,500〜" },
   ],
@@ -264,7 +264,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "hakone-gw-spring-dog-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで温泉プール満喫" },
-    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車4分" },
+    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車6分" },
     { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700〜" },
   ],
   "hakone-dog-day-trip": [

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const scenes = [
   { href: "/golf", label: "ゴルフ × 預かり", desc: "早朝7時からお預かり対応。大箱根CC提携。", img: "/images/img-003.jpg", imgAlt: "箱根ゴルフ場の緑豊かなコース 愛犬を預けてプレーを満喫" },
   { href: "/onsen", label: "温泉 × 預かり", desc: "温泉を楽しむ間、愛犬はDogHubへ。", img: "/images/img-096.jpg", imgAlt: "箱根 犬のホテル DogHub箱根仙石原の宿泊プラン 温泉旅行の拠点に" },
-  { href: "/museum", label: "美術館 × 預かり", desc: "ポーラ美術館まで車4分。", img: "/images/img-006.jpg", imgAlt: "箱根仙石原の美術館イメージ ポーラ美術館やガラスの森へのアクセス良好" },
+  { href: "/museum", label: "美術館 × 預かり", desc: "ポーラ美術館まで車6分。", img: "/images/img-006.jpg", imgAlt: "箱根仙石原の美術館イメージ ポーラ美術館やガラスの森へのアクセス良好" },
   { href: "/yunessun", label: "ユネッサン × 預かり", desc: "ユネッサンまで車約15分。", img: "/images/img-021.jpg", imgAlt: "箱根ドッグラン DogHub箱根仙石原 ユネッサンへ行く間も愛犬が遊べる環境" },
   { href: "/ryokan", label: "高級旅館 × 預かり", desc: "ペット不可の憧れの宿に泊まれる。", img: "/images/img-035.png", imgAlt: "箱根ペットホテル DogHub箱根仙石原の完全個室 高級旅館宿泊中も愛犬が安心" },
   { href: "/pethotel", label: "ペット可ホテル × 預かり", desc: "チェックイン前後の観光を自由に。", img: "/images/img-011.jpg", imgAlt: "箱根ドッグラン DogHub箱根仙石原で2匹の犬が元気に遊ぶ様子" },
