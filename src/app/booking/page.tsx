@@ -23,6 +23,7 @@ export default function BookingPage() {
   const [form, setForm] = useState<BookingFormData>({ ...INITIAL_FORM });
   const [result, setResult] = useState<"success" | "success_no_email" | "error" | null>(null);
   const [isLiff, setIsLiff] = useState(false);
+  const [editingFromConfirm, setEditingFromConfirm] = useState(false);
 
   // LIFF初期化 + LINE ID取得
   useEffect(() => {
@@ -31,17 +32,23 @@ export default function BookingPage() {
     if (!LIFF_ID) return;
 
     liff.init({ liffId: LIFF_ID }).then(() => {
-      if (liff.isInClient()) {
+      if (liff.isInClient() || liff.isLoggedIn()) {
         setIsLiff(true);
         liff.getProfile().then((profile) => {
           setForm((prev) => ({
             ...prev,
             line_id: profile.userId,
-            source: "line",
+            source: "line" as const,
           }));
-        }).catch(() => {});
+        }).catch((e) => {
+          console.error("LIFF getProfile error:", e);
+          // プロフィール取得に失敗してもLINE内であることは認識
+          setIsLiff(true);
+        });
       }
-    }).catch(() => {});
+    }).catch((e) => {
+      console.error("LIFF init error:", e);
+    });
   }, []);
 
   const goNext = () => {
@@ -221,17 +228,35 @@ export default function BookingPage() {
 
       {/* フォーム */}
       <main className="max-w-lg mx-auto px-4 pb-8">
-        {step === 1 && (
-          <Step1Plan form={form} onChange={setForm} onNext={goNext} />
-        )}
-        {step === 2 && (
-          <Step2Dogs form={form} onChange={setForm} onNext={goNext} onBack={goBack} />
-        )}
-        {step === 3 && (
-          <Step3Customer form={form} onChange={setForm} onNext={goNext} onBack={goBack} />
-        )}
+        {step === 1 && (<>
+          <Step1Plan form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); } else { goNext(); } }} />
+          {editingFromConfirm && (
+            <button type="button" onClick={() => { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="w-full py-3 mt-3 rounded-xl border-2 border-[#B87942] text-[#B87942] text-sm font-medium">
+              確認画面に戻る
+            </button>
+          )}
+        </>)}
+        {step === 2 && (<>
+          <Step2Dogs form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); } else { goNext(); } }} onBack={goBack} />
+          {editingFromConfirm && (
+            <button type="button" onClick={() => { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="w-full py-3 mt-3 rounded-xl border-2 border-[#B87942] text-[#B87942] text-sm font-medium">
+              確認画面に戻る
+            </button>
+          )}
+        </>)}
+        {step === 3 && (<>
+          <Step3Customer form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); } else { goNext(); } }} onBack={goBack} />
+          {editingFromConfirm && (
+            <button type="button" onClick={() => { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="w-full py-3 mt-3 rounded-xl border-2 border-[#B87942] text-[#B87942] text-sm font-medium">
+              確認画面に戻る
+            </button>
+          )}
+        </>)}
         {step === 4 && (
-          <Step4Confirm form={form} onChange={setForm} onSubmit={handleSubmit} onBack={goBack} onGoToStep={(s) => { setStep(s as BookingStep); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+          <Step4Confirm form={form} onChange={setForm} onSubmit={handleSubmit} onBack={goBack} onGoToStep={(s) => { setEditingFromConfirm(true); setStep(s as BookingStep); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
         )}
       </main>
     </div>
