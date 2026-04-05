@@ -261,9 +261,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. ステータス決定（15kg以上 or 前日17時以降の翌日予約 → 仮予約）
+    // 3. ステータス決定（15kg以上 or 前日17時以降の翌日予約 → 仮予約。スタッフ入力は常に確定）
     const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) >= 15);
-    const status = (hasHeavyDog || isLateBooking) ? "pending" : "confirmed";
+    const status = isStaffBooking ? "confirmed" : (hasHeavyDog || isLateBooking) ? "pending" : "confirmed";
 
     // 二重送信チェック（全バリデーション通過後に実行）
     if (isDuplicate(body)) {
