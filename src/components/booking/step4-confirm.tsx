@@ -9,9 +9,10 @@ interface Props {
   onChange: (form: BookingFormData) => void;
   onSubmit: () => Promise<void>;
   onBack: () => void;
+  onGoToStep?: (step: number) => void;
 }
 
-export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
+export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   // 前日17時以降の翌日予約か判定
@@ -60,7 +61,10 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
     <div className="space-y-6">
       {/* プラン・日程 */}
       <div className="p-4 rounded-xl border-2 border-[#E5DDD8] bg-white space-y-2">
-        <h3 className="font-medium text-sm text-[#888]">プラン・日程</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium text-sm text-[#888]">プラン・日程</h3>
+          {onGoToStep && <button type="button" onClick={() => onGoToStep(1)} className="text-xs text-[#B87942]">修正する</button>}
+        </div>
         <p className="font-medium">{plan?.name}</p>
         <p className="text-sm">{formatDate(form.date)}</p>
         <p className="text-sm">チェックイン: {form.checkin_time}</p>
@@ -91,7 +95,10 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
 
       {/* ワンちゃん情報 */}
       <div className="p-4 rounded-xl border-2 border-[#E5DDD8] bg-white space-y-3">
-        <h3 className="font-medium text-sm text-[#888]">ワンちゃん情報</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium text-sm text-[#888]">ワンちゃん情報</h3>
+          {onGoToStep && <button type="button" onClick={() => onGoToStep(2)} className="text-xs text-[#B87942]">修正する</button>}
+        </div>
         {form.dogs.map((dog, i) => (
           <div
             key={i}
@@ -124,7 +131,10 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
 
       {/* お客様情報 */}
       <div className="p-4 rounded-xl border-2 border-[#E5DDD8] bg-white space-y-2">
-        <h3 className="font-medium text-sm text-[#888]">お客様情報</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium text-sm text-[#888]">お客様情報</h3>
+          {onGoToStep && <button type="button" onClick={() => onGoToStep(3)} className="text-xs text-[#B87942]">修正する</button>}
+        </div>
         <p className="font-medium">
           {form.customer.last_name} {form.customer.first_name}
           <span className="text-sm text-[#888] ml-2">
@@ -162,7 +172,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack }: Props) {
           <label className="text-sm text-[#888] block mb-1">
             備考・ご要望
           </label>
-          <p className="text-[11px] text-[#aaa] mb-1">特にない場合は空欄のままで大丈夫です</p>
+          <p className="text-[13px] text-[#888] mb-1">※ 特にない場合は空欄のままで大丈夫です</p>
           <textarea
             value={form.notes}
             onChange={(e) => onChange({ ...form, notes: e.target.value })}

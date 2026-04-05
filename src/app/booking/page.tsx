@@ -56,8 +56,11 @@ export default function BookingPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const [errorDetail, setErrorDetail] = useState("");
+
   const handleSubmit = async () => {
     pushEvent("booking_submit", { plan: form.plan, dog_count: form.dogs.length });
+    setErrorDetail("");
     try {
       const res = await fetch("/api/booking", {
         method: "POST",
@@ -73,11 +76,14 @@ export default function BookingPage() {
         });
         setResult(data.email_failed ? "success_no_email" : "success");
       } else {
+        const errData = await res.json().catch(() => ({}));
         pushEvent("booking_error", { error_type: "api_error" });
+        setErrorDetail(errData.error || `エラー（${res.status}）`);
         setResult("error");
       }
-    } catch {
+    } catch (e) {
       pushEvent("booking_error", { error_type: "network_error" });
+      setErrorDetail((e as Error).message || "通信エラー");
       setResult("error");
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -166,7 +172,7 @@ export default function BookingPage() {
           </div>
           <h1 className="text-xl font-medium">送信に失敗しました</h1>
           <p className="text-sm text-[#888] leading-relaxed">
-            通信エラーが発生しました。もう一度お試しいただくか、お電話にてご予約ください。
+            {errorDetail || "通信エラーが発生しました。"}もう一度お試しいただくか、お電話にてご予約ください。
           </p>
           <p className="text-sm font-medium">TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
           <button
@@ -225,7 +231,7 @@ export default function BookingPage() {
           <Step3Customer form={form} onChange={setForm} onNext={goNext} onBack={goBack} />
         )}
         {step === 4 && (
-          <Step4Confirm form={form} onChange={setForm} onSubmit={handleSubmit} onBack={goBack} />
+          <Step4Confirm form={form} onChange={setForm} onSubmit={handleSubmit} onBack={goBack} onGoToStep={(s) => { setStep(s as BookingStep); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
         )}
       </main>
     </div>

@@ -239,7 +239,7 @@ function DogForm({
       {/* 注意事項（アレルギー・食事・投薬） */}
       <div>
         <label className="text-sm text-[#888] block mb-1">注意事項（アレルギー・食事・投薬など）</label>
-        <p className="text-[11px] text-[#aaa] mb-1">特にない場合は空欄のままで大丈夫です</p>
+        <p className="text-[13px] text-[#888] mb-1">※ 特にない場合は空欄のままで大丈夫です</p>
         <textarea
           value={dog.allergies}
           onChange={(e) => onUpdate({ ...dog, allergies: e.target.value })}
