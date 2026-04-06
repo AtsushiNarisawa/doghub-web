@@ -349,6 +349,8 @@ export async function POST(req: NextRequest) {
           .update({ [column]: Math.max(0, existing[column] + delta) })
           .eq("date", date);
       } else if (delta > 0) {
+        // 既存レコードがない場合のみinsert。closedは設定しない（DBデフォルトfalse）
+        // ※ 予約はバリデーション通過済み=営業日のためclosed=falseで正しい
         await supabase.from("daily_capacity").insert({
           date,
           [column]: delta,
