@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
     // サーバー側：定休日チェック（水=3, 木=4）
     const closedWeekdays = [3, 4];
     // CI日の営業日チェック（定休日 + 臨時休業/臨時営業をdaily_capacityで判定）
-    const checkinDay = new Date(body.date + "T00:00:00+09:00").getDay();
+    // Note: new Date("YYYY-MM-DDT00:00:00+09:00").getDay()はUTC環境で前日の曜日を返すバグがあるため
+    // 日付文字列から直接曜日を計算する
+    const checkinDay = new Date(body.date + "T12:00:00+09:00").getUTCDay();
     const isRegularClosed = closedWeekdays.includes(checkinDay);
     const { data: ciCap } = await supabase
       .from("daily_capacity")
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
 
         const closedDates = datesToCheck.filter((date) => {
           const cap = capData?.find((r) => r.date === date);
-          const dayOfWeek = new Date(date + "T00:00:00+09:00").getDay();
+          const dayOfWeek = new Date(date + "T12:00:00+09:00").getUTCDay();
           const regularClosed = closedWeekdays.includes(dayOfWeek);
           // daily_capacityにレコードがあればそのclosed値を使う、なければ曜日で判定
           return cap ? cap.closed : regularClosed;
