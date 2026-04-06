@@ -360,7 +360,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                 {days.map((date) => {
                   const dateStr = fmtD(date);
                   const isThisMonth = date.getMonth() === calMonth.month;
-                  const isClosed = closedWeekdays.includes(date.getDay());
+                  const isClosed = isClosedDay(dateStr);
                   const holiday = HOLIDAYS[dateStr];
                   const isOutOfRange = dateStr < minDate || dateStr > maxDate;
                   const isDisabled = !isThisMonth || isClosed || isOutOfRange;
