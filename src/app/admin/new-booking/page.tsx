@@ -109,13 +109,33 @@ function NewBookingForm() {
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
     } else {
-      // 名前検索（姓 or 名に部分一致）
+      // 名前・カナ検索
       const { data } = await supabase
         .from("customers")
         .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
-        .or(`last_name.ilike.%${q}%,first_name.ilike.%${q}%`)
+        .or(`last_name.ilike.%${q}%,first_name.ilike.%${q}%,last_name_kana.ilike.%${q}%,first_name_kana.ilike.%${q}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
+
+      // 犬の名前でも検索（結果をマージ）
+      if (results.length < 10) {
+        const { data: dogHits } = await supabase
+          .from("dogs")
+          .select("customer_id")
+          .ilike("name", `%${q}%`)
+          .limit(5);
+        if (dogHits && dogHits.length > 0) {
+          const cids = dogHits.map(d => d.customer_id).filter(id => !results.some(r => r.id === id));
+          if (cids.length > 0) {
+            const { data: extra } = await supabase
+              .from("customers")
+              .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+              .in("id", cids)
+              .limit(5);
+            if (extra) results = [...results, ...(extra as unknown as SearchResult[])];
+          }
+        }
+      }
     }
 
     setSearchResults(results);
