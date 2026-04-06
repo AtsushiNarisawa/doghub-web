@@ -209,6 +209,21 @@ export default function BookingPage() {
         </div>
       </header>
 
+      {/* GW告知（期間限定） */}
+      {(() => {
+        const now = new Date();
+        if (now >= new Date("2026-04-06") && now < new Date("2026-05-12")) {
+          return (
+            <div className="max-w-lg mx-auto px-4 pt-3">
+              <div style={{ background: "#F0FDF4", borderLeft: "3px solid #15803d", padding: "12px 16px", borderRadius: "8px", fontSize: "13px", color: "#15803d" }}>
+                GW期間（4/30〜5/10）はペットホテルを休まず営業しています。ご予約はお早めに。5/11（月）・5/12（火）は臨時休業です。
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
       {/* 当日予約の案内 */}
       <div className="max-w-lg mx-auto px-4 pt-3">
         <div className="bg-white border border-[#E5DDD8] rounded-xl px-4 py-3 flex items-start gap-3">

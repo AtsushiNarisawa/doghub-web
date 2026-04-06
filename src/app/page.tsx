@@ -12,6 +12,7 @@ import { News } from "@/components/news";
 import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
+import { GwBanner } from "@/components/gw-banner";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -21,6 +22,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
+      <GwBanner />
       <main className="pt-15 lg:pt-20">
         <Hero />
         <Concept />
