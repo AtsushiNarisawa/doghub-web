@@ -1,3 +1,5 @@
+import { LineBookingButton } from "./line-cta";
+
 export function Reservation() {
   return (
     <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
@@ -14,6 +16,10 @@ export function Reservation() {
             DogHub箱根仙石原ご予約はこちら
           </p>
         </a>
+        <div className="mt-4 text-center">
+          <LineBookingButton className="w-full sm:w-auto" />
+          <p className="text-xs text-[#888] mt-2">2回目以降はLINEから入力不要でかんたん予約</p>
+        </div>
       </div>
     </section>
   );

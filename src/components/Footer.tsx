@@ -92,7 +92,7 @@ export function Footer() {
                 </nav>
               </div>
             </div>
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <a
                 href="/booking"
                 className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-4 min-h-11 hover:bg-[#3C200F] hover:text-white transition-colors"
@@ -103,6 +103,18 @@ export function Footer() {
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
                 <span>ご予約はこちら</span>
+              </a>
+              <a
+                href="https://line.me/R/ti/p/@794wdxyu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-white px-8 py-4 min-h-11 hover:opacity-90 transition-opacity"
+                style={{ fontSize: "16px", fontWeight: 400, background: "#06C755" }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 2C6.48 2 2 5.82 2 10.5c0 2.95 1.91 5.53 4.75 7.05-.17.6-.62 2.24-.71 2.58-.12.43.16.43.33.31.13-.09 2.1-1.38 2.94-1.95.88.13 1.79.2 2.69.2 5.52 0 10-3.82 10-8.5S17.52 2 12 2z" />
+                </svg>
+                <span>LINEで予約</span>
               </a>
             </div>
           </div>

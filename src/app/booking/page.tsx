@@ -10,6 +10,7 @@ import { Step1Plan } from "@/components/booking/step1-plan";
 import { Step2Dogs } from "@/components/booking/step2-dogs";
 import { Step3Customer } from "@/components/booking/step3-customer";
 import { Step4Confirm } from "@/components/booking/step4-confirm";
+import { LineAddFriendBanner } from "@/components/line-cta";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID || "";
 
@@ -164,6 +165,7 @@ export default function BookingPage() {
             >
               ホームページへ戻る
             </Link>
+            {!isLiff && <LineAddFriendBanner />}
           </div>
         </div>
       </div>
