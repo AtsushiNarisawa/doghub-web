@@ -29,6 +29,23 @@ const PLAN_NAMES: Record<string, string> = {
   stay: "宿泊お預かり",
 };
 
+async function updateCapacity(date: string, column: string, delta: number) {
+  const { data: existing } = await supabase
+    .from("daily_capacity")
+    .select("*")
+    .eq("date", date)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from("daily_capacity")
+      .update({ [column]: Math.max(0, (existing[column] || 0) + delta) })
+      .eq("date", date);
+  } else if (delta > 0) {
+    await supabase.from("daily_capacity").insert({ date, [column]: delta });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -38,7 +55,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "reservationId is required" }, { status: 400 });
     }
 
-    // 予約を取得
     const { data: reservation, error: fetchErr } = await supabase
       .from("reservations")
       .select("*, customers(last_name, first_name, email, phone), reservation_dogs(dogs(name))")
@@ -53,17 +69,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "キャンセル済みの予約は変更できません" }, { status: 400 });
     }
 
-    // 変更内容を構築
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
     const changes: string[] = [];
+    const dogCount = reservation.dog_count || 1;
 
-    if (checkin_time && checkin_time !== reservation.checkin_time) {
+    if (checkin_time && checkin_time !== reservation.checkin_time?.slice(0, 5)) {
       const oldTime = reservation.checkin_time?.slice(0, 5);
       updates.checkin_time = checkin_time;
       changes.push(`到着予定時間: ${oldTime} → ${checkin_time}`);
     }
 
-    if (checkout_date && checkout_date !== reservation.checkout_date) {
+    // CO日変更時は容量を再計算
+    const coChanged = checkout_date && checkout_date !== reservation.checkout_date;
+    if (coChanged) {
       updates.checkout_date = checkout_date;
       changes.push(`チェックアウト日: ${reservation.checkout_date} → ${checkout_date}`);
     }
@@ -77,7 +95,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, message: "変更なし" });
     }
 
-    // 更新
+    // DB更新
     const { error: updateErr } = await supabase
       .from("reservations")
       .update(updates)
@@ -85,6 +103,35 @@ export async function POST(req: Request) {
 
     if (updateErr) {
       return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
+    }
+
+    // CO日変更時の容量再計算（宿泊のみ）
+    if (coChanged && reservation.plan === "stay") {
+      const oldCO = reservation.checkout_date;
+      const newCO = checkout_date;
+
+      // 旧CO日のday_bookedを戻す
+      if (oldCO) await updateCapacity(oldCO, "day_booked", -dogCount);
+      // 旧泊日のstay_bookedを戻す
+      if (oldCO) {
+        const d = new Date(reservation.date);
+        const end = new Date(oldCO);
+        while (d < end) {
+          await updateCapacity(d.toISOString().split("T")[0], "stay_booked", -dogCount);
+          d.setDate(d.getDate() + 1);
+        }
+      }
+      // 新泊日のstay_bookedを加算
+      {
+        const d = new Date(reservation.date);
+        const end = new Date(newCO);
+        while (d < end) {
+          await updateCapacity(d.toISOString().split("T")[0], "stay_booked", dogCount);
+          d.setDate(d.getDate() + 1);
+        }
+      }
+      // 新CO日のday_bookedを加算
+      await updateCapacity(newCO, "day_booked", dogCount);
     }
 
     // スタッフ通知メール
@@ -108,7 +155,7 @@ ${changes.map((c) => `・${c}`).join("\n")}
 
 管理画面: https://dog-hub.shop/admin/reservations/${reservationId}`;
 
-    await Promise.allSettled(
+    const emailResults = await Promise.allSettled(
       STAFF_EMAILS.map((email) =>
         transporter.sendMail({
           from: `"DogHub箱根仙石原" <${process.env.GMAIL_USER}>`,
@@ -119,8 +166,15 @@ ${changes.map((c) => `・${c}`).join("\n")}
       )
     );
 
+    emailResults.forEach((r, i) => {
+      if (r.status === "rejected") {
+        console.error(`[modify] email failed [${STAFF_EMAILS[i]}]:`, (r.reason as Error).message?.slice(0, 200));
+      }
+    });
+
     return NextResponse.json({ ok: true, changes });
-  } catch {
+  } catch (e) {
+    console.error("[modify] error:", e);
     return NextResponse.json({ error: "サーバーエラー" }, { status: 500 });
   }
 }

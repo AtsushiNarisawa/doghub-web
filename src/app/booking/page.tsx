@@ -69,7 +69,10 @@ export default function BookingPage() {
     pushEvent("booking_submit", { plan: form.plan, dog_count: form.dogs.length });
     setErrorDetail("");
     try {
-      const res = await fetch("/api/booking", {
+      const apiUrl = typeof window !== "undefined" && window.location.hostname !== "dog-hub.shop"
+        ? "https://dog-hub.shop/api/booking"
+        : "/api/booking";
+      const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

@@ -262,15 +262,15 @@ export async function sendBookingEmails(
     }),
   ]);
 
+  const destinations = [form.customer.email, "narisawa@dog-hub.shop", "koi02121957@gmail.com"];
   results.forEach((result, i) => {
     const labels = ["customer", "staff-owner", "staff-member"];
     const label = labels[i] || `mail-${i}`;
     if (result.status === "rejected") {
       const err = result.reason as Error & { code?: string; responseCode?: number; response?: string };
-      console.error(`Email failed [${label}] code=${err.code}`);
-      console.error(`Email failed [${label}] message=${err.message?.slice(0, 200)}`);
+      console.error(`[email] FAILED [${label}] to=${destinations[i]} reservation=${reservationId} code=${err.code} message=${err.message?.slice(0, 300)}`);
     } else {
-      console.log(`Email sent [${label}]:`, result.value?.messageId ?? "ok");
+      console.log(`[email] OK [${label}] to=${destinations[i]} reservation=${reservationId}`);
     }
   });
 }
