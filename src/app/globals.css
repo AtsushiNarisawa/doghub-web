@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+::placeholder {
+  color: #ccc !important;
+  opacity: 1;
+}
+
 @theme {
   /* Current site color palette – warm brown */
   --color-bg: #FFFFFF;
