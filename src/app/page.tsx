@@ -22,8 +22,8 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <GwBanner />
       <main className="pt-15 lg:pt-20">
+        <GwBanner />
         <Hero />
         <Concept />
         <DogHotel />
