@@ -220,10 +220,13 @@ export async function POST(req: NextRequest) {
     const dogIds: string[] = [];
     for (const dog of body.dogs) {
       if (dog.id) {
-        // 既存の犬：体重・ワクチンなどを更新
+        // 既存の犬：フォーム入力を信頼してすべて更新（移行データの「不明」上書き対応）
         await supabase
           .from("dogs")
           .update({
+            name: dog.name,
+            breed: dog.breed,
+            sex: dog.sex as "male" | "female",
             weight: parseFloat(dog.weight),
             age: dog.age ? parseInt(dog.age) : null,
             age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
