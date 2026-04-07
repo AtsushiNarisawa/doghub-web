@@ -122,6 +122,11 @@ export function Footer() {
       </div>
 
       <div className="border-t border-[#E5DDD8] py-5 px-6">
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <a href="/privacy" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "12px" }}>
+            プライバシーポリシー
+          </a>
+        </div>
         <p className="text-center text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>
           Copyright © 2026 DogHub箱根仙石原
         </p>
