@@ -99,17 +99,55 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-    if (!body.dogs.length || body.dogs.some((d) => !d.name || !d.breed || !d.weight || !d.sex)) {
+    if (!body.dogs.length || body.dogs.some((d) => !d.name?.trim() || !d.breed?.trim() || !d.weight?.trim() || !d.sex)) {
       return NextResponse.json({ error: "ワンちゃん情報が不足しています" }, { status: 400 });
     }
+    // 体重が数値であること
+    if (body.dogs.some((d) => isNaN(parseFloat(d.weight)) || parseFloat(d.weight) <= 0 || parseFloat(d.weight) > 100)) {
+      return NextResponse.json({ error: "ワンちゃんの体重を正しく入力してください" }, { status: 400 });
+    }
     const c = body.customer;
-    if (!c.last_name || !c.phone) {
+    if (!c.last_name?.trim() || !c.phone?.trim()) {
       return NextResponse.json({ error: "お客様情報が不足しています" }, { status: 400 });
     }
+    // 名前のtrim（前後空白除去）
+    c.last_name = c.last_name.trim();
+    c.first_name = (c.first_name || "").trim();
+    c.last_name_kana = (c.last_name_kana || "").trim();
+    c.first_name_kana = (c.first_name_kana || "").trim();
+    body.dogs.forEach((d) => {
+      d.name = d.name.trim();
+      d.breed = d.breed.trim();
+      d.weight = d.weight.trim();
+    });
 
-    // メールアドレスの全角→半角変換
+    // 電話番号正規化（全角→半角、ハイフン・スペース除去、+81→0）
+    c.phone = c.phone
+      .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+      .replace(/[-\s‐ー－]/g, "")
+      .replace(/^\+81/, "0");
+    if (!/^0\d{9,10}$/.test(c.phone)) {
+      return NextResponse.json({ error: "電話番号は10〜11桁の半角数字でご入力ください" }, { status: 400 });
+    }
+
+    // メールアドレスの全角→半角変換 + 形式チェック
     if (c.email) {
-      c.email = c.email.replace(/＠/g, "@").replace(/．/g, ".").trim().toLowerCase();
+      c.email = c.email
+        .replace(/＠/g, "@")
+        .replace(/．/g, ".")
+        .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+        .trim()
+        .toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) {
+        return NextResponse.json({ error: "メールアドレスの形式が正しくありません" }, { status: 400 });
+      }
+    }
+
+    // 二重送信チェック（DB書き込み前に実行）
+    // インメモリのため複数Vercelインスタンス間では完璧ではないが、
+    // 同一インスタンス内の連続送信は防げる
+    if (isDuplicate(body)) {
+      return NextResponse.json({ error: "同じ内容の予約が直前に送信されています。しばらくお待ちください。" }, { status: 429 });
     }
 
     // サーバー側：容量チェック
@@ -270,11 +308,6 @@ export async function POST(req: NextRequest) {
     const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) >= 15);
     const status = isStaffBooking ? "confirmed" : (hasHeavyDog || isLateBooking) ? "pending" : "confirmed";
 
-    // 二重送信チェック（全バリデーション通過後に実行）
-    if (isDuplicate(body)) {
-      return NextResponse.json({ error: "同じ内容の予約が直前に送信されています。しばらくお待ちください。" }, { status: 429 });
-    }
-
     // 4. 予約作成（UUIDを事前生成してSELECT不要にする）
     const reservationId = randomUUID();
     const { error: reservationError } = await supabase
@@ -313,6 +346,13 @@ export async function POST(req: NextRequest) {
       });
 
     if (reservationError) {
+      // ユニーク制約違反 = 同一顧客・日時・プランの重複
+      if (reservationError.code === "23505") {
+        return NextResponse.json(
+          { error: "同じ日時のご予約が既に存在しています。マイページからご確認ください。" },
+          { status: 409 }
+        );
+      }
       return NextResponse.json({ error: "予約登録に失敗しました" }, { status: 500 });
     }
     const reservation = { id: reservationId };

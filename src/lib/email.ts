@@ -263,8 +263,8 @@ export async function sendBookingEmails(
   ]);
 
   const destinations = [form.customer.email, "narisawa@dog-hub.shop", "koi02121957@gmail.com"];
+  const labels = ["customer", "staff-owner", "staff-member"];
   results.forEach((result, i) => {
-    const labels = ["customer", "staff-owner", "staff-member"];
     const label = labels[i] || `mail-${i}`;
     if (result.status === "rejected") {
       const err = result.reason as Error & { code?: string; responseCode?: number; response?: string };
@@ -273,6 +273,14 @@ export async function sendBookingEmails(
       console.log(`[email] OK [${label}] to=${destinations[i]} reservation=${reservationId}`);
     }
   });
+
+  // お客様向けメール（i=0）が失敗した場合は throw して呼び出し元に通知
+  // スタッフメール失敗はログのみ（業務影響なし）
+  const customerResult = results[0];
+  if (customerResult.status === "rejected") {
+    const err = customerResult.reason as Error;
+    throw new Error(`お客様メール送信失敗: ${err.message?.slice(0, 200)}`);
+  }
 }
 
 // ──────────────────────────────────────────
