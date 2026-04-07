@@ -490,40 +490,21 @@ function DogLine({ dog }: { dog: DogInfo }) {
   );
 }
 
-/** 1予約を犬ごとに分割してカードを生成 */
+/** 1予約=1カード（複数頭は縦並びで表示） */
 function ReservationCards({ r, isStayOver, history }: { r: ReservationRow; isStayOver?: boolean; history?: CustomerHistory }) {
   const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
-  const dogCount = r.dog_count || dogs.length || 1;
-
-  if (dogs.length > 1) {
-    return <>{dogs.map((dog, i) => (
-      <SingleDogCard key={`${r.id}-${i}`} r={r} dog={dog} dogIndex={i + 1} totalDogs={dogs.length} isStayOver={isStayOver} history={history} />
-    ))}</>;
-  }
-  if (dogCount > 1 && dogs.length <= 1) {
-    return <>{Array.from({ length: dogCount }, (_, i) => (
-      <SingleDogCard key={`${r.id}-${i}`} r={r} dog={dogs[0] || null} dogIndex={i + 1} totalDogs={dogCount} isStayOver={isStayOver} history={history} />
-    ))}</>;
-  }
-  return <SingleDogCard r={r} dog={dogs[0] || null} dogIndex={0} totalDogs={1} isStayOver={isStayOver} history={history} />;
-}
-
-function SingleDogCard({ r, dog, dogIndex, totalDogs, isStayOver, history }: {
-  r: ReservationRow; dog: DogInfo | null; dogIndex: number; totalDogs: number;
-  isStayOver?: boolean; history?: CustomerHistory;
-}) {
-  const hasDogAlert = dog && (dog.allergies || dog.meal_notes || dog.medication_notes);
+  const totalDogs = dogs.length || r.dog_count || 1;
+  const hasDogAlert = dogs.some((d) => d.allergies || d.meal_notes || d.medication_notes);
   const hasNotes = r.notes;
   const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
   const isRepeater = history && history.visitCount >= 2;
-  const isFirst = dogIndex <= 1;
 
   return (
     <Link
       href={`/admin/reservations/${r.id}`}
       className="block bg-white rounded-xl p-4 active:bg-gray-50"
     >
-      {/* 上段: プランバッジ + 電話 */}
+      {/* 上段: プランバッジ + バッジ */}
       <div className="flex items-start justify-between mb-1">
         <div className="flex items-center gap-2 flex-wrap">
           {isStayOver ? (
@@ -536,20 +517,20 @@ function SingleDogCard({ r, dog, dogIndex, totalDogs, isStayOver, history }: {
             </span>
           )}
           {totalDogs > 1 && (
-            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{dogIndex}/{totalDogs}頭</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{totalDogs}頭</span>
           )}
-          {isRepeater && isFirst && (
+          {isRepeater && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
               {history.visitCount}回利用
             </span>
           )}
-          {r.status === "pending" && isFirst && (
+          {r.status === "pending" && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">確認待ち</span>
           )}
         </div>
         <div className="flex items-center gap-1.5">
           {hasDogAlert && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">⚠ 注意事項</span>}
-          {isFirst && hasNotes && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">📝 備考</span>}
+          {hasNotes && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">📝 備考</span>}
         </div>
       </div>
 
@@ -563,10 +544,12 @@ function SingleDogCard({ r, dog, dogIndex, totalDogs, isStayOver, history }: {
         </a>
       </div>
 
-      {/* 犬情報（統一フォーマット） */}
-      {dog && (
-        <div className="mt-1.5">
-          <DogLine dog={dog} />
+      {/* 犬情報（複数頭は縦並び） */}
+      {dogs.length > 0 && (
+        <div className="mt-1.5 space-y-0.5">
+          {dogs.map((dog, i) => (
+            <DogLine key={i} dog={dog} />
+          ))}
         </div>
       )}
     </Link>
