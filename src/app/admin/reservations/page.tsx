@@ -400,7 +400,7 @@ export default function ReservationsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {selectedReservations.flatMap((r) => {
+          {selectedReservations.map((r) => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const endDate = r.plan === "stay" && r.checkout_date
@@ -410,11 +410,12 @@ export default function ReservationsPage() {
             const st = STATUS_STYLES[effectiveStatus] || STATUS_STYLES.confirmed;
             const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
             const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean);
-            const dogCards = dogs.length > 1 ? dogs : [dogs[0] || null];
+            const hasAllergies = dogs.some((d) => d?.allergies);
+            const dogNames = dogs.map((d) => d?.name).filter(Boolean).join("・");
 
-            return dogCards.map((dog, di) => (
+            return (
               <Link
-                key={`${r.id}-${di}`}
+                key={r.id}
                 href={`/admin/reservations/${r.id}`}
                 className="block bg-white rounded-xl p-4 active:bg-gray-50"
               >
@@ -438,7 +439,7 @@ export default function ReservationsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {dog?.allergies && <span className="text-sm text-red-500">⚠️</span>}
+                    {hasAllergies && <span className="text-sm text-red-500">⚠️</span>}
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${st.bg}`}>
                       {st.label}
                     </span>
@@ -446,7 +447,7 @@ export default function ReservationsPage() {
                 </div>
                 <p className="text-base font-medium flex items-center flex-wrap gap-1">
                   <span>{r.customers.last_name} {r.customers.first_name} 様</span>
-                  {di === 0 && visitCounts[r.customer_id] && (
+                  {visitCounts[r.customer_id] && (
                     <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
                       visitCounts[r.customer_id] === 1
                         ? "bg-green-50 text-green-600 border border-green-200"
@@ -455,18 +456,18 @@ export default function ReservationsPage() {
                       {visitCounts[r.customer_id] === 1 ? "初回" : `${visitCounts[r.customer_id]}回目`}
                     </span>
                   )}
-                  {dog && (
+                  {dogNames && (
                     <span className="text-sm text-gray-500">
-                      {dog.name}
+                      🐕 {dogNames}
                     </span>
                   )}
                   {dogs.length > 1 && (
                     <span className="text-xs text-gray-500">
-                      ({di + 1}/{dogs.length})
+                      （{dogs.length}頭）
                     </span>
                   )}
                 </p>
-                {r.status === "pending" && di === 0 && (
+                {r.status === "pending" && (
                   <button
                     onClick={(e) => confirmReservation(r.id, e)}
                     className="mt-2 text-sm bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-200 active:bg-green-100"
@@ -475,7 +476,7 @@ export default function ReservationsPage() {
                   </button>
                 )}
               </Link>
-            ));
+            );
           })}
         </div>
       )}
