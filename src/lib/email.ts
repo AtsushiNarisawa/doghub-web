@@ -456,3 +456,132 @@ export async function resendConfirmationEmail(
     html,
   });
 }
+
+// ──────────────────────────────────────────
+// カスタムメッセージ送信（管理画面から自由文で返信）
+// ──────────────────────────────────────────
+function buildCustomMessageHtml(
+  customerName: string,
+  bodyText: string,
+  reservation: {
+    id: string;
+    plan: string;
+    date: string;
+    checkin_time: string;
+    checkout_date: string | null;
+  },
+  dogNames: string[],
+): string {
+  // プレーンテキストの本文をHTMLに変換（改行を <br>、HTML特殊文字をエスケープ）
+  const escaped = bodyText
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+  const bodyHtml = escaped.replace(/\r?\n/g, "<br>");
+
+  const planName = PLAN_NAMES[reservation.plan] || reservation.plan;
+  const stayNights =
+    reservation.plan === "stay" && reservation.checkout_date && reservation.date
+      ? Math.max(1, Math.round((new Date(reservation.checkout_date).getTime() - new Date(reservation.date).getTime()) / 86400000))
+      : 0;
+  const checkinTime = reservation.checkin_time?.slice(0, 5) || "";
+
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f7f5f0;font-family:-apple-system,'Hiragino Sans',sans-serif;">
+<div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+
+  <!-- ヘッダー -->
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="display:inline-block;background:#3C200F;border-radius:10px;padding:10px 24px;">
+      <span style="color:white;font-size:20px;font-weight:700;letter-spacing:2px;">DogHub</span>
+    </div>
+    <p style="color:#8F7B65;font-size:13px;margin:8px 0 0;">箱根仙石原</p>
+  </div>
+
+  <!-- メッセージ本文 -->
+  <div style="background:white;border-radius:16px;padding:28px 24px;margin-bottom:16px;">
+    <p style="margin:0 0 20px;font-size:15px;color:#3C200F;line-height:1.9;">
+      ${bodyHtml}
+    </p>
+
+    <!-- ご予約内容 -->
+    <div style="margin-top:24px;padding:16px;background:#f7f5f0;border-radius:10px;">
+      <p style="margin:0 0 10px;font-size:12px;color:#888;font-weight:600;">ご予約内容</p>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr>
+          <td style="padding:4px 0;color:#888;width:90px;">プラン</td>
+          <td style="padding:4px 0;color:#3C200F;">${planName}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#888;">日付</td>
+          <td style="padding:4px 0;color:#3C200F;">${formatDate(reservation.date)}${checkinTime ? ` ${checkinTime}〜` : ""}</td>
+        </tr>
+        ${reservation.checkout_date ? `
+        <tr>
+          <td style="padding:4px 0;color:#888;">チェックアウト</td>
+          <td style="padding:4px 0;color:#3C200F;">${formatDate(reservation.checkout_date)}${stayNights > 1 ? `（${stayNights}泊）` : ""}</td>
+        </tr>` : ""}
+        ${dogNames.length > 0 ? `
+        <tr>
+          <td style="padding:4px 0;color:#888;">ワンちゃん</td>
+          <td style="padding:4px 0;color:#3C200F;">${dogNames.join("、")}</td>
+        </tr>` : ""}
+      </table>
+    </div>
+
+    <p style="margin:24px 0 0;font-size:13px;color:#888;line-height:1.8;">
+      ご不明点がございましたら、このメールにそのまま返信いただくか、お電話（<a href="tel:0460800290" style="color:#B87942;text-decoration:none;">0460-80-0290</a>）までお気軽にお問い合わせください。
+    </p>
+  </div>
+
+  <!-- フッター -->
+  <div style="text-align:center;padding:16px 0;">
+    <p style="margin:0 0 4px;font-size:13px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原928-15</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460800290" style="color:#B87942;">0460-80-0290</a></p>
+    <p style="margin:0;font-size:12px;color:#888;">営業時間: 金〜火 9:00〜17:00（水・木定休）</p>
+    <p style="margin:12px 0 0;font-size:11px;color:#bbb;">予約番号: ${reservation.id.slice(0, 8).toUpperCase()}</p>
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+export async function sendCustomMessage(params: {
+  to: string;
+  subject: string;
+  body: string;
+  customerName: string;
+  reservation: {
+    id: string;
+    plan: string;
+    date: string;
+    checkin_time: string;
+    checkout_date: string | null;
+  };
+  dogNames: string[];
+}): Promise<void> {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    throw new Error("Gmailの設定がされていません");
+  }
+
+  const html = buildCustomMessageHtml(
+    params.customerName,
+    params.body,
+    params.reservation,
+    params.dogNames,
+  );
+
+  await transporter.sendMail({
+    from: `"DogHub箱根仙石原" <${process.env.GMAIL_USER}>`,
+    replyTo: "info@dog-hub.shop",
+    to: params.to,
+    subject: params.subject,
+    html,
+    text: params.body, // プレーンテキスト版も付与
+  });
+}

@@ -80,6 +80,10 @@ export default function ReservationDetailPage() {
   const [newDate, setNewDate] = useState("");
   const [newCheckinTime, setNewCheckinTime] = useState("");
   const [newCheckoutDate, setNewCheckoutDate] = useState("");
+  const [composing, setComposing] = useState(false);
+  const [msgSubject, setMsgSubject] = useState("");
+  const [msgBody, setMsgBody] = useState("");
+  const [sendingMsg, setSendingMsg] = useState(false);
 
   useEffect(() => { fetchReservation(); }, [id]);
 
@@ -177,6 +181,50 @@ export default function ReservationDetailPage() {
       setMemoSaved(true);
       setTimeout(() => setMemoSaved(false), 3000);
     }
+  };
+
+  const openCompose = () => {
+    if (!res) return;
+    const dateLabel = (() => {
+      const dt = new Date(res.date + "T00:00:00");
+      return `${dt.getMonth() + 1}月${dt.getDate()}日`;
+    })();
+    setMsgSubject(`【DogHub箱根仙石原】ご予約について（${dateLabel}）`);
+    setMsgBody("");
+    setComposing(true);
+  };
+
+  const sendMessage = async () => {
+    if (!msgSubject.trim() || !msgBody.trim()) {
+      alert("件名と本文を入力してください");
+      return;
+    }
+    if (!confirm(`${res?.customers.email} にメールを送信しますか？`)) return;
+    setSendingMsg(true);
+    try {
+      const resp = await fetch("/api/admin/send-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reservation_id: id,
+          subject: msgSubject.trim(),
+          body: msgBody.trim(),
+        }),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        alert(`${data.sent_to} にメールを送信しました`);
+        setComposing(false);
+        setMsgSubject("");
+        setMsgBody("");
+        await fetchReservation();
+      } else {
+        alert(`送信失敗: ${data.error}`);
+      }
+    } catch {
+      alert("通信エラーが発生しました");
+    }
+    setSendingMsg(false);
   };
 
   const fmtDate = (d: string) => {
@@ -329,7 +377,15 @@ export default function ReservationDetailPage() {
         {res.notes && (
           <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
             <p className="text-xs text-gray-500 mb-0.5">📝 備考</p>
-            <p className="text-sm text-gray-700">{res.notes}</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{res.notes}</p>
+            {customer.email && !composing && (
+              <button
+                onClick={openCompose}
+                className="mt-2 text-xs text-[#B87942] font-medium active:text-[#A06830]"
+              >
+                ✉ この内容に返信する
+              </button>
+            )}
           </div>
         )}
 
@@ -366,6 +422,74 @@ export default function ReservationDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* メッセージ送信フォーム */}
+      {composing && customer.email && (
+        <div className="bg-white rounded-xl p-4 border-2 border-[#B87942]">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium text-gray-700">✉ お客様にメッセージを送信</p>
+            <button
+              onClick={() => setComposing(false)}
+              disabled={sendingMsg}
+              className="text-xs text-gray-400 active:text-gray-600"
+            >
+              閉じる
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 mb-1">宛先</p>
+          <p className="text-sm text-gray-700 mb-3 break-all">{customer.email}</p>
+
+          {res.notes && (
+            <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
+              <p className="text-xs text-gray-500 mb-0.5">お客様の備考（参考）</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{res.notes}</p>
+            </div>
+          )}
+
+          <label className="text-xs text-gray-500">件名</label>
+          <input
+            type="text"
+            value={msgSubject}
+            onChange={(e) => setMsgSubject(e.target.value)}
+            disabled={sendingMsg}
+            maxLength={200}
+            className="w-full mt-1 mb-3 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none disabled:bg-gray-50"
+          />
+
+          <label className="text-xs text-gray-500">本文</label>
+          <textarea
+            value={msgBody}
+            onChange={(e) => setMsgBody(e.target.value)}
+            disabled={sendingMsg}
+            rows={8}
+            maxLength={5000}
+            placeholder={`${customer.last_name}様\n\nこの度はご予約いただきありがとうございます。\n\nご要望の件についてですが…\n\nDogHub箱根仙石原`}
+            className="w-full mt-1 p-3 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none resize-none disabled:bg-gray-50"
+          />
+          <p className="text-xs text-gray-400 mt-1 mb-3">
+            ※メール下部に予約内容（プラン・日付・ワンちゃん名）が自動で添付されます。<br />
+            ※署名・連絡先は自動で付与されます。
+          </p>
+
+          <div className="flex gap-2">
+            <button
+              onClick={sendMessage}
+              disabled={sendingMsg || !msgSubject.trim() || !msgBody.trim()}
+              className="flex-1 py-3 bg-[#B87942] text-white text-sm rounded-lg font-medium active:bg-[#A06830] disabled:opacity-50"
+            >
+              {sendingMsg ? "送信中..." : "メールを送信"}
+            </button>
+            <button
+              onClick={() => setComposing(false)}
+              disabled={sendingMsg}
+              className="px-4 py-3 bg-gray-100 text-sm text-gray-500 rounded-lg disabled:opacity-50"
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* スタッフメモ */}
       <div className="bg-white rounded-xl p-4">
@@ -423,6 +547,21 @@ export default function ReservationDetailPage() {
           </div>
         )}
       </div>
+
+      {/* メッセージ送信ボタン（備考がない場合・キャンセル済みでも常時表示） */}
+      {customer.email && !composing && (
+        <div className="bg-white rounded-xl p-4">
+          <button
+            onClick={openCompose}
+            className="w-full py-2.5 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830] flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            お客様にメッセージを送信
+          </button>
+        </div>
+      )}
 
       {/* アクション */}
       {effectiveStatus !== "cancelled" && (
