@@ -41,7 +41,13 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       .from("daily_capacity")
       .select("date, closed")
       .gte("date", new Date().toISOString().split("T")[0])
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[booking] closed_overrides fetch error:", error);
+          // フェイルセーフ: 空のマップで継続（曜日ベースの判定にフォールバック）
+          setClosedOverrides({});
+          return;
+        }
         if (data) {
           const map: Record<string, boolean> = {};
           data.forEach((r) => { map[r.date] = r.closed; });
@@ -120,21 +126,32 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       return;
     }
 
-    // daily_capacityから全日のclosed状態を取得
-    const { data } = await supabase
-      .from("daily_capacity")
-      .select("date, closed")
-      .in("date", allDates);
+    try {
+      // daily_capacityから全日のclosed状態を取得
+      const { data, error } = await supabase
+        .from("daily_capacity")
+        .select("date, closed")
+        .in("date", allDates);
+      if (error) throw error;
 
-    const actualClosed = allDates.filter((date) => {
-      const cap = data?.find((r) => r.date === date);
-      const dayOfWeek = new Date(date + "T00:00:00").getDay();
-      const regularClosed = closedWeekdays.includes(dayOfWeek);
-      // daily_capacityにレコードがあればそのclosed値、なければ曜日で判定
-      return cap ? cap.closed : regularClosed;
-    });
+      const actualClosed = allDates.filter((date) => {
+        const cap = data?.find((r) => r.date === date);
+        const dayOfWeek = new Date(date + "T00:00:00").getDay();
+        const regularClosed = closedWeekdays.includes(dayOfWeek);
+        // daily_capacityにレコードがあればそのclosed値、なければ曜日で判定
+        return cap ? cap.closed : regularClosed;
+      });
 
-    setStayClosedDates(actualClosed);
+      setStayClosedDates(actualClosed);
+    } catch (e) {
+      // フェイルセーフ: 曜日ベースの判定にフォールバック
+      console.error("[booking] checkClosedDaysInStay fetch error:", e);
+      const fallback = allDates.filter((date) => {
+        const dayOfWeek = new Date(date + "T00:00:00").getDay();
+        return closedWeekdays.includes(dayOfWeek);
+      });
+      setStayClosedDates(fallback);
+    }
   }, [closedWeekdays]);
 
   useEffect(() => {
@@ -152,63 +169,72 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     }
     const fetchCapacity = async () => {
       setLoadingCapacity(true);
-
-      if (form.plan === "stay" && form.checkout_date) {
-        // 宿泊：全泊日(CI〜CO前日)のstay枠 + CO日のday枠をチェック
-        const dates: string[] = [];
-        const d = new Date(form.date);
-        const end = new Date(form.checkout_date);
-        while (d < end) {
-          dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
-          d.setDate(d.getDate() + 1);
-        }
-
-        const { data: rows } = await supabase
-          .from("daily_capacity")
-          .select("*")
-          .in("date", [...dates, form.checkout_date]);
-
-        let minStayRemaining = 10;
-        let closed = false;
-        let coDay = { day_remaining: 9, closed: false };
-
-        for (const date of dates) {
-          const row = rows?.find((r) => r.date === date);
-          if (row) {
-            if (row.closed) { closed = true; break; }
-            minStayRemaining = Math.min(minStayRemaining, row.stay_limit - row.stay_booked);
+      try {
+        if (form.plan === "stay" && form.checkout_date) {
+          // 宿泊：全泊日(CI〜CO前日)のstay枠 + CO日のday枠をチェック
+          const dates: string[] = [];
+          const d = new Date(form.date);
+          const end = new Date(form.checkout_date);
+          while (d < end) {
+            dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
+            d.setDate(d.getDate() + 1);
           }
-        }
 
-        const coRow = rows?.find((r) => r.date === form.checkout_date);
-        if (coRow) {
-          coDay = { day_remaining: coRow.day_limit - coRow.day_booked, closed: coRow.closed };
-        }
+          const { data: rows, error } = await supabase
+            .from("daily_capacity")
+            .select("*")
+            .in("date", [...dates, form.checkout_date]);
+          if (error) throw error;
 
-        setCapacity({
-          stay_remaining: minStayRemaining,
-          day_remaining: coDay.day_remaining,
-          closed, // CO日のclosedは除外（CO日は定休日でもチェックアウト可能）
-        });
-      } else {
-        // 日帰り or 宿泊でCO日未選択：CI日のみチェック
-        const { data } = await supabase
-          .from("daily_capacity")
-          .select("*")
-          .eq("date", form.date)
-          .maybeSingle();
+          let minStayRemaining = 10;
+          let closed = false;
+          let coDay = { day_remaining: 9, closed: false };
 
-        if (data) {
+          for (const date of dates) {
+            const row = rows?.find((r) => r.date === date);
+            if (row) {
+              if (row.closed) { closed = true; break; }
+              minStayRemaining = Math.min(minStayRemaining, row.stay_limit - row.stay_booked);
+            }
+          }
+
+          const coRow = rows?.find((r) => r.date === form.checkout_date);
+          if (coRow) {
+            coDay = { day_remaining: coRow.day_limit - coRow.day_booked, closed: coRow.closed };
+          }
+
           setCapacity({
-            stay_remaining: data.stay_limit - data.stay_booked,
-            day_remaining: data.day_limit - data.day_booked,
-            closed: data.closed,
+            stay_remaining: minStayRemaining,
+            day_remaining: coDay.day_remaining,
+            closed, // CO日のclosedは除外（CO日は定休日でもチェックアウト可能）
           });
         } else {
-          setCapacity({ stay_remaining: 10, day_remaining: 9, closed: false });
+          // 日帰り or 宿泊でCO日未選択：CI日のみチェック
+          const { data, error } = await supabase
+            .from("daily_capacity")
+            .select("*")
+            .eq("date", form.date)
+            .maybeSingle();
+          if (error) throw error;
+
+          if (data) {
+            setCapacity({
+              stay_remaining: data.stay_limit - data.stay_booked,
+              day_remaining: data.day_limit - data.day_booked,
+              closed: data.closed,
+            });
+          } else {
+            setCapacity({ stay_remaining: 10, day_remaining: 9, closed: false });
+          }
         }
+      } catch (e) {
+        // Supabase 一時障害・ネットワーク不安定時のフェイルセーフ
+        // フォールバック: 通常容量で続行（ユーザーが「次へ」進めなくなるのを防ぐ）
+        console.error("[booking] capacity fetch error:", e);
+        setCapacity({ stay_remaining: 10, day_remaining: 9, closed: false });
+      } finally {
+        setLoadingCapacity(false);
       }
-      setLoadingCapacity(false);
     };
     fetchCapacity();
   }, [form.date, form.plan, form.checkout_date]);
