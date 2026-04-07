@@ -269,7 +269,19 @@ export default function ReservationDetailPage() {
           </svg>
           戻る
         </button>
-        <span className={`text-sm px-3 py-1 rounded-full font-medium ${status.color}`}>{status.label}</span>
+        <div className="flex items-center gap-1.5">
+          {res.source === "line" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700 border border-green-300">
+              LINE予約
+            </span>
+          )}
+          {res.source === "phone" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
+              電話予約
+            </span>
+          )}
+          <span className={`text-sm px-3 py-1 rounded-full font-medium ${status.color}`}>{status.label}</span>
+        </div>
       </div>
 
       {/* 確認待ちアクション */}

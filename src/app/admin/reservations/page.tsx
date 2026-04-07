@@ -432,6 +432,16 @@ export default function ReservationsPage() {
                     <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${planColor}`}>
                       {PLAN_LABELS[r.plan] || r.plan}
                     </span>
+                    {r.source === "line" && (
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-100 text-green-700 border border-green-300">
+                        LINE
+                      </span>
+                    )}
+                    {r.source === "phone" && (
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-600">
+                        電話
+                      </span>
+                    )}
                     {r.plan === "stay" && r.checkout_date && (
                       <span className="text-xs text-gray-500">
                         〜{new Date(r.checkout_date + "T00:00:00").getDate()}日

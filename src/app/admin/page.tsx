@@ -22,6 +22,7 @@ interface ReservationRow {
   checkin_time: string;
   checkout_date: string | null;
   status: string;
+  source: string;
   walk_option: boolean;
   notes: string | null;
   dog_count: number;
@@ -177,7 +178,7 @@ export default function AdminDashboard() {
     setLoading(true);
 
     const selectFields = `
-      id, plan, date, checkin_time, checkout_date, status, walk_option, notes, dog_count,
+      id, plan, date, checkin_time, checkout_date, status, source, walk_option, notes, dog_count,
       customers!inner(id, last_name, first_name, phone, total_visits, first_visit_date, last_visit_date),
       reservation_dogs(dogs(name, breed, weight, age, sex, allergies, meal_notes, medication_notes))
     `;
@@ -518,6 +519,12 @@ function ReservationCards({ r, isStayOver, history }: { r: ReservationRow; isSta
           )}
           {totalDogs > 1 && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{totalDogs}頭</span>
+          )}
+          {r.source === "line" && (
+            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-100 text-green-700 border border-green-300">LINE</span>
+          )}
+          {r.source === "phone" && (
+            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-600">電話</span>
           )}
           {isRepeater && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
