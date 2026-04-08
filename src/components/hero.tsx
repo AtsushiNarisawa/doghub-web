@@ -38,13 +38,13 @@ export function Hero() {
             className="text-white mb-3"
             style={{ fontSize: "clamp(20px, 3vw, 32px)", fontWeight: 400, lineHeight: "1.6", letterSpacing: "0.05em" }}
           >
-            愛犬と箱根旅をつなぐ場所
+            箱根のペットホテル｜DogHub箱根仙石原
           </h1>
           <p
             className="text-white/80 max-w-lg"
             style={{ fontSize: "clamp(12px, 1.3vw, 15px)", fontWeight: 400, lineHeight: "1.8" }}
           >
-            愛犬と一緒に箱根を楽しむ際に、愛犬と入れる場所と<br className="hidden md:inline" />入れない場所を繋ぐHUBとしてご利用ください。
+            愛犬と入れる場所と入れない場所を、DogHubが繋ぎます<br className="hidden md:inline" />── 預けて、自由に箱根を楽しむ。
           </p>
         </div>
       </section>
