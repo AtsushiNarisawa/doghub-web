@@ -174,7 +174,7 @@ export function Header() {
         </div>
 
         {menuOpen && (
-          <div className="lg:hidden bg-white border-t border-[#E5DDD8] px-6 py-4 flex flex-col overflow-y-auto" style={{ maxHeight: "calc(100dvh - 60px)" }}>
+          <div className="lg:hidden bg-white border-t border-[#E5DDD8] px-6 py-4 pb-28 flex flex-col overflow-y-auto" style={{ maxHeight: "calc(100dvh - 60px)" }}>
             {hotelNavItems.map((item) => (
               <div key={item.href}>
                 {item.children ? (
