@@ -13,6 +13,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { GwBanner } from "@/components/gw-banner";
+import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -33,6 +34,11 @@ export default function HomePage() {
         <CafeGoods />
         <HakoneGuide />
         <News />
+        <section className="py-8 lg:py-12">
+          <div className="max-w-3xl mx-auto px-6">
+            <InstagramFollowLight />
+          </div>
+        </section>
         <Reservation />
         <QuickNav />
       </main>

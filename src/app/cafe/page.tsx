@@ -6,6 +6,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
+import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   title: "箱根 犬連れランチ＆ドッグカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
@@ -315,6 +316,11 @@ export default function CafePage() {
           </div>
         </section>
 
+        <section className="py-8 lg:py-12">
+          <div className="max-w-3xl mx-auto px-6">
+            <InstagramFollowLight />
+          </div>
+        </section>
         <Reservation />
         <QuickNav />
       </main>
