@@ -17,7 +17,7 @@ export function MobileCta() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (pathname === "/booking" || pathname.startsWith("/admin") || pathname.startsWith("/walks")) return null;
+  if (pathname === "/booking" || pathname.startsWith("/admin") || pathname.startsWith("/walks") || pathname.startsWith("/news/")) return null;
 
   return (
     <div
