@@ -132,8 +132,14 @@ function AdminNav({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeCle
 }
 
 function AdminHeader({ badgeCount, onBadgeClear, lastSeen }: { badgeCount: number; onBadgeClear: () => void; lastSeen: string }) {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+
+  useEffect(() => {
+    setNotifOpen(false);
+    setMenuOpen(false);
+  }, [pathname]);
 
   const handleNotifClick = () => {
     setNotifOpen(true);
