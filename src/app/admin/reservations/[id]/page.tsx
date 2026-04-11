@@ -484,7 +484,7 @@ export default function ReservationDetailPage() {
             ※署名・連絡先は自動で付与されます。
           </p>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pb-20">
             <button
               onClick={sendMessage}
               disabled={sendingMsg || !msgSubject.trim() || !msgBody.trim()}
