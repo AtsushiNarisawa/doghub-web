@@ -133,6 +133,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
+  "hakone-dog-day-hot-spring-guide": {
+    text: "日帰り温泉の間、愛犬をお預け",
+    subtext: "仙石原・強羅・湯本の温泉施設へ好アクセス。半日¥3,300〜で温泉＋ランチにちょうどいい時間配分。",
+    href: "/onsen",
+    btnLabel: "温泉×お預かりプランを見る",
+  },
   "hakone-jinja-dog-guide": {
     text: "参拝の後は美術館や温泉も。犬はDogHubへ",
     subtext: "箱根神社は犬OKでも、美術館や温泉は犬NG。参拝後の観光中だけお預かりできます。半日¥3,300〜。",
@@ -199,20 +205,24 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-dog-friendly-hotels": [
     { label: "ペット可ホテル×日中預かり", href: "/pethotel", description: "チェックイン前・チェックアウト後の観光に" },
     { label: "高級旅館×お預かり", href: "/ryokan", description: "ペット不可の旅館に泊まりたい時の選択肢" },
+    { label: "日帰り温泉に行くなら", href: "/onsen", description: "仙石原・強羅・湯本の温泉施設へ" },
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐" },
   ],
   "hakone-dog-travel-model-course": [
+    { label: "温泉プラン", href: "/onsen", description: "日帰り温泉の間に半日お預かり" },
     { label: "ゴルフプラン", href: "/golf", description: "早朝7時〜のお預かりでラウンド" },
     { label: "ユネッサンプラン", href: "/yunessun", description: "1日お預かりでたっぷり温泉" },
     { label: "美術館プラン", href: "/museum", description: "半日で美術館1館＋ランチ" },
   ],
   "hakone-ashinoko-dog-guide": [
     { label: "芦ノ湖観光中のお預かり", href: "/service", description: "桃源台から車10分。半日¥3,300〜" },
+    { label: "芦ノ湖エリアの温泉", href: "/onsen", description: "龍宮殿本館まで車10分" },
     { label: "海賊船＋遊覧の間に預ける", href: "/4h", description: "半日プランで芦ノ湖をたっぷり満喫" },
     { label: "カフェでランチ", href: "/cafe", description: "お迎え前後におむすび＆スープ" },
   ],
   "hakone-owakudani-dog-guide": [
     { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+    { label: "観光の後に温泉へ", href: "/onsen", description: "仙石原・小涌谷の温泉施設" },
     { label: "ロープウェイ＋芦ノ湖も行くなら", href: "/service", description: "1日プラン¥5,500〜で大涌谷→芦ノ湖コース" },
     { label: "カフェで一休み", href: "/cafe", description: "お迎え前に仙石原でおむすびランチ" },
   ],
@@ -240,16 +250,19 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "hakone-chokoku-no-mori-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "半日で彫刻の森＋ランチ" },
+    { label: "美術館の後に温泉へ", href: "/onsen", description: "小涌谷の森の湯まで車5分" },
     { label: "ポーラ美術館も行くなら", href: "/4h", description: "1日プラン¥5,500〜で2館回れる" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
   ],
   "hakone-pola-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "ポーラ美術館まで車6分" },
-    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+    { label: "美術館の後に温泉へ", href: "/onsen", description: "仙石原周辺の温泉施設" },
     { label: "彫刻の森もセットで", href: "/8h", description: "1日プラン¥5,500〜" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
   ],
   "hakone-glass-forest-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "ガラスの森美術館まで車3分" },
+    { label: "温泉もセットで", href: "/onsen", description: "仙石原の日帰り温泉へ車5分" },
     { label: "ポーラ美術館もセットで", href: "/8h", description: "1日プラン¥5,500〜で2館ハシゴ" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
   ],
@@ -279,9 +292,16 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700〜" },
   ],
   "hakone-dog-day-trip": [
+    { label: "日帰り温泉プラン", href: "/onsen", description: "半日お預かりで温泉＋ランチ" },
     { label: "半日お預かり", href: "/4h", description: "¥3,300〜 美術館1館＋温泉に" },
     { label: "1日お預かり", href: "/8h", description: "¥5,500〜 芦ノ湖方面まで" },
     { label: "カフェで休憩", href: "/cafe", description: "おむすび＆スープ" },
+  ],
+  "hakone-dog-day-hot-spring-guide": [
+    { label: "温泉×お預かりプラン", href: "/onsen", description: "仙石原・強羅・湯本の温泉施設へ" },
+    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 温泉＋ランチにちょうどいい" },
+    { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで温泉プール満喫" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
   ],
   "spring-walk-guide": [
     { label: "カフェで休憩", href: "/cafe", description: "お散歩後におむすび＆スープ" },

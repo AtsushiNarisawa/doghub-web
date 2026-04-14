@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/hero";
 import { Concept } from "@/components/concept";
 import { DogHotel } from "@/components/dog-hotel";
+import { SceneGrid } from "@/components/scene-grid";
 import { Pricing } from "@/components/pricing";
 import { Testimonials } from "@/components/testimonials";
 import { ModelCase } from "@/components/model-case";
@@ -28,6 +29,7 @@ export default function HomePage() {
         <Hero />
         <Concept />
         <DogHotel />
+        <SceneGrid />
         <Pricing />
         <Testimonials />
         <ModelCase limit={1} />
