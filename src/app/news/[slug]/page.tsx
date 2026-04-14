@@ -127,6 +127,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
+  "hakone-glass-forest-museum-dog-guide": {
+    text: "館内鑑賞の間だけ、愛犬をお預け",
+    subtext: "ガラスの森美術館までDogHubから車3分。半日¥3,300〜で館内もじっくり鑑賞できます。",
+    href: "/museum",
+    btnLabel: "美術館×お預かりプランを見る",
+  },
   "hakone-jinja-dog-guide": {
     text: "参拝の後は美術館や温泉も。犬はDogHubへ",
     subtext: "箱根神社は犬OKでも、美術館や温泉は犬NG。参拝後の観光中だけお預かりできます。半日¥3,300〜。",
@@ -241,6 +247,11 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "美術館×お預かりプラン", href: "/museum", description: "ポーラ美術館まで車6分" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
     { label: "彫刻の森もセットで", href: "/8h", description: "1日プラン¥5,500〜" },
+  ],
+  "hakone-glass-forest-museum-dog-guide": [
+    { label: "美術館×お預かりプラン", href: "/museum", description: "ガラスの森美術館まで車3分" },
+    { label: "ポーラ美術館もセットで", href: "/8h", description: "1日プラン¥5,500〜で2館ハシゴ" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
   ],
   "hakone-jinja-dog-guide": [
     { label: "美術館にも行くなら", href: "/museum", description: "犬NG。参拝後にDogHubに預けて美術館へ" },
