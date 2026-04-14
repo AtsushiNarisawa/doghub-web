@@ -523,8 +523,14 @@ function ReservationCards({ r, isStayOver, history }: { r: ReservationRow; isSta
           {r.source === "line" && (
             <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-100 text-green-700 border border-green-300">LINE</span>
           )}
+          {r.source === "web" && (
+            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-blue-100 text-blue-700 border border-blue-300">WEB</span>
+          )}
           {r.source === "phone" && (
             <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-600">電話</span>
+          )}
+          {r.source === "walk_in" && (
+            <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-100 text-amber-700 border border-amber-300">来店</span>
           )}
           {isRepeater && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">

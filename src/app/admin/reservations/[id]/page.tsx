@@ -275,9 +275,19 @@ export default function ReservationDetailPage() {
               LINE予約
             </span>
           )}
+          {res.source === "web" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700 border border-blue-300">
+              WEB予約
+            </span>
+          )}
           {res.source === "phone" && (
             <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
               電話予約
+            </span>
+          )}
+          {res.source === "walk_in" && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700 border border-amber-300">
+              来店予約
             </span>
           )}
           <span className={`text-sm px-3 py-1 rounded-full font-medium ${status.color}`}>{status.label}</span>
