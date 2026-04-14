@@ -84,7 +84,7 @@ export function Footer() {
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "14px", fontWeight: 400 }}>ご利用案内</p>
                 <nav className="flex flex-col gap-2">
                   <Link href="/guide" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>はじめてガイド</Link>
-                  <Link href="/guide/hakone-dog" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>箱根犬連れガイド</Link>
+                  <Link href="/news/hakone-dog-trip-guide" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>箱根犬連れガイド</Link>
                   <Link href="/faq" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>よくある質問</Link>
                   <Link href="/spots" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>おすすめスポット</Link>
                   <Link href="/access" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>店舗情報</Link>

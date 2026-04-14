@@ -29,6 +29,8 @@ export function middleware(req: NextRequest) {
     "/about": "/",
     "/gallery": "/",
     "/doghubhakone/calendar": "/booking",
+    // カニバリ解消: guide版を記事版に統合（2026-04-14）
+    "/guide/hakone-dog": "/news/hakone-dog-trip-guide",
   };
 
   const redirectTarget = legacyRedirects[pathname] || (pathname.startsWith("/blog/") ? "/news" : null) || (pathname.startsWith("/post/") ? "/news" : null) || (pathname.startsWith("/service-page/") ? "/service" : null) || (pathname.startsWith("/doghubhakone") ? "/booking" : null);
@@ -123,5 +125,5 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*", "/hotel", "/dog-hotel", "/pet-hotel", "/doghotel", "/reservation", "/plan", "/pricing", "/menu", "/contact", "/about", "/gallery", "/doghubhakone/:path*"],
+  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*", "/hotel", "/dog-hotel", "/pet-hotel", "/doghotel", "/reservation", "/plan", "/pricing", "/menu", "/contact", "/about", "/gallery", "/doghubhakone/:path*", "/guide/hakone-dog"],
 };
