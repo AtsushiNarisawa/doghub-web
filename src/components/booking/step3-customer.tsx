@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import type { BookingFormData } from "@/types/booking";
-import { REFERRAL_SOURCES } from "@/types/booking";
+import {
+  REFERRAL_SOURCES,
+  DAY_DESTINATIONS,
+  DAY_DESTINATIONS_4H,
+  STAY_DESTINATIONS,
+  DESTINATION_SUGGESTIONS,
+} from "@/types/booking";
 
 interface Props {
   form: BookingFormData;
@@ -252,6 +258,61 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
           </div>
         </div>
       )}
+
+      {/* 行き先（毎回・任意） */}
+      <div>
+        <label className="text-sm text-[#888] block mb-2">
+          お預かり中の行き先 <span className="text-[#888]">（任意）</span>
+        </label>
+        <p className="text-[12px] text-[#888] mb-3">
+          未定でもOK。当日の変更もOKです
+        </p>
+        {(() => {
+          const quickButtons =
+            form.plan === "stay" ? STAY_DESTINATIONS.filter(d => d !== "未定" && d !== "その他（自由記入）") :
+            form.plan === "4h" ? DAY_DESTINATIONS_4H.filter(d => d !== "その他") :
+            DAY_DESTINATIONS.filter(d => d !== "その他");
+
+          const allSuggestions = [
+            ...DESTINATION_SUGGESTIONS,
+            ...(form.plan === "stay" ? STAY_DESTINATIONS.filter(d => d !== "未定" && d !== "その他（自由記入）") : []),
+          ];
+
+          return (
+            <>
+              <input
+                type="text"
+                list="destination-suggestions"
+                value={form.destination}
+                onChange={(e) => onChange({ ...form, destination: e.target.value })}
+                placeholder="施設名を入力（候補が表示されます）"
+                className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+              />
+              <datalist id="destination-suggestions">
+                {allSuggestions.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {quickButtons.map((dest) => (
+                  <button
+                    key={dest}
+                    type="button"
+                    onClick={() => onChange({ ...form, destination: dest })}
+                    className={`px-3 py-1.5 rounded-full text-[13px] border transition-all ${
+                      form.destination === dest
+                        ? "bg-[#B87942] text-white border-[#B87942]"
+                        : "bg-white text-[#3C200F] border-[#E5DDD8] active:border-[#B87942]"
+                    }`}
+                  >
+                    {dest}
+                  </button>
+                ))}
+              </div>
+            </>
+          );
+        })()}
+      </div>
 
       {/* ナビゲーション */}
       <div className="flex gap-3">

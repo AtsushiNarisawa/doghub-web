@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { BookingFormData } from "@/types/booking";
-import { PLANS, DAY_DESTINATIONS, DAY_DESTINATIONS_4H, STAY_DESTINATIONS, DESTINATION_SUGGESTIONS } from "@/types/booking";
+import { PLANS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { HOLIDAYS } from "@/lib/holidays";
@@ -270,7 +270,6 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     form.plan &&
     form.date &&
     form.checkin_time &&
-    form.destination &&
     !isClosedDay(form.date) &&
     capacity &&
     !capacity.closed &&
@@ -317,7 +316,6 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   checkout_extension: false,
                   checkout_extension_until: "",
                   early_morning: false,
-                  destination: "",
                 })
               }
               className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
@@ -525,68 +523,6 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           </p>
         </div>
       )}
-
-      {/* 行き先（チェックイン時間選択後） */}
-      {form.plan && form.checkin_time && (() => {
-        const quickButtons =
-          form.plan === "stay" ? STAY_DESTINATIONS.filter(d => d !== "未定" && d !== "その他（自由記入）") :
-          form.plan === "4h" ? DAY_DESTINATIONS_4H.filter(d => d !== "その他") :
-          DAY_DESTINATIONS.filter(d => d !== "その他");
-
-        const allSuggestions = [
-          ...DESTINATION_SUGGESTIONS,
-          ...(form.plan === "stay" ? STAY_DESTINATIONS.filter(d => d !== "未定" && d !== "その他（自由記入）") : []),
-        ];
-
-        return (
-          <div>
-            <h2 className="text-lg font-medium mb-2">お預かり中の行き先</h2>
-            <p className="text-[12px] text-[#888] mb-3">
-              入力するか、下のボタンから選べます
-            </p>
-            <input
-              type="text"
-              list="destination-suggestions"
-              value={form.destination}
-              onChange={(e) => onChange({ ...form, destination: e.target.value })}
-              placeholder="施設名を入力（候補が表示されます）"
-              className="w-full p-4 rounded-xl border-2 border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
-            />
-            <datalist id="destination-suggestions">
-              {allSuggestions.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {quickButtons.map((dest) => (
-                <button
-                  key={dest}
-                  type="button"
-                  onClick={() => onChange({ ...form, destination: dest })}
-                  className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                    form.destination === dest
-                      ? "bg-[#B87942] text-white border-[#B87942]"
-                      : "bg-white text-[#3C200F] border-[#E5DDD8] hover:border-[#B87942]"
-                  }`}
-                >
-                  {dest}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => onChange({ ...form, destination: "未定" })}
-                className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                  form.destination === "未定"
-                    ? "bg-[#B87942] text-white border-[#B87942]"
-                    : "bg-white text-[#888] border-[#E5DDD8] hover:border-[#B87942]"
-                }`}
-              >
-                未定
-              </button>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* チェックアウト日（宿泊のみ） */}
       {form.plan === "stay" && form.date && form.checkin_time && (

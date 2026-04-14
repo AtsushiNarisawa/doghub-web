@@ -88,9 +88,6 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
             )}
           </>
         )}
-        {form.destination && (
-          <p className="text-sm text-[#888]">行き先: {form.destination}</p>
-        )}
       </div>
 
       {/* ワンちゃん情報 */}
@@ -150,6 +147,9 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
         )}
         {form.referral_source && (
           <p className="text-sm text-[#888]">きっかけ: {form.referral_source}</p>
+        )}
+        {form.destination && (
+          <p className="text-sm text-[#888]">行き先: {form.destination}</p>
         )}
       </div>
 
