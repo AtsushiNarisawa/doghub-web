@@ -12,6 +12,10 @@ import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
 import RouteFeedback from "@/components/walks/RouteFeedback";
 import RouteMapWrapper from "@/components/walks/RouteMapWrapper";
+import SpecBar from "@/components/walks/SpecBar";
+import PinCard from "@/components/walks/PinCard";
+import PetInfoGrid from "@/components/walks/PetInfoGrid";
+import RouteActions from "@/components/walks/RouteActions";
 
 // ISR: 30分ごとに再検証
 export const revalidate = 1800;
@@ -51,24 +55,10 @@ export async function generateMetadata({
 }
 
 const difficultyLabels = { easy: "初級", moderate: "中級", hard: "上級" };
-const difficultyColors = {
-  easy: "bg-green-100 text-green-700",
-  moderate: "bg-yellow-100 text-yellow-700",
-  hard: "bg-red-100 text-red-700",
-};
-const spotTypeLabels: Record<string, string> = {
-  start: "スタート",
-  landscape: "景色",
-  photo_spot: "撮影スポット",
-  facility: "施設",
-  end: "ゴール",
-};
-const spotTypeColors: Record<string, string> = {
-  start: "bg-blue-500",
-  landscape: "bg-green-500",
-  photo_spot: "bg-purple-500",
-  facility: "bg-orange-500",
-  end: "bg-red-500",
+const levelDotColors = {
+  easy: "var(--color-ww-level-easy)",
+  moderate: "var(--color-ww-level-moderate)",
+  hard: "var(--color-ww-level-hard)",
 };
 
 export default async function RouteDetailPage({
@@ -87,27 +77,60 @@ export default async function RouteDetailPage({
 
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
   const petInfo = route.pet_info;
+  const elevationGainFromPet = petInfo?.elevation_gain
+    ? Number(String(petInfo.elevation_gain).replace(/[^0-9.-]/g, "")) || null
+    : null;
+  const elevationGain = route.elevation_gain_meters ?? elevationGainFromPet;
+
+  // 施策②: route_spots を PinCard UI で表示。写真は gallery_images[order-1] をフォールバック。
+  // TODO(Phase 1.5): route_spots.photo_url / route_pin_photos 近接マッチへ段階的に差し替え
+  const gallery = route.gallery_images ?? [];
+  const spotsForDisplay = spots.map((spot, i) => {
+    const photoUrl = gallery[spot.spot_order - 1] ?? gallery[i] ?? null;
+    return { spot, photoUrl };
+  });
 
   return (
-    <article className="max-w-4xl mx-auto px-4 py-8">
+    <article
+      className="mx-auto"
+      style={{ maxWidth: 896, padding: "32px 16px" }}
+    >
       {/* パンくず */}
-      <nav className="text-sm text-gray-400 mb-6">
-        <Link href="/" className="hover:text-amber-600">トップ</Link>
-        <span className="mx-2">/</span>
-        <Link href="/walks" className="hover:text-amber-600">散歩コース</Link>
-        <span className="mx-2">/</span>
-        <Link href="/walks/areas" className="hover:text-amber-600">エリア一覧</Link>
-        <span className="mx-2">/</span>
-        <Link href={`/walks/areas/${route.areas.slug}`} className="hover:text-amber-600">
+      <nav
+        style={{
+          fontSize: 13,
+          color: "var(--color-ww-text-tertiary)",
+          marginBottom: 24,
+        }}
+      >
+        <Link href="/" style={{ color: "inherit" }}>トップ</Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <Link href="/walks" style={{ color: "inherit" }}>散歩コース</Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <Link href="/walks/areas" style={{ color: "inherit" }}>エリア一覧</Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <Link
+          href={`/walks/areas/${route.areas.slug}`}
+          style={{ color: "inherit" }}
+        >
           {route.areas.name}
         </Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-600">{route.name}</span>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <span style={{ color: "var(--color-ww-text-secondary)" }}>
+          {route.name}
+        </span>
       </nav>
 
       {/* ヒーロー画像 */}
       {route.thumbnail_url && (
-        <div className="aspect-[16/9] relative rounded-2xl overflow-hidden mb-8 bg-gray-100">
+        <div
+          className="relative overflow-hidden mb-8"
+          style={{
+            aspectRatio: "16 / 9",
+            borderRadius: "var(--radius-ww-sm)",
+            backgroundColor: "var(--color-ww-bg-secondary)",
+          }}
+        >
           <Image
             src={route.thumbnail_url}
             alt={route.name}
@@ -119,61 +142,125 @@ export default async function RouteDetailPage({
         </div>
       )}
 
-      {/* タイトル・基本情報 */}
-      <header className="mb-8">
-        <div className="flex items-center gap-2 mb-3">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${difficultyColors[route.difficulty_level]}`}>
+      {/* タイトル・エリア */}
+      <header>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 16,
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontFamily: "var(--font-ww-sans)",
+              fontSize: 12,
+              fontWeight: 500,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--color-ww-text-secondary)",
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "9999px",
+                backgroundColor: levelDotColors[route.difficulty_level],
+                display: "inline-block",
+              }}
+            />
             {difficultyLabels[route.difficulty_level]}
           </span>
-          <Link href={`/walks/areas/${route.areas.slug}`} className="text-xs text-gray-500 hover:text-amber-600">
+          <Link
+            href={`/walks/areas/${route.areas.slug}`}
+            style={{
+              fontSize: 13,
+              color: "var(--color-ww-text-secondary)",
+            }}
+          >
             {route.areas.name}
           </Link>
+          </div>
+          <RouteActions
+            routeId={route.id}
+            routeSlug={route.slug}
+            routeName={route.name}
+            areaName={route.areas.name}
+          />
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{route.name}</h1>
+        <h1
+          style={{
+            fontFamily: "var(--font-ww-serif)",
+            fontSize: 36,
+            fontWeight: 700,
+            lineHeight: 1.35,
+            color: "var(--color-ww-text)",
+            letterSpacing: "0.01em",
+          }}
+        >
+          {route.name}
+        </h1>
 
-        <div className="flex flex-wrap gap-6 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            <span><strong>{distanceKm}</strong> km</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>約 <strong>{route.estimated_minutes}</strong> 分</span>
-          </div>
-          {route.elevation_gain_meters && (
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17l6-6 4 4 8-8" />
-              </svg>
-              <span>標高差 <strong>{route.elevation_gain_meters}</strong> m</span>
-            </div>
-          )}
-          {route.total_walks > 0 && (
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span><strong>{route.total_walks}</strong> 人が歩いた</span>
-            </div>
-          )}
-        </div>
+        {/* 施策③: 4点スペックバー */}
+        <SpecBar
+          distanceKm={distanceKm}
+          minutes={route.estimated_minutes}
+          elevationGain={elevationGain}
+          difficulty={route.difficulty_level}
+        />
       </header>
 
-      {/* コース紹介 */}
+      {/* 体験ストーリー */}
       {route.description && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-3">このコースの体験</h2>
-          <p className="text-gray-600 leading-relaxed whitespace-pre-line">{route.description}</p>
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.01em",
+              marginBottom: 20,
+            }}
+          >
+            このコースの体験
+          </h2>
+          <p
+            style={{
+              fontFamily: "var(--font-ww-sans)",
+              fontSize: 18,
+              fontWeight: 400,
+              lineHeight: 1.85,
+              color: "var(--color-ww-text)",
+              whiteSpace: "pre-line",
+            }}
+          >
+            {route.description}
+          </p>
         </section>
       )}
 
       {/* ルートマップ */}
-      <section className="mb-10">
-        <h2 className="text-xl font-bold mb-3">ルートマップ</h2>
+      <section style={{ marginBottom: 48 }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-ww-serif)",
+            fontSize: 28,
+            fontWeight: 600,
+            color: "var(--color-ww-text)",
+            letterSpacing: "0.01em",
+            marginBottom: 20,
+          }}
+        >
+          ルートマップ
+        </h2>
         <RouteMapWrapper
           coordinates={coordinates}
           startLat={route.start_lat}
@@ -182,62 +269,52 @@ export default async function RouteDetailPage({
         />
       </section>
 
-      {/* スポット一覧 */}
-      {spots.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-4">コースのみどころ</h2>
-          <div className="space-y-0">
-            {spots.map((spot, i) => (
-              <div key={spot.id} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 rounded-full ${spotTypeColors[spot.spot_type] ?? "bg-gray-400"} text-white text-xs font-bold flex items-center justify-center shrink-0`}>
-                    {spot.spot_order}
-                  </div>
-                  {i < spots.length - 1 && <div className="w-0.5 bg-gray-200 flex-1 min-h-[24px]" />}
-                </div>
-                <div className="pb-6">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-gray-400">{spotTypeLabels[spot.spot_type] ?? spot.spot_type}</span>
-                    {spot.distance_from_start != null && (
-                      <span className="text-xs text-gray-300">{spot.distance_from_start}m</span>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-gray-800">{spot.name}</h3>
-                  {spot.description && (
-                    <p className="text-sm text-gray-500 mt-1 leading-relaxed">{spot.description}</p>
-                  )}
-                  {spot.tips && <p className="text-xs text-amber-600 mt-1">{spot.tips}</p>}
-                </div>
-              </div>
+      {/* 施策②: コースのみどころ（写真インライン） */}
+      {spotsForDisplay.length > 0 && (
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.01em",
+              marginBottom: 24,
+            }}
+          >
+            コースのみどころ
+          </h2>
+          <div>
+            {spotsForDisplay.map(({ spot, photoUrl }, i) => (
+              <PinCard
+                key={spot.id}
+                index={i + 1}
+                title={spot.name}
+                comment={spot.description}
+                photoUrl={photoUrl}
+                pinType={spot.spot_type}
+              />
             ))}
           </div>
         </section>
       )}
 
-      {/* 犬連れメモ */}
+      {/* 犬連れメモ（施策④ アイコングリッド） */}
       {petInfo && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-4">犬連れメモ</h2>
-          <div className="bg-amber-50 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            {petInfo.parking && (
-              <div><span className="font-semibold text-gray-700">駐車場:</span><span className="text-gray-600 ml-2">{petInfo.parking}</span></div>
-            )}
-            {petInfo.restroom && (
-              <div><span className="font-semibold text-gray-700">トイレ:</span><span className="text-gray-600 ml-2">{petInfo.restroom}</span></div>
-            )}
-            {petInfo.water_station && (
-              <div><span className="font-semibold text-gray-700">水飲み場:</span><span className="text-gray-600 ml-2">{petInfo.water_station}</span></div>
-            )}
-            {petInfo.surface && (
-              <div><span className="font-semibold text-gray-700">路面:</span><span className="text-gray-600 ml-2">{petInfo.surface}</span></div>
-            )}
-            {petInfo.pet_facilities && (
-              <div className="md:col-span-2"><span className="font-semibold text-gray-700">ペット施設:</span><span className="text-gray-600 ml-2">{petInfo.pet_facilities}</span></div>
-            )}
-            {petInfo.others && (
-              <div className="md:col-span-2"><span className="font-semibold text-gray-700">その他:</span><span className="text-gray-600 ml-2">{petInfo.others}</span></div>
-            )}
-          </div>
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.01em",
+              marginBottom: 20,
+            }}
+          >
+            犬連れメモ
+          </h2>
+          <PetInfoGrid petInfo={petInfo} />
         </section>
       )}
 
@@ -246,12 +323,44 @@ export default async function RouteDetailPage({
 
       {/* ギャラリー */}
       {route.gallery_images && route.gallery_images.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-4">みんなの写真</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.01em",
+              marginBottom: 20,
+            }}
+          >
+            ギャラリー
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+              gap: 12,
+            }}
+          >
             {route.gallery_images.map((img, i) => (
-              <div key={i} className="aspect-square relative rounded-xl overflow-hidden bg-gray-100">
-                <Image src={img} alt={`${route.name} の写真 ${i + 1}`} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
+              <div
+                key={i}
+                style={{
+                  aspectRatio: "1 / 1",
+                  position: "relative",
+                  overflow: "hidden",
+                  borderRadius: "var(--radius-ww-sm)",
+                  backgroundColor: "var(--color-ww-bg-secondary)",
+                }}
+              >
+                <Image
+                  src={img}
+                  alt={`${route.name} の写真 ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                />
               </div>
             ))}
           </div>
@@ -259,7 +368,7 @@ export default async function RouteDetailPage({
       )}
 
       {/* CTA */}
-      <div className="mt-12">
+      <div style={{ marginTop: 48 }}>
         <WalksAppCTA />
       </div>
       <SupportedBadge />
@@ -289,3 +398,4 @@ export default async function RouteDetailPage({
     </article>
   );
 }
+

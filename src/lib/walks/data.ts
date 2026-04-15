@@ -148,7 +148,9 @@ export async function getAreasWithRouteCount(): Promise<
 > {
   const { data, error } = await supabase
     .from("areas")
-    .select("id, name, slug, prefecture, description, official_routes(count)")
+    .select(
+      "id, name, slug, prefecture, description, hero_image_url, official_routes(count)"
+    )
     .not("slug", "is", null)
     .order("name");
 
@@ -162,7 +164,41 @@ export async function getAreasWithRouteCount(): Promise<
       slug: a.slug,
       prefecture: a.prefecture,
       description: a.description,
+      hero_image_url: a.hero_image_url ?? null,
       route_count: routes?.[0]?.count ?? 0,
+    };
+  });
+}
+
+export async function getRoutePinsWithPhotos(
+  routeId: string
+): Promise<import("@/types/walks").RoutePinWithPhoto[]> {
+  const { data, error } = await supabase
+    .from("route_pins")
+    .select(
+      "id, route_id, title, comment, pin_type, created_at, route_pin_photos(photo_url, display_order)"
+    )
+    .eq("route_id", routeId)
+    .eq("is_official", true)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((p) => {
+    const photos = (p.route_pin_photos ?? []) as unknown as {
+      photo_url: string;
+      display_order: number | null;
+    }[];
+    const sorted = [...photos].sort(
+      (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+    );
+    return {
+      id: p.id,
+      route_id: p.route_id,
+      title: p.title,
+      comment: p.comment,
+      pin_type: p.pin_type,
+      photo_url: sorted[0]?.photo_url ?? null,
     };
   });
 }

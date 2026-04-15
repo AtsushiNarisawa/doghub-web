@@ -4,6 +4,16 @@ export interface Area {
   slug: string;
   prefecture: string;
   description: string | null;
+  hero_image_url?: string | null;
+}
+
+export interface RoutePinWithPhoto {
+  id: string;
+  route_id: string;
+  title: string;
+  comment: string | null;
+  pin_type: string | null;
+  photo_url: string | null;
 }
 
 export interface OfficialRoute {
@@ -38,6 +48,9 @@ export interface PetInfo {
   water_station?: string;
   pet_facilities?: string;
   pet_friendly_cafes?: boolean;
+  best_season?: string;
+  stairs?: string;
+  elevation_gain?: string;
   others?: string;
 }
 
