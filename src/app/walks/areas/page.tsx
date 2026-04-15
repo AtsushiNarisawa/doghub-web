@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getAreasWithRouteCount } from "@/lib/walks/data";
 import SupportedBadge from "@/components/walks/SupportedBadge";
+import AreaCard from "@/components/walks/AreaCard";
 
 // ISR: 30分ごとに再検証
 export const revalidate = 1800;
@@ -34,45 +35,99 @@ export default async function AreasPage() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
+    <div
+      className="mx-auto"
+      style={{
+        maxWidth: 1200,
+        padding: "48px 16px",
+      }}
+    >
       {/* パンくず */}
-      <nav className="text-sm text-gray-400 mb-6">
-        <Link href="/" className="hover:text-amber-600">トップ</Link>
-        <span className="mx-2">/</span>
-        <Link href="/walks" className="hover:text-amber-600">散歩コース</Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-600">エリア一覧</span>
+      <nav
+        style={{
+          fontSize: 13,
+          color: "var(--color-ww-text-tertiary)",
+          marginBottom: 24,
+        }}
+      >
+        <Link href="/" style={{ color: "inherit" }}>
+          トップ
+        </Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <Link href="/walks" style={{ color: "inherit" }}>
+          散歩コース
+        </Link>
+        <span style={{ margin: "0 8px" }}>/</span>
+        <span style={{ color: "var(--color-ww-text-secondary)" }}>
+          エリア一覧
+        </span>
       </nav>
 
-      <h1 className="text-3xl font-bold mb-2">エリア一覧</h1>
-      <p className="text-gray-500 mb-10">
-        愛犬と歩ける散歩コースのあるエリアを都道府県別にご紹介
+      <h1
+        style={{
+          fontFamily: "var(--font-ww-serif)",
+          fontSize: 36,
+          fontWeight: 700,
+          lineHeight: 1.35,
+          color: "var(--color-ww-text)",
+          marginBottom: 12,
+          letterSpacing: "0.01em",
+        }}
+      >
+        エリア一覧
+      </h1>
+      <p
+        style={{
+          color: "var(--color-ww-text-secondary)",
+          fontSize: 16,
+          lineHeight: 1.75,
+          marginBottom: 48,
+        }}
+      >
+        愛犬と歩ける散歩コースを都道府県別にご紹介します。
       </p>
 
       {sortedPrefs.map((pref) => (
-        <section key={pref} className="mb-10">
-          <h2 className="text-xl font-bold mb-4 pb-2 border-b border-gray-100">{pref}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <section key={pref} style={{ marginTop: 64 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 24,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.02em",
+              marginBottom: 24,
+              paddingBottom: 12,
+              borderBottom: "1px solid var(--color-ww-border-subtle)",
+            }}
+          >
+            {pref}
+          </h2>
+          <div
+            className="grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+              columnGap: 32,
+              rowGap: 40,
+            }}
+          >
             {byPrefecture[pref].map((area) => (
-              <Link
+              <AreaCard
                 key={area.id}
-                href={`/walks/areas/${area.slug}`}
-                className="group block p-5 bg-white rounded-xl border border-gray-100 hover:border-amber-200 hover:shadow-sm transition-all"
-              >
-                <h3 className="font-semibold text-gray-800 group-hover:text-amber-600 transition-colors">
-                  {area.name}
-                </h3>
-                <p className="text-xs text-gray-400 mt-1">{area.route_count}コース</p>
-                {area.description && (
-                  <p className="text-xs text-gray-500 mt-2 line-clamp-2">{area.description}</p>
-                )}
-              </Link>
+                slug={area.slug}
+                name={area.name}
+                routeCount={area.route_count}
+                heroImageUrl={area.hero_image_url ?? null}
+              />
             ))}
           </div>
         </section>
       ))}
 
-      <SupportedBadge />
+      <div style={{ marginTop: 64 }}>
+        <SupportedBadge />
+      </div>
     </div>
   );
 }
