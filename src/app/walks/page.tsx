@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { Path, Camera, DeviceMobile, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { getAreasWithRouteCount, getAllPublishedRoutes, getFeaturedRoute } from "@/lib/walks/data";
-import type { RouteWithArea } from "@/types/walks";
 import RouteCard from "@/components/walks/RouteCard";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -11,14 +11,66 @@ import SupportedBadge from "@/components/walks/SupportedBadge";
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: "次の休日、どこ歩く？ 犬連れ散歩コース | WanWalk by DogHub",
+  title: "次の休日、どこ歩く？ 愛犬との散歩コース | WanWalk by DogHub",
   description:
-    "箱根・鎌倉・伊豆など、犬連れに優しい散歩ルートを体験つきで紹介。駐車場・犬可カフェ・トイレ情報も完備。",
+    "箱根・鎌倉・伊豆など、愛犬と歩きたくなる散歩コースを厳選。駐車場・犬可カフェ・トイレ情報も完備。",
   openGraph: {
     title: "次の休日、どこ歩く？ | WanWalk",
-    description: "箱根・鎌倉・伊豆…犬連れに優しいルートを体験つきで紹介。",
+    description: "箱根・鎌倉・伊豆…愛犬と歩きたくなる散歩コースを厳選。",
   },
 };
+
+// Wildbounds流セクション見出し（hairline装飾線 + Noto Serif JP）
+function SectionHeading({
+  title,
+  seeAllHref,
+}: {
+  title: string;
+  seeAllHref?: string;
+}) {
+  return (
+    <div className="flex items-end justify-between mb-8">
+      <div className="flex items-center">
+        <span
+          className="inline-block mr-3"
+          style={{
+            width: 24,
+            height: 1,
+            backgroundColor: "var(--color-ww-border-subtle)",
+          }}
+          aria-hidden
+        />
+        <h2
+          className="ww-serif"
+          style={{
+            fontFamily: "var(--font-ww-serif)",
+            fontSize: 24,
+            fontWeight: 600,
+            letterSpacing: "0.01em",
+            color: "var(--color-ww-accent)",
+            lineHeight: 1.4,
+          }}
+        >
+          {title}
+        </h2>
+      </div>
+      {seeAllHref && (
+        <Link
+          href={seeAllHref}
+          className="inline-flex items-center gap-1 group transition-colors"
+          style={{
+            fontSize: 12,
+            color: "var(--color-ww-text-secondary)",
+            letterSpacing: "0.03em",
+          }}
+        >
+          <span>すべて見る</span>
+          <ArrowRight size={14} weight="regular" />
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export default async function WalksTopPage() {
   const [areas, routes, pickupRoute] = await Promise.all([
@@ -32,7 +84,6 @@ export default async function WalksTopPage() {
     .sort((a, b) => b.route_count - a.route_count)
     .slice(0, 8);
 
-  // 最新ルート6件（ピックアップを除外）
   const latestRoutes = routes
     .filter((r) => !pickupRoute || r.id !== pickupRoute.id)
     .slice(0, 6);
@@ -41,7 +92,6 @@ export default async function WalksTopPage() {
     <>
       {/* ヒーロー: KV + テキスト */}
       <section>
-        {/* KV画像 */}
         <div className="relative w-full aspect-[16/9] md:aspect-[21/9]">
           <Image
             src="https://jkpenklhrlbctebkpvax.supabase.co/storage/v1/object/public/route-photos/sengokuhara_susuki/01.jpg"
@@ -52,76 +102,172 @@ export default async function WalksTopPage() {
             sizes="100vw"
           />
           {/* 下端フェード: 画像→背景色に自然に溶け込む */}
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#f5f0ea] to-transparent" />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-24"
+            style={{
+              background:
+                "linear-gradient(to top, var(--color-ww-bg-secondary), transparent)",
+            }}
+          />
         </div>
 
-        {/* テキストエリア: 確実に背景色の上 */}
-        <div className="bg-[#f5f0ea] pb-12 pt-6">
+        <div
+          style={{
+            backgroundColor: "var(--color-ww-bg-secondary)",
+          }}
+          className="pb-16 pt-8"
+        >
           <div className="max-w-6xl mx-auto px-4 text-center">
-            {/* Branding */}
-            <div className="inline-flex items-center gap-3 mb-5">
-              <span className="text-[#5E7254] text-base font-bold tracking-wide">WanWalk</span>
-              <span className="text-[#8B6F47]/50 text-xs tracking-wide">Supported by 箱根DMO</span>
+            {/* Branding: WanWalk + Supported by 箱根DMO（hairline区切り） */}
+            <div className="inline-flex items-center gap-3 mb-6">
+              <span
+                className="ww-serif"
+                style={{
+                  fontFamily: "var(--font-ww-serif)",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: "var(--color-ww-accent)",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                WanWalk
+              </span>
+              <span
+                aria-hidden
+                style={{
+                  width: 1,
+                  height: 10,
+                  backgroundColor: "var(--color-ww-border-subtle)",
+                  display: "inline-block",
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "var(--color-ww-text-secondary)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Supported by 箱根DMO
+              </span>
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">
-              次の休日、どこ歩く？
+            <h1
+              className="ww-serif"
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontWeight: 700,
+                color: "var(--color-ww-text)",
+                letterSpacing: "0.01em",
+                lineHeight: 1.3,
+              }}
+            >
+              <span className="block text-3xl md:text-5xl mb-4">次の休日、どこ歩く？</span>
             </h1>
-            <p className="text-gray-500 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
+
+            <p
+              style={{
+                color: "var(--color-ww-text-secondary)",
+                fontSize: 18,
+                lineHeight: 1.75,
+                maxWidth: 640,
+                margin: "0 auto",
+              }}
+              className="md:text-xl"
+            >
               箱根・鎌倉・伊豆…
               <br className="hidden md:inline" />
-              犬連れに優しいルートを体験つきで紹介
+              愛犬と歩きたくなる散歩コースを厳選
             </p>
 
-            {/* 数字 */}
-            <div className="flex items-center justify-center gap-6 md:gap-10 mb-8">
-              <div className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{routes.length}</p>
-                <p className="text-xs text-gray-400 mt-0.5">散歩コース</p>
-              </div>
-              <div className="w-px h-10 bg-gray-300/40" />
-              <div className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">{activeAreas.length}</p>
-                <p className="text-xs text-gray-400 mt-0.5">エリア</p>
-              </div>
-              <div className="w-px h-10 bg-gray-300/40" />
-              <div className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-[#5E7254]">All</p>
-                <p className="text-xs text-gray-400 mt-0.5">犬連れ対応</p>
-              </div>
+            <p
+              className="mt-4"
+              style={{
+                fontSize: 13,
+                lineHeight: 1.8,
+                color: "var(--color-ww-text-tertiary)",
+                letterSpacing: "0.02em",
+              }}
+            >
+              駐車場・犬可カフェ・トイレ情報つき。体験ストーリーと写真で伝えます。
+            </p>
+
+            {/* 統計カード: 背景なし・境界線のみ・tabular-nums */}
+            <div className="flex items-center justify-center gap-8 md:gap-12 mt-10 mb-10">
+              <StatItem value={routes.length.toString()} label="COURSES" />
+              <StatDivider />
+              <StatItem value={activeAreas.length.toString()} label="AREAS" />
+              <StatDivider />
+              <StatItem value="ALL" label="DOG FRIENDLY" />
             </div>
 
+            {/* CTA: 深緑塗り・rounded-md・max-w-xs */}
             <Link
               href="/walks/areas"
-              className="inline-block bg-[#5E7254] text-white font-semibold px-8 py-3 rounded-full hover:bg-[#4A5E42] transition-colors shadow-sm"
+              className="inline-flex items-center justify-center w-full max-w-xs h-12 transition-colors"
+              style={{
+                backgroundColor: "var(--color-ww-accent)",
+                color: "var(--color-ww-text-inverse)",
+                borderRadius: "var(--radius-ww-md)",
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+              }}
             >
               エリアから探す
             </Link>
+            <p
+              className="mt-3"
+              style={{
+                fontSize: 12,
+                color: "var(--color-ww-text-secondary)",
+                letterSpacing: "0.04em",
+              }}
+            >
+              <span className="ww-numeric">全{activeAreas.length}エリア</span>・
+              <span className="ww-numeric">{routes.length}コース</span>
+            </p>
           </div>
         </div>
       </section>
 
       <div className="max-w-6xl mx-auto px-4">
         {/* エリア一覧 */}
-        <section className="py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">人気エリア</h2>
-            <Link href="/walks/areas" className="text-sm text-amber-600 hover:underline">
-              すべて見る
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <section className="py-12 md:py-16">
+          <SectionHeading title="人気エリア" seeAllHref="/walks/areas" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {featuredAreas.map((area) => (
               <Link
                 key={area.id}
                 href={`/walks/areas/${area.slug}`}
-                className="group block p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl hover:from-amber-100 hover:to-orange-100 transition-colors"
+                className="group block transition-colors"
+                style={{
+                  backgroundColor: "var(--color-ww-bg-secondary)",
+                  border: "1px solid var(--color-ww-border-subtle)",
+                  borderRadius: "var(--radius-ww-md)",
+                  padding: 16,
+                }}
               >
-                <h3 className="font-semibold text-gray-800 group-hover:text-amber-600 transition-colors">
+                <h3
+                  style={{
+                    fontFamily: "var(--font-ww-sans)",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "var(--color-ww-text)",
+                    lineHeight: 1.5,
+                  }}
+                >
                   {area.name}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  {area.prefecture} &middot; {area.route_count}コース
+                <p
+                  className="mt-1"
+                  style={{
+                    fontSize: 12,
+                    color: "var(--color-ww-text-secondary)",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {area.prefecture} ・ <span className="ww-numeric">{area.route_count}</span>コース
                 </p>
               </Link>
             ))}
@@ -130,11 +276,16 @@ export default async function WalksTopPage() {
 
         {/* おすすめピックアップ */}
         {pickupRoute && (
-          <section className="py-12">
-            <h2 className="text-2xl font-bold mb-6">おすすめピックアップ</h2>
+          <section className="py-12 md:py-16">
+            <SectionHeading title="おすすめピックアップ" />
             <Link
               href={`/walks/routes/${pickupRoute.slug}`}
-              className="group block overflow-hidden rounded-2xl border border-[#5E7254]/15 hover:shadow-md transition-shadow"
+              className="group block overflow-hidden transition-colors"
+              style={{
+                border: "1px solid var(--color-ww-border-subtle)",
+                borderRadius: "var(--radius-ww-md)",
+                backgroundColor: "var(--color-ww-bg)",
+              }}
             >
               {pickupRoute.thumbnail_url && (
                 <div className="aspect-[21/9] relative">
@@ -142,19 +293,46 @@ export default async function WalksTopPage() {
                     src={pickupRoute.thumbnail_url}
                     alt={pickupRoute.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
                     sizes="(max-width: 1152px) 100vw, 1152px"
                   />
                 </div>
               )}
-              <div className="p-5 bg-white">
-                <h3 className="text-xl font-bold text-gray-800 group-hover:text-[#5E7254] transition-colors">
+              <div className="p-6">
+                <h3
+                  className="ww-serif"
+                  style={{
+                    fontFamily: "var(--font-ww-serif)",
+                    fontSize: 22,
+                    fontWeight: 600,
+                    color: "var(--color-ww-text)",
+                    letterSpacing: "0.01em",
+                    lineHeight: 1.4,
+                  }}
+                >
                   {pickupRoute.name}
                 </h3>
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                  <span>{(pickupRoute.distance_meters / 1000).toFixed(1)}km</span>
-                  <span>約{pickupRoute.estimated_minutes}分</span>
-                  <span className="text-xs px-2 py-0.5 bg-[#5E7254]/10 text-[#5E7254] rounded-full">
+                <div
+                  className="flex items-center flex-wrap gap-4 mt-3"
+                  style={{
+                    fontSize: 13,
+                    color: "var(--color-ww-text-secondary)",
+                  }}
+                >
+                  <span className="ww-numeric">
+                    {(pickupRoute.distance_meters / 1000).toFixed(1)}km
+                  </span>
+                  <span>約<span className="ww-numeric">{pickupRoute.estimated_minutes}</span>分</span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      padding: "4px 10px",
+                      borderRadius: "var(--radius-ww-sm)",
+                      backgroundColor: "var(--color-ww-accent-soft)",
+                      color: "var(--color-ww-accent)",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
                     {pickupRoute.areas?.name}
                   </span>
                 </div>
@@ -164,8 +342,8 @@ export default async function WalksTopPage() {
         )}
 
         {/* 最新のルート */}
-        <section className="py-12">
-          <h2 className="text-2xl font-bold mb-6">最新のルート</h2>
+        <section className="py-12 md:py-16">
+          <SectionHeading title="最新のルート" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {latestRoutes.map((route) => (
               <RouteCard key={route.id} route={route} />
@@ -174,46 +352,160 @@ export default async function WalksTopPage() {
         </section>
 
         {/* WanWalkとは */}
-        <section className="py-12">
-          <h2 className="text-2xl font-bold mb-6 text-center">WanWalkとは？</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">犬連れ専門ルート</h3>
-              <p className="text-sm text-gray-500">駐車場・トイレ・犬可カフェなど犬連れに必要な情報を完備</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">写真で体験を伝える</h3>
-              <p className="text-sm text-gray-500">実際に歩いた人の写真と体験で、コースの魅力をリアルにお届け</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">アプリで記録</h3>
-              <p className="text-sm text-gray-500">WanWalkアプリで散歩を記録。GPS追跡で歩いたルートを自動保存</p>
-            </div>
+        <section className="py-12 md:py-16">
+          <div className="flex items-center justify-center mb-10">
+            <span
+              className="inline-block mr-3"
+              style={{
+                width: 24,
+                height: 1,
+                backgroundColor: "var(--color-ww-border-subtle)",
+              }}
+              aria-hidden
+            />
+            <h2
+              className="ww-serif"
+              style={{
+                fontFamily: "var(--font-ww-serif)",
+                fontSize: 24,
+                fontWeight: 600,
+                letterSpacing: "0.01em",
+                color: "var(--color-ww-accent)",
+                lineHeight: 1.4,
+              }}
+            >
+              WanWalkとは？
+            </h2>
+            <span
+              className="inline-block ml-3"
+              style={{
+                width: 24,
+                height: 1,
+                backgroundColor: "var(--color-ww-border-subtle)",
+              }}
+              aria-hidden
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto">
+            <FeaturePillar
+              icon={<Path size={28} weight="regular" />}
+              title="愛犬と歩く専門コース"
+              body="駐車場・トイレ・犬可カフェなど、愛犬と出かけるのに必要な情報を完備。"
+            />
+            <FeaturePillar
+              icon={<Camera size={28} weight="regular" />}
+              title="写真で体験を伝える"
+              body="実際に歩いた人の写真と体験で、コースの空気感をそのままお届けします。"
+            />
+            <FeaturePillar
+              icon={<DeviceMobile size={28} weight="regular" />}
+              title="アプリで記録（近日）"
+              body="WanWalkアプリならGPSで散歩を自動記録。歩いたルートをそのまま残せます。"
+            />
           </div>
         </section>
 
-        <div className="py-12">
+        <div className="py-12 md:py-16">
           <WalksAppCTA />
         </div>
 
         <SupportedBadge />
       </div>
     </>
+  );
+}
+
+function StatItem({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="text-center">
+      <p
+        className="ww-numeric"
+        style={{
+          fontFamily: "var(--font-ww-sans)",
+          fontSize: 30,
+          fontWeight: 600,
+          color: "var(--color-ww-accent)",
+          lineHeight: 1.1,
+          letterSpacing: "0.01em",
+        }}
+      >
+        {value}
+      </p>
+      <p
+        className="mt-2"
+        style={{
+          fontFamily: "var(--font-ww-sans)",
+          fontSize: 11,
+          fontWeight: 500,
+          color: "var(--color-ww-text-tertiary)",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function StatDivider() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: 1,
+        height: 36,
+        backgroundColor: "var(--color-ww-border-subtle)",
+        display: "inline-block",
+      }}
+    />
+  );
+}
+
+function FeaturePillar({
+  icon,
+  title,
+  body,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="text-center">
+      <div
+        className="inline-flex items-center justify-center mb-5"
+        style={{
+          width: 56,
+          height: 56,
+          color: "var(--color-ww-accent)",
+          borderBottom: "1px solid var(--color-ww-border-subtle)",
+          paddingBottom: 8,
+        }}
+      >
+        {icon}
+      </div>
+      <h3
+        className="mb-3"
+        style={{
+          fontFamily: "var(--font-ww-sans)",
+          fontSize: 16,
+          fontWeight: 600,
+          color: "var(--color-ww-text)",
+          letterSpacing: "0.01em",
+        }}
+      >
+        {title}
+      </h3>
+      <p
+        style={{
+          fontSize: 14,
+          lineHeight: 1.75,
+          color: "var(--color-ww-text-secondary)",
+        }}
+      >
+        {body}
+      </p>
+    </div>
   );
 }
