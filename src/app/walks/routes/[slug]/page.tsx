@@ -7,6 +7,7 @@ import {
   getRouteBySlug,
   getRouteSpots,
   getRouteLineCoordinates,
+  getRoutePinsWithPhotos,
 } from "@/lib/walks/data";
 import WalksAppCTA from "@/components/walks/WalksAppCTA";
 import SupportedBadge from "@/components/walks/SupportedBadge";
@@ -70,9 +71,10 @@ export default async function RouteDetailPage({
   const route = await getRouteBySlug(slug);
   if (!route) notFound();
 
-  const [spots, coordinates] = await Promise.all([
+  const [spots, coordinates, pins] = await Promise.all([
     getRouteSpots(route.id),
     getRouteLineCoordinates(route.id),
+    getRoutePinsWithPhotos(route.id),
   ]);
 
   const distanceKm = (route.distance_meters / 1000).toFixed(1);
@@ -293,6 +295,36 @@ export default async function RouteDetailPage({
                 comment={spot.description}
                 photoUrl={photoUrl}
                 pinType={spot.spot_type}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 愛犬家のおすすめスポット（route_pins） */}
+      {pins.length > 0 && (
+        <section style={{ marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-ww-serif)",
+              fontSize: 28,
+              fontWeight: 600,
+              color: "var(--color-ww-text)",
+              letterSpacing: "0.01em",
+              marginBottom: 24,
+            }}
+          >
+            愛犬家のおすすめスポット
+          </h2>
+          <div>
+            {pins.map((pin, i) => (
+              <PinCard
+                key={pin.id}
+                index={i + 1}
+                title={pin.title}
+                comment={pin.comment}
+                photoUrl={pin.photo_url}
+                pinType={pin.pin_type}
               />
             ))}
           </div>

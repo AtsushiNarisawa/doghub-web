@@ -86,6 +86,7 @@ export default async function WalksTopPage() {
 
   const latestRoutes = routes
     .filter((r) => !pickupRoute || r.id !== pickupRoute.id)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 6);
 
   return (

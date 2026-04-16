@@ -47,21 +47,31 @@ export default function RouteFeedback({ routeId }: { routeId: string }) {
 
   return (
     <section className="mb-10">
-      <div className="bg-[#F9F7F4] rounded-2xl p-6">
-        <p className="text-sm text-gray-500 leading-relaxed">
+      <div
+        className="rounded-2xl p-6"
+        style={{ backgroundColor: "var(--color-ww-bg-secondary)" }}
+      >
+        <p
+          className="text-sm leading-relaxed"
+          style={{ color: "var(--color-ww-text-secondary)" }}
+        >
           このルートの情報は最新でない場合があります。
           お気づきの点があれば、ぜひ教えてください。
           みなさんの声でルート情報を一緒に育てていきます。
         </p>
 
         {submitted ? (
-          <p className="mt-4 text-sm text-[#5E7254] font-medium">
+          <p
+            className="mt-4 text-sm font-medium"
+            style={{ color: "var(--color-ww-accent)" }}
+          >
             ご報告ありがとうございます！確認後に反映します。
           </p>
         ) : !isOpen ? (
           <button
             onClick={() => setIsOpen(true)}
-            className="mt-4 inline-flex items-center gap-1.5 text-sm text-[#5E7254] font-medium hover:underline"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
+            style={{ color: "var(--color-ww-accent)" }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -72,18 +82,34 @@ export default function RouteFeedback({ routeId }: { routeId: string }) {
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             {/* カテゴリ */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">カテゴリ</label>
+              <label
+                className="block text-xs font-medium mb-2"
+                style={{ color: "var(--color-ww-text-secondary)" }}
+              >
+                カテゴリ
+              </label>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(categories).map(([key, label]) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setCategory(key)}
-                    className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      category === key
-                        ? "bg-[#5E7254]/10 border-[#5E7254] text-[#5E7254] font-medium"
-                        : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
-                    }`}
+                    className="px-3 py-1.5 text-xs border transition-colors"
+                    style={{
+                      borderRadius: "var(--radius-ww-sm)",
+                      ...(category === key
+                        ? {
+                            backgroundColor: "var(--color-ww-accent-soft)",
+                            borderColor: "var(--color-ww-accent)",
+                            color: "var(--color-ww-accent)",
+                            fontWeight: 500,
+                          }
+                        : {
+                            backgroundColor: "var(--color-ww-bg)",
+                            borderColor: "var(--color-ww-border-subtle)",
+                            color: "var(--color-ww-text-secondary)",
+                          }),
+                    }}
                   >
                     {label}
                   </button>
@@ -93,16 +119,39 @@ export default function RouteFeedback({ routeId }: { routeId: string }) {
 
             {/* メッセージ */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">修正内容</label>
+              <label
+                className="block text-xs font-medium mb-2"
+                style={{ color: "var(--color-ww-text-secondary)" }}
+              >
+                修正内容
+              </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={500}
                 rows={3}
                 placeholder="例: 駐車場は現在500円に値上がりしています"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#5E7254] resize-none"
+                className="w-full px-3 py-2 text-sm resize-none"
+                style={{
+                  border: "1px solid var(--color-ww-border-subtle)",
+                  borderRadius: "var(--radius-ww-md)",
+                  outline: "none",
+                  color: "var(--color-ww-text)",
+                  backgroundColor: "var(--color-ww-bg)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-ww-accent)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-ww-border-subtle)";
+                }}
               />
-              <p className="text-right text-xs text-gray-300 mt-1">{message.length}/500</p>
+              <p
+                className="text-right text-xs mt-1"
+                style={{ color: "var(--color-ww-text-tertiary)" }}
+              >
+                {message.length}/500
+              </p>
             </div>
 
             {/* ボタン */}
@@ -110,14 +159,20 @@ export default function RouteFeedback({ routeId }: { routeId: string }) {
               <button
                 type="submit"
                 disabled={isSubmitting || !message.trim()}
-                className="px-5 py-2 bg-[#5E7254] text-white text-sm font-medium rounded-lg hover:bg-[#4A5E42] disabled:opacity-40 transition-colors"
+                className="px-5 py-2 text-sm font-medium transition-colors disabled:opacity-40"
+                style={{
+                  backgroundColor: "var(--color-ww-accent)",
+                  color: "var(--color-ww-text-inverse)",
+                  borderRadius: "var(--radius-ww-md)",
+                }}
               >
                 {isSubmitting ? "送信中..." : "送信する"}
               </button>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                className="px-4 py-2 text-sm transition-colors"
+                style={{ color: "var(--color-ww-text-tertiary)" }}
               >
                 キャンセル
               </button>
