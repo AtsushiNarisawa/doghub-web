@@ -99,8 +99,10 @@ export function Header() {
             )}
             {/* WanWalk（独立コンテンツ） */}
             <div className="h-5 w-px bg-[#E5DDD8] mx-1"></div>
-            <Link
-              href="/walks"
+            <a
+              href="https://wanwalk.jp"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1 text-[#B87942] hover:text-[#8B5E30] transition-colors whitespace-nowrap"
               style={{ fontSize: "13px", fontWeight: 500 }}
             >
@@ -109,7 +111,7 @@ export function Header() {
                 <circle cx="12" cy="10" r="3" />
               </svg>
               散歩コース
-            </Link>
+            </a>
             <div className="flex items-center gap-1 ml-2">
               <a
                 href="https://www.instagram.com/doghub.hakone__/"
@@ -233,8 +235,10 @@ export function Header() {
             </a>
             {/* WanWalk（独立コンテンツ） */}
             <div className="border-t border-[#E5DDD8] mt-2 pt-3">
-              <Link
-                href="/walks"
+              <a
+                href="https://wanwalk.jp"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 px-5 py-3 text-[#B87942]"
                 style={{ fontSize: "14px", fontWeight: 500 }}
                 onClick={() => setMenuOpen(false)}
@@ -244,7 +248,7 @@ export function Header() {
                   <circle cx="12" cy="10" r="3" />
                 </svg>
                 犬と歩ける散歩コース
-              </Link>
+              </a>
             </div>
           </div>
         )}
