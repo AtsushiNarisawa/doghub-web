@@ -8,8 +8,8 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "箱根 ペットホテル × 日中預かり｜観光中の愛犬をお預け｜DogHub箱根仙石原",
-  description: "箱根のペットホテルDogHub。ペット可の宿に泊まりながら観光中は愛犬をお預け。半日4時間¥3,300〜。レジーナ仙石原など近隣ペット可施設からのご案内多数。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+  title: "箱根のペットホテル｜DogHub箱根仙石原 完全個室・ドッグラン併設｜半日¥3,300〜",
+  description: "箱根でペットホテルをお探しの方へ。DogHub箱根仙石原は完全個室・ドッグラン併設・24時間スタッフ常駐。半日¥3,300〜、1日¥5,500〜、宿泊¥7,700〜。観光中の預かりから宿泊までフレキシブル対応。レジーナ仙石原など近隣ペット可施設からのご案内多数。",
   alternates: { canonical: "/pethotel" },
 };
 
@@ -34,11 +34,14 @@ export default function PetHotelPage() {
         <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"ペット可ホテル × 日中預かり",href:"/pethotel"}]} />
         {/* Hero */}
         <div className="relative">
-          <Image src="/images/img-006.jpg" alt="箱根ペットホテル DogHub箱根仙石原 ペット可ホテル宿泊中の日中預かりサービス" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
-          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400 }}>
-              チェックイン前後の観光も、愛犬を安心して
+          <Image src="/images/img-006.jpg" alt="箱根ペットホテル DogHub箱根仙石原 完全個室とドッグラン併設" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(180px, 30vw, 424px)" }} />
+          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
+            <h1 style={{ fontSize: "clamp(20px, 4.2vw, 38px)", fontWeight: 400, lineHeight: 1.4 }}>
+              箱根のペットホテル DogHub箱根仙石原
             </h1>
+            <p className="mt-3 opacity-90" style={{ fontSize: "clamp(13px, 2vw, 16px)", fontWeight: 400, lineHeight: 1.7 }}>
+              完全個室・ドッグラン併設・24時間スタッフ常駐。半日¥3,300〜、宿泊¥7,700〜。
+            </p>
           </div>
         </div>
 
@@ -51,29 +54,58 @@ export default function PetHotelPage() {
           </p>
         </div>
 
+        {/* ペットホテルをお探しの方へ（広く受ける冒頭） */}
+        <section className="py-12 px-6 bg-[#F7F5F0]">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 400, lineHeight: "1.5" }}>
+              箱根でペットホテルをお探しの方へ
+            </h2>
+            <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
+              DogHub箱根仙石原は、仙石原の中心にある犬専門のペットホテルです。<b>完全個室・ドッグラン併設・24時間スタッフ常駐</b>で、箱根観光中の預かりから、ご旅行中の宿泊までフレキシブルに対応します。
+            </p>
+            <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
+              プランは3種類。<b>半日預かり（4時間 ¥3,300〜）</b>、<b>1日預かり（8時間 ¥5,500〜）</b>、<b>宿泊預かり（1泊 ¥7,700〜）</b>。1時間¥1,100〜のスポット利用もあり、「ちょっとだけ預けたい」にも対応します。
+            </p>
+            <p className="text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
+              下記の3パターンでご利用される方が多いです。どのシーンにも合わせやすいのが当店の特徴です。
+            </p>
+          </div>
+        </section>
+
+        {/* 3つの使い方 */}
+        <section className="py-12 px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { title: "① 観光中の預かり", body: "美術館・温泉・ユネッサンなど犬NGの施設に行く間だけお預け。半日¥3,300〜で箱根の選択肢が広がります。" },
+                { title: "② ペット可の宿との組合せ", body: "レジーナ仙石原など近隣のペット可宿にお泊まりの方が、チェックイン前後の観光時にご利用。" },
+                { title: "③ 犬NGの宿に泊まりたい時", body: "憧れの温泉旅館や高級ホテルに泊まりたい時、愛犬だけ1泊¥7,700〜でお預け。飼い主さんも安心。" },
+              ].map((item) => (
+                <div key={item.title} className="border border-[#E5DDD8] p-6 rounded-sm">
+                  <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>{item.title}</h3>
+                  <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Main content */}
         <section className="py-16 px-6 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-start">
               <div>
-                <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "32px", fontWeight: 400, letterSpacing: "1.6px" }}>PET HOTEL × DAY CARE</h2>
-                <h3 className="text-[#3C200F] mb-6" style={{ fontSize: "26px", fontWeight: 400, lineHeight: "1.6" }}>
-                  ペット可の宿に泊まっていても、<br />観光中は預けたいとき
-                </h3>
+                <h2 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 400, lineHeight: "1.6" }}>
+                  ペット可の宿に泊まっていても、観光中は預けたいとき
+                </h2>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  箱根にはペットと泊まれる宿がたくさんあります。
-                  でも、チェックインは15時、チェックアウトは10時。
-                  その前後の時間に「愛犬を連れて行けないスポット」に行きたいこと、ありませんか？
+                  箱根にはペットと泊まれる宿がたくさんあります。でも、チェックインは15時、チェックアウトは10時。その前後の時間に「愛犬を連れて行けないスポット」に行きたいこと、ありませんか？
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  美術館、温泉、ユネッサン、ショッピング…
-                  ペット不可の施設を諦めず、DogHubに愛犬を預けて箱根を満喫できます。
-                  レジーナリゾート仙石原をはじめ、近隣のペット可宿泊施設にお泊まりの
-                  お客様にも多くご利用いただいています。
+                  美術館、温泉、ユネッサン、ショッピング…ペット不可の施設を諦めず、DogHubに愛犬を預けて箱根を満喫できます。レジーナリゾート仙石原をはじめ、近隣のペット可宿泊施設にお泊まりのお客様にも多くご利用いただいています。
                 </p>
                 <p className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  ドッグラン併設だから、お預かり中も愛犬はのびのび。
-                  車の中や狭いケージで待たせる心配がなく、飼い主様も安心して観光を楽しめます。
+                  ドッグラン併設だから、お預かり中も愛犬はのびのび。車の中や狭いケージで待たせる心配がなく、飼い主様も安心して観光を楽しめます。
                 </p>
 
                 <div className="bg-[#F7F7F7] p-8 mb-8">
