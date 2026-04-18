@@ -11,37 +11,181 @@ const drive = google.drive({ version: "v3", auth });
 
 const SPREADSHEET_ID = process.env.CMS_SPREADSHEET_ID!;
 
-// 記事に挿入する画像マッピング（slug → 見出しキーワード → 画像パス）
-// ※ Google Docsテンプレートの既存画像(img-046,038,074,013)と被らないこと
+// Wikimedia Commons 画像メタデータ
+// 全て商用利用可能なライセンス（CC BY / CC BY-SA / Public Domain）の画像のみ登録
+// ファイル詳細ページは https://commons.wikimedia.org/wiki/File:{fileName} で参照可
+type WmImage = { url: string; title: string; fileName: string };
+const WM: Record<string, WmImage> = {
+  // ポーラ美術館
+  polaMuseum: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/51/230908_Pola_Museum_of_Art_Hakone_Japan05s3.jpg",
+    title: "ポーラ美術館",
+    fileName: "230908_Pola_Museum_of_Art_Hakone_Japan05s3.jpg",
+  },
+  polaMuseum2: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c5/191103_Pola_Museum_of_Art_Hakone_Japan08s3.jpg",
+    title: "ポーラ美術館（外観）",
+    fileName: "191103_Pola_Museum_of_Art_Hakone_Japan08s3.jpg",
+  },
+  // 彫刻の森美術館
+  chokokuNoMori: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/51/Hakone_Open_Air_Museum_%286969727342%29.jpg",
+    title: "彫刻の森美術館",
+    fileName: "Hakone_Open_Air_Museum_(6969727342).jpg",
+  },
+  chokokuNoMoriPicasso: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/7f/2017_Hakone_Open-Air_Museum_Picasso.jpg",
+    title: "彫刻の森美術館 ピカソ館",
+    fileName: "2017_Hakone_Open-Air_Museum_Picasso.jpg",
+  },
+  // 箱根ガラスの森美術館
+  glassForest: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/8/84/Hakone_Venetian_Glass_Museum_%2845468299462%29.jpg",
+    title: "箱根ガラスの森美術館",
+    fileName: "Hakone_Venetian_Glass_Museum_(45468299462).jpg",
+  },
+  glassForestRain: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Venetian_Glass_in_rain_%2844605402835%29.jpg",
+    title: "箱根ガラスの森美術館（雨のガラス）",
+    fileName: "Venetian_Glass_in_rain_(44605402835).jpg",
+  },
+  // 大涌谷
+  owakudani: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c9/161223_Owakudani_Hakone_Japan02s3.jpg",
+    title: "大涌谷",
+    fileName: "161223_Owakudani_Hakone_Japan02s3.jpg",
+  },
+  owakudani2: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/f0/%C5%8Cwakudani%2C_May_31%2C_2018_04.jpg",
+    title: "大涌谷の噴気",
+    fileName: "Ōwakudani,_May_31,_2018_04.jpg",
+  },
+  // 芦ノ湖
+  ashinokoFuji: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c5/LakeAshi_and_MtFuji_Hakone.JPG",
+    title: "芦ノ湖と富士山",
+    fileName: "LakeAshi_and_MtFuji_Hakone.JPG",
+  },
+  ashinokoTorii: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/b/bb/A_view_of_Lake_Ashi_with_Peace_Torii_gate%2C_Hakone%2C_Japan1.jpg",
+    title: "芦ノ湖 平和の鳥居",
+    fileName: "A_view_of_Lake_Ashi_with_Peace_Torii_gate,_Hakone,_Japan1.jpg",
+  },
+  ashinokoShrine: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Lake_Ashi_%26_Mt_Fuji_%26_Hakone_Shrine.jpg",
+    title: "芦ノ湖・富士山・箱根神社",
+    fileName: "Lake_Ashi_&_Mt_Fuji_&_Hakone_Shrine.jpg",
+  },
+  // 箱根神社
+  hakoneShrineGate: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/06/Gate_of_the_Hakone_shrine%2C_facing_the_lake_Ashinoko_-_Flickr_-_odako1.jpg",
+    title: "箱根神社の鳥居（芦ノ湖側）",
+    fileName: "Gate_of_the_Hakone_shrine,_facing_the_lake_Ashinoko_-_Flickr_-_odako1.jpg",
+  },
+  hakoneShrineHaiden: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/4f/Hakone_Shrine_Haiden.jpg",
+    title: "箱根神社 拝殿",
+    fileName: "Hakone_Shrine_Haiden.jpg",
+  },
+  hakoneShrinePath: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/7d/Hakone_Shrine_path%2C_Hakone%2C_Kanagawa_Prefecture%2C_November_2016.jpg",
+    title: "箱根神社 参道",
+    fileName: "Hakone_Shrine_path,_Hakone,_Kanagawa_Prefecture,_November_2016.jpg",
+  },
+  // ロープウェイ・海賊船
+  komagatakeRopeway: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Hakone_Komagatake_Ropeway_2025_July_6_various_09.jpg",
+    title: "箱根駒ヶ岳ロープウェイ",
+    fileName: "Hakone_Komagatake_Ropeway_2025_July_6_various_09.jpg",
+  },
+  pirateShip: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/63/Sightseeing_Cruise_%40_Lake_Ashi_%40_From_Togendai_to_Hakone-Machi_%2810621217225%29.jpg",
+    title: "芦ノ湖 箱根海賊船",
+    fileName: "Sightseeing_Cruise_@_Lake_Ashi_@_From_Togendai_to_Hakone-Machi_(10621217225).jpg",
+  },
+  // 強羅公園
+  goraParkRose: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/38/Rose_garden_-_Gora_Park_-_Hakone%2C_Kanagawa%2C_Japan_-_DSC08411.jpg",
+    title: "強羅公園 バラ園",
+    fileName: "Rose_garden_-_Gora_Park_-_Hakone,_Kanagawa,_Japan_-_DSC08411.jpg",
+  },
+  goraPark: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/23/Gora_Park_-_Hakone%2C_Kanagawa%2C_Japan_-_DSC08388.jpg",
+    title: "強羅公園",
+    fileName: "Gora_Park_-_Hakone,_Kanagawa,_Japan_-_DSC08388.jpg",
+  },
+  // 仙石原すすき
+  sengokuSusuki: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/41/Hakone_sengokuhara_susuki1.jpg",
+    title: "仙石原のすすき草原",
+    fileName: "Hakone_sengokuhara_susuki1.jpg",
+  },
+  sengokuSusuki2: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/8/89/Hakone_sengokuhara_susuki2.jpg",
+    title: "仙石原のすすき草原（夕景）",
+    fileName: "Hakone_sengokuhara_susuki2.jpg",
+  },
+  // ユネッサン
+  yunessun: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/34/251122_Hakone_Kowakien_Yunessun_Hakone_Japan01s3.jpg",
+    title: "箱根小涌園ユネッサン",
+    fileName: "251122_Hakone_Kowakien_Yunessun_Hakone_Japan01s3.jpg",
+  },
+  // 箱根園
+  hakoneEn: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/8/84/Hakone-en_Zoo_-_Hakone%2C_Japan_-_DSC05664.jpg",
+    title: "箱根園",
+    fileName: "Hakone-en_Zoo_-_Hakone,_Japan_-_DSC05664.jpg",
+  },
+  // 箱根湯本
+  yumoto: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Hakone-Yumoto_station_2024.jpg",
+    title: "箱根湯本駅",
+    fileName: "Hakone-Yumoto_station_2024.jpg",
+  },
+  yumotoRiver: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/6d/River_in_Hakone-Yumoto_2018-07-12.jpg",
+    title: "箱根湯本の川",
+    fileName: "River_in_Hakone-Yumoto_2018-07-12.jpg",
+  },
+};
+
+// URL → メタデータの逆引きマップ（クレジット自動生成に使用）
+const WM_BY_URL: Record<string, WmImage> = Object.fromEntries(
+  Object.values(WM).map((img) => [img.url, img])
+);
+
+// 記事に挿入する画像マッピング（slug → 見出しキーワード → 画像URL）
+// 観光地・施設画像は Wikimedia Commons、DogHub自社写真は /images/ 配下
 const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = {
   "spring-walk-guide": [
-    { keyword: "お散歩コース", images: ["/images/img-006.jpg", "/images/img-011.jpg"] },
-    { keyword: "カフェ", images: ["/images/img-042.jpg"] },
+    { keyword: "お散歩コース", images: [WM.sengokuSusuki.url, WM.sengokuSusuki2.url] },
+    { keyword: "カフェ", images: ["/images/doghub-cafe-counter-mimosa.jpg"] },
   ],
   "hakone-dog-trip-guide": [
-    { keyword: "犬と一緒に行けるスポット", images: ["/images/img-008.jpg", "/images/img-011.jpg"] },
+    { keyword: "犬と一緒に行けるスポット", images: [WM.ashinokoTorii.url, WM.sengokuSusuki.url] },
     { keyword: "持ち物", images: ["/images/img-037.jpg"] },
   ],
   "hakone-pet-hotel-comparison": [
-    { keyword: "預かり環境", images: ["/images/img-041.jpg", "/images/img-037.jpg"] },
-    { keyword: "運動できる環境", images: ["/images/img-022.jpg"] },
+    { keyword: "預かり環境", images: ["/images/doghub-hotel-room-full-01.jpg", "/images/img-037.jpg"] },
+    { keyword: "運動できる環境", images: ["/images/doghub-dogrun-sunset.jpg"] },
   ],
   "hakone-golf-pet-guide": [
     { keyword: "早朝7時", images: ["/images/img-003.jpg"] },
     { keyword: "ゴルフ帰り", images: ["/images/img-036.jpg"] },
   ],
   "hakone-yunessun-pet-guide": [
-    { keyword: "車で約10分", images: ["/images/img-041.jpg"] },
+    { keyword: "車で約10分", images: [WM.yunessun.url] },
     { keyword: "荷物は預かって", images: ["/images/img-029.jpg"] },
   ],
   "hakone-dog-friendly-hotels": [
-    { keyword: "ペット不可の宿に泊まりたい", images: ["/images/img-035.png", "/images/img-041.jpg"] },
+    { keyword: "ペット不可の宿に泊まりたい", images: ["/images/doghub-hotel-interior-rooms-01.jpg", "/images/dog-poodle-hotel-bed-relax.jpg"] },
   ],
   "hakone-museum-dog-guide": [
-    { keyword: "ペットホテルを活用", images: ["/images/img-041.jpg"] },
+    { keyword: "ペットホテルを活用", images: ["/images/dog-pomeranian-white-hotel.jpg"] },
   ],
   "hakone-dog-hotel-guide": [
-    { keyword: "ペットホテル専門施設", images: ["/images/img-041.jpg", "/images/img-035.png"] },
+    { keyword: "ペットホテル専門施設", images: ["/images/doghub-exterior-entrance-02.jpg", "/images/doghub-hotel-room-full-01.jpg"] },
     { keyword: "犬のホテルを選ぶ5つのポイント", images: ["/images/img-037.jpg"] },
     { keyword: "犬のホテル活用モデルコース", images: ["/images/img-028.png"] },
   ],
@@ -50,69 +194,77 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "犬連れランチで気をつけたい", images: ["/images/img-042.jpg"] },
   ],
   "hakone-dog-travel-model-course": [
-    { keyword: "犬OKのスポットと犬NGのスポット", images: ["/images/img-008.jpg"] },
-    { keyword: "コースB", images: ["/images/img-006.jpg"] },
-    { keyword: "コースE", images: ["/images/img-035.png"] },
+    { keyword: "犬OKのスポットと犬NGのスポット", images: [WM.chokokuNoMori.url] },
+    { keyword: "コースB", images: [WM.sengokuSusuki.url] },
+    { keyword: "コースE", images: [WM.ashinokoTorii.url] },
   ],
   "hakone-dog-rainy-day": [
     { keyword: "屋根付きドッグラン", images: ["/images/img-022.jpg"] },
-    { keyword: "美術館めぐり", images: ["/images/img-006.jpg"] },
+    { keyword: "美術館めぐり", images: [WM.polaMuseum.url] },
   ],
   "hakone-pet-hotel-area-guide": [
-    { keyword: "DogHubのある仙石原エリア", images: ["/images/img-041.jpg"] },
+    { keyword: "DogHubのある仙石原エリア", images: [WM.sengokuSusuki.url] },
   ],
   "hakone-ashinoko-dog-guide": [
-    { keyword: "湖畔の散歩", images: ["/images/img-008.jpg"] },
+    { keyword: "湖畔の散歩", images: [WM.ashinokoFuji.url, WM.ashinokoTorii.url] },
   ],
   "hakone-dog-cafe-guide": [
-    { keyword: "OMUSUBI & SOUP CAFE", images: ["/images/img-063.webp", "/images/img-045.jpg"] },
+    { keyword: "OMUSUBI & SOUP CAFE", images: ["/images/doghub-cafe-counter-mimosa.jpg", "/images/img-045.jpg"] },
   ],
   "hakone-owakudani-dog-guide": [
-    { keyword: "犬を預けて大涌谷", images: ["/images/img-041.jpg"] },
+    { keyword: "犬を預けて大涌谷", images: [WM.owakudani.url, WM.owakudani2.url] },
   ],
   "hakone-dog-spot-sengokuhara": [
-    { keyword: "すすき草原", images: ["/images/img-008.jpg", "/images/img-011.jpg"] },
-    { keyword: "DogHub箱根仙石原", images: ["/images/img-041.jpg"] },
+    { keyword: "すすき草原", images: [WM.sengokuSusuki.url, WM.sengokuSusuki2.url] },
+    { keyword: "DogHub箱根仙石原", images: ["/images/doghub-exterior-flowers-01.jpg"] },
   ],
   "hakone-chokoku-no-mori-dog-guide": [
-    { keyword: "うちのお客さまはこうしています", images: ["/images/img-041.jpg"] },
-    { keyword: "モデルプラン", images: ["/images/img-035.png"] },
+    { keyword: "うちのお客さまはこうしています", images: [WM.chokokuNoMori.url] },
+    { keyword: "モデルプラン", images: [WM.chokokuNoMoriPicasso.url] },
   ],
   "hakone-pola-museum-dog-guide": [
-    { keyword: "DogHubから車4分", images: ["/images/img-041.jpg"] },
-    { keyword: "モデルプラン", images: ["/images/img-035.png"] },
+    { keyword: "DogHubから車4分", images: [WM.polaMuseum.url] },
+    { keyword: "モデルプラン", images: [WM.polaMuseum2.url] },
   ],
   "hakone-jinja-dog-guide": [
-    { keyword: "参拝ルート", images: ["/images/img-008.jpg"] },
+    { keyword: "参拝ルート", images: [WM.hakoneShrineGate.url, WM.hakoneShrineHaiden.url] },
   ],
   "hakone-ropeway-pirate-ship-dog-guide": [
-    { keyword: "ゴールデンコース", images: ["/images/img-011.jpg"] },
+    { keyword: "ゴールデンコース", images: [WM.komagatakeRopeway.url, WM.pirateShip.url] },
   ],
   "hakone-en-dog-guide": [
-    { keyword: "箱根園水族館", images: ["/images/img-008.jpg"] },
+    { keyword: "箱根園水族館", images: [WM.hakoneEn.url, WM.ashinokoFuji.url] },
   ],
   "hakone-gora-park-dog-guide": [
-    { keyword: "強羅エリア", images: ["/images/img-011.jpg"] },
+    { keyword: "強羅エリア", images: [WM.goraParkRose.url, WM.goraPark.url] },
   ],
   "hakone-gw-spring-dog-guide": [
-    { keyword: "コースB", images: ["/images/img-035.png"] },
-    { keyword: "GWの予約", images: ["/images/img-041.jpg"] },
+    { keyword: "コースB", images: [WM.sengokuSusuki.url] },
+    { keyword: "GWの予約", images: ["/images/dog-pomeranian-white-hotel.jpg"] },
   ],
   "hakone-dog-day-trip": [
-    { keyword: "コースB", images: ["/images/img-035.png"] },
-    { keyword: "日帰りプラン", images: ["/images/img-041.jpg"] },
+    { keyword: "コースB", images: [WM.ashinokoFuji.url] },
+    { keyword: "日帰りプラン", images: [WM.sengokuSusuki.url] },
   ],
   "hakone-yumoto-pet-hotel": [
-    { keyword: "DogHub箱根仙石原", images: ["/images/img-041.jpg"] },
-    { keyword: "犬のホテルを選ぶ", images: ["/images/img-035.png", "/images/img-037.jpg"] },
+    { keyword: "DogHub箱根仙石原", images: ["/images/doghub-exterior-entrance-02.jpg"] },
+    { keyword: "犬のホテルを選ぶ", images: [WM.yumoto.url, WM.yumotoRiver.url] },
   ],
   "hakone-dog-hotel-cost-comparison": [
-    { keyword: "パターンA", images: ["/images/img-035.png"] },
-    { keyword: "DogHubに預けた場合", images: ["/images/img-041.jpg"] },
+    { keyword: "パターンA", images: ["/images/doghub-hotel-room-plant-side.jpg"] },
+    { keyword: "DogHubに預けた場合", images: ["/images/doghub-hotel-interior-rooms-01.jpg"] },
   ],
   "pet-hotel-first-time-tips": [
-    { keyword: "預かり環境を確認する", images: ["/images/img-035.png", "/images/img-041.jpg"] },
+    { keyword: "預かり環境を確認する", images: ["/images/dog-pomeranian-white-hotel.jpg", "/images/doghub-hotel-room-full-01.jpg"] },
     { keyword: "当日の流れ", images: ["/images/img-037.jpg"] },
+  ],
+  "hakone-glass-forest-museum-dog-guide": [
+    { keyword: "庭園", images: [WM.glassForest.url] },
+    { keyword: "DogHub", images: [WM.glassForestRain.url] },
+  ],
+  "hakone-dog-day-hot-spring-guide": [
+    { keyword: "DogHub", images: ["/images/doghub-exterior-entrance-02.jpg"] },
+    { keyword: "温泉", images: [WM.yumoto.url, WM.yumotoRiver.url] },
   ],
 };
 
@@ -127,7 +279,24 @@ function decodeHtmlEntities(text: string): string {
     .replace(/&yen;/g, "¥");
 }
 
-function enhanceArticleHtml(html: string, slug?: string): string {
+function buildImageCreditsHtml(imageUrls: string[]): string {
+  const wmUrls = Array.from(
+    new Set(imageUrls.filter((u) => u && u.includes("upload.wikimedia.org")))
+  );
+  if (wmUrls.length === 0) return "";
+
+  const items = wmUrls.map((url) => {
+    const meta = WM_BY_URL[url];
+    const fileName = meta?.fileName || decodeURIComponent(url.split("/").pop() || "");
+    const title = meta?.title || fileName.replace(/_/g, " ").replace(/\.[^.]+$/, "");
+    const sourcePage = `https://commons.wikimedia.org/wiki/File:${fileName}`;
+    return `<li><a href="${sourcePage}" target="_blank" rel="noopener nofollow">${title}</a></li>`;
+  });
+
+  return `<section class="image-credits"><h3>画像出典</h3><p>以下の画像は Wikimedia Commons のクリエイティブ・コモンズ等のライセンスで公開されているものを利用しています。</p><ul>${items.join("")}</ul></section>`;
+}
+
+function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string): string {
   // Google Docsの空spanやstyle属性を除去
   html = html.replace(/\sstyle="[^"]*"/gi, "");
   html = html.replace(/<span>([\s\S]*?)<\/span>/gi, "$1");
@@ -252,7 +421,14 @@ function enhanceArticleHtml(html: string, slug?: string): string {
     toc = `<nav class="article-toc"><div class="article-toc-title">この記事の内容</div><ol>${tocItems}</ol></nav>`;
   }
 
-  return toc + html;
+  // 画像クレジット（Wikimedia Commons画像を記事内で使っている場合のみ）
+  const urlsInBody: string[] = [];
+  const urlMatches = html.matchAll(/https:\/\/upload\.wikimedia\.org\/[^\s"')]+/g);
+  for (const m of urlMatches) urlsInBody.push(m[0]);
+  if (thumbnailUrl) urlsInBody.push(thumbnailUrl);
+  const creditsHtml = buildImageCreditsHtml(urlsInBody);
+
+  return toc + html + creditsHtml;
 }
 
 
@@ -367,8 +543,8 @@ export async function getArticle(
   // Google Docsのインラインスタイルを除去してシンプルにする
   html = html.replace(/<style[\s\S]*?<\/style>/gi, "");
 
-  // 記事HTMLを読みやすく後処理
-  html = enhanceArticleHtml(html, slug);
+  // 記事HTMLを読みやすく後処理（サムネURLも渡してクレジット生成に含める）
+  html = enhanceArticleHtml(html, slug, article.thumbnail);
 
   return { article, html };
 }

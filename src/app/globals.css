@@ -322,3 +322,40 @@ body {
   text-decoration: none;
 }
 .article-toc a:hover { color: #B87942; }
+
+/* 画像クレジット（Wikimedia Commons等の出典表示） */
+.image-credits {
+  margin-top: 3em;
+  padding-top: 1.5em;
+  border-top: 1px solid #E5DDD8;
+  font-size: 12px;
+  color: #8F7B65;
+  line-height: 1.7;
+}
+.image-credits h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B6B6B;
+  margin-bottom: 0.5em;
+  letter-spacing: 0.05em;
+}
+.image-credits p {
+  font-size: 12px;
+  color: #8F7B65;
+  margin-bottom: 0.6em;
+}
+.image-credits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.image-credits li {
+  font-size: 12px;
+  margin-bottom: 0.3em;
+  padding-left: 0;
+}
+.image-credits a {
+  color: #8F7B65;
+  text-decoration: underline;
+}
+.image-credits a:hover { color: #B87942; }
