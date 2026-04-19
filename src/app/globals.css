@@ -180,6 +180,50 @@ body {
 /* インラインスタイル上書き */
 .prose-doghub span { font-size: inherit !important; font-family: inherit !important; }
 
+/* テーブル（Google Docs由来） */
+.prose-doghub table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.6em 0;
+  font-size: 14px;
+  line-height: 1.6;
+  display: table;
+}
+.prose-doghub thead {
+  background: #F7F5F0;
+}
+.prose-doghub th,
+.prose-doghub td {
+  padding: 0.75em 1em;
+  border: 1px solid #E5DDD8;
+  text-align: left;
+  vertical-align: top;
+  display: table-cell;
+}
+.prose-doghub th {
+  font-weight: 600;
+  color: #3C200F;
+}
+.prose-doghub tr {
+  display: table-row;
+}
+.prose-doghub table p {
+  margin: 0 !important;
+}
+.prose-doghub table .info-box {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  font-weight: 600;
+  color: #3C200F;
+}
+@media (max-width: 640px) {
+  .prose-doghub table { font-size: 13px; }
+  .prose-doghub th, .prose-doghub td { padding: 0.6em 0.7em; }
+}
+
 /* 記事内画像グリッド（cms.tsで挿入） */
 .article-images {
   display: grid;

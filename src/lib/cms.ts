@@ -266,6 +266,19 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "DogHub", images: ["/images/doghub-exterior-entrance-02.jpg"] },
     { keyword: "温泉", images: [WM.yumoto.url, WM.yumotoRiver.url] },
   ],
+  "hakone-sengokuhara-prince-dog-guide": [
+    { keyword: "愛犬と一緒に泊まれる", images: ["/images/prince-hakone-sengokuhara-exterior.jpg"] },
+    { keyword: "お客さまの過ごし方", images: ["/images/doghub-schnauzer-exterior.jpg"] },
+  ],
+  "hakone-miyanoshita-xiv-dog-guide": [
+    { keyword: "犬連れ事情", images: ["/images/xiv-hakone-rikyu-exterior.jpg"] },
+  ],
+  "hakone-daihakone-cc-dog-guide": [
+    { keyword: "犬連れ事情", images: ["/images/daihakone-cc-course.jpg"] },
+  ],
+  "hakone-regina-resort-dog-guide": [
+    { keyword: "愛犬と泊まれる宿", images: ["/images/regina-sengokuhara-exterior.jpg"] },
+  ],
 };
 
 function decodeHtmlEntities(text: string): string {

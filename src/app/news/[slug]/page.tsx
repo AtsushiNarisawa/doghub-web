@@ -181,6 +181,30 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/guide",
     btnLabel: "ご利用ガイドを見る",
   },
+  "hakone-sengokuhara-prince-dog-guide": {
+    text: "仙石原プリンスホテルにお泊まりの日のお預かり",
+    subtext: "ホテルまで車で約5分。宿泊プラン¥7,700〜、翌日延長は4時間/8時間プランで。",
+    href: "/stay",
+    btnLabel: "宿泊プランを見る",
+  },
+  "hakone-miyanoshita-xiv-dog-guide": {
+    text: "エクシブ箱根離宮にご滞在の日のお預かり",
+    subtext: "宿まで車で約13分。観光の途中にお立ち寄りいただけます。宿泊プラン¥7,700〜。",
+    href: "/stay",
+    btnLabel: "宿泊プランを見る",
+  },
+  "hakone-daihakone-cc-dog-guide": {
+    text: "大箱根カントリークラブでゴルフの日のお預かり",
+    subtext: "ゴルフ場まで車で約5分。早朝7時からお預かり対応。8時間プラン¥6,600。",
+    href: "/8h",
+    btnLabel: "1日お預かりプランを見る",
+  },
+  "hakone-regina-resort-dog-guide": {
+    text: "レジーナリゾート箱根仙石原ご滞在中のお預かり",
+    subtext: "宿まで車で約3分。チェックイン前・アウト後・観光中の愛犬お預けに。半日¥3,300〜。",
+    href: "/4h",
+    btnLabel: "半日プランを見る",
+  },
 };
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
@@ -311,6 +335,26 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "pet-hotel-first-time-tips": [
     { label: "ご利用ガイド", href: "/guide", description: "初めての方向けのご案内" },
     { label: "料金プラン", href: "/service", description: "スポット1時間¥1,100〜" },
+  ],
+  "hakone-sengokuhara-prince-dog-guide": [
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
+    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 翌日17時までの延長に" },
+    { label: "4時間プランを見る", href: "/4h", description: "¥3,300 翌日15時までの延長に" },
+  ],
+  "hakone-miyanoshita-xiv-dog-guide": [
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
+    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 翌日17時までの延長に" },
+    { label: "4時間プランを見る", href: "/4h", description: "¥3,300 翌日15時までの延長に" },
+  ],
+  "hakone-daihakone-cc-dog-guide": [
+    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 早朝7時〜のお預かり対応" },
+    { label: "4時間プランを見る", href: "/4h", description: "¥3,300 短時間ラウンドに" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 前泊に便利" },
+  ],
+  "hakone-regina-resort-dog-guide": [
+    { label: "4時間プランを見る", href: "/4h", description: "¥3,300 チェックイン前後の観光に" },
+    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 ユネッサンや1日観光に" },
+    { label: "スポットプラン", href: "/service", description: "1時間¥1,100〜 短時間のお預けに" },
   ],
 };
 
