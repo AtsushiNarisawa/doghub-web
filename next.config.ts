@@ -17,10 +17,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "commons.wikimedia.org" },
     ],
   },
-  // Next.js のデフォルト末尾スラッシュ正規化（308）を無効化。
-  // 理由: /walks/foo/ → 308 → /walks/foo → 301 の2段リダイレクトを避けるため。
-  // 末尾スラッシュ正規化は middleware で /walks 系の処理後に実施する。
-  skipTrailingSlashRedirect: true,
+  // 旧URLリダイレクトは middleware.ts で一元管理
 };
 
 export default nextConfig;

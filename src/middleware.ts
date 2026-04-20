@@ -31,15 +31,6 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(target, 301);
   }
 
-  // ── 末尾スラッシュ正規化（Next.js デフォルト挙動を middleware で代替）──
-  // skipTrailingSlashRedirect: true により Next.js 側の308は無効化されているので、
-  // 既存サイトの canonical（no-slash）を維持するためここで308を返す。
-  if (pathname !== "/" && pathname.endsWith("/")) {
-    const url = req.nextUrl.clone();
-    url.pathname = pathname.replace(/\/+$/, "");
-    return NextResponse.redirect(url, 308);
-  }
-
   // 旧Wix URLリダイレクト（middleware で処理し二重リダイレクトを防止）
   // ※ /hakone, /beginner は新規ページを作成したためリダイレクト対象から除外
   const legacyRedirects: Record<string, string> = {
@@ -156,7 +147,5 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  // 末尾スラッシュ正規化と /walks 移行リダイレクトを全URLで処理するため、
-  // 静的アセットと API 以外を全て middleware に通す。
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|images/|fonts/).*)"],
+  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*", "/hotel", "/dog-hotel", "/pet-hotel", "/doghotel", "/reservation", "/plan", "/pricing", "/menu", "/contact", "/about", "/gallery", "/doghubhakone/:path*", "/guide/hakone-dog"],
 };
