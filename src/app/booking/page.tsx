@@ -11,6 +11,7 @@ import { Step2Dogs } from "@/components/booking/step2-dogs";
 import { Step3Customer } from "@/components/booking/step3-customer";
 import { Step4Confirm } from "@/components/booking/step4-confirm";
 import { LineAddFriendBanner } from "@/components/line-cta";
+import { calculateBookingTotal } from "@/lib/pricing";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID || "";
 
@@ -84,6 +85,8 @@ export default function BookingPage() {
           plan: form.plan,
           dog_count: form.dogs.length,
           date: form.date,
+          value: calculateBookingTotal(form),
+          currency: "JPY",
         });
         setResult(data.email_failed ? "success_no_email" : "success");
       } else {
