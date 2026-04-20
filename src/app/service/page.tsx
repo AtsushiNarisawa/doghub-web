@@ -214,7 +214,7 @@ export default function ServicePage() {
             <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400, letterSpacing: "1.6px" }}>OPTION MENU</h2>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "18px", fontWeight: 400 }}>オプション</p>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "14px", fontWeight: 400 }}>※一時預かり、宿泊をご利用時に追加可能</p>
-            <div className="grid sm:grid-cols-2 gap-8 max-w-2xl">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
               <div>
                 <Image src="/images/img-008.jpg" alt="お散歩" className="w-full object-cover rounded" width={700} height={400} style={{ aspectRatio: "4/3" }} />
                 <div className="mt-3">
@@ -233,8 +233,8 @@ export default function ServicePage() {
             </div>
 
             {/* Goods promo */}
-            <div className="mt-12 max-w-2xl">
-              <Image src="/images/img-057.jpg" alt="DogHub箱根仙石原のグッズ一覧" className="w-full object-cover rounded" width={700} height={400} style={{ aspectRatio: "16/4" }} />
+            <div className="mt-12 max-w-4xl mx-auto">
+              <Image src="/images/img-057.jpg" alt="DogHub箱根仙石原のグッズ一覧" className="w-full object-cover rounded" width={700} height={400} style={{ aspectRatio: "16/9" }} />
               <div className="mt-6 text-center">
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "16px", fontWeight: 400 }}>わんちゃん向けのグッズ・雑貨なども販売中です</p>
                 <Link href="/cafe" className="flex items-center justify-center gap-2 text-black hover:text-[#B87942] transition-colors group" style={{ fontSize: "16px", fontWeight: 400 }}>
