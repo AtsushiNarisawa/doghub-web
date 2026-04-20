@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  // 末尾スラッシュ正規化を middleware で一元管理するため無効化
+  // /walks/* の1段301維持のため（Next.js デフォルト308が先に発火するのを抑止）
+  skipTrailingSlashRedirect: true,
   images: {
     // Vercel Image Optimization の月間クォータ到達により /_next/image が 402 を返す問題への恒久対策。
     // Supabase Storage 側で 600KB 以下に最適化済みのため、Vercelの変換を経由せず直接配信する。
