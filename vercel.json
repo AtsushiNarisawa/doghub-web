@@ -1,10 +1,5 @@
 {
   "redirects": [
-    { "source": "/walks/areas/:slug/", "destination": "https://wanwalk.jp/areas/:slug", "permanent": true },
-    { "source": "/walks/areas/", "destination": "https://wanwalk.jp/areas", "permanent": true },
-    { "source": "/walks/routes/:slug/", "destination": "https://wanwalk.jp/routes/:slug", "permanent": true },
-    { "source": "/walks/:slug/", "destination": "https://wanwalk.jp/routes/:slug", "permanent": true },
-    { "source": "/walks/", "destination": "https://wanwalk.jp/", "permanent": true },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "host", "value": "www.dog-hub.shop" }],
