@@ -9,11 +9,8 @@ const PREVIEW_PROTECTED: string[] = [];
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // WanWalk独立ドメイン移行リダイレクト（2026-04-16）
-  if (pathname === '/walks' || pathname.startsWith('/walks/')) {
-    const newPath = pathname === '/walks' ? '/' : pathname.replace(/^\/walks/, '');
-    return NextResponse.redirect(`https://wanwalk.jp${newPath}`, 301);
-  }
+  // 注: /walks/* の WanWalk 移行リダイレクトは next.config.ts の redirects() で処理
+  // （末尾スラッシュ正規化との二重リダイレクト回避のため）
 
   // 旧Wix URLリダイレクト（middleware で処理し二重リダイレクトを防止）
   // ※ /hakone, /beginner は新規ページを作成したためリダイレクト対象から除外
@@ -131,5 +128,5 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/walks/:path*", "/walks", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*", "/hotel", "/dog-hotel", "/pet-hotel", "/doghotel", "/reservation", "/plan", "/pricing", "/menu", "/contact", "/about", "/gallery", "/doghubhakone/:path*", "/guide/hakone-dog"],
+  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*", "/hotel", "/dog-hotel", "/pet-hotel", "/doghotel", "/reservation", "/plan", "/pricing", "/menu", "/contact", "/about", "/gallery", "/doghubhakone/:path*", "/guide/hakone-dog"],
 };
