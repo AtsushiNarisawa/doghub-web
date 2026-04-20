@@ -485,6 +485,7 @@ export interface Article {
   summary: string;
   thumbnail: string;
   docId: string;
+  ga4Category: string;
 }
 
 // ビルド時のAPI呼び出しをキャッシュ（Quota超過防止）
@@ -502,7 +503,7 @@ export async function getArticles(): Promise<Article[]> {
   try {
     res = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: "記事一覧!A2:G100",
+      range: "記事一覧!A2:H100",
     });
   } catch (e) {
     console.error("[cms] getArticles error:", (e as Error).message?.slice(0, 200));
@@ -523,6 +524,7 @@ export async function getArticles(): Promise<Article[]> {
       summary: row[4] || "",
       thumbnail: row[5] || "",
       docId: row[6] || "",
+      ga4Category: row[7] || "",
     }))
     .sort((a, b) => (a.date > b.date ? -1 : 1));
 

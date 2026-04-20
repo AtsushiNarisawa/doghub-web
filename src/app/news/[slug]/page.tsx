@@ -8,6 +8,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import { getArticles, getArticle } from "@/lib/cms";
 import { ArticleFloatingBar } from "@/components/article-floating-bar";
+import { ArticleViewTracker } from "@/components/article-view-tracker";
 import { InstagramFollowFull } from "@/components/instagram-follow";
 import Image from "next/image";
 
@@ -427,6 +428,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
   return (
     <>
+      <ArticleViewTracker slug={slug} category={article.ga4Category} />
       <Header />
       <main className="pt-15 lg:pt-20">
         <BreadcrumbJsonLd items={[
