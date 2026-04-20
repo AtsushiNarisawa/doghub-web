@@ -554,7 +554,7 @@ export default async function NewsDetailPage({ params }: Props) {
               <p style={{ fontSize: "15px", color: "#3C200F", marginBottom: "1.2em", textAlign: "left" }}>{cta.subtext}</p>
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 <a href={cta.href}>{cta.btnLabel}</a>
-                <a href="tel:0460-80-0290" className="article-cta-secondary">電話で相談する</a>
+                <a href="tel:0460-80-0290" data-phone-location="news_cta" className="article-cta-secondary">電話で相談する</a>
               </div>
             </div>
           </div>

@@ -137,7 +137,7 @@ export default function BookingPage() {
           <div className="text-sm text-[#888] text-left space-y-1">
             <p>ワクチン証明書（狂犬病・混合）を当日ご持参ください。</p>
             <p>住所: 箱根町仙石原928-15</p>
-            <p>TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
+            <p>TEL: <a href="tel:0460800290" data-phone-location="booking_complete" className="text-[#B87942]">0460-80-0290</a></p>
           </div>
           <div className="text-sm text-[#888] text-left bg-[#F8F5F0] p-3 rounded-lg leading-relaxed">
             <p>翌日も預けたい場合や、宿泊＋日中預かりなど複数日のご利用は「続けて予約する」から追加できます。お客さま・ワンちゃんの情報は入力不要です。</p>
@@ -186,7 +186,7 @@ export default function BookingPage() {
           <p className="text-sm text-[#888] leading-relaxed">
             {errorDetail || "通信エラーが発生しました。"}もう一度お試しいただくか、お電話にてご予約ください。
           </p>
-          <p className="text-sm font-medium">TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
+          <p className="text-sm font-medium">TEL: <a href="tel:0460800290" data-phone-location="booking_error" className="text-[#B87942]">0460-80-0290</a></p>
           <button
             onClick={() => setResult(null)}
             className="inline-block mt-4 px-8 py-3 bg-[#B87942] text-white rounded-xl text-sm font-medium"
@@ -235,7 +235,7 @@ export default function BookingPage() {
           <span className="text-lg leading-none mt-0.5">📞</span>
           <div>
             <p className="text-[13px] text-[#3C200F] font-medium">当日のご予約・お問い合わせはお電話で</p>
-            <a href="tel:0460800290" className="text-[14px] text-[#B87942] font-medium">0460-80-0290</a>
+            <a href="tel:0460800290" data-phone-location="booking_form" className="text-[14px] text-[#B87942] font-medium">0460-80-0290</a>
             <p className="text-[11px] text-[#888] mt-0.5">オンライン予約は前日17:00まで受付</p>
           </div>
         </div>

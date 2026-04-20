@@ -110,7 +110,7 @@ export default function PrivacyPage() {
                 <div className="bg-[#F8F5F0] rounded-lg p-4 mt-3">
                   <p className="font-medium">DogHub箱根仙石原</p>
                   <p className="text-sm text-[#8F7B65] mt-1">〒250-0631 神奈川県足柄下郡箱根町仙石原928-15</p>
-                  <p className="text-sm text-[#8F7B65]">TEL: <a href="tel:0460800290" className="text-[#B87942]">0460-80-0290</a></p>
+                  <p className="text-sm text-[#8F7B65]">TEL: <a href="tel:0460800290" data-phone-location="privacy" className="text-[#B87942]">0460-80-0290</a></p>
                   <p className="text-sm text-[#8F7B65]">E-mail: <a href="mailto:info@dog-hub.shop" className="text-[#B87942]">info@dog-hub.shop</a></p>
                 </div>
               </section>

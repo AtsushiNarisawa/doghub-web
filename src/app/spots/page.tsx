@@ -150,7 +150,7 @@ export default function SpotsPage() {
                     <h3 className="text-[#311908] mb-2" style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: 400 }}>{spot.name}</h3>
                     <p className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(14px, 3vw, 18px)", fontWeight: 400 }}>{spot.address}</p>
                     <div className="flex gap-4 mb-4">
-                      <a href={spot.gmaps} className="text-sm text-[#3C200F] border-b border-[#3C200F] hover:text-[#B87942] hover:border-[#B87942] py-2">
+                      <a href={spot.gmaps} data-directions="spots" target="_blank" rel="noopener noreferrer" className="text-sm text-[#3C200F] border-b border-[#3C200F] hover:text-[#B87942] hover:border-[#B87942] py-2">
                         Google maps
                       </a>
                       <a href={spot.hp} className="text-sm text-[#3C200F] border-b border-[#3C200F] hover:text-[#B87942] hover:border-[#B87942] py-2">

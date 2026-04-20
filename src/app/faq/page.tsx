@@ -203,7 +203,7 @@ export default function FaqPage() {
           <div className="max-w-4xl mx-auto">
             <p className="text-[#3C200F] mb-12" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
               DogHub箱根仙石原についてよくいただくご質問をまとめました。
-              こちらに記載のない内容については、お気軽にお電話（<a href="tel:0460800290" className="text-[#B87942] hover:underline">0460-80-0290</a>）
+              こちらに記載のない内容については、お気軽にお電話（<a href="tel:0460800290" data-phone-location="faq_intro" className="text-[#B87942] hover:underline">0460-80-0290</a>）
               またはメール（<a href="mailto:info@dog-hub.shop" className="text-[#B87942] hover:underline">info@dog-hub.shop</a>）でお問い合わせください。
             </p>
 
@@ -229,6 +229,7 @@ export default function FaqPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href="tel:0460800290"
+                data-phone-location="faq_cta"
                 className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-8 py-4 min-h-11 hover:bg-[#3C200F] hover:text-white transition-colors"
                 style={{ fontSize: "18px", fontWeight: 400 }}
               >

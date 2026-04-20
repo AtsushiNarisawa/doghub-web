@@ -17,7 +17,7 @@ export function Footer() {
             </p>
 
             <address className="not-italic space-y-1" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "2" }}>
-              <a href="tel:0460800290" className="block text-[#8F7B65] hover:text-[#3C200F] transition-colors">
+              <a href="tel:0460800290" data-phone-location="footer" className="block text-[#8F7B65] hover:text-[#3C200F] transition-colors">
                 0460-80-0290
               </a>
               <a href="mailto:info@dog-hub.shop" className="block text-[#8F7B65] hover:text-[#3C200F] transition-colors">

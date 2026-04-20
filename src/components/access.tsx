@@ -29,6 +29,7 @@ export function Access() {
                 </p>
                 <a
                   href="tel:0460800290"
+                  data-phone-location="home_access"
                   className="text-[#DDD8D0] text-sm hover:text-white transition-colors block"
                 >
                   0460-80-0290

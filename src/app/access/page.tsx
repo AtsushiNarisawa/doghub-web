@@ -46,7 +46,7 @@ export default function AccessPage() {
 
                 <div className="space-y-4 text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400 }}>
                   <p>神奈川県足柄下郡箱根町仙石原928-15</p>
-                  <a href="tel:0460800290" className="block text-[#3C200F] hover:text-[#B87942]" style={{ fontSize: "18px" }}>0460-80-0290</a>
+                  <a href="tel:0460800290" data-phone-location="access_page" className="block text-[#3C200F] hover:text-[#B87942]" style={{ fontSize: "18px" }}>0460-80-0290</a>
                   <a href="mailto:info@dog-hub.shop" className="block text-[#3C200F] hover:text-[#B87942]" style={{ fontSize: "18px" }}>info@dog-hub.shop</a>
                 </div>
 
