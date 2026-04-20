@@ -34,10 +34,12 @@ export function middleware(req: NextRequest) {
   // ── 末尾スラッシュ正規化（Next.js デフォルト308を middleware で代替）──
   // skipTrailingSlashRedirect: true により Next.js 側の自動308は無効化。
   // 既存サイトの canonical（末尾スラッシュなし）を維持するため、ここで308を返す。
+  // NextURL setter がフォルダ構造を検出して末尾スラッシュを再付与するのを避けるため、
+  // URL文字列を手動構築する。
   if (pathname !== "/" && pathname.endsWith("/")) {
-    const url = req.nextUrl.clone();
-    url.pathname = pathname.replace(/\/+$/, "");
-    return NextResponse.redirect(url, 308);
+    const newPathname = pathname.replace(/\/+$/, "");
+    const target = `${req.nextUrl.origin}${newPathname}${req.nextUrl.search}`;
+    return NextResponse.redirect(target, 308);
   }
 
   // 旧Wix URLリダイレクト（middleware で処理し二重リダイレクトを防止）
