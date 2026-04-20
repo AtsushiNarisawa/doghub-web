@@ -9,8 +9,36 @@ const PREVIEW_PROTECTED: string[] = [];
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // 注: /walks/* の WanWalk 移行リダイレクトは next.config.ts の redirects() で処理
-  // （末尾スラッシュ正規化との二重リダイレクト回避のため）
+  // ── WanWalk独立ドメイン移行リダイレクト（2026-04-16）──
+  // 末尾スラッシュ有/無を問わず1段301で wanwalk.jp に飛ばす。
+  // next.config.ts で skipTrailingSlashRedirect: true としており、
+  // ここで明示的に末尾スラッシュを剥がしてから判定する。
+  if (pathname === "/walks" || pathname === "/walks/" || pathname.startsWith("/walks/")) {
+    const clean = pathname.replace(/\/+$/, "") || "/";
+    let target: string;
+    if (clean === "/walks") {
+      target = "https://wanwalk.jp/";
+    } else if (clean === "/walks/areas") {
+      target = "https://wanwalk.jp/areas";
+    } else if (clean.startsWith("/walks/areas/")) {
+      target = `https://wanwalk.jp/areas/${clean.slice("/walks/areas/".length)}`;
+    } else if (clean.startsWith("/walks/routes/")) {
+      target = `https://wanwalk.jp/routes/${clean.slice("/walks/routes/".length)}`;
+    } else {
+      // /walks/{slug}（GSCインデックス済のフラットURL）→ /routes/{slug}
+      target = `https://wanwalk.jp/routes/${clean.slice("/walks/".length)}`;
+    }
+    return NextResponse.redirect(target, 301);
+  }
+
+  // ── 末尾スラッシュ正規化（Next.js デフォルト挙動を middleware で代替）──
+  // skipTrailingSlashRedirect: true により Next.js 側の308は無効化されているので、
+  // 既存サイトの canonical（no-slash）を維持するためここで308を返す。
+  if (pathname !== "/" && pathname.endsWith("/")) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname.replace(/\/+$/, "");
+    return NextResponse.redirect(url, 308);
+  }
 
   // 旧Wix URLリダイレクト（middleware で処理し二重リダイレクトを防止）
   // ※ /hakone, /beginner は新規ページを作成したためリダイレクト対象から除外
@@ -128,5 +156,7 @@ function getPasswordPage(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/booking/:path*", "/admin/:path*", "/blog/:path*", "/blog", "/dog-run", "/home", "/service-page/:path*", "/service-page", "/post/:path*", "/hotel", "/dog-hotel", "/pet-hotel", "/doghotel", "/reservation", "/plan", "/pricing", "/menu", "/contact", "/about", "/gallery", "/doghubhakone/:path*", "/guide/hakone-dog"],
+  // 末尾スラッシュ正規化と /walks 移行リダイレクトを全URLで処理するため、
+  // 静的アセットと API 以外を全て middleware に通す。
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|images/|fonts/).*)"],
 };
