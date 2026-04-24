@@ -206,6 +206,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/4h",
     btnLabel: "半日プランを見る",
   },
+  "hakone-gw-traffic-route-guide": {
+    text: "仙石原到着後のお預かりはDogHubへ",
+    subtext: "乙女峠を越えて仙石原に着いたら、美術館やユネッサンは犬NGです。半日¥3,300〜、1日¥5,500〜でお預かりします。",
+    href: "/access",
+    btnLabel: "DogHubへのアクセス・駐車場を見る",
+  },
 };
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
@@ -356,6 +362,12 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 チェックイン前後の観光に" },
     { label: "8時間プランを見る", href: "/8h", description: "¥6,600 ユネッサンや1日観光に" },
     { label: "スポットプラン", href: "/service", description: "1時間¥1,100〜 短時間のお預けに" },
+  ],
+  "hakone-gw-traffic-route-guide": [
+    { label: "DogHubへのアクセス", href: "/access", description: "乙女峠から仙石原へ。駐車場情報もこちら" },
+    { label: "仙石原の観光スポット", href: "/spots", description: "到着後の過ごし方の参考に" },
+    { label: "美術館に行くなら預ける", href: "/museum", description: "ポーラ美術館まで車6分" },
+    { label: "ユネッサンに行くなら預ける", href: "/yunessun", description: "1日お預かり¥5,500〜" },
   ],
 };
 
