@@ -16,9 +16,6 @@ export function GwBanner() {
       color: "#3C200F",
     }}>
       <span>🐾 <strong>GW営業のお知らせ</strong>: 4/30〜5/10はペットホテル休まず営業。カフェは5/7・5/8お休み。</span>
-      <a href="/news" style={{ color: "#B87942", marginLeft: "8px", fontSize: "13px" }}>
-        詳しく見る →
-      </a>
     </div>
   );
 }
