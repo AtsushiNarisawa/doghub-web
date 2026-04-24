@@ -68,7 +68,7 @@ export function Testimonials() {
             </span>
             <div>
               <div className="text-[#B87942] tracking-[0.2em] text-lg mb-1">★★★★★</div>
-              <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>Google レビュー 32件</p>
+              <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>Google レビュー 38件</p>
             </div>
           </div>
         </div>
