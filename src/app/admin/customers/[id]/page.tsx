@@ -300,7 +300,8 @@ export default function CustomerDetailPage() {
                       </div>
                       <div>
                         <label className="text-xs text-gray-500">性別</label>
-                        <select value={editDog.sex || "male"} onChange={(e) => setEditDog({ ...editDog, sex: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none">
+                        <select value={editDog.sex || ""} onChange={(e) => setEditDog({ ...editDog, sex: e.target.value })} className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-[#B87942] focus:outline-none">
+                          <option value="">未確認</option>
                           <option value="male">オス</option>
                           <option value="female">メス</option>
                         </select>
@@ -326,7 +327,7 @@ export default function CustomerDetailPage() {
                     <p className="text-sm text-gray-500 mt-0.5">
                       {dog.weight}kg
                       {dog.age != null && ` / ${dog.age}歳`}
-                      {" / "}{dog.sex === "male" ? "オス" : "メス"}
+                      {dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
                     </p>
                     {(dog.allergies || dog.meal_notes || dog.medication_notes) && (
                       <div className="mt-1 text-sm text-gray-600 bg-gray-50 rounded-lg p-2">

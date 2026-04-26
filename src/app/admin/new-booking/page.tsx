@@ -30,6 +30,7 @@ interface NewDogInput {
   breed: string;
   weight: string;
   age: string;
+  sex: "male" | "female" | "";
 }
 
 const CHECKIN_TIMES: Record<string, string[]> = {
@@ -55,7 +56,7 @@ function NewBookingForm() {
   // 新規顧客フォーム
   const [newCustomer, setNewCustomer] = useState({ last_name: "", first_name: "", phone: "" });
   const [isNewCustomer, setIsNewCustomer] = useState(false);
-  const [newDogs, setNewDogs] = useState<NewDogInput[]>([{ name: "", breed: "", weight: "", age: "" }]);
+  const [newDogs, setNewDogs] = useState<NewDogInput[]>([{ name: "", breed: "", weight: "", age: "", sex: "" }]);
 
   // 予約フォーム
   const [plan, setPlan] = useState("");
@@ -158,7 +159,7 @@ function NewBookingForm() {
     } else {
       setNewCustomer({ last_name: q, first_name: "", phone: "" });
     }
-    setNewDogs([{ name: "", breed: "", weight: "", age: "" }]);
+    setNewDogs([{ name: "", breed: "", weight: "", age: "", sex: "" }]);
     setStep("form");
   };
 
@@ -189,7 +190,7 @@ function NewBookingForm() {
               weight: String(d.weight) || "5",
               age: d.age ? String(d.age) : "",
               age_months: "",
-              sex: (d.sex || "male") as "male" | "female",
+              sex: (d.sex || "") as "male" | "female" | "",
               has_rabies_vaccine: d.has_rabies_vaccine || false,
               has_mixed_vaccine: d.has_mixed_vaccine || false,
               allergies: d.allergies || "",
@@ -202,7 +203,7 @@ function NewBookingForm() {
               weight: d.weight || "5",
               age: d.age || "",
               age_months: "",
-              sex: "male" as const,
+              sex: d.sex,
               has_rabies_vaccine: false,
               has_mixed_vaccine: false,
               allergies: "",
@@ -490,10 +491,33 @@ function NewBookingForm() {
                   className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
                 />
               </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">性別（任意）</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { v: "male" as const, label: "オス" },
+                    { v: "female" as const, label: "メス" },
+                    { v: "" as const, label: "未確認" },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.v || "unknown"}
+                      type="button"
+                      onClick={() => { const d = [...newDogs]; d[i] = { ...d[i], sex: opt.v }; setNewDogs(d); }}
+                      className={`py-2 rounded-lg text-sm font-medium transition-colors ${
+                        dog.sex === opt.v
+                          ? "bg-[#B87942] text-white"
+                          : "bg-gray-50 text-gray-600 active:bg-gray-100"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ))}
           <button
-            onClick={() => setNewDogs([...newDogs, { name: "", breed: "", weight: "", age: "" }])}
+            onClick={() => setNewDogs([...newDogs, { name: "", breed: "", weight: "", age: "", sex: "" }])}
             className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 active:bg-gray-50"
           >
             + もう1頭追加

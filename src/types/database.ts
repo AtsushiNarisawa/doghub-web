@@ -43,7 +43,7 @@ export type Database = {
           weight: number;
           age: number | null;
           birth_date: string | null;
-          sex: "male" | "female";
+          sex: "male" | "female" | null;
           neutered: boolean;
           rabies_vaccine_expires_at: string | null;
           mixed_vaccine_expires_at: string | null;
@@ -62,7 +62,7 @@ export type Database = {
           weight: number;
           age?: number | null;
           birth_date?: string | null;
-          sex: "male" | "female";
+          sex?: "male" | "female" | null;
           neutered?: boolean;
           rabies_vaccine_expires_at?: string | null;
           mixed_vaccine_expires_at?: string | null;

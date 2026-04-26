@@ -99,7 +99,9 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-    if (!body.dogs.length || body.dogs.some((d) => !d.name?.trim() || !d.breed?.trim() || !d.weight?.trim() || !d.sex)) {
+    // sex はお客様フォームでは必須、スタッフ入力（source: phone）では任意（既存犬の上書き防止）
+    const sexRequired = !isStaffBooking;
+    if (!body.dogs.length || body.dogs.some((d) => !d.name?.trim() || !d.breed?.trim() || !d.weight?.trim() || (sexRequired && !d.sex))) {
       return NextResponse.json({ error: "ワンちゃん情報が不足しています" }, { status: 400 });
     }
     // 体重が数値であること
@@ -259,12 +261,13 @@ export async function POST(req: NextRequest) {
     for (const dog of body.dogs) {
       if (dog.id) {
         // 既存の犬：フォーム入力を信頼してすべて更新（移行データの「不明」上書き対応）
+        // ただし sex は空の場合に既存値を上書きしない（スタッフが性別未入力で誤って "male" 等にならないため）
         await supabase
           .from("dogs")
           .update({
             name: dog.name,
             breed: dog.breed,
-            sex: dog.sex as "male" | "female",
+            ...(dog.sex ? { sex: dog.sex as "male" | "female" } : {}),
             weight: parseFloat(dog.weight),
             age: dog.age ? parseInt(dog.age) : null,
             age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
@@ -289,7 +292,7 @@ export async function POST(req: NextRequest) {
             weight: parseFloat(dog.weight),
             age: dog.age ? parseInt(dog.age) : null,
             age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
-            sex: dog.sex as "male" | "female",
+            sex: dog.sex ? (dog.sex as "male" | "female") : null,
             has_rabies_vaccine: dog.has_rabies_vaccine,
             has_mixed_vaccine: dog.has_mixed_vaccine,
             allergies: dog.allergies || null,

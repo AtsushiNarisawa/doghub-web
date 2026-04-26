@@ -40,7 +40,7 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
     <tr>
       <td style="padding:6px 0;border-bottom:1px solid #f0ebe5;">
         <strong>${dog.name}</strong>（${dog.breed}）
-        <span style="color:#888;font-size:13px;"> ${dog.weight}kg${ageStr ? ` / ${ageStr}` : ""} / ${dog.sex === "male" ? "オス" : "メス"}</span>
+        <span style="color:#888;font-size:13px;"> ${dog.weight}kg${ageStr ? ` / ${ageStr}` : ""}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}</span>
       </td>
     </tr>`;
   }).join("");
@@ -203,7 +203,7 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
   <div style="background:#f7f5f0;border-radius:8px;padding:12px;margin-bottom:8px;font-size:13px;">
     <strong>${dog.name}</strong>（${dog.breed}）
     ${parseFloat(dog.weight) >= 15 ? `<span style="color:#c2410c;font-weight:600;"> ⚠️ ${dog.weight}kg</span>` : ` ${dog.weight}kg`}
-    / ${dog.age === "0" && dog.age_months ? `${dog.age_months}ヶ月` : dog.age ? `${dog.age}歳` : ""} / ${dog.sex === "male" ? "オス" : "メス"}
+    / ${dog.age === "0" && dog.age_months ? `${dog.age_months}ヶ月` : dog.age ? `${dog.age}歳` : ""}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
     / 狂犬病: ${dog.has_rabies_vaccine ? "接種済" : "未接種"} / 混合: ${dog.has_mixed_vaccine ? "接種済" : "未接種"}
     ${dog.allergies ? `<br><span style="color:#888;">アレルギー: ${dog.allergies}</span>` : ""}
     ${dog.meal_notes ? `<br><span style="color:#888;">食事: ${dog.meal_notes}</span>` : ""}
