@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const dogCount = res.dog_count || 1;
     const capacityColumn = res.plan === "stay" ? "stay_booked" : "day_booked";
 
-    // 旧日程の容量を戻す
+    // 旧日程の容量を戻す（stay_bookedのみ。CO日のday_booked加減算は廃止）
     if (res.plan === "stay" && res.checkout_date) {
       const d = new Date(res.date);
       const end = new Date(res.checkout_date);
@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
         await updateCapacity(d.toISOString().split("T")[0], "stay_booked", -dogCount);
         d.setDate(d.getDate() + 1);
       }
-      await updateCapacity(res.checkout_date, "day_booked", -dogCount);
     } else {
       await updateCapacity(res.date, capacityColumn, -dogCount);
     }
@@ -79,7 +78,6 @@ export async function POST(req: NextRequest) {
         await updateCapacity(d.toISOString().split("T")[0], "stay_booked", dogCount);
         d.setDate(d.getDate() + 1);
       }
-      await updateCapacity(effectiveCheckout, "day_booked", dogCount);
     } else {
       await updateCapacity(new_date, capacityColumn, dogCount);
     }

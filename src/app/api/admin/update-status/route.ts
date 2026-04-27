@@ -37,7 +37,7 @@ async function adjustCapacity(reservationId: string, direction: 1 | -1) {
   const capacityColumn = r.plan === "stay" ? "stay_booked" : "day_booked";
 
   if (r.plan === "stay" && r.checkout_date) {
-    // 宿泊：CI日〜CO前日のstay_booked
+    // 宿泊：CI日〜CO前日のstay_bookedのみ（CO日のday_booked加算は廃止）
     const d = new Date(r.date);
     const end = new Date(r.checkout_date);
     while (d < end) {
@@ -45,8 +45,6 @@ async function adjustCapacity(reservationId: string, direction: 1 | -1) {
       await updateCapacity(dateStr, capacityColumn, dogCount);
       d.setDate(d.getDate() + 1);
     }
-    // CO日のday_booked
-    await updateCapacity(r.checkout_date, "day_booked", dogCount);
   } else {
     await updateCapacity(r.date, capacityColumn, dogCount);
   }

@@ -86,11 +86,7 @@ export async function POST(req: NextRequest) {
     for (const date of datesToRelease) {
       await updateCapacity(date, capacityColumn, -dogCount);
     }
-
-    // 宿泊CO日のday_bookedも戻す（CO日は常にday_bookedに加算されているため）
-    if (reservation.plan === "stay" && reservation.checkout_date) {
-      await updateCapacity(reservation.checkout_date, "day_booked", -dogCount);
-    }
+    // CO日のday_booked戻しは廃止（CO日加算自体を停止したため）
 
     // キャンセル通知メール（お客様 + スタッフ）
     try {

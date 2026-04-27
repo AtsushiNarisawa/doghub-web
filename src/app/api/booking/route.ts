@@ -189,18 +189,8 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // 宿泊CO日のday枠チェック（犬が午前中在館するため）
-      if (body.plan === "stay" && body.checkout_date) {
-        const { data: coCap } = await supabase
-          .from("daily_capacity")
-          .select("*")
-          .eq("date", body.checkout_date)
-          .maybeSingle();
-
-        if (coCap && coCap.day_booked + dogCount > coCap.day_limit) {
-          return NextResponse.json({ error: `チェックアウト日（${body.checkout_date}）の日帰り枠が満室です` }, { status: 400 });
-        }
-      }
+      // 宿泊CO日のday枠チェックは廃止
+      // （CO朝のオーバーラップは設備側で吸収。day_limit は純粋な日帰りプランの上限とする）
     }
 
     // 電話番号正規化
@@ -409,11 +399,7 @@ export async function POST(req: NextRequest) {
     for (const date of datesToUpdate) {
       await updateCapacity(date, capacityColumn, dogCount);
     }
-
-    // 宿泊のCO日：犬は午前中まで在館するためday_bookedに加算
-    if (body.plan === "stay" && body.checkout_date) {
-      await updateCapacity(body.checkout_date, "day_booked", dogCount);
-    }
+    // CO日のday_booked加算は廃止（day_limit は純粋な日帰りプランのみで管理）
 
     // 7. 顧客の利用回数を更新
     try { await supabase.rpc("increment_total_visits", { customer_uuid: customerId }); } catch { /* ignore */ }

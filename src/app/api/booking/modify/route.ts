@@ -105,13 +105,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
     }
 
-    // CO日変更時の容量再計算（宿泊のみ）
+    // CO日変更時の容量再計算（宿泊のみ・stay_bookedのみ）
     if (coChanged && reservation.plan === "stay") {
       const oldCO = reservation.checkout_date;
       const newCO = checkout_date;
 
-      // 旧CO日のday_bookedを戻す
-      if (oldCO) await updateCapacity(oldCO, "day_booked", -dogCount);
       // 旧泊日のstay_bookedを戻す
       if (oldCO) {
         const d = new Date(reservation.date);
@@ -130,8 +128,7 @@ export async function POST(req: Request) {
           d.setDate(d.getDate() + 1);
         }
       }
-      // 新CO日のday_bookedを加算
-      await updateCapacity(newCO, "day_booked", dogCount);
+      // CO日のday_booked加減算は廃止
     }
 
     // スタッフ通知メール
