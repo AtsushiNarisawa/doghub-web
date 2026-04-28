@@ -368,21 +368,15 @@ export default function AdminDashboard() {
           <span className="text-lg font-medium font-dm">{totalDogs}頭</span>
         </div>
         {totalDogs > 0 && (() => {
-          const ciHalf = todayRes.filter((r) => r.plan === "4h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-          const ciFull = todayRes.filter((r) => r.plan === "8h").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-          const ciStay = todayRes.filter((r) => r.plan === "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-          const stayOver = stayingOver.reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-          const ciTotal = ciHalf + ciFull + ciStay;
+          const dayCount = todayRes.filter((r) => r.plan !== "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          const stayCount = todayRes.filter((r) => r.plan === "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0)
+            + stayingOver.reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          const parts: string[] = [];
+          if (dayCount > 0) parts.push(`日中${dayCount}`);
+          if (stayCount > 0) parts.push(`宿泊${stayCount}`);
           return (
-            <div className="flex gap-3 mt-1 text-xs text-gray-400">
-              {ciTotal > 0 && (
-                <span>CI {ciTotal}頭（{[
-                  ciHalf > 0 && `半日${ciHalf}`,
-                  ciFull > 0 && `1日${ciFull}`,
-                  ciStay > 0 && `宿泊${ciStay}`,
-                ].filter(Boolean).join("・")}）</span>
-              )}
-              {stayOver > 0 && <span>宿泊中 {stayOver}頭</span>}
+            <div className="mt-1 text-xs text-gray-400">
+              {parts.join("・")}
             </div>
           );
         })()}
@@ -432,47 +426,92 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* チェックイン */}
-          <div>
-            <h3 className="text-sm font-medium text-[#B87942] mb-2">
-              チェックイン（{todayRes.length}件）
-            </h3>
-            {todayRes.length === 0 ? (
-              <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-500">
-                チェックイン予約はありません
-              </div>
-            ) : (
+          {(() => {
+            const dayCare = todayRes.filter((r) => r.plan !== "stay");
+            const stayCheckin = todayRes.filter((r) => r.plan === "stay");
+            const stayCheckout = stayingOver.filter((r) => r.checkout_date === selectedDate);
+            const stayOver = stayingOver
+              .filter((r) => r.checkout_date && r.checkout_date > selectedDate)
+              .sort((a, b) => (a.checkout_date || "").localeCompare(b.checkout_date || ""));
+            const sumDogs = (rs: ReservationRow[]) =>
+              rs.reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+            const renderTimeGroup = (rs: ReservationRow[]) => (
               <div className="space-y-2">
-                {groupByTime(todayRes).map(([time, rsvs]) => (
+                {groupByTime(rs).map(([time, group]) => (
                   <div key={time}>
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-base font-medium font-dm text-[#B87942]">{time}</span>
                       <div className="flex-1 h-px bg-[#E5DDD8]" />
                     </div>
                     <div className="space-y-2 ml-1">
-                      {rsvs.map((r) => (
+                      {group.map((r) => (
                         <ReservationCards key={r.id} r={r} history={customerHistories[r.customers.id]} />
                       ))}
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            );
+            const hasAny = dayCare.length + stayCheckin.length + stayCheckout.length + stayOver.length > 0;
 
-          {/* 宿泊中 → チェックアウト */}
-          {stayingOver.length > 0 && (
-            <div className="opacity-70">
-              <h3 className="text-sm font-medium text-gray-400 mb-2">
-                宿泊中 → チェックアウト（{stayingOver.length}件）
-              </h3>
-              <div className="space-y-2">
-                {stayingOver.map((r) => (
-                  <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
-                ))}
-              </div>
-            </div>
-          )}
+            return (
+              <>
+                {/* 日中お預かり */}
+                {dayCare.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-[#B87942] mb-2">
+                      🌞 日中お預かり（{sumDogs(dayCare)}頭）
+                    </h3>
+                    {renderTimeGroup(dayCare)}
+                  </div>
+                )}
+
+                {/* 宿泊チェックイン */}
+                {stayCheckin.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-purple-600 mb-2">
+                      🏨 宿泊チェックイン（{sumDogs(stayCheckin)}頭）
+                    </h3>
+                    {renderTimeGroup(stayCheckin)}
+                  </div>
+                )}
+
+                {/* 宿泊チェックアウト */}
+                {stayCheckout.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-purple-500 mb-2">
+                      ✅ 宿泊チェックアウト（{sumDogs(stayCheckout)}頭）
+                    </h3>
+                    <div className="space-y-2">
+                      {stayCheckout.map((r) => (
+                        <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 連泊中 */}
+                {stayOver.length > 0 && (
+                  <div className="opacity-70">
+                    <h3 className="text-sm font-medium text-gray-400 mb-2">
+                      🛏 連泊中（{sumDogs(stayOver)}頭）
+                    </h3>
+                    <div className="space-y-2">
+                      {stayOver.map((r) => (
+                        <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!hasAny && (
+                  <div className="bg-white rounded-xl p-8 text-center text-sm text-gray-500">
+                    予約はありません
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </>
       )}
     </div>
