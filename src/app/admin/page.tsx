@@ -429,9 +429,10 @@ export default function AdminDashboard() {
           {(() => {
             const dayCare = todayRes.filter((r) => r.plan !== "stay");
             const stayCheckin = todayRes.filter((r) => r.plan === "stay");
-            const stayCheckoutAll = [...stayingOver].sort((a, b) =>
-              (a.checkout_date || "").localeCompare(b.checkout_date || "")
-            );
+            const stayCheckout = stayingOver.filter((r) => r.checkout_date === selectedDate);
+            const stayOver = stayingOver
+              .filter((r) => r.checkout_date && r.checkout_date > selectedDate)
+              .sort((a, b) => (a.checkout_date || "").localeCompare(b.checkout_date || ""));
             const renderTimeGroup = (rs: ReservationRow[]) => (
               <div className="space-y-2">
                 {groupByTime(rs).map(([time, group]) => (
@@ -449,7 +450,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             );
-            const hasAny = dayCare.length + stayCheckin.length + stayCheckoutAll.length > 0;
+            const hasAny = dayCare.length + stayCheckin.length + stayCheckout.length + stayOver.length > 0;
 
             return (
               <>
@@ -479,17 +480,34 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
-                {/* 宿泊中 → チェックアウト */}
-                {stayCheckoutAll.length > 0 && (
+                {/* 宿泊中 → チェックアウト（当日CO分） */}
+                {stayCheckout.length > 0 && (
                   <div className="opacity-80">
                     <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-gray-300">
                       <h3 className="text-lg font-medium text-gray-500">
                         宿泊中 → チェックアウト
                       </h3>
-                      <span className="text-sm text-gray-400">（{stayCheckoutAll.length}件）</span>
+                      <span className="text-sm text-gray-400">（{stayCheckout.length}件）</span>
                     </div>
                     <div className="space-y-2">
-                      {stayCheckoutAll.map((r) => (
+                      {stayCheckout.map((r) => (
+                        <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 連泊中 */}
+                {stayOver.length > 0 && (
+                  <div className="opacity-80">
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-gray-300">
+                      <h3 className="text-lg font-medium text-gray-500">
+                        連泊中
+                      </h3>
+                      <span className="text-sm text-gray-400">（{stayOver.length}件）</span>
+                    </div>
+                    <div className="space-y-2">
+                      {stayOver.map((r) => (
                         <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
                       ))}
                     </div>
