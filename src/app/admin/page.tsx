@@ -41,8 +41,8 @@ interface ReservationRow {
 interface DaySummary {
   date: string;
   total: number;
-  checkinCount: number;
-  stayOverCount: number;
+  daycareCount: number;
+  stayCount: number;
 }
 
 interface CustomerHistory {
@@ -160,15 +160,17 @@ export default function AdminDashboard() {
     ]);
 
     const summaries: DaySummary[] = dates.map((date) => {
-      // チェックイン = その日が予約日の犬
-      const checkinRes = (res || []).filter((r) => r.date === date);
-      // 宿泊中 = 予約日 < 当日 && CO日 >= 当日
+      // 日中預かり = その日が予約日 && 宿泊以外
+      const daycareRes = (res || []).filter((r) => r.date === date && r.plan !== "stay");
+      // 宿泊（その日施設にいる宿泊犬）= 当日CI + 連泊中（前日以前CI、当日以降CO）
+      const stayCheckinRes = (res || []).filter((r) => r.date === date && r.plan === "stay");
       const stayOverRes = [...(stayRes || []), ...(res || []).filter((r) => r.plan === "stay" && r.date < date)]
         .filter((r) => r.checkout_date && r.checkout_date >= date && r.date < date);
-      let checkinCount = 0, stayOverCount = 0;
-      for (const r of checkinRes) { checkinCount += (r.dog_count || 1); }
-      for (const r of stayOverRes) { stayOverCount += r.dog_count || 1; }
-      return { date, total: checkinCount + stayOverCount, checkinCount, stayOverCount };
+      let daycareCount = 0, stayCount = 0;
+      for (const r of daycareRes) { daycareCount += (r.dog_count || 1); }
+      for (const r of stayCheckinRes) { stayCount += (r.dog_count || 1); }
+      for (const r of stayOverRes) { stayCount += r.dog_count || 1; }
+      return { date, total: daycareCount + stayCount, daycareCount, stayCount };
     });
 
     setCalSummaries(summaries);
@@ -315,7 +317,7 @@ export default function AdminDashboard() {
                         summary.total >= 8 ? "text-red-500 font-bold" :
                         "text-gray-500"
                       }`}>
-                        {summary.checkinCount}/({summary.total})
+                        {summary.daycareCount}/{summary.stayCount}
                       </span>
                     )}
                   </button>
@@ -351,7 +353,7 @@ export default function AdminDashboard() {
                       s.total >= 8 ? "text-red-500 font-bold" :
                       "text-gray-500"
                     }`}>
-                      {s.checkinCount}/({s.total})
+                      {s.daycareCount}/{s.stayCount}
                     </span>
                   )}
                 </button>
