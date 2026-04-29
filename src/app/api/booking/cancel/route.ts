@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
         const days = ["日", "月", "火", "水", "木", "金", "土"];
         const d = new Date(reservation.date);
         const dateStr = `${d.getMonth() + 1}/${d.getDate()}（${days[d.getDay()]}）`;
+        const checkinTime = reservation.checkin_time?.slice(0, 5) || "";
 
         const emails = [];
 
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
     <div style="padding:16px;background:#F8F5F0;border-radius:10px;margin:0 0 20px;">
       <table style="font-size:14px;color:#3C200F;border-collapse:collapse;width:100%;">
         <tr><td style="padding:4px 12px 4px 0;color:#888;">プラン</td><td>${PLAN_NAMES[reservation.plan] || reservation.plan}</td></tr>
-        <tr><td style="padding:4px 12px 4px 0;color:#888;">日程</td><td>${dateStr} ${reservation.checkin_time}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#888;">日程</td><td>${dateStr} ${checkinTime}</td></tr>
         ${reservation.checkout_date ? `<tr><td style="padding:4px 12px 4px 0;color:#888;">チェックアウト</td><td>${new Date(reservation.checkout_date).getMonth() + 1}/${new Date(reservation.checkout_date).getDate()}</td></tr>` : ""}
       </table>
     </div>
@@ -157,14 +158,14 @@ export async function POST(req: NextRequest) {
         }
 
         // スタッフへのキャンセル通知メール
-        const cancelStaffSubject = `【キャンセル】${customer?.last_name || ""}様 ${dateStr} ${reservation.checkin_time} ${dogCount}頭`;
+        const cancelStaffSubject = `【キャンセル】${customer?.last_name || ""}様 ${dateStr} ${checkinTime} ${dogCount}頭`;
         const cancelStaffHtml = `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
             <h2 style="color:#c2410c;">予約がキャンセルされました</h2>
             <table style="font-size:14px;border-collapse:collapse;">
               <tr><td style="padding:6px 12px 6px 0;color:#888;">お客様</td><td>${customer?.last_name || ""} ${customer?.first_name || ""}</td></tr>
               <tr><td style="padding:6px 12px 6px 0;color:#888;">電話</td><td>${customer?.phone || ""}</td></tr>
               <tr><td style="padding:6px 12px 6px 0;color:#888;">プラン</td><td>${PLAN_NAMES[reservation.plan] || reservation.plan}</td></tr>
-              <tr><td style="padding:6px 12px 6px 0;color:#888;">日程</td><td>${dateStr} ${reservation.checkin_time}</td></tr>
+              <tr><td style="padding:6px 12px 6px 0;color:#888;">日程</td><td>${dateStr} ${checkinTime}</td></tr>
               <tr><td style="padding:6px 12px 6px 0;color:#888;">頭数</td><td>${dogCount}頭</td></tr>
               ${cancel_reason ? `<tr><td style="padding:6px 12px 6px 0;color:#888;">理由</td><td>${cancel_reason}</td></tr>` : ""}
             </table>
