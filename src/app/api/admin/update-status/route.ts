@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { sendCancellationEmails } from "@/lib/email";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -102,6 +103,35 @@ export async function POST(req: NextRequest) {
     } else if (!wasActive && isActive) {
       // キャンセル/完了 → 確定/確認待ち：容量を加算
       await adjustCapacity(reservation_id, 1);
+    }
+
+    // active → cancelled: お客様＋スタッフにキャンセル通知メールを送信
+    if (wasActive && status === "cancelled") {
+      try {
+        const { data: res } = await supabase
+          .from("reservations")
+          .select("plan, date, checkin_time, checkout_date, dog_count, customers!inner(last_name, first_name, email, phone)")
+          .eq("id", reservation_id)
+          .single();
+        if (res) {
+          const customer = res.customers as unknown as { last_name: string; first_name: string; email: string; phone: string } | null;
+          await sendCancellationEmails({
+            reservationId: reservation_id,
+            reservation: {
+              plan: res.plan,
+              date: res.date,
+              checkin_time: res.checkin_time,
+              checkout_date: res.checkout_date,
+            },
+            customer,
+            dogCount: res.dog_count || 1,
+            cancelReason: null,
+            cancelledBy: "staff",
+          });
+        }
+      } catch (emailErr) {
+        console.error("Staff cancellation email error:", emailErr);
+      }
     }
 
     // pending → confirmed: お客様に予約確定メールを送信
