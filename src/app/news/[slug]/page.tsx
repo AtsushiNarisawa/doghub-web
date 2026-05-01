@@ -497,7 +497,7 @@ export default async function NewsDetailPage({ params }: Props) {
         <section className="py-12 px-6 bg-white">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
-              <span className="text-[#8F7B65]" style={{ fontSize: "14px" }}>公開: {article.date}　|　最終更新: 2026-03-20</span>
+              <span className="text-[#8F7B65]" style={{ fontSize: "14px" }}>公開: {article.date}　|　最終更新: 2026-05-01</span>
               <span className="text-[#B87942] border border-[#B87942] px-2 py-0.5" style={{ fontSize: "12px" }}>
                 {article.category}
               </span>
