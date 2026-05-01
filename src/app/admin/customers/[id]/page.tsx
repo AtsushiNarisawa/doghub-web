@@ -31,6 +31,27 @@ interface Dog {
   allergies: string | null;
   meal_notes: string | null;
   medication_notes: string | null;
+  created_at?: string;
+}
+
+type DogPair = { older: Dog; newer: Dog };
+
+function findDuplicates(dogs: Dog[]): DogPair[] {
+  const pairs: DogPair[] = [];
+  for (let i = 0; i < dogs.length; i++) {
+    for (let j = i + 1; j < dogs.length; j++) {
+      const a = dogs[i], b = dogs[j];
+      const sameName = a.name.trim() === b.name.trim() && a.name.trim().length > 0;
+      const closeWeight = Math.abs((a.weight || 0) - (b.weight || 0)) <= 2;
+      if (sameName && closeWeight) {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        const [older, newer] = aTime <= bTime ? [a, b] : [b, a];
+        pairs.push({ older, newer });
+      }
+    }
+  }
+  return pairs;
 }
 
 interface ReservationSummary {
@@ -68,6 +89,7 @@ export default function CustomerDetailPage() {
   const [editDog, setEditDog] = useState<Partial<Dog>>({});
   const [savingDog, setSavingDog] = useState(false);
   const [dogSaved, setDogSaved] = useState(false);
+  const [mergingPairKey, setMergingPairKey] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, [id]);
 
@@ -114,6 +136,40 @@ export default function CustomerDetailPage() {
     setDogSaved(false);
   };
 
+  const mergeDogs = async (keepDogId: string, removeDogId: string) => {
+    const keepDog = dogs.find((d) => d.id === keepDogId);
+    const removeDog = dogs.find((d) => d.id === removeDogId);
+    if (!keepDog || !removeDog) return;
+
+    const ok = window.confirm(
+      `「${removeDog.name}（${removeDog.breed}）${removeDog.weight}kg」のレコードを ` +
+      `「${keepDog.name}（${keepDog.breed}）${keepDog.weight}kg」に統合します。\n\n` +
+      `統合後、削除する側に紐づく全ての予約は残す側に紐付け直されます。\n` +
+      `この操作は元に戻せません。よろしいですか？`
+    );
+    if (!ok) return;
+
+    const pairKey = `${keepDogId}_${removeDogId}`;
+    setMergingPairKey(pairKey);
+    try {
+      const res = await fetch("/api/admin/merge-dogs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keep_dog_id: keepDogId, remove_dog_id: removeDogId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        alert(`統合に失敗しました: ${json.error || res.statusText}`);
+        return;
+      }
+      await fetchData();
+    } catch (e) {
+      alert(`統合中にエラーが発生しました: ${e instanceof Error ? e.message : "unknown"}`);
+    } finally {
+      setMergingPairKey(null);
+    }
+  };
+
   const saveDog = async () => {
     if (!editingDogId) return;
     setSavingDog(true);
@@ -151,6 +207,14 @@ export default function CustomerDetailPage() {
   }
 
   const completedCount = reservations.filter((r) => r.status !== "cancelled").length;
+  const duplicatePairs = findDuplicates(dogs);
+
+  const formatDateTime = (s?: string) => {
+    if (!s) return "登録日不明";
+    const d = new Date(s);
+    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}登録`;
+  };
+  const sexLabel = (sex: string) => sex === "male" ? "オス" : sex === "female" ? "メス" : "性別未設定";
 
   return (
     <div className="space-y-4">
@@ -264,6 +328,58 @@ export default function CustomerDetailPage() {
           </div>
         )}
       </div>
+
+      {/* 犬の重複候補 警告 */}
+      {duplicatePairs.length > 0 && (
+        <div className="space-y-2">
+          {duplicatePairs.map(({ older, newer }) => {
+            const pairKey = `${older.id}_${newer.id}`;
+            const merging = mergingPairKey === pairKey || mergingPairKey === `${newer.id}_${older.id}`;
+            return (
+              <div key={pairKey} className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+                <p className="text-sm font-medium text-orange-800">
+                  ⚠️ 重複の可能性: 「{older.name}」が2頭登録されています
+                </p>
+                <div className="mt-2 space-y-1 text-sm text-gray-700">
+                  <p>
+                    <span className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded mr-1">古い</span>
+                    {older.name}（{older.breed}）{older.weight}kg
+                    {older.age != null && ` / ${older.age}歳`}
+                    {` / ${sexLabel(older.sex)}`}
+                    <span className="text-xs text-gray-500 ml-1">/ {formatDateTime(older.created_at)}</span>
+                  </p>
+                  <p>
+                    <span className="text-xs bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded mr-1">新しい</span>
+                    {newer.name}（{newer.breed}）{newer.weight}kg
+                    {newer.age != null && ` / ${newer.age}歳`}
+                    {` / ${sexLabel(newer.sex)}`}
+                    <span className="text-xs text-gray-500 ml-1">/ {formatDateTime(newer.created_at)}</span>
+                  </p>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => mergeDogs(older.id, newer.id)}
+                    disabled={merging}
+                    className="py-2 bg-orange-600 text-white text-sm rounded-lg font-medium disabled:opacity-50"
+                  >
+                    {merging ? "統合中..." : "古い方に寄せる"}
+                  </button>
+                  <button
+                    onClick={() => mergeDogs(newer.id, older.id)}
+                    disabled={merging}
+                    className="py-2 bg-orange-600 text-white text-sm rounded-lg font-medium disabled:opacity-50"
+                  >
+                    {merging ? "統合中..." : "新しい方に寄せる"}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  ※ 残す側の情報（犬種・体重・性別など）が新しい予約に反映されます。
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* ワンちゃん */}
       <div className="bg-white rounded-xl p-4">
