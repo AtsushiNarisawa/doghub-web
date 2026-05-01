@@ -247,7 +247,16 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. 犬の upsert
+    // 重複自動検出のため既存犬リストを取得（同 customer_id 配下）
+    const { data: existingDogsForDup } = await supabase
+      .from("dogs")
+      .select("id, name, weight")
+      .eq("customer_id", customerId);
+    const existingDogs: Array<{ id: string; name: string; weight: number }> = existingDogsForDup || [];
+
     const dogIds: string[] = [];
+    const duplicateWarnings: string[] = [];
+
     for (const dog of body.dogs) {
       if (dog.id) {
         // 既存の犬：フォーム入力を信頼してすべて更新（移行データの「不明」上書き対応）
@@ -268,32 +277,65 @@ export async function POST(req: NextRequest) {
             medication_notes: dog.medication_notes || null,
           })
           .eq("id", dog.id);
-        dogIds.push(dog.id);
+        if (!dogIds.includes(dog.id)) dogIds.push(dog.id);
       } else {
-        // 新規の犬（UUIDを事前生成してSELECT不要にする）
-        const dogId = randomUUID();
-        const { error: dogError } = await supabase
-          .from("dogs")
-          .insert({
-            id: dogId,
-            customer_id: customerId,
-            name: dog.name,
-            breed: dog.breed,
-            weight: parseFloat(dog.weight),
-            age: dog.age ? parseInt(dog.age) : null,
-            age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
-            sex: dog.sex ? (dog.sex as "male" | "female") : null,
-            has_rabies_vaccine: dog.has_rabies_vaccine,
-            has_mixed_vaccine: dog.has_mixed_vaccine,
-            allergies: dog.allergies || null,
-            meal_notes: dog.meal_notes || null,
-            medication_notes: dog.medication_notes || null,
-          });
+        // 新規の犬：まず重複検出（name完全一致 && weight±2kg以内）
+        const inputName = dog.name.trim();
+        const inputWeight = parseFloat(dog.weight);
+        const matched = existingDogs.find(
+          (ed) => ed.name.trim() === inputName && Math.abs((ed.weight || 0) - inputWeight) <= 2
+        );
 
-        if (dogError) {
-          return NextResponse.json({ error: "犬情報の登録に失敗しました" }, { status: 500 });
+        if (matched) {
+          // 既存犬を再利用 + 情報を最新フォーム入力で更新
+          await supabase
+            .from("dogs")
+            .update({
+              name: inputName,
+              breed: dog.breed,
+              ...(dog.sex ? { sex: dog.sex as "male" | "female" } : {}),
+              weight: inputWeight,
+              age: dog.age ? parseInt(dog.age) : null,
+              age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
+              has_rabies_vaccine: dog.has_rabies_vaccine,
+              has_mixed_vaccine: dog.has_mixed_vaccine,
+              allergies: dog.allergies || null,
+              meal_notes: dog.meal_notes || null,
+              medication_notes: dog.medication_notes || null,
+            })
+            .eq("id", matched.id);
+          if (!dogIds.includes(matched.id)) dogIds.push(matched.id);
+          duplicateWarnings.push(
+            `「${inputName}」(${inputWeight}kg) を既存登録(${matched.weight}kg)に統合しました`
+          );
+        } else {
+          // 新規の犬として insert（UUIDを事前生成してSELECT不要にする）
+          const dogId = randomUUID();
+          const { error: dogError } = await supabase
+            .from("dogs")
+            .insert({
+              id: dogId,
+              customer_id: customerId,
+              name: inputName,
+              breed: dog.breed,
+              weight: inputWeight,
+              age: dog.age ? parseInt(dog.age) : null,
+              age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
+              sex: dog.sex ? (dog.sex as "male" | "female") : null,
+              has_rabies_vaccine: dog.has_rabies_vaccine,
+              has_mixed_vaccine: dog.has_mixed_vaccine,
+              allergies: dog.allergies || null,
+              meal_notes: dog.meal_notes || null,
+              medication_notes: dog.medication_notes || null,
+            });
+
+          if (dogError) {
+            return NextResponse.json({ error: "犬情報の登録に失敗しました" }, { status: 500 });
+          }
+          // 同送信内の後続犬とのマッチも防ぐため existingDogs にも追加
+          existingDogs.push({ id: dogId, name: inputName, weight: inputWeight });
+          if (!dogIds.includes(dogId)) dogIds.push(dogId);
         }
-        dogIds.push(dogId);
       }
     }
 
@@ -407,7 +449,7 @@ export async function POST(req: NextRequest) {
     // 8. メール送信（失敗しても予約自体は成功扱い、ただしフロントに通知）
     let emailFailed = false;
     try {
-      await sendBookingEmails(body, reservation.id, status);
+      await sendBookingEmails(body, reservation.id, status, duplicateWarnings.length > 0 ? duplicateWarnings : undefined);
     } catch (err) {
       console.error("Email send error:", err);
       emailFailed = true;

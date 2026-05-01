@@ -166,12 +166,21 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
 </html>`;
 }
 
-function buildStaffEmailHtml(form: BookingFormData, reservationId: string, status: string): string {
+function buildStaffEmailHtml(form: BookingFormData, reservationId: string, status: string, duplicateWarnings?: string[]): string {
   const isPending = status === "pending";
   const stayNights =
     form.plan === "stay" && form.checkout_date && form.date
       ? Math.max(1, Math.round((new Date(form.checkout_date).getTime() - new Date(form.date).getTime()) / 86400000))
       : 0;
+  const dupSection = duplicateWarnings && duplicateWarnings.length > 0
+    ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;margin:16px 0;color:#c2410c;font-size:13px;">
+    <strong>⚠️ 重複登録の自動統合</strong>
+    <ul style="margin:8px 0 0;padding-left:20px;">
+      ${duplicateWarnings.map((w) => `<li>${w}</li>`).join("")}
+    </ul>
+    <p style="margin:8px 0 0;font-size:12px;color:#9a3412;">既存の犬情報に予約が紐付けられました。問題があれば管理画面でご確認ください。</p>
+  </div>`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="ja">
@@ -198,6 +207,8 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
     ${form.notes ? `<tr><td style="padding:6px 0;color:#888;">備考</td><td style="padding:6px 0;">${form.notes}</td></tr>` : ""}
   </table>
 
+  ${dupSection}
+
   <h3 style="margin:20px 0 10px;font-size:14px;color:#888;">ワンちゃん</h3>
   ${form.dogs.map((dog) => `
   <div style="background:#f7f5f0;border-radius:8px;padding:12px;margin-bottom:8px;font-size:13px;">
@@ -221,7 +232,8 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
 export async function sendBookingEmails(
   form: BookingFormData,
   reservationId: string,
-  status: string
+  status: string,
+  duplicateWarnings?: string[]
 ) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn("Email not configured: GMAIL_USER or GMAIL_APP_PASSWORD missing");
@@ -229,13 +241,15 @@ export async function sendBookingEmails(
   }
 
   const isPending = status === "pending";
+  const hasDup = duplicateWarnings && duplicateWarnings.length > 0;
   const customerSubject = isPending
     ? `【DogHub箱根】予約リクエストを受け付けました（${formatDate(form.date)}）`
     : `【DogHub箱根】ご予約ありがとうございます（${formatDate(form.date)}）`;
 
-  const staffSubject = isPending
+  const staffSubjectBase = isPending
     ? `【要確認】新規予約 ${form.customer.last_name}様 ${formatDate(form.date)}`
     : `【新規予約】${form.customer.last_name}様 ${formatDate(form.date)} ${form.checkin_time}`;
+  const staffSubject = hasDup ? `${staffSubjectBase}[重複統合]` : staffSubjectBase;
 
   const results = await Promise.allSettled([
     // お客様への確認メール
@@ -251,14 +265,14 @@ export async function sendBookingEmails(
       from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
       to: "narisawa@dog-hub.shop",
       subject: staffSubject,
-      html: buildStaffEmailHtml(form, reservationId, status),
+      html: buildStaffEmailHtml(form, reservationId, status, duplicateWarnings),
     }),
     // スタッフへの通知メール（スタッフ）
     transporter.sendMail({
       from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,
       to: "koi02121957@gmail.com",
       subject: staffSubject,
-      html: buildStaffEmailHtml(form, reservationId, status),
+      html: buildStaffEmailHtml(form, reservationId, status, duplicateWarnings),
     }),
   ]);
 
