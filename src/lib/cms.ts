@@ -179,7 +179,8 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "荷物は預かって", images: ["/images/img-029.jpg"] },
   ],
   "hakone-dog-friendly-hotels": [
-    { keyword: "ペット不可の宿に泊まりたい", images: ["/images/doghub-hotel-interior-rooms-01.jpg", "/images/dog-poodle-hotel-bed-relax.jpg"] },
+    { keyword: "犬は日中だけ預ける", images: ["/images/doghub-hotel-interior-rooms-01.jpg"] },
+    { keyword: "12歳のマルプー", images: ["/images/dog-poodle-hotel-bed-relax.jpg"] },
   ],
   "hakone-museum-dog-guide": [
     { keyword: "ペットホテルを活用", images: ["/images/dog-pomeranian-white-hotel.jpg"] },
