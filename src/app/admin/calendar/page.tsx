@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
+import { ROOM_LIMIT } from "@/lib/capacity";
 
 interface DayData {
   date: string;
@@ -77,8 +78,7 @@ export default function CalendarPage() {
     if (!d) return "bg-white";
     if (d.closed) return "bg-gray-100 text-gray-500";
     const totalBooked = d.day_booked + d.stay_booked;
-    const totalLimit = d.day_limit + d.stay_limit;
-    const ratio = totalBooked / totalLimit;
+    const ratio = totalBooked / ROOM_LIMIT;
     if (ratio >= 1) return "bg-red-50 border-red-200";
     if (ratio >= 0.7) return "bg-orange-50 border-orange-200";
     return "bg-green-50 border-green-200";

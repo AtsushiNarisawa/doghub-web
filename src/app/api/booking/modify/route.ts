@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { exceedsRoomLimit, ROOM_LIMIT } from "@/lib/capacity";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -93,6 +94,42 @@ export async function POST(req: Request) {
 
     if (changes.length === 0) {
       return NextResponse.json({ ok: true, message: "変更なし" });
+    }
+
+    // CO日変更時の容量チェック（新規に占有する日のみ判定）
+    if (coChanged && reservation.plan === "stay") {
+      const buildRange = (ciStr: string, coStr: string): string[] => {
+        const dates: string[] = [];
+        const d = new Date(ciStr);
+        const end = new Date(coStr);
+        while (d < end) {
+          dates.push(d.toISOString().split("T")[0]);
+          d.setDate(d.getDate() + 1);
+        }
+        return dates;
+      };
+      const oldDates = reservation.checkout_date
+        ? buildRange(reservation.date, reservation.checkout_date)
+        : [];
+      const newDates = buildRange(reservation.date, checkout_date);
+      const oldSet = new Set(oldDates);
+      const addedDates = newDates.filter((d) => !oldSet.has(d));
+
+      for (const date of addedDates) {
+        const { data: cap } = await supabase
+          .from("daily_capacity")
+          .select("day_booked, stay_booked, closed")
+          .eq("date", date)
+          .maybeSingle();
+        if (cap) {
+          if (cap.closed) {
+            return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
+          }
+          if (exceedsRoomLimit(cap, dogCount)) {
+            return NextResponse.json({ error: `${date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
+          }
+        }
+      }
     }
 
     // DB更新

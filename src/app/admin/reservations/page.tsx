@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { ROOM_LIMIT } from "@/lib/capacity";
 
 interface ReservationRow {
   id: string;
@@ -290,9 +291,9 @@ export default function ReservationsPage() {
               const isClosed = [3, 4].includes(date.getDay());
               const cap = capacityMap[dateStr];
               const dayBooked = cap?.day_booked ?? 0;
-              const dayLimit = cap?.day_limit ?? 9;
               const stayBooked = cap?.stay_booked ?? 0;
-              const stayLimit = cap?.stay_limit ?? 10;
+              const totalBooked = dayBooked + stayBooked;
+              const isFull = totalBooked >= ROOM_LIMIT;
 
               return (
                 <button
@@ -316,14 +317,14 @@ export default function ReservationsPage() {
                   {viewMode === "week" && !isClosed ? (
                     <div className="mt-1 space-y-0.5">
                       <p className={`text-xs leading-none ${
-                        isSelected ? "text-white/80" : dayBooked >= dayLimit ? "text-red-500 font-medium" : "text-gray-500"
+                        isSelected ? "text-white/80" : "text-gray-500"
                       }`}>
-                        日{dayBooked}/{dayLimit}
+                        日{dayBooked}・泊{stayBooked}
                       </p>
                       <p className={`text-xs leading-none ${
-                        isSelected ? "text-white/80" : stayBooked >= stayLimit ? "text-red-500 font-medium" : "text-gray-500"
+                        isSelected ? "text-white/80" : isFull ? "text-red-500 font-medium" : "text-gray-500"
                       }`}>
-                        泊{stayBooked}/{stayLimit}
+                        {totalBooked}/{ROOM_LIMIT}
                       </p>
                     </div>
                   ) : !isClosed && count > 0 ? (
@@ -360,9 +361,9 @@ export default function ReservationsPage() {
       {viewMode !== "list" && (() => {
         const cap = capacityMap[selectedDate];
         const dayB = cap?.day_booked ?? 0;
-        const dayL = cap?.day_limit ?? 9;
         const stayB = cap?.stay_booked ?? 0;
-        const stayL = cap?.stay_limit ?? 10;
+        const total = dayB + stayB;
+        const isFull = total >= ROOM_LIMIT;
         const isClosed = [3, 4].includes(new Date(selectedDate + "T00:00:00").getDay());
         return (
           <div>
@@ -376,11 +377,11 @@ export default function ReservationsPage() {
             </div>
             {!isClosed && (
               <div className="flex gap-3 mt-1">
-                <span className={`text-sm ${dayB >= dayL ? "text-red-500 font-medium" : "text-gray-500"}`}>
-                  日中 {dayB}/{dayL}
+                <span className="text-sm text-gray-500">
+                  日中 {dayB}・宿泊 {stayB}
                 </span>
-                <span className={`text-sm ${stayB >= stayL ? "text-red-500 font-medium" : "text-gray-500"}`}>
-                  宿泊 {stayB}/{stayL}
+                <span className={`text-sm ${isFull ? "text-red-500 font-medium" : "text-gray-500"}`}>
+                  合計 {total}/{ROOM_LIMIT}
                 </span>
               </div>
             )}

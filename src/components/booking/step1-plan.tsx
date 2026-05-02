@@ -6,6 +6,7 @@ import { PLANS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { HOLIDAYS } from "@/lib/holidays";
+import { ROOM_LIMIT } from "@/lib/capacity";
 
 interface Props {
   form: BookingFormData;
@@ -14,8 +15,7 @@ interface Props {
 }
 
 interface CapacityInfo {
-  stay_remaining: number;
-  day_remaining: number;
+  total_remaining: number;
   closed: boolean;
 }
 
@@ -171,7 +171,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       setLoadingCapacity(true);
       try {
         if (form.plan === "stay" && form.checkout_date) {
-          // 宿泊：全泊日(CI〜CO前日)のstay枠 + CO日のday枠をチェック
+          // 宿泊：CI日〜CO前日まで毎日の合計使用部屋数をチェックし、最も埋まっている日に合わせる
           const dates: string[] = [];
           const d = new Date(form.date);
           const end = new Date(form.checkout_date);
@@ -182,56 +182,44 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
           const { data: rows, error } = await supabase
             .from("daily_capacity")
-            .select("*")
-            .in("date", [...dates, form.checkout_date]);
+            .select("date, day_booked, stay_booked, closed")
+            .in("date", dates);
           if (error) throw error;
 
-          let minStayRemaining = 10;
+          let minRemaining = ROOM_LIMIT;
           let closed = false;
-          let coDay = { day_remaining: 9, closed: false };
-
           for (const date of dates) {
             const row = rows?.find((r) => r.date === date);
-            if (row) {
-              if (row.closed) { closed = true; break; }
-              minStayRemaining = Math.min(minStayRemaining, row.stay_limit - row.stay_booked);
-            }
+            if (row?.closed) { closed = true; break; }
+            const occupied = (row?.day_booked || 0) + (row?.stay_booked || 0);
+            minRemaining = Math.min(minRemaining, ROOM_LIMIT - occupied);
           }
 
-          const coRow = rows?.find((r) => r.date === form.checkout_date);
-          if (coRow) {
-            coDay = { day_remaining: coRow.day_limit - coRow.day_booked, closed: coRow.closed };
-          }
-
-          setCapacity({
-            stay_remaining: minStayRemaining,
-            day_remaining: coDay.day_remaining,
-            closed, // CO日のclosedは除外（CO日は定休日でもチェックアウト可能）
-          });
+          setCapacity({ total_remaining: minRemaining, closed });
         } else {
           // 日帰り or 宿泊でCO日未選択：CI日のみチェック
           const { data, error } = await supabase
             .from("daily_capacity")
-            .select("*")
+            .select("day_booked, stay_booked, closed")
             .eq("date", form.date)
             .maybeSingle();
           if (error) throw error;
 
           if (data) {
+            const occupied = (data.day_booked || 0) + (data.stay_booked || 0);
             setCapacity({
-              stay_remaining: data.stay_limit - data.stay_booked,
-              day_remaining: data.day_limit - data.day_booked,
+              total_remaining: ROOM_LIMIT - occupied,
               closed: data.closed,
             });
           } else {
-            setCapacity({ stay_remaining: 10, day_remaining: 9, closed: false });
+            setCapacity({ total_remaining: ROOM_LIMIT, closed: false });
           }
         }
       } catch (e) {
         // Supabase 一時障害・ネットワーク不安定時のフェイルセーフ
         // フォールバック: 通常容量で続行（ユーザーが「次へ」進めなくなるのを防ぐ）
         console.error("[booking] capacity fetch error:", e);
-        setCapacity({ stay_remaining: 10, day_remaining: 9, closed: false });
+        setCapacity({ total_remaining: ROOM_LIMIT, closed: false });
       } finally {
         setLoadingCapacity(false);
       }
@@ -273,14 +261,13 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     !isClosedDay(form.date) &&
     capacity &&
     !capacity.closed &&
+    capacity.total_remaining > 0 &&
     (form.plan === "stay"
-      ? capacity.stay_remaining > 0 &&
-        form.checkout_date &&
+      ? form.checkout_date &&
         stayClosedDates.length === 0 &&
         (!form.checkin_extension || form.checkin_extension_from) &&
         (!form.checkout_extension || form.checkout_extension_until)
-      : true) &&
-    (form.plan !== "stay" ? capacity.day_remaining > 0 : true);
+      : true);
 
   return (
     <div className="space-y-6">
@@ -437,19 +424,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   <p className="text-[#888] text-sm">空き状況を確認中...</p>
                 ) : capacity && !capacity.closed ? (
                   <div className="flex gap-3">
-                    {form.plan === "stay" ? (
-                      capacity.stay_remaining <= 0
-                        ? <span className="text-red-500 text-sm font-medium">× 満室（別の日程をお選びください）</span>
-                        : capacity.stay_remaining < 5
-                          ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
-                          : <span className="text-green-600 text-sm">○ 空きあり</span>
-                    ) : (
-                      capacity.day_remaining <= 0
-                        ? <span className="text-red-500 text-sm font-medium">× 満室（別の日程をお選びください）</span>
-                        : capacity.day_remaining < 5
-                          ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
-                          : <span className="text-green-600 text-sm">○ 空きあり</span>
-                    )}
+                    {capacity.total_remaining <= 0
+                      ? <span className="text-red-500 text-sm font-medium">× 満室（別の日程をお選びください）</span>
+                      : capacity.total_remaining < 5
+                        ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
+                        : <span className="text-green-600 text-sm">○ 空きあり</span>
+                    }
                   </div>
                 ) : capacity?.closed ? (
                   <p className="text-red-500 text-sm">この日は臨時休業です。別の日程をお選びください。</p>

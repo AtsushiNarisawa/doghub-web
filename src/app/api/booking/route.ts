@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
 import { sendBookingEmails } from "@/lib/email";
 import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
+import { exceedsRoomLimit, ROOM_LIMIT } from "@/lib/capacity";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -152,15 +153,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "同じ内容の予約が直前に送信されています。しばらくお待ちください。" }, { status: 429 });
     }
 
-    // サーバー側：容量チェック
+    // サーバー側：容量チェック（全19室の物理プールで判定）
     const dogCount = body.dogs.length;
     {
-      const capacityColumn = body.plan === "stay" ? "stay_booked" : "day_booked";
-      const limitColumn = body.plan === "stay" ? "stay_limit" : "day_limit";
       const datesToCheck: string[] = [];
 
       if (body.plan === "stay" && body.checkout_date) {
-        // 宿泊：CI日〜CO前日のstay枠 + CO日のday枠
+        // 宿泊：CI日〜CO前日まで在室扱い（連泊中も含む。CO日は除外）
         const d = new Date(body.date);
         const end = new Date(body.checkout_date);
         while (d < end) {
@@ -171,11 +170,11 @@ export async function POST(req: NextRequest) {
         datesToCheck.push(body.date);
       }
 
-      // 宿泊枠 or 日帰り枠のチェック
+      // 各日の合計使用部屋数（day_booked + stay_booked）+ 追加頭数 が 19 を超えないこと
       for (const date of datesToCheck) {
         const { data: cap } = await supabase
           .from("daily_capacity")
-          .select("*")
+          .select("day_booked, stay_booked, closed")
           .eq("date", date)
           .maybeSingle();
 
@@ -183,14 +182,11 @@ export async function POST(req: NextRequest) {
           if (cap.closed) {
             return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
           }
-          if (cap[capacityColumn] + dogCount > cap[limitColumn]) {
-            return NextResponse.json({ error: `${date}の${body.plan === "stay" ? "宿泊" : "日帰り"}枠が満室です` }, { status: 400 });
+          if (exceedsRoomLimit(cap, dogCount)) {
+            return NextResponse.json({ error: `${date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
           }
         }
       }
-
-      // 宿泊CO日のday枠チェックは廃止
-      // （CO朝のオーバーラップは設備側で吸収。day_limit は純粋な日帰りプランの上限とする）
     }
 
     // 電話番号正規化
