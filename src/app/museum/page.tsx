@@ -34,7 +34,7 @@ const museums = [
   },
   {
     name: "箱根湿生花園",
-    distance: "車で約5分",
+    distance: "車で約3分",
     area: "仙石原",
     note: "",
   },

@@ -110,7 +110,7 @@ export default function YumotoPage() {
                   { time: "9:00", text: "箱根湯本を出発" },
                   { time: "9:25", text: "DogHubに到着 → 愛犬をお預け" },
                   { time: "9:30", text: "仙石原すすき草原をお散歩" },
-                  { time: "10:30", text: "ポーラ美術館（車6分）" },
+                  { time: "10:30", text: "ポーラ美術館（車4分）" },
                   { time: "12:30", text: "DogHubのカフェでランチ（愛犬と合流）" },
                   { time: "13:30", text: "再度お預け → ユネッサンへ（車15分）" },
                   { time: "16:00", text: "DogHubでお迎え → 帰路" },

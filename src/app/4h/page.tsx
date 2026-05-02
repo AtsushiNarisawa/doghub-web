@@ -27,7 +27,7 @@ const scenes = [
   },
   {
     title: "美術館めぐりの間に",
-    body: "ポーラ美術館（車6分）、箱根ガラスの森美術館（車4分）、箱根ラリック美術館（車2分）と、いずれもDogHubから近い距離です。",
+    body: "ポーラ美術館（車4分）、箱根ガラスの森美術館（車3分）、箱根ラリック美術館（車2分）と、いずれもDogHubから近い距離です。",
     keyword: "箱根 美術館 犬",
   },
   {
@@ -181,11 +181,11 @@ export default function FourHourPage() {
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>DogHubから近い観光スポット</h2>
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { name: "ポーラ美術館", time: "車で6分", href: "/spots" },
-                { name: "箱根ガラスの森美術館", time: "車で4分", href: "/spots" },
+                { name: "ポーラ美術館", time: "車で4分", href: "/spots" },
+                { name: "箱根ガラスの森美術館", time: "車で3分", href: "/spots" },
                 { name: "箱根ラリック美術館", time: "車で2分", href: "/spots" },
-                { name: "仙石原すすき草原", time: "車で4分", href: "/spots" },
-                { name: "箱根湿生花園", time: "車で2分", href: "/spots" },
+                { name: "仙石原すすき草原", time: "車で2分", href: "/spots" },
+                { name: "箱根湿生花園", time: "車で3分", href: "/spots" },
                 { name: "箱根小涌園ユネッサン", time: "車で15分", href: "/spots" },
               ].map((spot) => (
                 <Link key={spot.name} href={spot.href} className="bg-white border border-[#E5DDD8] p-5 hover:bg-white/80 transition-colors">
