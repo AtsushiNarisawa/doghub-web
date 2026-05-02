@@ -15,6 +15,9 @@ export function GtmPageView() {
       return;
     }
 
+    // 内部トラフィック除外: /admin, /api 配下ではpage_viewを送らない
+    if (/^\/(admin|api)(\/|$)/.test(pathname)) return;
+
     // SPA遷移時にdataLayerへpushしてGTMに通知
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
     window.dataLayer?.push({
