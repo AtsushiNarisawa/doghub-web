@@ -9,7 +9,7 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "箱根湯本から犬のホテルをお探しなら｜DogHub箱根仙石原",
-  description: "箱根湯本エリアで犬のホテル・ペットホテルをお探しの方へ。DogHub箱根仙石原は箱根湯本から車で約25分。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+  description: "箱根湯本エリアで犬のホテル・ペットホテルをお探しの方へ。DogHub箱根仙石原は箱根湯本から車で約30分。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。",
   alternates: { canonical: "/yumoto" },
 };
 
@@ -56,7 +56,7 @@ export default function YumotoPage() {
               犬を預けられるペットホテルは湯本駅周辺にはほとんどありません。
             </p>
             <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-              DogHub箱根仙石原は、箱根湯本から車で約25分の仙石原エリアにあります。
+              DogHub箱根仙石原は、箱根湯本から車で約30分の仙石原エリアにあります。
               箱根の中心に位置しているので、湯本だけでなく強羅・芦ノ湖・ユネッサンなど
               箱根の主要エリアへのアクセスも便利。犬を預けて箱根観光を自由に楽しめます。
             </p>
@@ -91,7 +91,7 @@ export default function YumotoPage() {
                     <span>DogHub → ユネッサン</span><span>車で約15分</span>
                   </div>
                   <div className="flex justify-between text-[#3C200F]">
-                    <span>DogHub → 大涌谷</span><span>車で約15分</span>
+                    <span>DogHub → 大涌谷</span><span>車で約25分</span>
                   </div>
                 </div>
               </div>
@@ -199,16 +199,16 @@ export default function YumotoPage() {
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
                 mainEntity: [
-                  { "@type": "Question", name: "箱根湯本にペットホテルはありますか？", acceptedAnswer: { "@type": "Answer", text: "箱根湯本駅周辺にはペットホテル専門施設はほとんどありません。DogHub箱根仙石原は箱根湯本から車で約25分の仙石原エリアにあり、箱根エリアのペットホテルとしてご利用いただけます。" }},
-                  { "@type": "Question", name: "箱根湯本からDogHubまでどのくらいかかりますか？", acceptedAnswer: { "@type": "Answer", text: "車で約25分です。国道1号から宮ノ下を経由し国道138号で仙石原へ。週末は宮ノ下付近で渋滞の場合があり、+10〜15分かかることがあります。" }},
+                  { "@type": "Question", name: "箱根湯本にペットホテルはありますか？", acceptedAnswer: { "@type": "Answer", text: "箱根湯本駅周辺にはペットホテル専門施設はほとんどありません。DogHub箱根仙石原は箱根湯本から車で約30分の仙石原エリアにあり、箱根エリアのペットホテルとしてご利用いただけます。" }},
+                  { "@type": "Question", name: "箱根湯本からDogHubまでどのくらいかかりますか？", acceptedAnswer: { "@type": "Answer", text: "車で約30分です。国道1号から宮ノ下を経由し国道138号で仙石原へ。週末は宮ノ下付近で渋滞の場合があり、+10〜15分かかることがあります。" }},
                   { "@type": "Question", name: "箱根湯本の温泉に行く間だけ犬を預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい。半日お預かり（4時間）¥3,300〜、1日お預かり（8時間）¥5,500〜でご利用いただけます。温泉や美術館など犬連れNGの施設に行く間だけのご利用も歓迎です。" }},
                 ],
               }) }}
             />
             <div className="space-y-4">
               {[
-                { q: "箱根湯本にペットホテルはありますか？", a: "箱根湯本駅周辺にはペットホテル専門施設はほとんどありません。DogHub箱根仙石原は箱根湯本から車で約25分の仙石原エリアにあり、箱根エリアのペットホテルとしてご利用いただけます。" },
-                { q: "箱根湯本からDogHubまでどのくらいかかりますか？", a: "車で約25分です。国道1号から宮ノ下を経由し国道138号で仙石原へ。週末は宮ノ下付近で渋滞の場合があり、+10〜15分かかることがあります。" },
+                { q: "箱根湯本にペットホテルはありますか？", a: "箱根湯本駅周辺にはペットホテル専門施設はほとんどありません。DogHub箱根仙石原は箱根湯本から車で約30分の仙石原エリアにあり、箱根エリアのペットホテルとしてご利用いただけます。" },
+                { q: "箱根湯本からDogHubまでどのくらいかかりますか？", a: "車で約30分です。国道1号から宮ノ下を経由し国道138号で仙石原へ。週末は宮ノ下付近で渋滞の場合があり、+10〜15分かかることがあります。" },
                 { q: "箱根湯本の温泉に行く間だけ犬を預けられますか？", a: "はい。半日お預かり（4時間）¥3,300〜、1日お預かり（8時間）¥5,500〜でご利用いただけます。温泉や美術館など犬連れNGの施設に行く間だけのご利用も歓迎です。" },
               ].map((faq) => (
                 <details key={faq.q} className="border border-[#E5DDD8] bg-white group">

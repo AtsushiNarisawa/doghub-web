@@ -15,13 +15,12 @@ export const metadata: Metadata = {
 
 const ryokans = [
   { name: "箱根吟遊", area: "宮ノ下", distance: "車で約15分" },
-  { name: "富士屋ホテル", area: "宮ノ下", distance: "車で約15分" },
-  { name: "強羅花壇", area: "強羅", distance: "車で約12分" },
-  { name: "翠松園", area: "小涌谷", distance: "車で約12分" },
-  { name: "金乃竹 仙石原", area: "仙石原", distance: "車で約5分" },
-  { name: "きたの風茶寮", area: "仙石原", distance: "車で約5分" },
+  { name: "富士屋ホテル", area: "宮ノ下", distance: "車で約10分" },
+  { name: "強羅花壇", area: "強羅", distance: "車で約15分" },
+  { name: "金乃竹 仙石原", area: "仙石原", distance: "車で約2分" },
+  { name: "きたの風茶寮", area: "仙石原", distance: "車で約1分" },
   { name: "佳ら久", area: "強羅", distance: "車で約10分" },
-  { name: "箱根・翠松園", area: "小涌谷", distance: "車で約12分" },
+  { name: "箱根・翠松園", area: "小涌谷", distance: "車で約15分" },
 ];
 
 export default function RyokanPage() {

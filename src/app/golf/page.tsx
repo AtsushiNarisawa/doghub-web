@@ -15,23 +15,18 @@ export const metadata: Metadata = {
 
 const courses = [
   {
-    name: "富士屋ホテル仙石ゴルフコース",
-    distance: "車で約5分",
-    note: "",
-  },
-  {
     name: "大箱根カントリークラブ",
     distance: "車で約5分",
     note: "DogHub提携コース",
   },
   {
-    name: "箱根カントリー倶楽部",
+    name: "富士屋ホテル仙石ゴルフコース",
     distance: "車で約5分",
     note: "",
   },
   {
-    name: "箱根くらかけゴルフ場",
-    distance: "車で約10分",
+    name: "箱根カントリー倶楽部",
+    distance: "車で約5分",
     note: "",
   },
   {
@@ -40,28 +35,48 @@ const courses = [
     note: "",
   },
   {
-    name: "箱根湯の花ゴルフ場",
+    name: "箱根園ゴルフ場",
     distance: "車で約15分",
     note: "",
   },
   {
-    name: "箱根園ゴルフ場",
+    name: "富士カントリークラブ",
     distance: "車で約20分",
     note: "",
   },
   {
-    name: "レイクウッドゴルフクラブ（東コース）",
+    name: "箱根湯の花ゴルフ場",
     distance: "車で約25分",
     note: "",
   },
   {
-    name: "小田原ゴルフ倶楽部（松田コース）",
+    name: "PGM御殿場カントリークラブ",
+    distance: "車で約25分",
+    note: "",
+  },
+  {
+    name: "箱根くらかけゴルフ場",
+    distance: "車で約25分",
+    note: "",
+  },
+  {
+    name: "芦の湖カントリークラブ",
     distance: "車で約30分",
     note: "",
   },
   {
-    name: "大富士ゴルフクラブ",
-    distance: "車で約30分",
+    name: "御殿場ゴルフ倶楽部",
+    distance: "車で約35分",
+    note: "",
+  },
+  {
+    name: "太平洋クラブ 御殿場コース",
+    distance: "車で約35分",
+    note: "",
+  },
+  {
+    name: "東名富士カントリークラブ",
+    distance: "車で約35分",
     note: "",
   },
 ];

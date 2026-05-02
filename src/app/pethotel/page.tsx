@@ -14,16 +14,15 @@ export const metadata: Metadata = {
 };
 
 const petHotels = [
-  { name: "レジーナリゾート箱根仙石原", area: "仙石原", distance: "車で約3分" },
-  { name: "ドッグレストプレイス", area: "仙石原", distance: "車で約5分" },
-  { name: "強羅グアムドッグ", area: "強羅", distance: "車で約10分" },
-  { name: "リトナ箱根", area: "強羅", distance: "車で約10分" },
-  { name: "モリトソラ", area: "仙石原", distance: "車で約5分" },
-  { name: "ゆるり箱根", area: "仙石原", distance: "車で約3分" },
-  { name: "カーロ・フォレスタ箱根", area: "強羅", distance: "車で約12分" },
-  { name: "箱根園コテージ", area: "芦ノ湖", distance: "車で約15分" },
-  { name: "犬御殿 箱根仙石原温泉", area: "仙石原", distance: "車で約5分" },
-  { name: "森の風 箱根仙石原", area: "仙石原", distance: "車で約3分" },
+  { name: "レジーナリゾート箱根仙石原", area: "仙石原", distance: "車で約2分" },
+  { name: "森の風 箱根仙石原", area: "仙石原", distance: "車で約1分" },
+  { name: "リトナ箱根", area: "元箱根", distance: "車で約10分" },
+  { name: "強羅グアムドッグ", area: "強羅", distance: "車で約15分" },
+  { name: "ゆるり箱根", area: "強羅", distance: "車で約15分" },
+  { name: "ドッグレストプレイス", area: "二ノ平", distance: "車で約15分" },
+  { name: "モリトソラ", area: "小涌谷", distance: "車で約15分" },
+  { name: "箱根園コテージ", area: "芦ノ湖", distance: "車で約20分" },
+  { name: "カーロ・フォレスタ箱根", area: "元箱根", distance: "車で約25分" },
 ];
 
 export default function PetHotelPage() {

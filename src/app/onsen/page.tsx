@@ -26,13 +26,13 @@ const onsens = [
   },
   {
     name: "龍宮殿本館",
-    distance: "車で約10分",
+    distance: "車で約20分",
     area: "芦ノ湖",
   },
   {
     name: "箱根高原ホテル",
     distance: "車で約10分",
-    area: "仙石原",
+    area: "元箱根",
   },
   {
     name: "森の湯（箱根小涌園）",
@@ -46,12 +46,12 @@ const onsens = [
   },
   {
     name: "一の湯 塔ノ沢キャトルセゾン",
-    distance: "車で約20分",
+    distance: "車で約25分",
     area: "塔之沢",
   },
   {
     name: "一の湯 塔ノ沢本館",
-    distance: "車で約20分",
+    distance: "車で約25分",
     area: "塔之沢",
   },
   {
@@ -61,22 +61,22 @@ const onsens = [
   },
   {
     name: "箱根小涌谷温泉 三河屋旅館",
-    distance: "車で約12分",
+    distance: "車で約15分",
     area: "小涌谷",
   },
   {
     name: "箱根の湯",
-    distance: "車で約20分",
+    distance: "車で約35分",
     area: "湯本",
   },
   {
     name: "箱根湯寮",
-    distance: "車で約25分",
+    distance: "車で約30分",
     area: "塔之沢",
   },
   {
     name: "箱根湯本 天成園",
-    distance: "車で約25分",
+    distance: "車で約30分",
     area: "箱根湯本",
   },
 ];
@@ -106,7 +106,7 @@ const faqJsonLd = {
       "name": "DogHubから近い日帰り温泉はどこですか？",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "仙石原エリアなら車3〜5分で一の湯仙石原品の木・新館。小涌谷の森の湯やユネッサンは車15分、箱根湯本の天成園・箱根の湯は車20〜25分です。"
+        "text": "仙石原エリアなら車3〜5分で一の湯仙石原品の木・新館。小涌谷の森の湯やユネッサンは車15分、箱根湯本の天成園・箱根の湯は車30〜35分です。"
       }
     },
     {
@@ -294,7 +294,7 @@ export default function OnsenPage() {
               <div className="border border-[#E5DDD8] p-6 rounded-sm">
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>Q. DogHubから近い日帰り温泉はどこですか？</h3>
                 <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>
-                  仙石原エリアなら車3〜5分で一の湯仙石原品の木・新館。小涌谷の森の湯やユネッサンは車15分、箱根湯本の天成園・箱根の湯は車20〜25分です。ページ下部の施設リストをご覧ください。
+                  仙石原エリアなら車3〜5分で一の湯仙石原品の木・新館。小涌谷の森の湯やユネッサンは車15分、箱根湯本の天成園・箱根の湯は車30〜35分です。ページ下部の施設リストをご覧ください。
                 </p>
               </div>
               <div className="border border-[#E5DDD8] p-6 rounded-sm">
