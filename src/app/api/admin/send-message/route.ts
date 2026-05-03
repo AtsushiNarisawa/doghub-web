@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendCustomMessage } from "@/lib/email";
+import { getJstNow } from "@/lib/datetime";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -74,10 +75,13 @@ export async function POST(req: NextRequest) {
       dogNames,
     });
 
-    // スタッフメモに送信履歴を追記
-    const now = new Date();
-    const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    const logEntry = `[${ts} メール送信] 件名: ${subject.trim()}`;
+    // スタッフメモに送信履歴を追記（件名 + 本文を残す）
+    const logEntry = [
+      `[${getJstNow()} メール送信]`,
+      `件名: ${subject.trim()}`,
+      `本文:`,
+      body.trim(),
+    ].join("\n");
     const newAdminNotes = res.admin_notes
       ? `${res.admin_notes}\n${logEntry}`
       : logEntry;
