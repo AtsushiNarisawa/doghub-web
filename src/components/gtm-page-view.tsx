@@ -18,12 +18,12 @@ export function GtmPageView() {
     // 内部トラフィック除外: /admin, /api 配下ではpage_viewを送らない
     if (/^\/(admin|api)(\/|$)/.test(pathname)) return;
 
-    // SPA遷移時にdataLayerへpushしてGTMに通知
-    const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
+    // UtmPersistence が history.replaceState で URL を書き換えている可能性があるので
+    // window.location を直接参照して常に最新の URL を送る。
     window.dataLayer?.push({
       event: "page_view",
-      page_location: window.location.origin + url,
-      page_path: pathname,
+      page_location: window.location.href,
+      page_path: window.location.pathname,
       page_title: document.title,
     });
   }, [pathname, searchParams]);

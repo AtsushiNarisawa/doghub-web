@@ -7,6 +7,7 @@ import { ScrollToTop } from "@/components/scroll-to-top";
 import { MobileCta } from "@/components/mobile-cta";
 import { JsonLd } from "@/components/json-ld";
 import { GtmPageView } from "@/components/gtm-page-view";
+import { UtmPersistence } from "@/components/utm-persistence";
 
 const GTM_ID = "GTM-NMCHVJ7K";
 
@@ -98,6 +99,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         <JsonLd />
         <Suspense fallback={null}>
+          <UtmPersistence />
           <GtmPageView />
         </Suspense>
         {children}
