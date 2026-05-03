@@ -37,19 +37,30 @@ export async function POST(req: NextRequest) {
     }
 
     // サーバー側：前日17時まで受付（当日予約不可）— スタッフ入力（source: phone）は制限なし
+    // Vercel サーバーは UTC で動くため、JST 9時以降に new Date() からローカル日付を作ると
+    // 1日ズレて「翌日予約が当日扱い」になるバグがあった（2026-05-03 修正）。
+    // body.date は "YYYY-MM-DD" 文字列なので、JST 基準の今日も文字列で取得して直接比較する。
     const isStaffBooking = body.source === "phone";
-    const now = new Date();
-    const jstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-    const bookingDate = new Date(body.date + "T00:00:00+09:00");
-    const todayMidnight = new Date(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate());
-    const diffDays = Math.floor((bookingDate.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
+    const todayJST = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(new Date());
+    const jstHour = parseInt(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Tokyo", hour: "2-digit", hour12: false,
+      }).format(new Date()),
+      10
+    );
+    const tomorrowDateObj = new Date(todayJST + "T00:00:00Z");
+    tomorrowDateObj.setUTCDate(tomorrowDateObj.getUTCDate() + 1);
+    const tomorrowJST = tomorrowDateObj.toISOString().split("T")[0];
 
     // 当日予約: お客様はブロック、スタッフはOK
-    if (!isStaffBooking && diffDays <= 0) {
+    if (!isStaffBooking && body.date <= todayJST) {
       return NextResponse.json({ error: "当日のご予約はお電話（0460-80-0290）にてお願いいたします" }, { status: 400 });
     }
     // 前日17時以降の翌日予約: 仮予約として受付（フラグを立てる）
-    const isLateBooking = !isStaffBooking && diffDays === 1 && jstNow.getHours() >= 17;
+    const isLateBooking = !isStaffBooking && body.date === tomorrowJST && jstHour >= 17;
 
     // サーバー側：定休日チェック（水=3, 木=4）
     const closedWeekdays = [3, 4];
