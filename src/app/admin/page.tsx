@@ -148,28 +148,19 @@ export default function AdminDashboard() {
     const firstDate = dates[0];
     const lastDate = dates[dates.length - 1];
 
-    const [{ data: res }, { data: stayRes }] = await Promise.all([
-      supabase.from("reservations")
-        .select("date, plan, dog_count, checkout_date, status")
-        .in("status", ["confirmed", "pending"])
-        .gte("date", firstDate).lte("date", lastDate),
-      supabase.from("reservations")
-        .select("date, plan, dog_count, checkout_date, status")
-        .eq("plan", "stay").in("status", ["confirmed", "pending"])
-        .lt("date", firstDate).gte("checkout_date", firstDate),
-    ]);
+    const { data: res } = await supabase.from("reservations")
+      .select("date, plan, dog_count, status")
+      .in("status", ["confirmed", "pending"])
+      .gte("date", firstDate).lte("date", lastDate);
 
     const summaries: DaySummary[] = dates.map((date) => {
-      // 日中預かり = その日が予約日 && 宿泊以外
+      // カレンダー数字は「その日のチェックイン作業量」を表す。
+      // 連泊中（前日以前CI）はここでは加算しない。
       const daycareRes = (res || []).filter((r) => r.date === date && r.plan !== "stay");
-      // 宿泊（その日施設にいる宿泊犬）= 当日CI + 連泊中（前日以前CI、当日以降CO）
       const stayCheckinRes = (res || []).filter((r) => r.date === date && r.plan === "stay");
-      const stayOverRes = [...(stayRes || []), ...(res || []).filter((r) => r.plan === "stay" && r.date < date)]
-        .filter((r) => r.checkout_date && r.checkout_date >= date && r.date < date);
       let daycareCount = 0, stayCount = 0;
       for (const r of daycareRes) { daycareCount += (r.dog_count || 1); }
       for (const r of stayCheckinRes) { stayCount += (r.dog_count || 1); }
-      for (const r of stayOverRes) { stayCount += r.dog_count || 1; }
       return { date, total: daycareCount + stayCount, daycareCount, stayCount };
     });
 
