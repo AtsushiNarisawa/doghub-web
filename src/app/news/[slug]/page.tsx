@@ -196,7 +196,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-daihakone-cc-dog-guide": {
     text: "大箱根カントリークラブでゴルフの日のお預かり",
-    subtext: "ゴルフ場まで車で約5分。早朝7時からお預かり対応。8時間プラン¥6,600。",
+    subtext: "ゴルフ場まで車で約5分。早朝7時からお預かり対応。8時間プラン¥5,500。",
     href: "/8h",
     btnLabel: "1日お預かりプランを見る",
   },
@@ -345,22 +345,22 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "hakone-sengokuhara-prince-dog-guide": [
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
-    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 翌日17時までの延長に" },
+    { label: "8時間プランを見る", href: "/8h", description: "¥5,500 翌日17時までの延長に" },
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 翌日15時までの延長に" },
   ],
   "hakone-miyanoshita-xiv-dog-guide": [
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
-    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 翌日17時までの延長に" },
+    { label: "8時間プランを見る", href: "/8h", description: "¥5,500 翌日17時までの延長に" },
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 翌日15時までの延長に" },
   ],
   "hakone-daihakone-cc-dog-guide": [
-    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 早朝7時〜のお預かり対応" },
+    { label: "8時間プランを見る", href: "/8h", description: "¥5,500 早朝7時〜のお預かり対応" },
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 短時間ラウンドに" },
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 前泊に便利" },
   ],
   "hakone-regina-resort-dog-guide": [
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 チェックイン前後の観光に" },
-    { label: "8時間プランを見る", href: "/8h", description: "¥6,600 ユネッサンや1日観光に" },
+    { label: "8時間プランを見る", href: "/8h", description: "¥5,500 ユネッサンや1日観光に" },
     { label: "スポットプラン", href: "/service", description: "1時間¥1,100〜 短時間のお預けに" },
   ],
   "hakone-gw-traffic-route-guide": [
