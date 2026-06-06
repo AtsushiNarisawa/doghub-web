@@ -322,6 +322,18 @@ function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string):
   html = html.replace(/\sstyle="[^"]*"/gi, "");
   html = html.replace(/<span>([\s\S]*?)<\/span>/gi, "$1");
 
+  // Google Docs由来の転送リンク(google.com/url?q=...)を直リンクに戻す
+  html = html.replace(
+    /https:\/\/www\.google\.com\/url\?q=([^"&]+)[^"]*/gi,
+    (_m, q) => {
+      try {
+        return decodeURIComponent(q);
+      } catch {
+        return q;
+      }
+    }
+  );
+
   // HTMLエンティティの矢印を統一
   html = html.replace(/&rarr;/g, "→");
 
