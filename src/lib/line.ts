@@ -1,7 +1,80 @@
 import crypto from "crypto";
 
-const CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
+// Channel ID は過去に "\n" 混入の事故があるため数字のみに正規化する
+const CHANNEL_ID = (process.env.LINE_CHANNEL_ID ?? "").replace(/[^0-9]/g, "");
+// 固定トークン（フォールバック）。基本は client_credentials で都度発行する
+const STATIC_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+
+// ───────────────────────────────────────────
+// Channel Access Token の自動発行＋メモリキャッシュ
+// LINEの長期トークンは失効・再発行で無効化されることがある（2026-06に本番が401で
+// 送信不能になっていた）。Channel ID + Channel Secret から client_credentials で
+// 30日有効の短期トークンを都度発行し、期限前に自動更新することで恒久的に回避する。
+// ───────────────────────────────────────────
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
+async function getAccessToken(): Promise<string | null> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.token;
+
+  if (CHANNEL_ID && CHANNEL_SECRET) {
+    try {
+      const res = await fetch("https://api.line.me/v2/oauth/accessToken", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "client_credentials",
+          client_id: CHANNEL_ID,
+          client_secret: CHANNEL_SECRET,
+        }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { access_token: string; expires_in: number };
+        // 期限の1日前に再発行する
+        cachedToken = {
+          token: data.access_token,
+          expiresAt: Date.now() + (data.expires_in - 86400) * 1000,
+        };
+        return data.access_token;
+      }
+      console.error("LINE token mint failed:", res.status, await res.text());
+    } catch (e) {
+      console.error("LINE token mint error:", e);
+    }
+  }
+
+  // フォールバック：環境変数の固定トークン（"PENDING" は無効）
+  if (STATIC_ACCESS_TOKEN && STATIC_ACCESS_TOKEN !== "PENDING") return STATIC_ACCESS_TOKEN;
+  return null;
+}
+
+// LINE メッセージ送信API共通処理（401時はトークンを再発行して1回リトライ）
+async function postToLine(url: string, payload: object): Promise<boolean> {
+  let token = await getAccessToken();
+  if (!token) {
+    console.error("LINE: no valid access token");
+    return false;
+  }
+  const send = (t: string) =>
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify(payload),
+    });
+
+  let res = await send(token);
+  if (res.status === 401) {
+    // トークンが失効していた場合は再発行して1回だけリトライ
+    cachedToken = null;
+    token = await getAccessToken();
+    if (token) res = await send(token);
+  }
+  if (!res.ok) {
+    console.error("LINE API error:", url, res.status, await res.text());
+    return false;
+  }
+  return true;
+}
 
 // ───────────────────────────────────────────
 // 署名検証（Webhookの正当性確認）
@@ -22,22 +95,7 @@ export async function sendLinePushMessage(
   userId: string,
   messages: LineMessage[]
 ): Promise<boolean> {
-  if (!CHANNEL_ACCESS_TOKEN || CHANNEL_ACCESS_TOKEN === "PENDING") return false;
-
-  const res = await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({ to: userId, messages }),
-  });
-
-  if (!res.ok) {
-    console.error("LINE push error:", await res.text());
-    return false;
-  }
-  return true;
+  return postToLine("https://api.line.me/v2/bot/message/push", { to: userId, messages });
 }
 
 // ───────────────────────────────────────────
@@ -51,23 +109,8 @@ export async function sendLineReplyMessage(
   replyToken: string,
   messages: LineMessage[]
 ): Promise<boolean> {
-  if (!CHANNEL_ACCESS_TOKEN || CHANNEL_ACCESS_TOKEN === "PENDING") return false;
   if (!replyToken) return false;
-
-  const res = await fetch("https://api.line.me/v2/bot/message/reply", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({ replyToken, messages }),
-  });
-
-  if (!res.ok) {
-    console.error("LINE reply error:", await res.text());
-    return false;
-  }
-  return true;
+  return postToLine("https://api.line.me/v2/bot/message/reply", { replyToken, messages });
 }
 
 // ───────────────────────────────────────────

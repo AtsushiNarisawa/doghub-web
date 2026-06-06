@@ -19,22 +19,40 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // .env.local から LINE_CHANNEL_ACCESS_TOKEN を読む
-function loadToken() {
-  if (process.env.LINE_CHANNEL_ACCESS_TOKEN) return process.env.LINE_CHANNEL_ACCESS_TOKEN;
-  for (const f of [".env.local", ".env.production.local", ".env"]) {
+function readEnv(key) {
+  for (const f of [".env.production.local", ".env.local", ".env"]) {
     try {
       const txt = readFileSync(join(__dirname, "..", f), "utf8");
-      const m = txt.match(/^\s*LINE_CHANNEL_ACCESS_TOKEN\s*=\s*(.+)\s*$/m);
+      const m = txt.match(new RegExp("^\\s*" + key + "\\s*=\\s*(.+)\\s*$", "m"));
       if (m) return m[1].trim().replace(/^["']|["']$/g, "");
     } catch {}
   }
-  return null;
+  return process.env[key] ?? null;
 }
 
-const TOKEN = loadToken();
-if (!TOKEN) {
-  console.error("LINE_CHANNEL_ACCESS_TOKEN が見つかりません（.env.local を確認）");
-  process.exit(1);
+// 固定トークンは失効済みのことがあるため、Channel ID + Secret から都度発行する
+async function mintToken() {
+  const clientId = (readEnv("LINE_CHANNEL_ID") ?? "").replace(/[^0-9]/g, "");
+  const clientSecret = (readEnv("LINE_CHANNEL_SECRET") ?? "").replace(/[^a-fA-F0-9]/g, "");
+  if (!clientId || !clientSecret) {
+    console.error("LINE_CHANNEL_ID / LINE_CHANNEL_SECRET が見つかりません");
+    return null;
+  }
+  const res = await fetch("https://api.line.me/v2/oauth/accessToken", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+  if (!res.ok) {
+    console.error("トークン発行失敗:", res.status, await res.text());
+    return null;
+  }
+  const data = await res.json();
+  return data.access_token;
 }
 
 const BOOKING_URL = "https://liff.line.me/2009688745-qZi2jM4g";
@@ -63,6 +81,12 @@ const richmenu = {
 };
 
 async function main() {
+  const TOKEN = await mintToken();
+  if (!TOKEN) {
+    console.error("アクセストークンを取得できませんでした");
+    process.exit(1);
+  }
+
   // 1) 作成
   const createRes = await fetch("https://api.line.me/v2/bot/richmenu", {
     method: "POST",
