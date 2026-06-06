@@ -41,6 +41,36 @@ export async function sendLinePushMessage(
 }
 
 // ───────────────────────────────────────────
+// LINE reply メッセージ送信（Webhook応答用・無料・通数カウント対象外）
+// replyToken は受信から約1分・1回限り有効。ハンドラ内で同期的に返すこと。
+// 友だち追加ウェルカム・FAQ自動回答など「来た発話にその場で返す」用途は
+// すべて push ではなくこちらを使う（push は無料枠を消費するため）。
+// ※予約確認・キャンセル確認のように Webhook 外から送る能動配信は push のまま。
+// ───────────────────────────────────────────
+export async function sendLineReplyMessage(
+  replyToken: string,
+  messages: LineMessage[]
+): Promise<boolean> {
+  if (!CHANNEL_ACCESS_TOKEN || CHANNEL_ACCESS_TOKEN === "PENDING") return false;
+  if (!replyToken) return false;
+
+  const res = await fetch("https://api.line.me/v2/bot/message/reply", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ replyToken, messages }),
+  });
+
+  if (!res.ok) {
+    console.error("LINE reply error:", await res.text());
+    return false;
+  }
+  return true;
+}
+
+// ───────────────────────────────────────────
 // 予約確認メッセージを生成
 // ───────────────────────────────────────────
 const PLAN_LABELS: Record<string, string> = {
