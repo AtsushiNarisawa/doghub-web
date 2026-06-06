@@ -14,6 +14,12 @@ import Image from "next/image";
 
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string; btnLabel: string }> = {
+  "hakone-retona-dog-guide": {
+    text: "ゴルフの日も、愛犬と泊まる箱根を",
+    subtext: "早朝7時からお預かり。大箱根CCまで約5分、リトナ箱根さんからDogHubまで約10分です。1日¥5,500〜。",
+    href: "/golf",
+    btnLabel: "ゴルフ×お預かりプランを見る",
+  },
   "hakone-golf-pet-guide": {
     text: "ゴルフ前に愛犬を安心してお預け",
     subtext: "早朝7時からお預かり。大箱根CCへのアクセスも便利な仙石原にあります。",
@@ -216,6 +222,11 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
 const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; description: string }[]> = {
+  "hakone-retona-dog-guide": [
+    { label: "1日お預かりプランを見る", href: "/8h", description: "¥5,500 ゴルフ1ラウンドに。早朝7時〜" },
+    { label: "半日プランを見る", href: "/4h", description: "¥3,300 チェックイン前後・ハーフに" },
+    { label: "宿泊プランを見る", href: "/stay", description: "前泊・連泊に便利。1泊¥7,700〜" },
+  ],
   "hakone-dog-trip-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりでユネッサンをたっぷり満喫" },
     { label: "ゴルフに行くなら", href: "/golf", description: "早朝7時からお預かり。大箱根CC提携" },

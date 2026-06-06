@@ -280,6 +280,9 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
   "hakone-regina-resort-dog-guide": [
     { keyword: "愛犬と泊まれる宿", images: ["/images/regina-sengokuhara-exterior.jpg"] },
   ],
+  "hakone-retona-dog-guide": [
+    { keyword: "愛犬とゆっくり過ごせる宿", images: ["/images/retona-hakone-room.jpg"] },
+  ],
   "hakone-gw-traffic-route-guide": [
     { keyword: "乙女峠", images: [WM.sengokuSusuki.url] },
     { keyword: "仙石原に着いたら", images: [WM.sengokuSusuki2.url] },
