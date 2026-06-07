@@ -181,27 +181,6 @@ export function buildWelcomeMessage(): LineMessage[] {
         "ご予約は【予約する】から24時間受付中です。\n\n" +
         "ご不明な点は、このトークにそのままメッセージを送ってください。営業日（金〜火 9:00-17:00、水・木定休）に順次ご返信します。",
     },
-    {
-      type: "template",
-      altText: "ご予約・サービスのご案内",
-      template: {
-        type: "buttons",
-        title: "DogHub箱根仙石原",
-        text: "箱根仙石原のドッグホテル＆カフェ",
-        actions: [
-          {
-            type: "uri",
-            label: "予約する",
-            uri: "https://liff.line.me/2009688745-qZi2jM4g",
-          },
-          {
-            type: "uri",
-            label: "料金・サービスを見る",
-            uri: "https://dog-hub.shop/service",
-          },
-        ],
-      },
-    },
   ];
 }
 
