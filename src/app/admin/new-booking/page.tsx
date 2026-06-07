@@ -57,6 +57,7 @@ function NewBookingForm() {
   const [newCustomer, setNewCustomer] = useState({ last_name: "", first_name: "", phone: "" });
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [newDogs, setNewDogs] = useState<NewDogInput[]>([{ name: "", breed: "", weight: "", age: "", sex: "" }]);
+  const [dupCandidates, setDupCandidates] = useState<SearchResult[]>([]);
 
   // 予約フォーム
   const [plan, setPlan] = useState("");
@@ -88,6 +89,34 @@ function NewBookingForm() {
       setStep("form");
     }
   };
+
+  // 再発防止: 新規入力中に「同姓 or 同じ犬名」の既存客を自動検出して重複を警告
+  const SEL = "id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)";
+  useEffect(() => {
+    if (!isNewCustomer) { setDupCandidates([]); return; }
+    const ln = newCustomer.last_name.trim();
+    const dogName = newDogs.map((d) => d.name.trim()).find((n) => n.length >= 1) || "";
+    if (ln.length < 1 && dogName.length < 1) { setDupCandidates([]); return; }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      const found: Record<string, SearchResult> = {};
+      if (ln.length >= 1) {
+        const { data } = await supabase.from("customers").select(SEL).ilike("last_name", `%${ln}%`).limit(8);
+        for (const c of (data as unknown as SearchResult[]) || []) found[c.id] = c;
+      }
+      if (dogName.length >= 1) {
+        const { data: dogHits } = await supabase.from("dogs").select("customer_id").ilike("name", `%${dogName}%`).limit(8);
+        const cids = (dogHits || []).map((d) => d.customer_id).filter((id) => !(id in found));
+        if (cids.length) {
+          const { data: extra } = await supabase.from("customers").select(SEL).in("id", cids).limit(8);
+          for (const c of (extra as unknown as SearchResult[]) || []) found[c.id] = c;
+        }
+      }
+      if (!cancelled) setDupCandidates(Object.values(found).slice(0, 5));
+    }, 300);
+    return () => { cancelled = true; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNewCustomer, newCustomer.last_name, newDogs]);
 
   const searchCustomer = async () => {
     const q = queryText.trim();
@@ -382,6 +411,27 @@ function NewBookingForm() {
       ) : (
         <div className="bg-white rounded-xl p-4 space-y-3">
           <p className="text-sm font-medium text-gray-500">新規お客様情報</p>
+          {dupCandidates.length > 0 && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 space-y-2">
+              <p className="text-sm font-medium text-amber-800">⚠️ 既存のお客様かもしれません（重複登録にご注意）</p>
+              {dupCandidates.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => selectCustomer(c)}
+                  className="w-full text-left bg-white rounded-lg border border-amber-200 px-3 py-2 active:bg-amber-100"
+                >
+                  <span className="text-sm font-medium text-gray-800">{c.last_name} {c.first_name} 様</span>
+                  <span className="text-xs text-gray-500 ml-2">{c.phone}</span>
+                  {c.dogs && c.dogs.length > 0 && (
+                    <span className="text-xs text-gray-500 ml-2">🐶 {c.dogs.map((d) => d.name).join("・")}</span>
+                  )}
+                  <span className="block text-xs text-[#B87942] mt-0.5">→ この方を選ぶ</span>
+                </button>
+              ))}
+              <p className="text-[11px] text-amber-700">同じ方なら上を選んでください。別の方なら、そのまま新規登録で進めてOKです。</p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <input
               value={newCustomer.last_name}
