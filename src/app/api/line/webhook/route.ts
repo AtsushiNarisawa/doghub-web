@@ -95,7 +95,6 @@ const FAQ_RULES: FaqRule[] = [
           "・宿泊（1泊）¥7,700〜\n" +
           "・スポット（1時間）¥1,100\n" +
           "※表示はすべて税込。営業時間外は追加1時間あたり¥1,100。\n" +
-          "リロクラブ会員様は10%OFFでご利用いただけます。\n" +
           "詳しくは → https://dog-hub.shop/service",
       },
       bookingBubble(),
