@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { ROOM_LIMIT } from "@/lib/capacity";
 
 interface DogInfo {
   name: string;
@@ -142,6 +143,15 @@ export default function AdminDashboard() {
     return { isClosed, isTempOpen: regularClosed && !isClosed, isTempClosed: !regularClosed && isClosed };
   };
 
+  // 混雑度の背景色（定員ROOM_LIMITに対する予約数。空き=緑/やや=黄/混雑=赤）
+  const fullnessBg = (total: number) => {
+    if (total <= 0) return "";
+    const r = total / ROOM_LIMIT;
+    if (r >= 0.8) return "bg-red-100";
+    if (r >= 0.5) return "bg-amber-100";
+    return "bg-green-50";
+  };
+
   useEffect(() => {
     fetchCalSummaries();
   }, [calOffset, calView]);
@@ -252,6 +262,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-4">
+      {/* 予約検索への動線 */}
+      <div className="flex justify-end">
+        <Link href="/admin/reservations" className="flex items-center gap-1 text-sm text-[#B87942] active:opacity-70">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          予約を検索
+        </Link>
+      </div>
       {/* カレンダー */}
       <div className="bg-white rounded-xl p-3">
         {/* ヘッダー: 月表示 + ナビ + 切替 */}
@@ -312,7 +331,8 @@ export default function AdminDashboard() {
                     className={`relative flex flex-col items-center py-1 rounded-lg text-center transition-colors ${
                       isSelected ? "bg-[#B87942] text-white" :
                       isClosed ? "bg-gray-50 text-gray-300" :
-                      isTempOpen ? "bg-green-50 text-green-700" :
+                      (summary?.total ?? 0) > 0 ? fullnessBg(summary!.total) :
+                      isTempOpen ? "bg-green-50" :
                       "active:bg-gray-100"
                     }`}
                   >
@@ -323,12 +343,8 @@ export default function AdminDashboard() {
                       {d.getDate()}
                     </span>
                     {summary && summary.total > 0 && (
-                      <span className={`text-[9px] font-dm ${
-                        isSelected ? "text-white/90" :
-                        summary.total >= 8 ? "text-red-500 font-bold" :
-                        "text-gray-500"
-                      }`}>
-                        {summary.daycareCount}/{summary.stayCount}
+                      <span className={`text-[9px] font-dm ${isSelected ? "text-white/90" : "text-gray-600"}`}>
+                        {summary.total}/{ROOM_LIMIT}
                       </span>
                     )}
                   </button>
@@ -349,7 +365,8 @@ export default function AdminDashboard() {
                   className={`relative flex flex-col items-center py-2 rounded-lg text-center transition-colors ${
                     isSelected ? "bg-[#B87942] text-white" :
                     isClosed ? "bg-gray-50 text-gray-300" :
-                    isTempOpen ? "bg-green-50 text-green-700" :
+                    s.total > 0 ? fullnessBg(s.total) :
+                    isTempOpen ? "bg-green-50" :
                     "active:bg-gray-100"
                   }`}
                 >
@@ -363,18 +380,21 @@ export default function AdminDashboard() {
                     {d.getDate()}
                   </span>
                   {s.total > 0 && (
-                    <span className={`text-[10px] font-dm mt-0.5 ${
-                      isSelected ? "text-white/90" :
-                      s.total >= 8 ? "text-red-500 font-bold" :
-                      "text-gray-500"
-                    }`}>
-                      {s.daycareCount}/{s.stayCount}
+                    <span className={`text-[10px] font-dm mt-0.5 ${isSelected ? "text-white/90" : "text-gray-600"}`}>
+                      {s.total}/{ROOM_LIMIT}
                     </span>
                   )}
                 </button>
               );
             })
           )}
+        </div>
+        {/* 混雑度の凡例（定員19室） */}
+        <div className="flex items-center justify-center gap-3 mt-2 text-[10px] text-gray-400">
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-50 border border-green-200" />空き</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-100" />やや混雑</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-red-100" />混雑</span>
+          <span className="text-gray-300">｜数字=予約数/19室</span>
         </div>
       </div>
 

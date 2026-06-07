@@ -53,7 +53,7 @@ function formatDisplay(d: string) {
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<ReservationRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<ViewMode>("week");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [baseDate, setBaseDate] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
