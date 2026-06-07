@@ -68,6 +68,7 @@ export default function AdminDashboard() {
   const [pendingRes, setPendingRes] = useState<ReservationRow[]>([]);
   const [customerHistories, setCustomerHistories] = useState<Record<string, CustomerHistory>>({});
   const [calSummaries, setCalSummaries] = useState<DaySummary[]>([]);
+  const [closedMap, setClosedMap] = useState<Record<string, boolean>>({});
   const [calView, setCalView] = useState<"week" | "month">("week");
   const [loading, setLoading] = useState(true);
 
@@ -134,6 +135,13 @@ export default function AdminDashboard() {
     }
   };
 
+  // 定休判定：daily_capacityの上書き（臨時営業/臨時休業）を優先、無ければ曜日
+  const dayClosedState = (dateStr: string, dow: number) => {
+    const regularClosed = CLOSED_WEEKDAYS.includes(dow);
+    const isClosed = dateStr in closedMap ? closedMap[dateStr] : regularClosed;
+    return { isClosed, isTempOpen: regularClosed && !isClosed, isTempClosed: !regularClosed && isClosed };
+  };
+
   useEffect(() => {
     fetchCalSummaries();
   }, [calOffset, calView]);
@@ -152,6 +160,14 @@ export default function AdminDashboard() {
       .select("date, plan, dog_count, status")
       .in("status", ["confirmed", "pending"])
       .gte("date", firstDate).lte("date", lastDate);
+
+    // 臨時営業/臨時休業の上書き（daily_capacity.closed）を取得
+    const { data: capRows } = await supabase.from("daily_capacity")
+      .select("date, closed")
+      .gte("date", firstDate).lte("date", lastDate);
+    const cmap: Record<string, boolean> = {};
+    for (const row of capRows || []) cmap[row.date] = row.closed;
+    setClosedMap(cmap);
 
     const summaries: DaySummary[] = dates.map((date) => {
       // カレンダー数字は「その日のチェックイン作業量」を表す。
@@ -286,19 +302,23 @@ export default function AdminDashboard() {
                 if (!dateStr) return <div key={`pad-${i}`} />;
                 const d = new Date(dateStr + "T00:00:00");
                 const summary = calSummaries.find((s) => s.date === dateStr);
-                const isClosed = CLOSED_WEEKDAYS.includes(d.getDay());
+                const { isClosed, isTempOpen, isTempClosed } = dayClosedState(dateStr, d.getDay());
                 const isSelected = dateStr === selectedDate;
                 const isTodayDate = dateStr === realToday;
                 return (
                   <button
                     key={dateStr}
                     onClick={() => setSelectedDate(dateStr)}
-                    className={`flex flex-col items-center py-1 rounded-lg text-center transition-colors ${
+                    className={`relative flex flex-col items-center py-1 rounded-lg text-center transition-colors ${
                       isSelected ? "bg-[#B87942] text-white" :
                       isClosed ? "bg-gray-50 text-gray-300" :
+                      isTempOpen ? "bg-green-50 text-green-700" :
                       "active:bg-gray-100"
                     }`}
                   >
+                    {(isTempOpen || isTempClosed) && (
+                      <span className={`absolute top-0 right-0 text-[8px] leading-none px-0.5 rounded ${isTempOpen ? "bg-green-600 text-white" : "bg-gray-400 text-white"}`}>{isTempOpen ? "営" : "休"}</span>
+                    )}
                     <span className={`text-xs font-dm ${isTodayDate && !isSelected ? "text-[#B87942] font-bold" : ""}`}>
                       {d.getDate()}
                     </span>
@@ -319,19 +339,23 @@ export default function AdminDashboard() {
             // 週表示
             calSummaries.map((s) => {
               const d = new Date(s.date + "T00:00:00");
-              const isClosed = CLOSED_WEEKDAYS.includes(d.getDay());
+              const { isClosed, isTempOpen, isTempClosed } = dayClosedState(s.date, d.getDay());
               const isSelected = s.date === selectedDate;
               const isTodayDate = s.date === realToday;
               return (
                 <button
                   key={s.date}
                   onClick={() => setSelectedDate(s.date)}
-                  className={`flex flex-col items-center py-2 rounded-lg text-center transition-colors ${
+                  className={`relative flex flex-col items-center py-2 rounded-lg text-center transition-colors ${
                     isSelected ? "bg-[#B87942] text-white" :
                     isClosed ? "bg-gray-50 text-gray-300" :
+                    isTempOpen ? "bg-green-50 text-green-700" :
                     "active:bg-gray-100"
                   }`}
                 >
+                  {(isTempOpen || isTempClosed) && (
+                    <span className={`absolute top-0 right-0 text-[8px] leading-none px-0.5 rounded ${isTempOpen ? "bg-green-600 text-white" : "bg-gray-400 text-white"}`}>{isTempOpen ? "営" : "休"}</span>
+                  )}
                   <span className={`text-[10px] ${isSelected ? "text-white/80" : isClosed ? "text-gray-300" : "text-gray-400"}`}>
                     {DAYS[d.getDay()]}
                   </span>
