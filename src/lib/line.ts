@@ -186,10 +186,6 @@ export function buildWelcomeMessage(): LineMessage[] {
       altText: "ご予約・サービスのご案内",
       template: {
         type: "buttons",
-        thumbnailImageUrl:
-          "https://dog-hub.shop/images/img-001.jpg",
-        imageAspectRatio: "rectangle",
-        imageSize: "cover",
         title: "DogHub箱根仙石原",
         text: "箱根仙石原のドッグホテル＆カフェ",
         actions: [
