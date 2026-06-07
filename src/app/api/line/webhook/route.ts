@@ -97,7 +97,6 @@ const FAQ_RULES: FaqRule[] = [
           "※表示はすべて税込。営業時間外は追加1時間あたり¥1,100。\n" +
           "詳しくは → https://dog-hub.shop/service",
       },
-      bookingBubble(),
     ],
   },
   {
@@ -195,19 +194,6 @@ function matchFaqReply(text: string): LineMessage[] {
     }
   }
   return fallbackReply();
-}
-
-// 予約導線の吹き出し（ボタンテンプレート）
-function bookingBubble(): LineMessage {
-  return {
-    type: "template",
-    altText: "予約する",
-    template: {
-      type: "buttons",
-      text: "ご予約はこちらから（24時間受付）",
-      actions: [{ type: "uri", label: "予約する", uri: BOOKING_URL }],
-    },
-  };
 }
 
 // フォールバック：期待値（次の返信タイミング・電話・予約導線）を明示する
