@@ -288,8 +288,12 @@ export default function ReservationsPage() {
               const isSelected = dateStr === selectedDate;
               const count = countByDate(dateStr);
               const isCurrentMonth = date.getMonth() === baseDate.getMonth();
-              const isClosed = [3, 4].includes(date.getDay());
               const cap = capacityMap[dateStr];
+              const regularClosed = [3, 4].includes(date.getDay());
+              // daily_capacity の上書きを正とする（臨時営業/臨時休業を反映）
+              const isClosed = cap ? cap.closed : regularClosed;
+              const isTempOpen = regularClosed && !isClosed; // 臨時営業（定休日を営業）
+              const isTempClosed = !regularClosed && isClosed; // 臨時休業（営業日を休業）
               const dayBooked = cap?.day_booked ?? 0;
               const stayBooked = cap?.stay_booked ?? 0;
               const totalBooked = dayBooked + stayBooked;
@@ -308,9 +312,18 @@ export default function ReservationsPage() {
                         ? "bg-[#B87942]/10 text-[#B87942]"
                         : isClosed
                           ? "bg-gray-50 text-gray-500"
-                          : "text-gray-700 active:bg-gray-100"
+                          : isTempOpen
+                            ? "bg-green-50 text-green-700 active:bg-green-100"
+                            : "text-gray-700 active:bg-gray-100"
                   } ${viewMode === "month" && !isCurrentMonth ? "opacity-30" : ""}`}
                 >
+                  {(isTempOpen || isTempClosed) && (
+                    <span className={`absolute top-0.5 right-0.5 text-[9px] leading-none px-0.5 py-px rounded ${
+                      isTempOpen ? "bg-green-600 text-white" : "bg-gray-400 text-white"
+                    }`}>
+                      {isTempOpen ? "営" : "休"}
+                    </span>
+                  )}
                   <span className={`text-sm block ${isToday && !isSelected ? "font-bold" : ""}`}>
                     {date.getDate()}
                   </span>
@@ -364,7 +377,10 @@ export default function ReservationsPage() {
         const stayB = cap?.stay_booked ?? 0;
         const total = dayB + stayB;
         const isFull = total >= ROOM_LIMIT;
-        const isClosed = [3, 4].includes(new Date(selectedDate + "T00:00:00").getDay());
+        const regularClosed = [3, 4].includes(new Date(selectedDate + "T00:00:00").getDay());
+        const isClosed = cap ? cap.closed : regularClosed;
+        const isTempOpen = regularClosed && !isClosed;
+        const isTempClosed = !regularClosed && isClosed;
         return (
           <div>
             <div className="flex items-center justify-between">
@@ -375,6 +391,7 @@ export default function ReservationsPage() {
                 {selectedReservations.filter((r) => r.status !== "cancelled").length}件
               </span>
             </div>
+            {isTempOpen && <p className="text-sm text-green-700 font-medium mt-1">臨時営業（定休日を営業）</p>}
             {!isClosed && (
               <div className="flex gap-3 mt-1">
                 <span className="text-sm text-gray-500">
@@ -385,7 +402,7 @@ export default function ReservationsPage() {
                 </span>
               </div>
             )}
-            {isClosed && <p className="text-sm text-gray-500 mt-1">定休日</p>}
+            {isClosed && <p className="text-sm text-gray-500 mt-1">{isTempClosed ? "臨時休業" : "定休日"}</p>}
           </div>
         );
       })()}
