@@ -175,11 +175,15 @@ export function buildWelcomeMessage(): LineMessage[] {
   return [
     {
       type: "text",
-      text: "DogHub箱根仙石原の公式LINEへようこそ🐾\n\nご予約・お問い合わせはこちらからどうぞ。",
+      text:
+        "DogHub箱根仙石原の公式LINEへようこそ🐾\n\n" +
+        "画面下の【メニュー】から、料金・アクセス・営業時間・持ち物などをワンタップでご確認いただけます。\n" +
+        "ご予約は【予約する】から24時間受付中です。\n\n" +
+        "ご不明な点は、このトークにそのままメッセージを送ってください。営業日（金〜火 9:00-17:00、水・木定休）に順次ご返信します。",
     },
     {
       type: "template",
-      altText: "予約する",
+      altText: "ご予約・サービスのご案内",
       template: {
         type: "buttons",
         thumbnailImageUrl:
@@ -187,7 +191,7 @@ export function buildWelcomeMessage(): LineMessage[] {
         imageAspectRatio: "rectangle",
         imageSize: "cover",
         title: "DogHub箱根仙石原",
-        text: "箱根仙石原のドッグホテル",
+        text: "箱根仙石原のドッグホテル＆カフェ",
         actions: [
           {
             type: "uri",
