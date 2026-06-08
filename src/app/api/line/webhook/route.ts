@@ -16,7 +16,6 @@ const supabase = createClient(
 );
 
 const BOOKING_URL = "https://liff.line.me/2009688745-qZi2jM4g";
-const FAQ_URL = "https://dog-hub.shop/faq";
 const TEL = "0460-80-0290";
 
 export async function POST(req: NextRequest) {
@@ -283,17 +282,18 @@ function matchFaqReply(text: string): { reply: LineMessage[]; category: string; 
   return { reply: fallbackReply(), category: "フォールバック", needsHuman: true };
 }
 
-// フォールバック：期待値（次の返信タイミング・電話・予約導線）を明示する
+// フォールバック：ボットは24時間稼働。URLを本文に入れるとLINEがプレビュー画像カードを
+// 生成し、リンク2つで画像が2枚並んでしまうため、本文からURLは外し画面下のリッチメニュー
+// （予約する／各FAQボタン）へ誘導する＝プレビュー画像ゼロ＋24時間使える点を明示。
 function fallbackReply(): LineMessage[] {
   return [
     {
       type: "text",
       text:
         "お問い合わせありがとうございます🐾\n" +
-        "営業日（金〜火 9:00〜17:00）に順次ご返信します。水・木は定休のため、翌営業日のご返信となります。\n" +
-        `お急ぎ・当日のご予約はお電話（${TEL}）へ。\n` +
-        `ご予約は24時間こちらから → ${BOOKING_URL}\n` +
-        `よくあるご質問 → ${FAQ_URL}`,
+        "料金・アクセス・営業時間・持ち物は、下のメニューから24時間いつでもご確認いただけます。\n" +
+        `個別のご質問には、スタッフから順次お返事します。お急ぎはお電話（${TEL}）へ。\n` +
+        "ご予約は下のメニュー【予約する】から24時間受付中です。",
     },
   ];
 }
@@ -306,7 +306,7 @@ function nonTextReply(): LineMessage[] {
       type: "text",
       text:
         "メッセージありがとうございます🐾\n" +
-        "内容を確認し、営業日（金〜火 9:00〜17:00、水・木定休）に順次ご返信します。\n" +
+        "スタッフが内容を確認し、順次お返事します。\n" +
         `お急ぎ・当日のご予約はお電話（${TEL}）へ。`,
     },
   ];
