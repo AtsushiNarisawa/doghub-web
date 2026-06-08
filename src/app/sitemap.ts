@@ -11,6 +11,7 @@ const ARTICLE_PRIORITY: Record<string, number> = {
   "hakone-yunessun-pet-guide": 0.8,    // CV率10.7%
   "hakone-dog-lunch-guide": 0.8,       // ランチKW狙い
   "hakone-dog-hotel-guide": 0.8,       // 犬のホテルKW
+  "hakone-summer-dog-guide": 0.8,      // 夏避暑グリーンフィールド（市場創造）
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

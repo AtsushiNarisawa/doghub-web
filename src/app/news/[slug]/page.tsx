@@ -14,6 +14,12 @@ import Image from "next/image";
 
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string; btnLabel: string }> = {
+  "hakone-summer-dog-guide": {
+    text: "夏の暑い時間だけ、涼しい個室で愛犬をお預かり",
+    subtext: "ユネッサンや美術館など犬NGスポットの間に。完全個室と屋根付きドッグランで、暑い車内に待たせずに済みます。半日¥3,300〜、1日¥5,500〜。",
+    href: "/service",
+    btnLabel: "夏のお預かりプラン・料金を見る",
+  },
   "hakone-retona-dog-guide": {
     text: "ゴルフの日も、愛犬と泊まる箱根を",
     subtext: "早朝7時からお預かり。大箱根CCまで約5分、リトナ箱根さんからDogHubまで約10分です。1日¥5,500〜。",
@@ -222,6 +228,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
 const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; description: string }[]> = {
+  "hakone-summer-dog-guide": [
+    { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで真夏の温泉プールを満喫" },
+    { label: "日帰り温泉に行くなら", href: "/onsen", description: "犬NGの温泉の間だけお預かり" },
+    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 美術館1館＋ランチに" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500〜 ユネッサンや1日観光に" },
+  ],
   "hakone-retona-dog-guide": [
     { label: "1日お預かりプランを見る", href: "/8h", description: "¥5,500 ゴルフ1ラウンドに。早朝7時〜" },
     { label: "半日プランを見る", href: "/4h", description: "¥3,300 チェックイン前後・ハーフに" },

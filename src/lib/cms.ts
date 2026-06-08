@@ -287,6 +287,11 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "乙女峠", images: [WM.sengokuSusuki.url] },
     { keyword: "仙石原に着いたら", images: [WM.sengokuSusuki2.url] },
   ],
+  "hakone-summer-dog-guide": [
+    { keyword: "ひんやりする高原", images: ["/images/doghub-exterior-flowers-01.jpg"] },
+    { keyword: "涼しく預けて", images: ["/images/dog-dachshund-poodle-dogrun-wide.jpg"] },
+    { keyword: "夏の仙石原を楽しむなら", images: ["/images/doghub-schnauzer-exterior.jpg"] },
+  ],
 };
 
 function decodeHtmlEntities(text: string): string {
