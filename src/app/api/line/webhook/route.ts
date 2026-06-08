@@ -5,6 +5,15 @@ import {
   buildWelcomeMessage,
   type LineMessage,
 } from "@/lib/line";
+import { sendLineStaffAlert } from "@/lib/email";
+import { createClient } from "@supabase/supabase-js";
+
+// 顧客マスタ参照用クライアント。既存admin APIと同様 service_role 優先・無い環境は anon へフォールバック。
+// （ビルド時/ローカルで SERVICE_ROLE_KEY 未設定でも import 時に落ちず、Webhookを堅牢に保つ）
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 const BOOKING_URL = "https://liff.line.me/2009688745-qZi2jM4g";
 const FAQ_URL = "https://dog-hub.shop/faq";
@@ -36,6 +45,7 @@ export async function POST(req: NextRequest) {
 async function handleEvent(event: LineEvent) {
   const replyToken = event.replyToken;
   if (!replyToken) return;
+  const userId = event.source?.userId;
 
   switch (event.type) {
     // 友だち追加 → ウェルカムメッセージ（reply・無料）
@@ -48,8 +58,19 @@ async function handleEvent(event: LineEvent) {
     // メッセージ受信 → 定番FAQを自動回答、該当なしはフォールバック（すべてreply・無料）
     case "message":
       if (event.message?.type === "text") {
-        const reply = matchFaqReply(event.message.text);
+        const { reply, category, needsHuman } = matchFaqReply(event.message.text ?? "");
+        // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
         await sendLineReplyMessage(replyToken, reply);
+        // 人間対応が必要なメッセージはスタッフへメールでエスカレーション
+        if (needsHuman) {
+          await alertStaff(userId, event.message.text ?? "", category);
+        }
+      } else {
+        // 非テキスト（画像・スタンプ・位置情報・音声など）→ 受領を返しつつ必ずエスカレーション
+        // 例: ワクチン証明書の写真を送るお客様への「無音」を解消する
+        await sendLineReplyMessage(replyToken, nonTextReply());
+        const kind = event.message?.type ?? "不明";
+        await alertStaff(userId, `（${kind}メッセージ）`, "非テキスト");
       }
       break;
 
@@ -58,19 +79,75 @@ async function handleEvent(event: LineEvent) {
   }
 }
 
+// 顧客マスタから LINE userId → 氏名を逆引き（紐付け済みのみ。失敗しても握りつぶす）
+async function lookupCustomerName(lineUserId?: string): Promise<string | null> {
+  if (!lineUserId) return null;
+  try {
+    const { data } = await supabase
+      .from("customers")
+      .select("last_name, first_name")
+      .eq("line_id", lineUserId)
+      .limit(1)
+      .returns<{ last_name: string | null; first_name: string | null }[]>();
+    const c = data?.[0];
+    if (!c) return null;
+    const name = `${c.last_name ?? ""} ${c.first_name ?? ""}`.trim();
+    return name || null;
+  } catch {
+    return null;
+  }
+}
+
+// スタッフへ「要対応」アラートメールを送る（失敗してもWebhookの200は守る）
+async function alertStaff(lineUserId: string | undefined, messageText: string, category: string) {
+  try {
+    const customerName = await lookupCustomerName(lineUserId);
+    await sendLineStaffAlert({
+      customerName,
+      lineUserId: lineUserId ?? null,
+      messageText,
+      category,
+    });
+  } catch (e) {
+    console.error("LINE alertStaff failed:", e);
+  }
+}
+
 // ───── 定番FAQの自動回答 ─────
 // キーワードを「含む」判定。表記揺れに弱い完全一致を避けるため部分一致で拾う。
 // 並び順＝優先順位（先にマッチしたものを返す）。「予約を変更」は変更を優先するため
-// キャンセル・変更を予約より前に置く。
+// キャンセル・変更を予約より前に置く。受入確認系（猫・発情・多頭等）は誤って
+// 「予約どうぞ」と返さないよう最優先に置き、必ず人間へエスカレーションする。
+// needsHuman=true のルールは、定型回答を返したうえでスタッフへアラートメールを送る。
 interface FaqRule {
+  category: string;
   keywords: string[];
   reply: LineMessage[];
+  needsHuman?: boolean;
 }
 
 const FAQ_RULES: FaqRule[] = [
   {
+    // 受入確認系（最優先）。猫・発情中・多頭・持病など、可否を必ず人が確認すべき相談。
+    // これを最上位に置かないと "預か/預け" で予約ルールに誤爆し、確認なく予約導線を返してしまう。
+    category: "受入確認",
+    keywords: ["猫", "ねこ", "ネコ", "発情", "ヒート", "多頭", "持病", "投薬", "てんかん", "噛みつ", "咬"],
+    needsHuman: true,
+    reply: [
+      {
+        type: "text",
+        text:
+          "お問い合わせありがとうございます🐾\n" +
+          "お預かりの可否は、その子の状況を確認のうえ個別にご案内しています。\n" +
+          `担当より順次ご連絡しますので少々お待ちください。お急ぎはお電話（${TEL}）へ。`,
+      },
+    ],
+  },
+  {
     // キャンセル・変更（「予約」より前。"予約を変更" を変更案内に寄せる）
+    category: "キャンセル/変更",
     keywords: ["キャンセル", "取り消し", "取消", "変更", "日程変更", "リスケ"],
+    needsHuman: true,
     reply: [
       {
         type: "text",
@@ -84,6 +161,7 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     // 料金
+    category: "料金",
     keywords: ["料金", "いくら", "値段", "価格", "費用", "金額", "おいくら"],
     reply: [
       {
@@ -101,6 +179,7 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     // ワクチン（持ち物より前。"ワクチンの持ち物" をワクチン案内に寄せる）
+    category: "ワクチン",
     keywords: ["ワクチン", "予防接種", "証明書", "狂犬病", "注射", "ワクチ"],
     reply: [
       {
@@ -114,6 +193,7 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     // 持ち物
+    category: "持ち物",
     keywords: ["持ち物", "持参", "必要なもの", "用意", "持っていくもの", "もちもの"],
     reply: [
       {
@@ -129,7 +209,10 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     // 大型犬・体重・サイズ
-    keywords: ["大型", "大きい", "体重", "kg", "ｋｇ", "キロ", "何キロ", "サイズ", "小型", "中型", "15"],
+    // ⚠️ "15" は「15時」「15日」に誤爆するため削除（"kg"/"ｋｇ"/"何キロ"/"体重" で十分カバー）。
+    // "キロ" は「20キロ(体重)」を拾うため残すが、まれに「5キロ先(距離)」へ誤爆する点は許容。
+    category: "大型犬",
+    keywords: ["大型", "大きい", "体重", "kg", "ｋｇ", "キロ", "何キロ", "サイズ", "小型", "中型"],
     reply: [
       {
         type: "text",
@@ -142,6 +225,7 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     // 営業時間・定休日
+    category: "営業時間",
     keywords: ["営業", "何時", "時間", "定休", "休み", "開い", "閉ま", "何曜", "営業日"],
     reply: [
       {
@@ -157,7 +241,8 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     // アクセス・場所・駐車場
-    keywords: ["場所", "住所", "アクセス", "行き方", "どこ", "駐車", "車", "道順", "地図", "最寄"],
+    category: "アクセス",
+    keywords: ["場所", "住所", "アクセス", "行き方", "どこ", "駐車", "パーキング", "車", "道順", "地図", "最寄"],
     reply: [
       {
         type: "text",
@@ -173,7 +258,8 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     // 予約
-    keywords: ["予約", "よやく", "申し込み", "申込", "泊ま", "預け", "預か", "ブッキング"],
+    category: "予約",
+    keywords: ["予約", "よやく", "申し込み", "申込", "宿泊", "泊ま", "預け", "預か", "ブッキング"],
     reply: [
       {
         type: "text",
@@ -186,14 +272,15 @@ const FAQ_RULES: FaqRule[] = [
   },
 ];
 
-function matchFaqReply(text: string): LineMessage[] {
+// 返信本文・カテゴリ・人間対応要否を返す。フォールバック（FAQ非該当）は人間対応が必要扱い。
+function matchFaqReply(text: string): { reply: LineMessage[]; category: string; needsHuman: boolean } {
   const t = text.trim();
   for (const rule of FAQ_RULES) {
     if (rule.keywords.some((k) => t.includes(k))) {
-      return rule.reply;
+      return { reply: rule.reply, category: rule.category, needsHuman: !!rule.needsHuman };
     }
   }
-  return fallbackReply();
+  return { reply: fallbackReply(), category: "フォールバック", needsHuman: true };
 }
 
 // フォールバック：期待値（次の返信タイミング・電話・予約導線）を明示する
@@ -211,6 +298,20 @@ function fallbackReply(): LineMessage[] {
   ];
 }
 
+// 非テキスト（画像・スタンプ・位置情報など）への受領メッセージ。
+// 「無音」を避けて受け取った旨を伝え、別途スタッフへエスカレーションする。
+function nonTextReply(): LineMessage[] {
+  return [
+    {
+      type: "text",
+      text:
+        "メッセージありがとうございます🐾\n" +
+        "内容を確認し、営業日（金〜火 9:00〜17:00、水・木定休）に順次ご返信します。\n" +
+        `お急ぎ・当日のご予約はお電話（${TEL}）へ。`,
+    },
+  ];
+}
+
 // ───── 型定義 ─────
 interface LineWebhookBody {
   destination: string;
@@ -220,6 +321,6 @@ interface LineWebhookBody {
 interface LineEvent {
   type: string;
   source?: { userId?: string; type?: string };
-  message?: { type: string; text: string };
+  message?: { type: string; text?: string };
   replyToken?: string;
 }

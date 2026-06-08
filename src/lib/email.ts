@@ -738,3 +738,102 @@ export async function sendCancellationEmails(params: {
 
   await Promise.allSettled(emails);
 }
+
+// ──────────────────────────────────────────
+// LINE要対応アラート（人間対応が必要なLINEメッセージを検知したらスタッフへ通知）
+// 目的: 自動FAQで拾えない自由文・非テキスト・受入確認系などを「毎日見るメール」に流し、
+//       "開かれないチャット受信箱"での放置を防ぐ。LINE管理画面チャットへの導線つき。
+// ──────────────────────────────────────────
+const LINE_ALERT_RECIPIENTS = ["narisawa@dog-hub.shop", "koi02121957@gmail.com"];
+const LINE_CHAT_URL = "https://manager.line.biz/account/@794wdxyu/chat";
+
+export async function sendLineStaffAlert(params: {
+  customerName: string | null; // 顧客マスタと紐付け済みなら氏名、未登録なら null
+  lineUserId: string | null;
+  messageText: string; // 受信本文。非テキストは「（imageメッセージ）」等
+  category: string; // 'フォールバック' | '非テキスト' | 'キャンセル/変更' | '受入確認' 等
+}): Promise<void> {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn("[line-alert] Email not configured");
+    return;
+  }
+
+  const who = params.customerName || "お客様（顧客マスタ未登録）";
+  // JST表示（Vercelは UTC のため Intl で明示変換）
+  const nowJst = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date());
+
+  const escaped = params.messageText
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const bodyHtml = escaped.replace(/\r?\n/g, "<br>") || "（本文なし）";
+  const uid = params.lineUserId ? `${params.lineUserId.slice(0, 12)}…` : "不明";
+
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f7f5f0;font-family:-apple-system,'Hiragino Sans',sans-serif;">
+<div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+  <div style="background:white;border-radius:16px;padding:24px;">
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
+      <p style="margin:0;color:#c2410c;font-size:15px;font-weight:700;">📩 LINEで人間対応が必要なメッセージ</p>
+      <p style="margin:6px 0 0;color:#9a3412;font-size:13px;">自動応答で完結しないため、スタッフの返信が必要です。</p>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <tr><td style="padding:6px 0;color:#888;width:90px;">相手</td><td style="padding:6px 0;color:#3C200F;font-weight:600;">${who}</td></tr>
+      <tr><td style="padding:6px 0;color:#888;">種別</td><td style="padding:6px 0;color:#3C200F;">${params.category}</td></tr>
+      <tr><td style="padding:6px 0;color:#888;">受信</td><td style="padding:6px 0;color:#3C200F;">${nowJst}</td></tr>
+      <tr><td style="padding:6px 0;color:#888;">LINE ID</td><td style="padding:6px 0;color:#888;font-size:12px;">${uid}</td></tr>
+    </table>
+
+    <div style="margin-top:16px;padding:14px 16px;background:#f7f5f0;border-radius:10px;">
+      <p style="margin:0 0 6px;font-size:12px;color:#888;font-weight:600;">メッセージ内容</p>
+      <p style="margin:0;font-size:15px;color:#3C200F;line-height:1.8;">${bodyHtml}</p>
+    </div>
+
+    <div style="margin-top:20px;text-align:center;">
+      <a href="${LINE_CHAT_URL}" style="display:inline-block;padding:12px 28px;background:#06C755;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">LINEで返信する</a>
+      <p style="margin:8px 0 0;font-size:12px;color:#888;">LINE公式アカウント管理画面のチャットが開きます</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin:14px 0 0;font-size:11px;color:#bbb;">DogHub箱根仙石原 / LINE自動アラート</p>
+</div>
+</body>
+</html>`;
+
+  const text = [
+    "LINEで人間対応が必要なメッセージが届きました。",
+    "",
+    `相手: ${who}`,
+    `種別: ${params.category}`,
+    `受信: ${nowJst}`,
+    `LINE userId: ${params.lineUserId ?? "不明"}`,
+    "",
+    "メッセージ:",
+    params.messageText || "（本文なし）",
+    "",
+    `LINEで返信（管理画面チャット）: ${LINE_CHAT_URL}`,
+  ].join("\n");
+
+  try {
+    await transporter.sendMail({
+      from: `"DogHub LINE" <${process.env.GMAIL_USER}>`,
+      to: LINE_ALERT_RECIPIENTS.join(", "),
+      subject: `【LINE要対応】${who}（${params.category}）`,
+      html,
+      text,
+    });
+    console.log(`[line-alert] OK category=${params.category} who=${who}`);
+  } catch (err) {
+    const e = err as Error;
+    console.error(`[line-alert] FAILED category=${params.category} message=${e.message?.slice(0, 200)}`);
+  }
+}
