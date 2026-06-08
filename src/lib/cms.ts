@@ -292,6 +292,10 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "涼しく預けて", images: ["/images/dog-dachshund-poodle-dogrun-wide.jpg"] },
     { keyword: "夏の仙石原を楽しむなら", images: ["/images/doghub-schnauzer-exterior.jpg"] },
   ],
+  "hakone-dog-heatstroke-guide": [
+    { keyword: "箱根のような場所へ行くときの暑さ対策", images: ["/images/img-008.jpg"] },
+    { keyword: "夏の犬たちの過ごし方", images: ["/images/doghub-hotel-room-full-01.jpg"] },
+  ],
 };
 
 function decodeHtmlEntities(text: string): string {

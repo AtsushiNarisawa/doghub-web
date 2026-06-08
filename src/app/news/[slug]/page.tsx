@@ -20,6 +20,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/service",
     btnLabel: "夏のお預かりプラン・料金を見る",
   },
+  "hakone-dog-heatstroke-guide": {
+    text: "夏の暑い時間は、涼しい個室で愛犬をお預かり",
+    subtext: "空調のきいた完全個室と屋根付きドッグランで、夏の暑さから愛犬を守ります。暑い時間帯やNGスポットの間だけでも。半日¥3,300〜、1日¥5,500〜。",
+    href: "/service",
+    btnLabel: "夏のお預かりプラン・料金を見る",
+  },
   "hakone-retona-dog-guide": {
     text: "ゴルフの日も、愛犬と泊まる箱根を",
     subtext: "早朝7時からお預かり。大箱根CCまで約5分、リトナ箱根さんからDogHubまで約10分です。1日¥5,500〜。",
@@ -233,6 +239,12 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "日帰り温泉に行くなら", href: "/onsen", description: "犬NGの温泉の間だけお預かり" },
     { label: "半日お預かり", href: "/4h", description: "¥3,300〜 美術館1館＋ランチに" },
     { label: "1日お預かり", href: "/8h", description: "¥5,500〜 ユネッサンや1日観光に" },
+  ],
+  "hakone-dog-heatstroke-guide": [
+    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 暑い時間帯だけ涼しい個室で" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500〜 1日通して空調の効いた室内で" },
+    { label: "日帰り温泉に行くなら", href: "/onsen", description: "犬NGの温泉の間、涼しくお預かり" },
+    { label: "ユネッサンに行くなら", href: "/yunessun", description: "屋内で涼しい1日を満喫" },
   ],
   "hakone-retona-dog-guide": [
     { label: "1日お預かりプランを見る", href: "/8h", description: "¥5,500 ゴルフ1ラウンドに。早朝7時〜" },
