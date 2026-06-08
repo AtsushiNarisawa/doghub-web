@@ -48,8 +48,8 @@ export default function DogrunPage() {
                   仙石原の自然の中で<br />のびのび遊べるドッグラン
                 </h3>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  DogHub箱根仙石原には、わんちゃんが思いっきり走り回れる専用ドッグランがあります。
-                  箱根の豊かな自然に囲まれた環境で、愛犬ものびのびリフレッシュ。
+                  DogHub箱根仙石原は、専用ドッグランを併設した箱根仙石原のペットホテル・犬のホテルです。
+                  わんちゃんが走り回れるドッグランで、箱根の豊かな自然に囲まれながら、愛犬ものびのびリフレッシュできます。
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   屋根付きエリアもあるので、雨の日でも安心して遊べます。

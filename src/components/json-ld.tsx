@@ -5,7 +5,7 @@ export function JsonLd() {
     name: "DogHub箱根仙石原",
     alternateName: "ドッグハブ箱根仙石原",
     description:
-      "箱根仙石原のプレミアムドッグホテル。24時間スタッフ常駐・完全個室・ドッグラン併設。半日¥3,300〜、宿泊¥7,700〜。",
+      "箱根仙石原の犬のホテル・ペットホテル。24時間スタッフ常駐・完全個室・ドッグラン併設。日中の一時預かり半日¥3,300〜、宿泊¥7,700〜。",
     url: "https://dog-hub.shop",
     telephone: "0460-80-0290",
     email: "info@dog-hub.shop",

@@ -419,6 +419,7 @@ function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string):
 
   // 記事本文内の自然な内部リンク挿入（各キーワードは記事内で最初の1回のみ）
   const internalLinks: { pattern: RegExp; href: string; label: string }[] = [
+    { pattern: /箱根の犬のホテル/g, href: "/", label: "箱根の犬のホテル" },
     { pattern: /半日預かり（4時間）/g, href: "/4h", label: "半日預かり（4時間）" },
     { pattern: /半日（4時間）/g, href: "/4h", label: "半日（4時間）" },
     { pattern: /半日お預かり（4時間/g, href: "/4h", label: "半日お預かり（4時間" },

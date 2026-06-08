@@ -12,7 +12,7 @@ export function DogHotel() {
             <h3 className="text-[#311908] mb-6" style={{ fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 400, lineHeight: "1.6" }}>
               一時預かりも、宿泊も対応できるドッグホテル
             </h3>
-            <p className="text-[#8F7B65] mb-4" style={{ fontSize: "16px", fontWeight: 400 }}>箱根町で唯一のドッグホテルとなります。</p>
+            <p className="text-[#8F7B65] mb-4" style={{ fontSize: "16px", fontWeight: 400 }}>箱根で犬のホテルをお探しの方へ。箱根町で唯一のドッグホテル・ペットホテルです。</p>
             <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
               ケージにずっと入れておくのではなく、完全個室とドッグランで
               わんちゃんにもリゾート気分を味わってもらう滞在を。

@@ -45,6 +45,21 @@ const features = [
   },
 ];
 
+const priceFaqs = [
+  {
+    q: "箱根のペットホテル・犬のホテルの料金はいくらですか？",
+    a: "一時お預かりは半日（4時間）¥3,300、1日（8時間）¥5,500、スポット利用（1時間）¥1,100です。宿泊は1泊¥7,700〜。表示料金はすべて税込です。",
+  },
+  {
+    q: "宿泊（お泊まり）の料金と利用時間を教えてください。",
+    a: "宿泊は1泊¥7,700〜です。チェックインは14〜17時、チェックアウトは9〜11時。営業時間外のお預かり・お引き取りは追加1時間あたり¥1,100を頂戴します。箱根町在住の方は1泊¥5,500です。",
+  },
+  {
+    q: "当日の追加料金やオプションはありますか？",
+    a: "お散歩オプション¥550/回のほか、ご飯・おやつ・マナーウェアの販売（¥220〜）もございます。1日プランは早朝7時からのお預かりに対応しています。",
+  },
+];
+
 export default function ServicePage() {
   return (
     <>
@@ -133,6 +148,10 @@ export default function ServicePage() {
         {/* Pricing */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400, letterSpacing: "1.6px" }}>料金・プラン</h2>
+              <p className="text-[#8F7B65]" style={{ fontSize: "16px", fontWeight: 400 }}>箱根仙石原のペットホテル・犬のホテル</p>
+            </div>
             <div className="grid md:grid-cols-2 gap-5">
               {/* TEMPORARY SERVICE */}
               <div className="bg-white px-4 sm:px-8 py-8 sm:py-10 text-center">
@@ -206,6 +225,34 @@ export default function ServicePage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* 料金FAQ */}
+        <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400, letterSpacing: "1.6px" }}>料金・サービスについて よくある質問</h2>
+            <p className="text-[#8F7B65] mb-8" style={{ fontSize: "16px", fontWeight: 400 }}>箱根のペットホテル・犬のホテルの料金に関するご質問</p>
+            <div className="space-y-6">
+              {priceFaqs.map((f) => (
+                <div key={f.q} className="border-b border-[#E5DDD8] pb-6">
+                  <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "clamp(16px, 4vw, 18px)", fontWeight: 500, lineHeight: "1.6" }}>{f.q}</h3>
+                  <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>{f.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: priceFaqs.map((f) => ({
+                "@type": "Question",
+                name: f.q,
+                acceptedAnswer: { "@type": "Answer", text: f.a },
+              })),
+            }) }}
+          />
         </section>
 
         {/* OPTION MENU */}
