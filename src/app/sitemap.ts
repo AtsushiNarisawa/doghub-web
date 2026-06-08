@@ -7,7 +7,6 @@ const ARTICLE_PRIORITY: Record<string, number> = {
   "hakone-dog-trip-guide": 0.9,        // 最大流入（354セッション/月）
   "hakone-dog-friendly-hotels": 0.9,   // 最大機会損失KW（517imp/月）
   "hakone-museum-dog-guide": 0.8,      // 80セッション/月
-  "hakone-dog-travel-model-course": 0.8, // モデルコースKW独占
   "hakone-yunessun-pet-guide": 0.8,    // CV率10.7%
   "hakone-dog-lunch-guide": 0.8,       // ランチKW狙い
   "hakone-dog-hotel-guide": 0.8,       // 犬のホテルKW

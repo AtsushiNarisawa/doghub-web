@@ -31,6 +31,21 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(target, 301);
   }
 
+  // ── カニバリ統合: モデルコース記事を観光ガイドへ1段301（2026-06-08 W4）──
+  // travel-model-course（7clicks/11.9位の抑制された重複）を trip-guide（主軸）へ統合。
+  // 末尾スラッシュ有無の両方を、末尾スラッシュ正規化(308)より前で1段301に着地させる
+  // （後段の308を経由させると2段になるため、この位置で処理）。
+  // NextURL setter は使わず URL文字列を手動構築（feedback_nextjs_middleware_trailing_slash）。
+  if (
+    pathname === "/news/hakone-dog-travel-model-course" ||
+    pathname === "/news/hakone-dog-travel-model-course/"
+  ) {
+    return NextResponse.redirect(
+      `${req.nextUrl.origin}/news/hakone-dog-trip-guide`,
+      301
+    );
+  }
+
   // ── 末尾スラッシュ正規化（Next.js デフォルト308を middleware で代替）──
   // skipTrailingSlashRedirect: true により Next.js 側の自動308は無効化。
   // 既存サイトの canonical（末尾スラッシュなし）を維持するため、ここで308を返す。

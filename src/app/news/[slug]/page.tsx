@@ -86,12 +86,6 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/cafe",
     btnLabel: "カフェメニューを見る",
   },
-  "hakone-dog-travel-model-course": {
-    text: "箱根旅行の拠点にDogHub箱根仙石原",
-    subtext: "預かり・カフェ・ドッグランが一か所に。箱根観光の自由度が格段に上がります。",
-    href: "/service",
-    btnLabel: "料金・サービスを見る",
-  },
   "hakone-dog-rainy-day": {
     text: "雨の日でも安心。屋根付きドッグラン併設",
     subtext: "天候を気にせず愛犬を遊ばせられます。カフェで室内ランチもOK。",
@@ -273,12 +267,6 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "高級旅館×お預かり", href: "/ryokan", description: "ペット不可の旅館に泊まりたい時の選択肢" },
     { label: "日帰り温泉に行くなら", href: "/onsen", description: "仙石原・強羅・湯本の温泉施設へ" },
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐" },
-  ],
-  "hakone-dog-travel-model-course": [
-    { label: "温泉プラン", href: "/onsen", description: "日帰り温泉の間に半日お預かり" },
-    { label: "ゴルフプラン", href: "/golf", description: "早朝7時〜のお預かりでラウンド" },
-    { label: "ユネッサンプラン", href: "/yunessun", description: "1日お預かりでたっぷり温泉" },
-    { label: "美術館プラン", href: "/museum", description: "半日で美術館1館＋ランチ" },
   ],
   "hakone-ashinoko-dog-guide": [
     { label: "芦ノ湖観光中のお預かり", href: "/service", description: "桃源台から車10分。半日¥3,300〜" },

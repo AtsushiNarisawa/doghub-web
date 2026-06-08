@@ -17,9 +17,9 @@ const guides = [
     desc: "室内OKのお店と楽しむコツ",
   },
   {
-    href: "/news/hakone-dog-travel-model-course",
-    title: "モデルコース",
-    desc: "日帰り＆1泊2日プラン",
+    href: "/news/hakone-museum-dog-guide",
+    title: "美術館めぐり",
+    desc: "犬NGの美術館を預けて楽しむ",
   },
 ];
 

@@ -27,7 +27,6 @@ const articles = [
   { href: "/news/hakone-dog-trip-guide", label: "犬連れ旅行ガイド", desc: "犬と行けるスポット、モデルコース付き" },
   { href: "/news/hakone-dog-hotel-guide", label: "犬のホテルの選び方", desc: "預かりの種類と選び方のポイント" },
   { href: "/news/hakone-dog-lunch-guide", label: "犬連れランチガイド", desc: "室内OKのお店と楽しむコツ" },
-  { href: "/news/hakone-dog-travel-model-course", label: "モデルコース集", desc: "日帰り3プラン＋1泊2日2プラン" },
   { href: "/news/hakone-dog-rainy-day", label: "雨の日の過ごし方", desc: "屋内スポットとペットホテル活用術" },
   { href: "/news/hakone-dog-hotel-cost-comparison", label: "別々に泊まるとお得？", desc: "ペット可の宿との料金比較" },
 ];
@@ -207,9 +206,6 @@ export default function HakonePage() {
               <div className="space-y-2">
                 <Link href="/news/hakone-dog-trip-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
                   → 箱根 犬連れ旅行ガイド｜1泊2日モデルコース
-                </Link>
-                <Link href="/news/hakone-dog-travel-model-course" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
-                  → 箱根 犬連れ旅行モデルコース｜日帰り＆1泊2日プラン
                 </Link>
               </div>
             </div>

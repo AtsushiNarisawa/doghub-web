@@ -194,11 +194,6 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "OMUSUBI & SOUP CAFE", images: ["/images/img-063.webp", "/images/img-045.jpg"] },
     { keyword: "犬連れランチで気をつけたい", images: ["/images/img-042.jpg"] },
   ],
-  "hakone-dog-travel-model-course": [
-    { keyword: "犬OKのスポットと犬NGのスポット", images: [WM.chokokuNoMori.url] },
-    { keyword: "コースB", images: [WM.sengokuSusuki.url] },
-    { keyword: "コースE", images: [WM.ashinokoTorii.url] },
-  ],
   "hakone-dog-rainy-day": [
     { keyword: "屋根付きドッグラン", images: ["/images/img-022.jpg"] },
     { keyword: "美術館めぐり", images: [WM.polaMuseum.url] },
