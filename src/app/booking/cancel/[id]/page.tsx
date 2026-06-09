@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 const PLAN_NAMES: Record<string, string> = {
   spot: "スポットお預かり",
@@ -43,16 +42,18 @@ export default function CancelPage() {
 
   useEffect(() => {
     if (!id) return;
-    supabase
-      .from("reservations")
-      .select("id, status, date, checkin_time, plan, checkout_date, customers(last_name, first_name), reservation_dogs(dogs(name))")
-      .eq("id", id)
-      .single()
-      .then(({ data, error: e }) => {
-        if (e || !data) {
+    fetch(`/api/booking/reservation/${id}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          setError("予約が見つかりません");
+          setLoading(false);
+          return;
+        }
+        const { reservation: data } = await res.json();
+        if (!data) {
           setError("予約が見つかりません");
         } else {
-          const r = data as unknown as Reservation;
+          const r = data as Reservation;
           if (r.status === "cancelled") {
             setError("この予約は既にキャンセルされています");
           } else {
@@ -63,6 +64,10 @@ export default function CancelPage() {
           }
           setReservation(r);
         }
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("予約が見つかりません");
         setLoading(false);
       });
   }, [id]);

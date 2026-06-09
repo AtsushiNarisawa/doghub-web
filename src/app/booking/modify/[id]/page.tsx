@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 const PLAN_NAMES: Record<string, string> = {
   spot: "スポットお預かり",
@@ -47,19 +46,19 @@ export default function ModifyPage() {
 
   useEffect(() => {
     if (!id) return;
-    supabase
-      .from("reservations")
-      .select("id, status, date, checkin_time, plan, checkout_date, notes, customers(last_name, first_name), reservation_dogs(dogs(name, breed))")
-      .eq("id", id)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setReservation(data as unknown as Reservation);
-          setCheckinTime(data.checkin_time?.slice(0, 5) || "");
-          setNotes(data.notes || "");
+    fetch(`/api/booking/reservation/${id}`)
+      .then(async (res) => {
+        if (res.ok) {
+          const { reservation: data } = await res.json();
+          if (data) {
+            setReservation(data as Reservation);
+            setCheckinTime(data.checkin_time?.slice(0, 5) || "");
+            setNotes(data.notes || "");
+          }
         }
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, [id]);
 
   const handleSubmit = async () => {

@@ -146,7 +146,13 @@ function AdminHeader({ badgeCount, onBadgeClear, lastSeen }: { badgeCount: numbe
     onBadgeClear();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Cookie 失効（サーバー）に加え、クライアントの Supabase セッションも破棄する。
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // セッション破棄に失敗してもログアウト遷移は続行
+    }
     window.location.href = "/api/admin/logout";
   };
 

@@ -22,7 +22,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const res = NextResponse.json({ success: true });
+  // クライアント（@/lib/supabase）に Supabase セッションを設定させるためにトークンを返す。
+  // これにより管理画面のクエリが anon ではなく authenticated 権限で実行され、
+  // RLS の anon 全許可ポリシーを撤去しても staff_full_access（authenticated）で動作する。
+  const res = NextResponse.json({
+    success: true,
+    session: {
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    },
+  });
   res.cookies.set("doghub-admin-session", "authorized", {
     httpOnly: true,
     secure: true,

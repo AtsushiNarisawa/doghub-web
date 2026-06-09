@@ -3,7 +3,21 @@
 import { useState, useEffect } from "react";
 import type { BookingFormData, DogFormData } from "@/types/booking";
 import { INITIAL_DOG } from "@/types/booking";
-import { supabase } from "@/lib/supabase";
+// 顧客/犬の照合は anon 直読みを廃し /api/booking/lookup-customer（service_role）経由に統一。
+type DbDog = {
+  id: string; name: string; breed: string; weight: number | string;
+  age: number | null; age_months: number | null; sex: string;
+  has_rabies_vaccine: boolean | null; has_mixed_vaccine: boolean | null;
+  rabies_vaccine_status: "" | "within_1year" | "multi_year" | "unable" | null;
+  mixed_vaccine_status: "" | "within_1year" | "multi_year" | "unable" | null;
+  vaccine_unable_reason: string | null; allergies: string | null;
+  meal_notes: string | null; medication_notes: string | null;
+};
+type DbCustomer = {
+  id: string; last_name: string; first_name: string;
+  last_name_kana: string; first_name_kana: string;
+  phone: string; email: string; postal_code: string | null; address: string | null;
+};
 
 interface Props {
   form: BookingFormData;
@@ -269,19 +283,25 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
 
     (async () => {
       setLookupState("loading");
-      const { data: customer } = await supabase
-        .from("customers")
-        .select("*")
-        .eq("line_id", form.line_id!)
-        .maybeSingle();
+      let customer: DbCustomer | null = null;
+      let dogs: DbDog[] = [];
+      try {
+        const res = await fetch("/api/booking/lookup-customer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ line_id: form.line_id }),
+        });
+        const result = await res.json();
+        if (result.found) {
+          customer = result.customer as DbCustomer;
+          dogs = (result.dogs || []) as DbDog[];
+        }
+      } catch {
+        // 照合失敗時は新規入力扱い
+      }
 
       if (customer) {
-        const { data: dogs } = await supabase
-          .from("dogs")
-          .select("*")
-          .eq("customer_id", customer.id);
-
-        const dogData: DogFormData[] = dogs && dogs.length > 0
+        const dogData: DogFormData[] = dogs.length > 0
           ? dogs.map((d) => ({
               id: d.id, name: d.name, breed: d.breed, weight: String(d.weight),
               age: d.age ? String(d.age) : "", age_months: d.age_months ? String(d.age_months) : "",
@@ -320,27 +340,27 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
 
     const normalized = phoneInput.replace(/[-\s]/g, "");
 
-    const { data: customer, error: customerError } = await supabase
-      .from("customers")
-      .select("*")
-      .eq("phone", normalized)
-      .maybeSingle();
-
-    if (customerError) {
-      console.error("Customer lookup error:", customerError);
+    let found = false;
+    let dogs: DbDog[] = [];
+    try {
+      const res = await fetch("/api/booking/lookup-customer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: normalized }),
+      });
+      const result = await res.json();
+      found = !!result.found;
+      dogs = (result.dogs || []) as DbDog[];
+    } catch (e) {
+      console.error("Customer lookup error:", e);
       setLookupState("not_found");
       return;
     }
 
-    if (customer) {
-      const { data: dogs } = await supabase
-        .from("dogs")
-        .select("*")
-        .eq("customer_id", customer.id);
-
+    if (found) {
       // 犬情報のみセット（個人情報はStep3でお客様が入力）
       const dogData: DogFormData[] =
-        dogs && dogs.length > 0
+        dogs.length > 0
           ? dogs.map((d) => ({
               id: d.id,
               name: d.name,

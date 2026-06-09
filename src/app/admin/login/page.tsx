@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -22,6 +23,15 @@ export default function AdminLoginPage() {
     });
 
     if (res.ok) {
+      // サーバーが返したセッションをクライアントの supabase に設定し、
+      // 以降の管理画面クエリを authenticated 権限で実行させる。
+      const json = await res.json().catch(() => ({}));
+      if (json?.session?.access_token && json?.session?.refresh_token) {
+        await supabase.auth.setSession({
+          access_token: json.session.access_token,
+          refresh_token: json.session.refresh_token,
+        });
+      }
       router.replace("/admin");
     } else {
       const json = await res.json().catch(() => ({}));
