@@ -6,6 +6,7 @@ import {
 } from "@/lib/line";
 import { matchFaqReply, nonTextReply } from "@/lib/line-faq";
 import { sendLineStaffAlert } from "@/lib/email";
+import { recordInboundWithBotReply, ensureLineConversation } from "@/lib/line-store";
 import { createClient } from "@supabase/supabase-js";
 
 // 顧客マスタ参照用クライアント。既存admin APIと同様 service_role 優先・無い環境は anon へフォールバック。
@@ -49,26 +50,47 @@ async function handleEvent(event: LineEvent) {
     // デフォルトを一度だけ設定するため、ここでの個別割り当ては不要。
     case "follow":
       await sendLineReplyMessage(replyToken, buildWelcomeMessage());
+      // 受信トレイ用に会話だけ作成（メッセージ行は作らない）。お客様から見える挙動は不変。
+      await ensureLineConversation(userId);
       break;
 
     // メッセージ受信 → 定番FAQを自動回答、該当なしはフォールバック（すべてreply・無料）
-    case "message":
-      if (event.message?.type === "text") {
-        const { reply, category, needsHuman } = matchFaqReply(event.message.text ?? "");
+    case "message": {
+      const messageType = event.message?.type ?? "不明";
+      if (messageType === "text") {
+        const text = event.message?.text ?? "";
+        const { reply, category, needsHuman } = matchFaqReply(text);
         // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
         await sendLineReplyMessage(replyToken, reply);
         // 人間対応が必要なメッセージはスタッフへメールでエスカレーション
         if (needsHuman) {
-          await alertStaff(userId, event.message.text ?? "", category);
+          await alertStaff(userId, text, category);
         }
+        // 受信トレイへ記録（reply送信後・独立処理。失敗してもreply/200を壊さない）
+        await recordInboundWithBotReply({
+          lineUserId: userId,
+          inboundType: "text",
+          inboundText: text,
+          inboundMessageId: event.message?.id,
+          botReply: reply,
+        });
       } else {
         // 非テキスト（画像・スタンプ・位置情報・音声など）→ 受領を返しつつ必ずエスカレーション
         // 例: ワクチン証明書の写真を送るお客様への「無音」を解消する
-        await sendLineReplyMessage(replyToken, nonTextReply());
-        const kind = event.message?.type ?? "不明";
-        await alertStaff(userId, `（${kind}メッセージ）`, "非テキスト");
+        const reply = nonTextReply();
+        await sendLineReplyMessage(replyToken, reply);
+        await alertStaff(userId, `（${messageType}メッセージ）`, "非テキスト");
+        // 受信トレイへ記録（本文は持たず message_type だけ保存。実体DLはしない）
+        await recordInboundWithBotReply({
+          lineUserId: userId,
+          inboundType: messageType,
+          inboundText: null,
+          inboundMessageId: event.message?.id,
+          botReply: reply,
+        });
       }
       break;
+    }
 
     default:
       break;
@@ -118,6 +140,6 @@ interface LineWebhookBody {
 interface LineEvent {
   type: string;
   source?: { userId?: string; type?: string };
-  message?: { type: string; text?: string };
+  message?: { type: string; text?: string; id?: string };
   replyToken?: string;
 }
