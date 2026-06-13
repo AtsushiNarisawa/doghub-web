@@ -12,6 +12,7 @@ import { Step3Customer } from "@/components/booking/step3-customer";
 import { Step4Confirm } from "@/components/booking/step4-confirm";
 import { LineAddFriendBanner } from "@/components/line-cta";
 import { calculateBookingTotal } from "@/lib/pricing";
+import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID || "";
 
@@ -106,13 +107,11 @@ export default function BookingPage() {
   // 送信完了画面
   if (result === "success" || result === "success_no_email") {
     const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) >= 15);
-    const isLate = (() => {
-      if (!form.date) return false;
-      const now = new Date();
-      const bookingDate = new Date(form.date + "T00:00:00");
-      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      return bookingDate.getTime() === tomorrow.getTime() && now.getHours() >= 17;
-    })();
+    // 仮予約(前日17時以降の翌日予約)の判定は、サーバー(route.ts:44-63)と同じ JST 基準で行う。
+    // new Date().getHours()/getDate() のローカルTZ依存は端末TZ次第でサーバー判定と食い違うため、
+    // datetime.ts の JST ヘルパに統一する（feedback_timezone_bug_jst_after_9am.md）。
+    const isLate =
+      !!form.date && form.date === addDaysJst(getJstToday(), 1) && getJstHour() >= 17;
     const isPending = hasHeavyDog || isLate;
     return (
       <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center p-4">
@@ -150,11 +149,15 @@ export default function BookingPage() {
               onClick={() => {
                 setResult(null);
                 setStep(1);
-                // 顧客情報・犬情報は保持し、予約内容のみリセット
+                // 顧客情報・犬情報は保持し、予約内容のみリセット。
+                // LINE連携(line_id/source)も引き継ぐ（INITIAL_FORMには無いため明示しないと
+                // 2件目以降がweb扱いになりLINE確定通知が飛ばなくなる）。
                 setForm((prev) => ({
                   ...INITIAL_FORM,
                   customer: prev.customer,
                   dogs: prev.dogs,
+                  line_id: prev.line_id,
+                  source: prev.source,
                 }));
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}

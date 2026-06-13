@@ -71,6 +71,17 @@ export async function POST(req: NextRequest) {
       ? buildRange(new_date, effectiveCheckout)
       : [new_date];
 
+    // 休業日判定（新規予約API route.ts と同一ロジック）。
+    // daily_capacity 行が無い将来の水木には行が無いのが常態のため、cap=null のときは
+    // 曜日で定休(水=3/木=4)を判定する。これを怠ると、新規予約では弾かれる「定休日をまたぐ/
+    // 定休日に在室する連泊」をリスケで成立させられてしまう。
+    const closedWeekdays = [3, 4];
+    const isClosedDate = (date: string, cap: { closed: boolean } | null): boolean => {
+      if (cap) return cap.closed;
+      const dow = new Date(date + "T12:00:00+09:00").getUTCDay();
+      return closedWeekdays.includes(dow);
+    };
+
     // 純粋な追加日のみ容量チェック（重複日は元々 dogCount 含まれているのでスキップ）
     const oldSet = new Set(oldDates);
     const addedDates = newDates.filter((d) => !oldSet.has(d));
@@ -80,13 +91,11 @@ export async function POST(req: NextRequest) {
         .select("day_booked, stay_booked, closed")
         .eq("date", date)
         .maybeSingle();
-      if (cap) {
-        if (cap.closed) {
-          return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
-        }
-        if (exceedsRoomLimit(cap, dogCount)) {
-          return NextResponse.json({ error: `${date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
-        }
+      if (isClosedDate(date, cap)) {
+        return NextResponse.json({ error: `${date}は休業日のため、この日程には変更できません` }, { status: 400 });
+      }
+      if (cap && exceedsRoomLimit(cap, dogCount)) {
+        return NextResponse.json({ error: `${date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
       }
     }
 

@@ -34,11 +34,14 @@ function playNotificationSound() {
 
 function useNewReservationBadge() {
   const [count, setCount] = useState(0);
-  const lastSeenRef = useRef<string>(
+  // lastSeen は描画時に参照するため state で保持する（ref.current を render 中に読むと
+  // React 19 で stale 値になりうるため）。checkNew は最新値を即時参照する必要があるので ref も併用。
+  const [lastSeen, setLastSeen] = useState<string>(() =>
     typeof window !== "undefined"
       ? localStorage.getItem("admin_last_seen") || new Date().toISOString()
       : new Date().toISOString()
   );
+  const lastSeenRef = useRef<string>(lastSeen);
   const prevCountRef = useRef(0);
 
   const checkNew = useCallback(async () => {
@@ -58,6 +61,7 @@ function useNewReservationBadge() {
   const markSeen = useCallback(() => {
     const now = new Date().toISOString();
     lastSeenRef.current = now;
+    setLastSeen(now);
     localStorage.setItem("admin_last_seen", now);
     prevCountRef.current = 0;
     setCount(0);
@@ -69,7 +73,7 @@ function useNewReservationBadge() {
     return () => clearInterval(interval);
   }, [checkNew]);
 
-  return { count, markSeen, lastSeen: lastSeenRef.current };
+  return { count, markSeen, lastSeen };
 }
 
 function AdminNav({ badgeCount, onBadgeClear }: { badgeCount: number; onBadgeClear: () => void }) {

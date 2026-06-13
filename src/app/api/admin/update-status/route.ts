@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { sendCancellationEmails } from "@/lib/email";
+import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -139,7 +140,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data: res } = await supabase
           .from("reservations")
-          .select("*, customers!inner(last_name, first_name, email, phone), reservation_dogs(dogs(name))")
+          .select("*, customers!inner(last_name, first_name, email, phone, line_id), reservation_dogs(dogs(name))")
           .eq("id", reservation_id)
           .single();
 
@@ -178,8 +179,30 @@ export async function POST(req: NextRequest) {
             `,
           });
         }
+
+        // LINE通知（line_idがある場合）。メール未入力のLINE予約客は確定メールが送られず、
+        // 従来はLINE pushも無く「確定が一切通知されない」状態だった（仮予約時には
+        // 「確認後に確定」とLINE案内済み）。ここで確定をLINEにも push する。
+        const lineId = (res?.customers as unknown as { line_id?: string | null } | null)?.line_id;
+        if (res && lineId) {
+          try {
+            await sendLinePushMessage(
+              lineId,
+              buildBookingConfirmMessage({
+                customerName: `${res.customers.last_name} ${res.customers.first_name || ""}`.trim(),
+                plan: res.plan,
+                date: res.date,
+                checkinTime: res.checkin_time,
+                reservationId: reservation_id,
+                status: "confirmed",
+              })
+            );
+          } catch (lineErr) {
+            console.error("Confirmation LINE push error:", lineErr);
+          }
+        }
       } catch (emailErr) {
-        console.error("Confirmation email error:", emailErr);
+        console.error("Confirmation notify error:", emailErr);
       }
     }
 

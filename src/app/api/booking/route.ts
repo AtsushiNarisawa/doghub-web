@@ -36,6 +36,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "プラン・日程情報が不足しています" }, { status: 400 });
     }
 
+    // stayプランはチェックアウト日が必須かつチェックイン日の翌日以降であること。
+    // CO<=CI（空・同日・逆転）だと宿泊期間ループ(while d<end)が0回になり、休業日チェック・
+    // 容量チェック・daily_capacity更新を全てすり抜け、容量ゼロの宿泊予約が成立してしまうため
+    // ここで弾く（body.date/checkout_date は "YYYY-MM-DD" 文字列なので辞書順比較で日付の大小を判定）。
+    if (body.plan === "stay" && (!body.checkout_date || body.checkout_date <= body.date)) {
+      return NextResponse.json({ error: "チェックアウト日はチェックイン日の翌日以降を選択してください" }, { status: 400 });
+    }
+
     // サーバー側：前日17時まで受付（当日予約不可）— スタッフ入力（source: phone）は制限なし
     // Vercel サーバーは UTC で動くため、JST 9時以降に new Date() からローカル日付を作ると
     // 1日ズレて「翌日予約が当日扱い」になるバグがあった（2026-05-03 修正）。

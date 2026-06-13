@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -22,11 +22,7 @@ export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     setLoading(true);
     // 全顧客を取得（Supabaseデフォルト1000件制限を回避）
     let allCustomers: CustomerRow[] = [];
@@ -51,7 +47,11 @@ export default function CustomersPage() {
 
     setCustomers(allCustomers);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const filtered = customers.filter((c) => {
     if (!search) return true;

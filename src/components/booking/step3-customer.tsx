@@ -17,6 +17,26 @@ interface Props {
   onBack: () => void;
 }
 
+// サーバー側検証（api/booking/route.ts）と同一条件。正規化も揃えることで、
+// ハイフン入りや全角入力など「サーバーは通すがクライアントで弾く」過剰ブロックを防ぐ。
+function isValidPhone(raw: string): boolean {
+  const normalized = (raw || "")
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+    .replace(/[-\s‐ー－]/g, "")
+    .replace(/^\+81/, "0");
+  return /^0\d{9,10}$/.test(normalized);
+}
+
+function isValidEmail(raw: string): boolean {
+  const normalized = (raw || "")
+    .replace(/＠/g, "@")
+    .replace(/．/g, ".")
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+    .trim()
+    .toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
+
 export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
   // リピーター判定：犬情報がDBから読み込まれている（idがある）場合
   const isReturning = form.dogs.some((d) => !!d.id);
@@ -79,10 +99,14 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
 
   const isLineBooking = !!form.line_id;
 
+  // 電話は必須かつ形式必須。メールはLINE予約のみ任意（入力時は形式必須）、それ以外は必須。
+  const phoneOk = isValidPhone(c.phone);
+  const emailOk = isLineBooking ? !c.email || isValidEmail(c.email) : isValidEmail(c.email);
+
   const isValid =
     c.last_name && c.first_name &&
     c.last_name_kana && c.first_name_kana &&
-    c.phone && (isLineBooking || c.email) &&
+    phoneOk && emailOk &&
     (isReturning || form.referral_source);
 
   return (
@@ -169,6 +193,9 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               placeholder="09012345678"
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
             />
+            {c.phone && !phoneOk && (
+              <p className="text-orange-500 text-xs mt-1">電話番号は10〜11桁の数字でご入力ください（ハイフンは入れても大丈夫です）</p>
+            )}
           </div>
 
           {/* メール */}
@@ -186,6 +213,9 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               placeholder="hanako@example.com"
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
             />
+            {c.email && !isValidEmail(c.email) && (
+              <p className="text-orange-500 text-xs mt-1">メールアドレスの形式をご確認ください</p>
+            )}
           </div>
 
           {/* 郵便番号 */}

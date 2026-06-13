@@ -26,6 +26,23 @@ function formatDate(d: string) {
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日（${days[date.getDay()]}）`;
 }
 
+// メールHTMLに埋め込むユーザー入力をエスケープする（備考・犬名・氏名などの山括弧で本文が崩れるのを防ぐ）。
+// sendCustomMessage / sendLineStaffAlert と同じ方針を共通化。
+function escapeHtml(s: string | undefined | null): string {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// 複数行のユーザー入力（備考・アレルギー等）をエスケープ後に改行を<br>へ。
+function escapeMultiline(s: string | undefined | null): string {
+  return escapeHtml(s).replace(/\r?\n/g, "<br>");
+}
+
 function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, status: string): string {
   const isPending = status === "pending";
   const plan = PLANS.find((p) => p.id === form.plan);
@@ -39,8 +56,8 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
     return `
     <tr>
       <td style="padding:6px 0;border-bottom:1px solid #f0ebe5;">
-        <strong>${dog.name}</strong>（${dog.breed}）
-        <span style="color:#888;font-size:13px;"> ${dog.weight}kg${ageStr ? ` / ${ageStr}` : ""}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}</span>
+        <strong>${escapeHtml(dog.name)}</strong>（${escapeHtml(dog.breed)}）
+        <span style="color:#888;font-size:13px;"> ${escapeHtml(dog.weight)}kg${ageStr ? ` / ${ageStr}` : ""}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}</span>
       </td>
     </tr>`;
   }).join("");
@@ -71,7 +88,7 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
     </div>`}
 
     <h1 style="font-size:18px;font-weight:600;color:#3C200F;margin:0 0 20px;">
-      ${form.customer.last_name} ${form.customer.first_name} 様
+      ${escapeHtml(form.customer.last_name)} ${escapeHtml(form.customer.first_name)} 様
     </h1>
 
     <table style="width:100%;border-collapse:collapse;">
@@ -149,7 +166,7 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
     ${form.notes ? `
     <div style="margin-top:16px;padding:12px 14px;border:1px solid #f0ebe5;border-radius:8px;">
       <p style="margin:0 0 4px;font-size:12px;color:#888;">備考</p>
-      <p style="margin:0;font-size:13px;color:#3C200F;">${form.notes}</p>
+      <p style="margin:0;font-size:13px;color:#3C200F;">${escapeMultiline(form.notes)}</p>
     </div>` : ""}
   </div>
 
@@ -176,7 +193,7 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
     ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;margin:16px 0;color:#c2410c;font-size:13px;">
     <strong>⚠️ 重複登録の自動統合</strong>
     <ul style="margin:8px 0 0;padding-left:20px;">
-      ${duplicateWarnings.map((w) => `<li>${w}</li>`).join("")}
+      ${duplicateWarnings.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}
     </ul>
     <p style="margin:8px 0 0;font-size:12px;color:#9a3412;">既存の犬情報に予約が紐付けられました。問題があれば管理画面でご確認ください。</p>
   </div>`
@@ -198,13 +215,13 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
     <tr><td style="padding:6px 0;color:#888;width:110px;">予約番号</td><td style="padding:6px 0;">${reservationId.slice(0, 8).toUpperCase()}</td></tr>
     <tr><td style="padding:6px 0;color:#888;">プラン</td><td style="padding:6px 0;">${PLAN_NAMES[form.plan] || form.plan}</td></tr>
     <tr><td style="padding:6px 0;color:#888;">日付</td><td style="padding:6px 0;">${formatDate(form.date)} ${form.checkin_time}〜${form.plan === "stay" ? `（${stayNights}泊 / CO: ${formatDate(form.checkout_date || "")}）` : ""}</td></tr>
-    <tr><td style="padding:6px 0;color:#888;">お客様</td><td style="padding:6px 0;">${form.customer.last_name} ${form.customer.first_name}（${form.customer.last_name_kana} ${form.customer.first_name_kana}）</td></tr>
-    <tr><td style="padding:6px 0;color:#888;">電話</td><td style="padding:6px 0;"><a href="tel:${form.customer.phone}" style="color:#B87942;">${form.customer.phone}</a></td></tr>
-    <tr><td style="padding:6px 0;color:#888;">メール</td><td style="padding:6px 0;">${form.customer.email}</td></tr>
-    <tr><td style="padding:6px 0;color:#888;">行き先</td><td style="padding:6px 0;">${form.destination || "—"}</td></tr>
-    <tr><td style="padding:6px 0;color:#888;">きっかけ</td><td style="padding:6px 0;">${form.referral_source || "—"}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">お客様</td><td style="padding:6px 0;">${escapeHtml(form.customer.last_name)} ${escapeHtml(form.customer.first_name)}（${escapeHtml(form.customer.last_name_kana)} ${escapeHtml(form.customer.first_name_kana)}）</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">電話</td><td style="padding:6px 0;"><a href="tel:${encodeURIComponent(form.customer.phone)}" style="color:#B87942;">${escapeHtml(form.customer.phone)}</a></td></tr>
+    <tr><td style="padding:6px 0;color:#888;">メール</td><td style="padding:6px 0;">${escapeHtml(form.customer.email)}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">行き先</td><td style="padding:6px 0;">${escapeHtml(form.destination) || "—"}</td></tr>
+    <tr><td style="padding:6px 0;color:#888;">きっかけ</td><td style="padding:6px 0;">${escapeHtml(form.referral_source) || "—"}</td></tr>
     ${form.walk_option ? `<tr><td style="padding:6px 0;color:#888;">散歩</td><td style="padding:6px 0;color:#B87942;">あり</td></tr>` : ""}
-    ${form.notes ? `<tr><td style="padding:6px 0;color:#888;">備考</td><td style="padding:6px 0;">${form.notes}</td></tr>` : ""}
+    ${form.notes ? `<tr><td style="padding:6px 0;color:#888;">備考</td><td style="padding:6px 0;">${escapeMultiline(form.notes)}</td></tr>` : ""}
   </table>
 
   ${dupSection}
@@ -212,13 +229,13 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
   <h3 style="margin:20px 0 10px;font-size:14px;color:#888;">ワンちゃん</h3>
   ${form.dogs.map((dog) => `
   <div style="background:#f7f5f0;border-radius:8px;padding:12px;margin-bottom:8px;font-size:13px;">
-    <strong>${dog.name}</strong>（${dog.breed}）
-    ${parseFloat(dog.weight) >= 15 ? `<span style="color:#c2410c;font-weight:600;"> ⚠️ ${dog.weight}kg</span>` : ` ${dog.weight}kg`}
-    / ${dog.age === "0" && dog.age_months ? `${dog.age_months}ヶ月` : dog.age ? `${dog.age}歳` : ""}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
+    <strong>${escapeHtml(dog.name)}</strong>（${escapeHtml(dog.breed)}）
+    ${parseFloat(dog.weight) >= 15 ? `<span style="color:#c2410c;font-weight:600;"> ⚠️ ${escapeHtml(dog.weight)}kg</span>` : ` ${escapeHtml(dog.weight)}kg`}
+    / ${dog.age === "0" && dog.age_months ? `${escapeHtml(dog.age_months)}ヶ月` : dog.age ? `${escapeHtml(dog.age)}歳` : ""}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
     / 狂犬病: ${dog.has_rabies_vaccine ? "接種済" : "未接種"} / 混合: ${dog.has_mixed_vaccine ? "接種済" : "未接種"}
-    ${dog.allergies ? `<br><span style="color:#888;">アレルギー: ${dog.allergies}</span>` : ""}
-    ${dog.meal_notes ? `<br><span style="color:#888;">食事: ${dog.meal_notes}</span>` : ""}
-    ${dog.medication_notes ? `<br><span style="color:#888;">投薬: ${dog.medication_notes}</span>` : ""}
+    ${dog.allergies ? `<br><span style="color:#888;">アレルギー: ${escapeMultiline(dog.allergies)}</span>` : ""}
+    ${dog.meal_notes ? `<br><span style="color:#888;">食事: ${escapeMultiline(dog.meal_notes)}</span>` : ""}
+    ${dog.medication_notes ? `<br><span style="color:#888;">投薬: ${escapeMultiline(dog.medication_notes)}</span>` : ""}
   </div>`).join("")}
 
   <div style="margin-top:16px;text-align:center;">
@@ -251,15 +268,22 @@ export async function sendBookingEmails(
     : `【新規予約】${form.customer.last_name}様 ${formatDate(form.date)} ${form.checkin_time}`;
   const staffSubject = hasDup ? `${staffSubjectBase}[重複統合]` : staffSubjectBase;
 
+  // LINE予約はメール任意のため、宛先が空のときはお客様メールを送らない。
+  // 送ると nodemailer が「No recipients defined」で失敗し、誤って「メール送信に失敗」
+  // 警告が表示される（実際にはLINEで確定通知済み）。スタッフ通知は常に送る。
+  const hasCustomerEmail = !!(form.customer.email && form.customer.email.trim());
+
   const results = await Promise.allSettled([
-    // お客様への確認メール
-    transporter.sendMail({
-      from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
-      replyTo: "info@dog-hub.shop",
-      to: form.customer.email,
-      subject: customerSubject,
-      html: buildCustomerEmailHtml(form, reservationId, status),
-    }),
+    // お客様への確認メール（メール未入力のLINE予約客にはスキップ）
+    hasCustomerEmail
+      ? transporter.sendMail({
+          from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
+          replyTo: "info@dog-hub.shop",
+          to: form.customer.email,
+          subject: customerSubject,
+          html: buildCustomerEmailHtml(form, reservationId, status),
+        })
+      : Promise.resolve(null),
     // スタッフへの通知メール（オーナー）
     transporter.sendMail({
       from: `"DogHub予約システム" <narisawa@dog-hub.shop>`,

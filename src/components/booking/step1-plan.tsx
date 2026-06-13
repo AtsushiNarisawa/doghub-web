@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { HOLIDAYS } from "@/lib/holidays";
 import { ROOM_LIMIT } from "@/lib/capacity";
+import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
 
 interface Props {
   form: BookingFormData;
@@ -56,38 +57,22 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       });
   }, []);
 
-  // 受付期限: 当日予約不可（翌日以降）。17時以降の翌日予約は仮予約として受付
-  const getMinDate = () => {
-    const now = new Date();
-    const minDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // 常に翌日以降（当日予約不可）
-    minDate.setDate(minDate.getDate() + 1);
-    return `${minDate.getFullYear()}-${String(minDate.getMonth()+1).padStart(2,"0")}-${String(minDate.getDate()).padStart(2,"0")}`;
-  };
+  // 受付期限: 当日予約不可（翌日以降）。17時以降の翌日予約は仮予約として受付。
+  // 当日/翌日の基準はサーバー(route.ts)と同じ JST で判定する。端末ローカルTZ依存だと
+  // 海外端末やTZ誤設定でサーバー判定とズレ、選べた日が当日扱いで弾かれる/翌日が隠れる。
+  const getMinDate = () => addDaysJst(getJstToday(), 1);
 
-  // 前日17時以降の翌日予約かどうか判定
+  // 前日17時以降の翌日予約かどうか判定（JST基準）
   const isLateBooking = (dateStr: string) => {
     if (!dateStr) return false;
-    const now = new Date();
-    const bookingDate = new Date(dateStr + "T00:00:00");
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    const isTomorrow = bookingDate.getTime() === tomorrow.getTime();
-    return isTomorrow && now.getHours() >= 17;
+    return dateStr === addDaysJst(getJstToday(), 1) && getJstHour() >= 17;
   };
 
-  // 当日かどうか判定
-  const isToday = (dateStr: string) => {
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-    return dateStr === todayStr;
-  };
+  // 当日かどうか判定（JST基準）
+  const isToday = (dateStr: string) => dateStr === getJstToday();
 
-  // 受付上限日
-  const getMaxDate = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + bookingWindowDays);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  };
+  // 受付上限日（JST基準）
+  const getMaxDate = () => addDaysJst(getJstToday(), bookingWindowDays);
 
   // 定休日チェック（設定から取得）
   // 容量データからclosed状態を取得（カレンダー表示で使用）
