@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根ゴルフ × ペットホテル｜愛犬を預けてプレーを満喫｜DogHub箱根仙石原",
+    description: "箱根でゴルフを楽しむ間、愛犬をDogHubにお預け。早朝7時からお預かり対応。大箱根カントリークラブ提携。1日8時間¥5,500。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+    url: "https://dog-hub.shop/golf",
+    type: "website",
+  },
   title: "箱根ゴルフ × ペットホテル｜愛犬を預けてプレーを満喫｜DogHub箱根仙石原",
   description: "箱根でゴルフを楽しむ間、愛犬をDogHubにお預け。早朝7時からお預かり対応。大箱根カントリークラブ提携。1日8時間¥5,500。24時間スタッフ常駐・完全個室・ドッグラン併設。",
   alternates: { canonical: "/golf" },

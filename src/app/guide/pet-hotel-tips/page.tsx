@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "ペットホテル 初めて 不安解消ガイド｜預ける前に知っておきたいこと｜DogHub箱根仙石原",
+    description: "はじめてペットホテルを利用する方へ。ペットホテル選びのポイント、預ける前の準備、当日の流れ、愛犬のストレス対策まで。DogHub箱根仙石原が初めての不安を解消します。",
+    url: "https://dog-hub.shop/guide/pet-hotel-tips",
+    type: "website",
+  },
   title: "ペットホテル 初めて 不安解消ガイド｜預ける前に知っておきたいこと｜DogHub箱根仙石原",
   description: "はじめてペットホテルを利用する方へ。ペットホテル選びのポイント、預ける前の準備、当日の流れ、愛犬のストレス対策まで。DogHub箱根仙石原が初めての不安を解消します。",
   alternates: { canonical: "/guide/pet-hotel-tips" },

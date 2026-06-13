@@ -7,6 +7,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "お知らせ | DogHub箱根仙石原",
+    description: "DogHub箱根仙石原からのお知らせ・ブログ記事一覧。",
+    url: "https://dog-hub.shop/news",
+    type: "website",
+  },
   title: "お知らせ | DogHub箱根仙石原",
   description: "DogHub箱根仙石原からのお知らせ・ブログ記事一覧。",
   alternates: { canonical: "/news" },

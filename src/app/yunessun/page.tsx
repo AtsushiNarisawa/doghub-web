@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "ユネッサン × ペット預かり｜箱根小涌園の間に愛犬をお預け｜DogHub箱根仙石原",
+    description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。1日8時間¥5,500〜でユネッサンを満喫。24時間スタッフ常駐・完全個室のペットホテル。",
+    url: "https://dog-hub.shop/yunessun",
+    type: "website",
+  },
   title: "ユネッサン × ペット預かり｜箱根小涌園の間に愛犬をお預け｜DogHub箱根仙石原",
   description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。1日8時間¥5,500〜でユネッサンを満喫。24時間スタッフ常駐・完全個室のペットホテル。",
   alternates: { canonical: "/yunessun" },

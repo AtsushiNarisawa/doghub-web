@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根 高級旅館 × ペットホテル｜ペット不可の宿でも愛犬と箱根旅行｜DogHub箱根仙石原",
+    description: "箱根吟遊、富士屋ホテル、強羅花壇など憧れの高級旅館はペット不可。DogHub箱根仙石原なら愛犬を安心して預けて特別な宿に宿泊。1泊¥7,700〜。24時間スタッフ常駐・完全個室。",
+    url: "https://dog-hub.shop/ryokan",
+    type: "website",
+  },
   title: "箱根 高級旅館 × ペットホテル｜ペット不可の宿でも愛犬と箱根旅行｜DogHub箱根仙石原",
   description: "箱根吟遊、富士屋ホテル、強羅花壇など憧れの高級旅館はペット不可。DogHub箱根仙石原なら愛犬を安心して預けて特別な宿に宿泊。1泊¥7,700〜。24時間スタッフ常駐・完全個室。",
   alternates: { canonical: "/ryokan" },

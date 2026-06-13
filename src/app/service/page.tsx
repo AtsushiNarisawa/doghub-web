@@ -9,6 +9,12 @@ import Image from "next/image";
 import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根のペット ホテル｜犬の一時預かり・宿泊｜DogHub箱根仙石原",
+    description: "箱根仙石原のペットホテル DogHub。犬の一時預かり¥1,100〜/1時間・宿泊¥7,700〜。24時間スタッフ常駐・完全個室・ドッグラン併設で安心。箱根観光中の愛犬のお預け先に。",
+    url: "https://dog-hub.shop/service",
+    type: "website",
+  },
   title: "箱根のペット ホテル｜犬の一時預かり・宿泊｜DogHub箱根仙石原",
   description: "箱根仙石原のペットホテル DogHub。犬の一時預かり¥1,100〜/1時間・宿泊¥7,700〜。24時間スタッフ常駐・完全個室・ドッグラン併設で安心。箱根観光中の愛犬のお預け先に。",
   alternates: { canonical: "/service" },

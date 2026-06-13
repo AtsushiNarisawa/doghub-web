@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根の日帰り温泉×犬連れ｜愛犬はDogHubに預けて温泉を満喫｜仙石原",
+    description: "箱根の日帰り温泉を犬連れで楽しみたい方へ。犬OKの温泉は限定的ですが、愛犬をDogHub箱根仙石原に預ければ自由に温泉を満喫できます。半日4時間¥3,300〜。仙石原・強羅・箱根湯本エリアの温泉施設へ好アクセス。",
+    url: "https://dog-hub.shop/onsen",
+    type: "website",
+  },
   title: "箱根の日帰り温泉×犬連れ｜愛犬はDogHubに預けて温泉を満喫｜仙石原",
   description: "箱根の日帰り温泉を犬連れで楽しみたい方へ。犬OKの温泉は限定的ですが、愛犬をDogHub箱根仙石原に預ければ自由に温泉を満喫できます。半日4時間¥3,300〜。仙石原・強羅・箱根湯本エリアの温泉施設へ好アクセス。",
   alternates: { canonical: "/onsen" },

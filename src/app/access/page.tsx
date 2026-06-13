@@ -7,6 +7,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "アクセス・店舗情報｜DogHub箱根仙石原 ペットホテル＆カフェ",
+    description: "DogHub箱根仙石原の店舗情報・アクセス。神奈川県足柄下郡箱根町仙石原928-15。ドッグホテル営業時間9時〜17時、カフェ11時〜17時、定休日水木。",
+    url: "https://dog-hub.shop/access",
+    type: "website",
+  },
   title: "アクセス・店舗情報｜DogHub箱根仙石原 ペットホテル＆カフェ",
   description: "DogHub箱根仙石原の店舗情報・アクセス。神奈川県足柄下郡箱根町仙石原928-15。ドッグホテル営業時間9時〜17時、カフェ11時〜17時、定休日水木。",
   alternates: { canonical: "/access" },

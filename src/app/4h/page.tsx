@@ -9,6 +9,12 @@ import Image from "next/image";
 import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
+    description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
+    url: "https://dog-hub.shop/4h",
+    type: "website",
+  },
   title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
   description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
   alternates: { canonical: "/4h" },

@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根 犬連れ旅行ガイド｜犬と箱根を楽しむすべてがここに｜DogHub箱根仙石原",
+    description: "箱根に犬連れで旅行するなら。犬OKスポット、ペット可の宿、犬連れランチ、ペットホテル、モデルコースなど箱根×犬の情報をまとめました。DogHub箱根仙石原は預かり・カフェ・ドッグランが一か所に。",
+    url: "https://dog-hub.shop/hakone",
+    type: "website",
+  },
   title: "箱根 犬連れ旅行ガイド｜犬と箱根を楽しむすべてがここに｜DogHub箱根仙石原",
   description: "箱根に犬連れで旅行するなら。犬OKスポット、ペット可の宿、犬連れランチ、ペットホテル、モデルコースなど箱根×犬の情報をまとめました。DogHub箱根仙石原は預かり・カフェ・ドッグランが一か所に。",
   alternates: { canonical: "/hakone" },

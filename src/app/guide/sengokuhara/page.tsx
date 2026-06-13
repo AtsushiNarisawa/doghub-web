@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "仙石原 犬 散歩ガイド｜愛犬と歩く箱根仙石原のおすすめコース｜DogHub箱根仙石原",
+    description: "箱根仙石原で愛犬と散歩するならここ。すすき草原、湿生花園、仙石原自然探勝歩道など犬OKの散策コースを紹介。DogHub箱根仙石原スタッフおすすめのお散歩マップ。",
+    url: "https://dog-hub.shop/guide/sengokuhara",
+    type: "website",
+  },
   title: "仙石原 犬 散歩ガイド｜愛犬と歩く箱根仙石原のおすすめコース｜DogHub箱根仙石原",
   description: "箱根仙石原で愛犬と散歩するならここ。すすき草原、湿生花園、仙石原自然探勝歩道など犬OKの散策コースを紹介。DogHub箱根仙石原スタッフおすすめのお散歩マップ。",
   alternates: { canonical: "/guide/sengokuhara" },

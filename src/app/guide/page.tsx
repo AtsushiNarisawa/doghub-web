@@ -7,6 +7,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "ご利用ガイド・ご予約方法｜DogHub箱根仙石原 ペットホテル",
+    description: "DogHub箱根仙石原のご利用ガイド。ご予約方法・必要なもの・料金プラン・注意事項・よくある質問をまとめています。",
+    url: "https://dog-hub.shop/guide",
+    type: "website",
+  },
   title: "ご利用ガイド・ご予約方法｜DogHub箱根仙石原 ペットホテル",
   description: "DogHub箱根仙石原のご利用ガイド。ご予約方法・必要なもの・料金プラン・注意事項・よくある質問をまとめています。",
   alternates: { canonical: "/guide" },

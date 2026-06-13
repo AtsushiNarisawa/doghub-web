@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根 ドッグラン｜DogHub箱根仙石原 専用ドッグラン併設ペットホテル",
+    description: "DogHub箱根仙石原は専用ドッグラン併設のペットホテル。屋根付きエリアあり、雨の日でもOK。お預かり中は1日2回以上お散歩にお連れします。仙石原の自然の中で愛犬ものびのび。",
+    url: "https://dog-hub.shop/dogrun",
+    type: "website",
+  },
   title: "箱根 ドッグラン｜DogHub箱根仙石原 専用ドッグラン併設ペットホテル",
   description: "DogHub箱根仙石原は専用ドッグラン併設のペットホテル。屋根付きエリアあり、雨の日でもOK。お預かり中は1日2回以上お散歩にお連れします。仙石原の自然の中で愛犬ものびのび。",
   alternates: { canonical: "/dogrun" },

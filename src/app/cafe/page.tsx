@@ -9,6 +9,12 @@ import Image from "next/image";
 import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根 犬連れランチ＆ドッグカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
+    description: "箱根で犬連れランチならDogHubのドッグカフェへ。5つ星お米マイスター厳選のおむすびとスープを愛犬と一緒に。イートイン・テイクアウトOK、ドッグラン併設。営業11時〜17時、予約不要。",
+    url: "https://dog-hub.shop/cafe",
+    type: "website",
+  },
   title: "箱根 犬連れランチ＆ドッグカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
   description: "箱根で犬連れランチならDogHubのドッグカフェへ。5つ星お米マイスター厳選のおむすびとスープを愛犬と一緒に。イートイン・テイクアウトOK、ドッグラン併設。営業11時〜17時、予約不要。",
   alternates: { canonical: "/cafe" },

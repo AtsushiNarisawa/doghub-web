@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "初めての方へ｜DogHub箱根仙石原 ペットホテル＆カフェ",
+    description: "DogHub箱根仙石原を初めてご利用の方へ。ご利用の流れ、料金プラン、持ち物、よくある質問をまとめました。24時間スタッフ常駐・完全個室・ドッグラン併設の犬専門ペットホテルです。",
+    url: "https://dog-hub.shop/beginner",
+    type: "website",
+  },
   title: "初めての方へ｜DogHub箱根仙石原 ペットホテル＆カフェ",
   description: "DogHub箱根仙石原を初めてご利用の方へ。ご利用の流れ、料金プラン、持ち物、よくある質問をまとめました。24時間スタッフ常駐・完全個室・ドッグラン併設の犬専門ペットホテルです。",
   alternates: { canonical: "/beginner" },

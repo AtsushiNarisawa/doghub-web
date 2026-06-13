@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根湯本から犬のホテルをお探しなら｜DogHub箱根仙石原",
+    description: "箱根湯本エリアで犬のホテル・ペットホテルをお探しの方へ。DogHub箱根仙石原は箱根湯本から車で約30分。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+    url: "https://dog-hub.shop/yumoto",
+    type: "website",
+  },
   title: "箱根湯本から犬のホテルをお探しなら｜DogHub箱根仙石原",
   description: "箱根湯本エリアで犬のホテル・ペットホテルをお探しの方へ。DogHub箱根仙石原は箱根湯本から車で約30分。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。",
   alternates: { canonical: "/yumoto" },

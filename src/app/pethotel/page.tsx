@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根のペットホテル｜DogHub箱根仙石原 完全個室・ドッグラン併設｜半日¥3,300〜",
+    description: "箱根でペットホテルをお探しの方へ。DogHub箱根仙石原は完全個室・ドッグラン併設・24時間スタッフ常駐。半日¥3,300〜、1日¥5,500〜、宿泊¥7,700〜。観光中の預かりから宿泊までフレキシブル対応。レジーナ仙石原など近隣ペット可施設からのご案内多数。",
+    url: "https://dog-hub.shop/pethotel",
+    type: "website",
+  },
   title: "箱根のペットホテル｜DogHub箱根仙石原 完全個室・ドッグラン併設｜半日¥3,300〜",
   description: "箱根でペットホテルをお探しの方へ。DogHub箱根仙石原は完全個室・ドッグラン併設・24時間スタッフ常駐。半日¥3,300〜、1日¥5,500〜、宿泊¥7,700〜。観光中の預かりから宿泊までフレキシブル対応。レジーナ仙石原など近隣ペット可施設からのご案内多数。",
   alternates: { canonical: "/pethotel" },

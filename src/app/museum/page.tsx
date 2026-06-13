@@ -8,6 +8,12 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 
 export const metadata: Metadata = {
+  openGraph: {
+    title: "箱根美術館 × ペット預かり｜美術館めぐりの間に愛犬をお預け｜DogHub箱根仙石原",
+    description: "箱根の美術館はペット入館不可。DogHub箱根仙石原はポーラ美術館から車4分、ガラスの森から車3分。半日4時間¥3,300。美術館めぐりの間に愛犬を安心してお預けください。",
+    url: "https://dog-hub.shop/museum",
+    type: "website",
+  },
   title: "箱根美術館 × ペット預かり｜美術館めぐりの間に愛犬をお預け｜DogHub箱根仙石原",
   description: "箱根の美術館はペット入館不可。DogHub箱根仙石原はポーラ美術館から車4分、ガラスの森から車3分。半日4時間¥3,300。美術館めぐりの間に愛犬を安心してお預けください。",
   alternates: { canonical: "/museum" },
