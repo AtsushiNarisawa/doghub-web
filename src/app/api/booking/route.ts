@@ -430,31 +430,39 @@ export async function POST(req: NextRequest) {
       datesToUpdate.push(body.date);
     }
 
-    // 容量を頭数分で更新する共通関数
-    const updateCapacity = async (date: string, column: string, delta: number) => {
-      const { data: existing } = await supabase
-        .from("daily_capacity")
-        .select("*")
-        .eq("date", date)
-        .maybeSingle();
-
-      if (existing) {
-        await supabase
-          .from("daily_capacity")
-          .update({ [column]: Math.max(0, existing[column] + delta) })
-          .eq("date", date);
-      } else if (delta > 0) {
-        // 既存レコードがない場合のみinsert。closedは設定しない（DBデフォルトfalse）
-        // ※ 予約はバリデーション通過済み=営業日のためclosed=falseで正しい
-        await supabase.from("daily_capacity").insert({
-          date,
-          [column]: delta,
-        });
+    // 容量を原子的に確保する（対象日を昇順でFOR UPDATEロック→各日の上限チェック→加算を
+    // 1トランザクションで実行する reserve_capacity RPC）。従来の「SELECT→JSで加算→UPDATE」は
+    // 満室境界(18/19)での同時予約で lost update / オーバーブッキングを起こしうるため置換。
+    const { error: capErr } = await supabase.rpc("reserve_capacity", {
+      p_dates: datesToUpdate,
+      p_column: capacityColumn,
+      p_dog_count: dogCount,
+    });
+    if (capErr) {
+      const msg = capErr.message || "";
+      if (msg.includes("CAPACITY_EXCEEDED")) {
+        // 満室レース → 直前に作成した予約を取り消してロールバック（オーバーブック防止）。
+        await supabase.from("reservation_dogs").delete().eq("reservation_id", reservation.id);
+        await supabase.from("reservations").delete().eq("id", reservation.id);
+        return NextResponse.json({ error: `${body.date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
       }
-    };
-
-    for (const date of datesToUpdate) {
-      await updateCapacity(date, capacityColumn, dogCount);
+      // 想定外のRPCエラー時は予約を失わせないよう従来の加算ロジックにフォールバック（容量の取りこぼし防止）。
+      console.error("reserve_capacity unexpected error, fallback to non-atomic update:", msg);
+      for (const date of datesToUpdate) {
+        const { data: existing } = await supabase
+          .from("daily_capacity")
+          .select("*")
+          .eq("date", date)
+          .maybeSingle();
+        if (existing) {
+          await supabase
+            .from("daily_capacity")
+            .update({ [capacityColumn]: Math.max(0, (existing[capacityColumn] || 0) + dogCount) })
+            .eq("date", date);
+        } else {
+          await supabase.from("daily_capacity").insert({ date, [capacityColumn]: dogCount });
+        }
+      }
     }
     // CO日のday_booked加算は廃止（day_limit は純粋な日帰りプランのみで管理）
 
