@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { computeVisitCount } from "@/lib/visit-count";
 
 interface CustomerRow {
   id: string;
@@ -14,7 +15,8 @@ interface CustomerRow {
   email: string;
   created_at: string;
   dogs: { name: string; breed: string }[];
-  reservations: { id: string }[];
+  reservations: { status: string }[];
+  legacy_visit_count: number;
 }
 
 export default function CustomersPage() {
@@ -32,9 +34,9 @@ export default function CustomersPage() {
       const { data } = await supabase
         .from("customers")
         .select(`
-          id, last_name, first_name, last_name_kana, first_name_kana, phone, email, created_at,
+          id, last_name, first_name, last_name_kana, first_name_kana, phone, email, created_at, legacy_visit_count,
           dogs(name, breed),
-          reservations(id)
+          reservations(status)
         `)
         .order("created_at", { ascending: false })
         .range(from, from + batchSize - 1);
@@ -109,7 +111,7 @@ export default function CustomersPage() {
                   {c.last_name} {c.first_name}
                 </p>
                 <span className="text-sm text-gray-500 font-dm">
-                  {c.reservations.length}回利用
+                  {computeVisitCount(c.legacy_visit_count, c.reservations.map((r) => r.status))}回利用
                 </span>
               </div>
               <p className="text-sm text-gray-500">

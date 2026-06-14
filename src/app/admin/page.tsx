@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
+import { fetchVisitCounts } from "@/lib/visit-count";
 
 interface DogInfo {
   name: string;
@@ -210,27 +211,24 @@ export default function AdminDashboard() {
 
     const allData = [...(todayData || []), ...(stayData || []), ...(pendingData || [])] as unknown as ReservationRow[];
     const customerIds = [...new Set(allData.map((r) => r.customers.id))];
-    const displayedIds = allData.map((r) => r.id);
-
     const histories: Record<string, CustomerHistory> = {};
     if (customerIds.length > 0) {
+      // 利用回数は正準ソース（legacy_visit_count + 確定/完了予約数）に統一
+      const visitCounts = await fetchVisitCounts(customerIds);
+      // 最終利用日は過去の確定/完了予約のうち最新（無ければ移行時の last_visit_date）
       const { data: pastRes } = await supabase
         .from("reservations")
-        .select("id, customer_id, date, status")
+        .select("customer_id, date, status")
         .in("customer_id", customerIds)
         .in("status", ["confirmed", "completed"])
         .lt("date", selectedDate)
         .order("date", { ascending: false });
 
       for (const cid of customerIds) {
-        const visits = (pastRes || []).filter((r) => r.customer_id === cid && !displayedIds.includes(r.id));
+        const past = (pastRes || []).filter((r) => r.customer_id === cid);
         const customer = allData.find((r) => r.customers.id === cid)?.customers;
-        const importedVisits = customer?.total_visits || 0;
-        const dbVisits = visits.length;
-        // インポート済み利用回数 + 新システムの過去予約（重複を避けるため大きい方を採用）
-        const totalCount = Math.max(importedVisits, dbVisits);
-        const lastDate = visits.length > 0 ? visits[0].date : customer?.last_visit_date || null;
-        histories[cid] = { visitCount: totalCount, lastVisitDate: lastDate };
+        const lastDate = past.length > 0 ? past[0].date : customer?.last_visit_date || null;
+        histories[cid] = { visitCount: visitCounts[cid] ?? 0, lastVisitDate: lastDate };
       }
     }
 

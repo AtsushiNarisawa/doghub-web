@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { fetchVisitCounts } from "@/lib/visit-count";
 
 interface Customer {
   id: string;
@@ -19,6 +20,7 @@ interface Customer {
   notes: string | null;
   line_id: string | null;
   created_at: string;
+  legacy_visit_count: number;
 }
 
 interface Dog {
@@ -79,6 +81,7 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [reservations, setReservations] = useState<ReservationSummary[]>([]);
+  const [visitCount, setVisitCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState<Partial<Customer>>({});
@@ -113,6 +116,8 @@ export default function CustomerDetailPage() {
     }
     setDogs((dogsRes.data as Dog[]) || []);
     setReservations((resRes.data as unknown as ReservationSummary[]) || []);
+    // 利用回数は正準ソース（legacy_visit_count + 確定/完了予約数）
+    setVisitCount((await fetchVisitCounts([id]))[id] ?? 0);
     setLoading(false);
   };
 
@@ -206,7 +211,6 @@ export default function CustomerDetailPage() {
     return <div className="py-20 text-center text-sm text-gray-500">顧客が見つかりません</div>;
   }
 
-  const completedCount = reservations.filter((r) => r.status !== "cancelled").length;
   const duplicatePairs = findDuplicates(dogs);
 
   const formatDateTime = (s?: string) => {
@@ -231,7 +235,7 @@ export default function CustomerDetailPage() {
             <p className="text-sm text-gray-500">{customer.last_name_kana} {customer.first_name_kana}</p>
           )}
         </div>
-        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{completedCount}回利用</span>
+        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{visitCount}回利用</span>
       </div>
 
       {/* この顧客で新規予約 */}

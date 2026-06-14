@@ -466,8 +466,9 @@ export async function POST(req: NextRequest) {
     }
     // CO日のday_booked加算は廃止（day_limit は純粋な日帰りプランのみで管理）
 
-    // 7. 顧客の利用回数を更新
-    try { await supabase.rpc("increment_total_visits", { customer_uuid: customerId }); } catch { /* ignore */ }
+    // 7. 利用回数は「legacy_visit_count + 確定/完了予約数」で都度導出するため、
+    //    累積カウンタ increment_total_visits は廃止（キャンセルで減算されず初回客が
+    //    常連表示される不具合の元だった）。算定ロジックは web/src/lib/visit-count.ts。
 
     // 8. メール送信（失敗しても予約自体は成功扱い、ただしフロントに通知）
     let emailFailed = false;

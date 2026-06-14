@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { fetchVisitCounts } from "@/lib/visit-count";
 
 interface Reservation {
   id: string;
@@ -72,6 +73,7 @@ export default function ReservationDetailPage() {
   const [res, setRes] = useState<Reservation | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [pastVisits, setPastVisits] = useState<{ id: string; date: string; plan: string }[]>([]);
+  const [visitCount, setVisitCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [memoSaved, setMemoSaved] = useState(false);
@@ -107,6 +109,8 @@ export default function ReservationDetailPage() {
         .order("date", { ascending: false })
         .limit(10);
       setPastVisits(history || []);
+      // 利用回数は正準ソース（legacy_visit_count + 確定/完了予約数）。pastVisits は履歴リスト表示用に別途保持。
+      setVisitCount((await fetchVisitCounts([customerId]))[customerId] ?? 0);
     }
     setLoading(false);
   };
@@ -325,12 +329,9 @@ export default function ReservationDetailPage() {
             </p>
             <p className="text-xs text-gray-400">
               {customer.last_name_kana} {customer.first_name_kana}
-              {(() => {
-                const visits = Math.max(customer.total_visits || 0, pastVisits.length + 1);
-                return visits >= 2 ? (
-                  <span className="ml-2 text-blue-500">{visits}回利用</span>
-                ) : null;
-              })()}
+              {visitCount >= 2 ? (
+                <span className="ml-2 text-blue-500">{visitCount}回利用</span>
+              ) : null}
             </p>
           </div>
           <a href={`tel:${customer.phone}`} className="text-sm text-[#B87942] font-medium" onClick={(e) => e.stopPropagation()}>

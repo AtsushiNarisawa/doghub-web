@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
+import { fetchVisitCounts } from "@/lib/visit-count";
 
 interface ReservationRow {
   id: string;
@@ -131,21 +132,10 @@ export default function ReservationsPage() {
     const rows = (data as unknown as ReservationRow[]) || [];
     setReservations(rows);
 
-    // 顧客ごとの利用回数を取得
+    // 顧客ごとの利用回数を取得（正準ソース: legacy_visit_count + 確定/完了予約数）
     const customerIds = [...new Set(rows.map(r => r.customer_id).filter(Boolean))];
     if (customerIds.length > 0) {
-      const { data: allRes } = await supabase
-        .from("reservations")
-        .select("customer_id, status")
-        .in("customer_id", customerIds)
-        .in("status", ["confirmed", "completed"]);
-      const counts: Record<string, number> = {};
-      if (allRes) {
-        for (const r of allRes) {
-          counts[r.customer_id] = (counts[r.customer_id] || 0) + 1;
-        }
-      }
-      setVisitCounts(counts);
+      setVisitCounts(await fetchVisitCounts(customerIds));
     }
 
     // カレンダーモード：容量データも取得
