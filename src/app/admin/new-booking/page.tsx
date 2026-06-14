@@ -31,6 +31,8 @@ interface NewDogInput {
   weight: string;
   age: string;
   sex: "male" | "female" | "";
+  has_rabies_vaccine: boolean | null;
+  has_mixed_vaccine: boolean | null;
 }
 
 const CHECKIN_TIMES: Record<string, string[]> = {
@@ -56,7 +58,7 @@ function NewBookingForm() {
   // 新規顧客フォーム
   const [newCustomer, setNewCustomer] = useState({ last_name: "", first_name: "", phone: "" });
   const [isNewCustomer, setIsNewCustomer] = useState(false);
-  const [newDogs, setNewDogs] = useState<NewDogInput[]>([{ name: "", breed: "", weight: "", age: "", sex: "" }]);
+  const [newDogs, setNewDogs] = useState<NewDogInput[]>([{ name: "", breed: "", weight: "", age: "", sex: "", has_rabies_vaccine: null, has_mixed_vaccine: null }]);
   const [dupCandidates, setDupCandidates] = useState<SearchResult[]>([]);
 
   // 予約フォーム
@@ -188,7 +190,7 @@ function NewBookingForm() {
     } else {
       setNewCustomer({ last_name: q, first_name: "", phone: "" });
     }
-    setNewDogs([{ name: "", breed: "", weight: "", age: "", sex: "" }]);
+    setNewDogs([{ name: "", breed: "", weight: "", age: "", sex: "", has_rabies_vaccine: null, has_mixed_vaccine: null }]);
     setStep("form");
   };
 
@@ -233,8 +235,8 @@ function NewBookingForm() {
               age: d.age || "",
               age_months: "",
               sex: d.sex,
-              has_rabies_vaccine: false,
-              has_mixed_vaccine: false,
+              has_rabies_vaccine: d.has_rabies_vaccine,
+              has_mixed_vaccine: d.has_mixed_vaccine,
               allergies: "",
               meal_notes: "",
               medication_notes: "",
@@ -564,10 +566,42 @@ function NewBookingForm() {
                   ))}
                 </div>
               </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">ワクチン接種（任意）</p>
+                <p className="text-[11px] text-gray-400 mb-2">当日、証明書（スマホ写真可）でご確認ください</p>
+                {([
+                  { key: "has_rabies_vaccine" as const, label: "狂犬病" },
+                  { key: "has_mixed_vaccine" as const, label: "混合" },
+                ]).map((vac) => (
+                  <div key={vac.key} className="mb-2 last:mb-0">
+                    <p className="text-xs text-gray-500 mb-1">{vac.label}ワクチン</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { v: true, label: "接種済み" },
+                        { v: false, label: "未接種" },
+                        { v: null, label: "未確認" },
+                      ]).map((opt) => (
+                        <button
+                          key={String(opt.v)}
+                          type="button"
+                          onClick={() => { const d = [...newDogs]; d[i] = { ...d[i], [vac.key]: opt.v }; setNewDogs(d); }}
+                          className={`py-2 rounded-lg text-sm font-medium transition-colors ${
+                            dog[vac.key] === opt.v
+                              ? "bg-[#B87942] text-white"
+                              : "bg-gray-50 text-gray-600 active:bg-gray-100"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
           <button
-            onClick={() => setNewDogs([...newDogs, { name: "", breed: "", weight: "", age: "", sex: "" }])}
+            onClick={() => setNewDogs([...newDogs, { name: "", breed: "", weight: "", age: "", sex: "", has_rabies_vaccine: null, has_mixed_vaccine: null }])}
             className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 active:bg-gray-50"
           >
             + もう1頭追加
