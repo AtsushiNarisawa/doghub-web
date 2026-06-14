@@ -385,10 +385,26 @@ function NewBookingForm() {
   // ── STEP: 予約フォーム ──
   const availableTimes = CHECKIN_TIMES[plan] || [];
   const hasDogs = customer && customer.dogs && customer.dogs.length > 0;
-  const canSubmit =
-    plan && date && checkinTime &&
-    (plan === "stay" ? checkoutDate : true) &&
-    (customer ? (!hasDogs || selectedDogIds.length > 0) : isNewCustomer);
+
+  // 送信に必要なのに未入力の項目を洗い出す（ボタンが押せない/押しても無反応の原因を可視化）
+  const missingFields: string[] = [];
+  if (!customer && !isNewCustomer) {
+    missingFields.push("お客様情報");
+  } else if (isNewCustomer && !customer) {
+    if (!newCustomer.last_name.trim()) missingFields.push("お客様の姓（せい）");
+    if (!newCustomer.phone.trim()) missingFields.push("電話番号");
+  }
+  if (customer) {
+    if (hasDogs && selectedDogIds.length === 0) missingFields.push("ワンちゃんの選択");
+  } else if (isNewCustomer) {
+    if (!newDogs.some((d) => d.name.trim())) missingFields.push("ワンちゃんのお名前");
+  }
+  if (!plan) missingFields.push("プラン");
+  if (!date) missingFields.push("チェックイン日");
+  if (!checkinTime) missingFields.push("チェックイン時間");
+  if (plan === "stay" && !checkoutDate) missingFields.push("チェックアウト日");
+
+  const canSubmit = missingFields.length === 0;
 
   return (
     <div className="space-y-4">
@@ -708,6 +724,18 @@ function NewBookingForm() {
       {submitError && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
           {submitError}
+        </div>
+      )}
+
+      {/* 未入力項目のお知らせ */}
+      {!canSubmit && missingFields.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <p className="text-sm font-medium text-amber-800 mb-1">あと少しです。次の項目をご入力ください：</p>
+          <ul className="text-sm text-amber-700 list-disc list-inside space-y-0.5">
+            {missingFields.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
         </div>
       )}
 
