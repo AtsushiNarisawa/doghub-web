@@ -176,7 +176,7 @@ function DogForm({
       <div className="space-y-3">
         <p className="text-sm text-[#888]">
           ワクチン接種
-          <span className="text-[12px] block mt-0.5 text-orange-600 font-medium">当日、狂犬病・混合ワクチンの証明書が必要です（スマホの写真でもOK）。未接種の場合はお預かりできません。</span>
+          <span className="text-[12px] block mt-0.5 text-orange-600 font-medium">当日、狂犬病・混合ワクチンの証明書をお持ちください（スマホの写真でもOK）。複数年有効ワクチンの方、獣医師の判断で接種が難しい方は、下記で該当の項目をお選びください。</span>
         </p>
 
         {/* 狂犬病ワクチン */}
