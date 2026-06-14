@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 
 const PLAN_NAMES: Record<string, string> = {
@@ -36,30 +36,50 @@ export default function ModifyPage() {
   const id = params.id as string;
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
   const [checkinTime, setCheckinTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [phone4, setPhone4] = useState("");
+  const [verified, setVerified] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
-  useEffect(() => {
-    if (!id) return;
-    fetch(`/api/booking/reservation/${id}`)
-      .then(async (res) => {
-        if (res.ok) {
-          const { reservation: data } = await res.json();
-          if (data) {
-            setReservation(data as Reservation);
-            setCheckinTime(data.checkin_time?.slice(0, 5) || "");
-            setNotes(data.notes || "");
-          }
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
+  // 本人確認（電話番号の下4桁）→ 一致したら予約内容を取得
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (phone4.replace(/\D/g, "").length < 4) {
+      setError("電話番号の下4桁を入力してください");
+      return;
+    }
+    setVerifying(true);
+    try {
+      const res = await fetch(`/api/booking/reservation/${id}?phone_last4=${encodeURIComponent(phone4)}`);
+      if (res.status === 403) {
+        setError("電話番号が一致しません。ご予約時の電話番号の下4桁をご確認ください。");
+        setVerifying(false);
+        return;
+      }
+      if (!res.ok) {
+        setError("予約が見つかりません");
+        setVerifying(false);
+        return;
+      }
+      const { reservation: data } = await res.json();
+      if (data) {
+        setReservation(data as Reservation);
+        setCheckinTime(data.checkin_time?.slice(0, 5) || "");
+        setNotes(data.notes || "");
+      }
+      setVerified(true);
+      setVerifying(false);
+    } catch {
+      setError("通信エラーが発生しました");
+      setVerifying(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!reservation) return;
@@ -74,6 +94,7 @@ export default function ModifyPage() {
           reservationId: id,
           checkin_time: checkinTime,
           notes: notes || null,
+          phone_last4: phone4,
         }),
       });
       const data = await res.json();
@@ -92,10 +113,32 @@ export default function ModifyPage() {
     checkinTime !== reservation?.checkin_time?.slice(0, 5) ||
     (notes || "") !== (reservation?.notes || "");
 
-  if (loading) {
+  if (!verified) {
     return (
-      <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center">
-        <p className="text-[#888]">読み込み中...</p>
+      <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+          <h1 className="text-lg font-medium text-[#3C200F] mb-2">ご本人確認</h1>
+          <p className="text-sm text-[#888] mb-4">ご予約時の電話番号の下4桁をご入力ください。</p>
+          <form onSubmit={handleVerify} className="space-y-4">
+            <input
+              type="tel"
+              inputMode="numeric"
+              maxLength={4}
+              value={phone4}
+              onChange={(e) => setPhone4(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="例: 0290"
+              className="w-full p-4 rounded-xl border border-[#E5DDD8] text-center text-2xl tracking-[0.5em] focus:border-[#B87942] focus:outline-none"
+            />
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <button
+              type="submit"
+              disabled={verifying}
+              className="w-full py-4 rounded-xl bg-[#3C200F] text-white text-base font-medium disabled:opacity-50"
+            >
+              {verifying ? "確認中..." : "予約内容を表示"}
+            </button>
+          </form>
+        </div>
       </div>
     );
   }

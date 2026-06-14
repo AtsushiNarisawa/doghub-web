@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendCancellationEmails } from "@/lib/email";
+import { verifyPhoneLast4 } from "@/lib/booking-auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,7 +30,7 @@ async function updateCapacity(date: string, column: string, delta: number) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { reservation_id, cancel_reason } = await req.json();
+    const { reservation_id, cancel_reason, phone_last4 } = await req.json();
 
     if (!reservation_id) {
       return NextResponse.json({ error: "予約IDが必要です" }, { status: 400 });
@@ -44,6 +45,14 @@ export async function POST(req: NextRequest) {
 
     if (fetchError || !reservation) {
       return NextResponse.json({ error: "予約が見つかりません" }, { status: 404 });
+    }
+
+    // 本人確認（電話番号の下4桁）。UUIDだけの第三者操作を防ぐ。
+    {
+      const cust = reservation.customers as unknown as { phone: string } | null;
+      if (!verifyPhoneLast4(cust?.phone, phone_last4)) {
+        return NextResponse.json({ error: "本人確認に失敗しました" }, { status: 403 });
+      }
     }
 
     if (reservation.status === "cancelled") {
