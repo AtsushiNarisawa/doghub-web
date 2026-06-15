@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { BookingFormData } from "@/types/booking";
 import { PLANS, EXTRA_HOUR_FEE, WALK_OPTION_FEE } from "@/types/booking";
+import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
 
 interface Props {
   form: BookingFormData;
@@ -15,14 +16,11 @@ interface Props {
 export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
-  // 前日17時以降の翌日予約か判定
-  const isLateBooking = (() => {
-    if (!form.date) return false;
-    const now = new Date();
-    const bookingDate = new Date(form.date + "T00:00:00");
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    return bookingDate.getTime() === tomorrow.getTime() && now.getHours() >= 17;
-  })();
+  // 前日17時以降の翌日予約か判定。
+  // 端末ローカル時刻(new Date().getHours())だと海外端末/TZ誤設定でサーバー(route.ts)・
+  // 完了画面(page.tsx)とズレるため、JSTヘルパに統一する（feedback_timezone_bug_jst_after_9am）。
+  const isLateBooking =
+    !!form.date && form.date === addDaysJst(getJstToday(), 1) && getJstHour() >= 17;
 
   const plan = PLANS.find((p) => p.id === form.plan);
   const dogCount = form.dogs.length;

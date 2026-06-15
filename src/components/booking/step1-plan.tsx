@@ -37,22 +37,28 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       setBookingWindowDays(s.bookingWindowDays);
       setClosedWeekdays(s.closedWeekdays);
     });
-    // 臨時休業/臨時営業のオーバーライドを取得
+    // 臨時休業/臨時営業 + 各日の空き室数をまとめて取得（カレンダーの空き表示に使う）
     supabase
       .from("daily_capacity")
-      .select("date, closed")
+      .select("date, closed, day_booked, stay_booked")
       .gte("date", new Date().toISOString().split("T")[0])
       .then(({ data, error }) => {
         if (error) {
-          console.error("[booking] closed_overrides fetch error:", error);
-          // フェイルセーフ: 空のマップで継続（曜日ベースの判定にフォールバック）
+          console.error("[booking] daily_capacity fetch error:", error);
+          // フェイルセーフ: 空のマップで継続（closed=曜日判定、空き=満室扱いせず通常表示）
           setClosedOverrides({});
+          setRemainingMap({});
           return;
         }
         if (data) {
-          const map: Record<string, boolean> = {};
-          data.forEach((r) => { map[r.date] = r.closed; });
-          setClosedOverrides(map);
+          const closedMap: Record<string, boolean> = {};
+          const remMap: Record<string, number> = {};
+          data.forEach((r) => {
+            closedMap[r.date] = r.closed;
+            remMap[r.date] = ROOM_LIMIT - ((r.day_booked || 0) + (r.stay_booked || 0));
+          });
+          setClosedOverrides(closedMap);
+          setRemainingMap(remMap);
         }
       });
   }, []);
@@ -77,6 +83,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   // 定休日チェック（設定から取得）
   // 容量データからclosed状態を取得（カレンダー表示で使用）
   const [closedOverrides, setClosedOverrides] = useState<Record<string, boolean>>({});
+  // 各日の空き室数（カレンダーの ○/△/× 表示で使用）。レコードがない日は満室でない＝空きありとみなす。
+  const [remainingMap, setRemainingMap] = useState<Record<string, number>>({});
+
+  // カレンダー1マスの空き状況（レコードなし=ROOM_LIMIT=空きあり）
+  const getDayRemaining = (dateStr: string): number =>
+    dateStr in remainingMap ? remainingMap[dateStr] : ROOM_LIMIT;
 
   const isClosedDay = (dateStr: string) => {
     // daily_capacityにオーバーライドがあればそちらを優先
@@ -359,7 +371,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   const isClosed = isClosedDay(dateStr);
                   const holiday = HOLIDAYS[dateStr];
                   const isOutOfRange = dateStr < minDate || dateStr > maxDate;
-                  const isDisabled = !isThisMonth || isClosed || isOutOfRange;
+                  // 営業日 かつ 受付範囲内 の日だけ空き状況（○/△/×）を判定する
+                  const isBookable = isThisMonth && !isClosed && !isOutOfRange;
+                  const remaining = isBookable ? getDayRemaining(dateStr) : null;
+                  const isFull = remaining !== null && remaining <= 0;
+                  // 満室日は選択不可（選べてから「満室」と出る不整合を防ぐ）
+                  const isDisabled = !isThisMonth || isClosed || isOutOfRange || isFull;
                   const isSelected = dateStr === form.date;
                   const isToday = dateStr === todayStr;
 
@@ -374,7 +391,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                           ? "bg-[#B87942] text-white font-medium"
                           : !isThisMonth
                             ? "text-[#ccc]"
-                            : isDisabled
+                            : isClosed || isOutOfRange || isFull
                               ? "text-[#ccc] bg-gray-50"
                               : isToday
                                 ? "bg-[#B87942]/10 text-[#B87942] font-bold"
@@ -387,18 +404,32 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                                       : "text-[#3C200F] active:bg-[#F8F5F0]"
                       }`}
                     >
-                      {date.getDate()}
-                      {holiday && isThisMonth && !isSelected && (
-                        <span className="text-[7px] text-orange-400 leading-none">{holiday.length > 2 ? holiday.slice(0, 2) : holiday}</span>
+                      <span className="leading-none">{date.getDate()}</span>
+                      {/* 空き状況マーク（営業日・範囲内のみ。選択中マスは非表示） */}
+                      {remaining !== null && !isSelected && (
+                        <span
+                          className={`text-[9px] leading-none mt-0.5 ${
+                            remaining <= 0
+                              ? "text-red-500"
+                              : remaining < 5
+                                ? "text-orange-500"
+                                : "text-green-600"
+                          }`}
+                        >
+                          {remaining <= 0 ? "×" : remaining < 5 ? "△" : "○"}
+                        </span>
                       )}
                     </button>
                   );
                 })}
               </div>
               {/* 凡例 */}
-              <div className="flex gap-3 mt-2 text-[10px] text-[#888]">
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-[#888]">
+                <span className="text-green-600">○ 空きあり</span>
+                <span className="text-orange-500">△ 残りわずか</span>
+                <span className="text-red-500">× 満室</span>
                 <span>グレー: 定休日</span>
-                <span className="text-orange-400">オレンジ: 祝日</span>
+                <span className="text-orange-400">数字オレンジ: 祝日</span>
               </div>
             </div>
 

@@ -82,13 +82,17 @@ export default function BookingPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        pushEvent("booking_complete", {
-          plan: form.plan,
-          dog_count: form.dogs.length,
-          date: form.date,
-          value: calculateBookingTotal(form),
-          currency: "JPY",
-        });
+        // 二重送信で既存予約が返ったとき(already_booked)は予約成立済み＝完了画面は出すが、
+        // booking_complete(コンバージョン)は再発火しない（CVの二重計上を防ぐ）。
+        if (!data.already_booked) {
+          pushEvent("booking_complete", {
+            plan: form.plan,
+            dog_count: form.dogs.length,
+            date: form.date,
+            value: calculateBookingTotal(form),
+            currency: "JPY",
+          });
+        }
         setResult(data.email_failed ? "success_no_email" : "success");
       } else {
         const errData = await res.json().catch(() => ({}));

@@ -10,6 +10,11 @@ const transporter = nodemailer.createTransport({
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
+  // Gmail SMTP がハングした際に予約処理が無限に待たされる/関数が生き続けるのを防ぐ。
+  // 接続・挨拶・ソケットそれぞれに上限を設ける（feedback: 送信が固まる体感の主因対策）。
+  connectionTimeout: 10000, // 接続確立まで最大10秒
+  greetingTimeout: 10000,   // SMTP挨拶まで最大10秒
+  socketTimeout: 20000,     // 応答待ち最大20秒
 });
 
 const PLAN_NAMES: Record<string, string> = {

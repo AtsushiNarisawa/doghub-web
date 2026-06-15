@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
@@ -396,12 +397,26 @@ export async function POST(req: NextRequest) {
       });
 
     if (reservationError) {
-      // ユニーク制約違反 = 同一顧客・日時・プランの重複
+      // ユニーク制約違反(23505) = 同一顧客・日時・プランの予約が既に存在（≒二重送信）。
+      // これは「失敗」ではなく「既に予約が取れている」状態。お客様/スタッフを不安にさせる
+      // エラー画面ではなく、完了として扱い既存予約を返す。フロントは already_booked=true の時
+      // booking_complete(コンバージョン)を再発火しないため、CVの二重計上も起きない。
       if (reservationError.code === "23505") {
-        return NextResponse.json(
-          { error: "同じ日時のご予約が既に存在しています。マイページからご確認ください。" },
-          { status: 409 }
-        );
+        const { data: existing } = await supabase
+          .from("reservations")
+          .select("id, status")
+          .eq("customer_id", customerId)
+          .eq("date", body.date)
+          .eq("plan", body.plan)
+          .eq("checkin_time", body.checkin_time)
+          .neq("status", "cancelled")
+          .maybeSingle();
+        return NextResponse.json({
+          success: true,
+          already_booked: true,
+          reservation_id: existing?.id ?? null,
+          status: existing?.status ?? status,
+        });
       }
       return NextResponse.json({ error: "予約登録に失敗しました" }, { status: 500 });
     }
@@ -470,39 +485,40 @@ export async function POST(req: NextRequest) {
     //    累積カウンタ increment_total_visits は廃止（キャンセルで減算されず初回客が
     //    常連表示される不具合の元だった）。算定ロジックは web/src/lib/visit-count.ts。
 
-    // 8. メール送信（失敗しても予約自体は成功扱い、ただしフロントに通知）
-    let emailFailed = false;
-    try {
-      await sendBookingEmails(body, reservation.id, status, duplicateWarnings.length > 0 ? duplicateWarnings : undefined);
-    } catch (err) {
-      console.error("Email send error:", err);
-      emailFailed = true;
-    }
-
-    // 8. LINE通知（line_idがある場合のみ）
-    if (body.line_id) {
+    // 8. メール送信 + LINE通知はレスポンス送出後にバックグラウンド実行する（after）。
+    // 予約本体(1〜7)はここまでで確定済み。Gmail SMTP の遅延/ハングで「送信が固まった」体感を
+    // 与え、お客様/スタッフが再送信→重複に陥るのを防ぐため、完了レスポンスを先に返す。
+    // after はレスポンス後も関数を生かし続けるので、過去の fire-and-forget（関数終了で
+    // メール未送信、2026-03-14）を再発させない。SMTP 側にもタイムアウトを設定済み（email.ts）。
+    after(async () => {
       try {
-        await sendLinePushMessage(
-          body.line_id,
-          buildBookingConfirmMessage({
-            customerName: `${c.last_name} ${c.first_name}`,
-            plan: body.plan,
-            date: body.date,
-            checkinTime: body.checkin_time,
-            reservationId: reservationId,
-            status,
-          })
-        );
+        await sendBookingEmails(body, reservation.id, status, duplicateWarnings.length > 0 ? duplicateWarnings : undefined);
       } catch (err) {
-        console.error("LINE push error:", err);
+        console.error("Email send error (background):", err);
       }
-    }
+      if (body.line_id) {
+        try {
+          await sendLinePushMessage(
+            body.line_id,
+            buildBookingConfirmMessage({
+              customerName: `${c.last_name} ${c.first_name}`,
+              plan: body.plan,
+              date: body.date,
+              checkinTime: body.checkin_time,
+              reservationId: reservationId,
+              status,
+            })
+          );
+        } catch (err) {
+          console.error("LINE push error (background):", err);
+        }
+      }
+    });
 
     return NextResponse.json({
       success: true,
       reservation_id: reservation.id,
       status,
-      email_failed: emailFailed,
     });
   } catch (error) {
     console.error("Booking error:", error);
