@@ -39,5 +39,16 @@ export async function POST(req: NextRequest) {
     maxAge: 60 * 60 * 24 * 7, // 7日間
     path: "/",
   });
+  // refresh_token を httpOnly Cookie に保存し、セッション切れ時に /api/admin/refresh で
+  // サーバー側から再発行できるようにする（最大7日間は再ログイン不要にするため）。
+  // Set-Cookie 由来の httpOnly Cookie は Safari ITP の「JS Cookie 7日上限」の対象外で、
+  // localStorage が消えても残るため、スマホでもログイン保持が効く。
+  res.cookies.set("doghub-admin-refresh", data.session.refresh_token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7, // 7日間
+    path: "/",
+  });
   return res;
 }

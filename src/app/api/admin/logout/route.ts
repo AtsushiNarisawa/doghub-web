@@ -11,5 +11,13 @@ export function GET() {
     maxAge: 0,
     path: "/",
   });
+  // refresh_token Cookie も破棄（再発行に使われないように）
+  res.cookies.set("doghub-admin-refresh", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 0,
+    path: "/",
+  });
   return res;
 }
