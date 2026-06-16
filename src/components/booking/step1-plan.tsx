@@ -266,6 +266,28 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         (!form.checkout_extension || form.checkout_extension_until)
       : true);
 
+  // 「次へ」が押せないとき、何をすれば進めるかを具体的に伝える。
+  // 離脱の大半がこのステップで起きており、無言のグレーボタンが主因のため。
+  const proceedHint: string | null = (() => {
+    if (canProceed) return null;
+    if (!form.plan) return "まずはプランをお選びください";
+    if (!form.date) return "カレンダーから日付をお選びください";
+    if (isClosedDay(form.date)) return "選んだ日は定休日です。別の日をお選びください";
+    if (capacity?.closed) return "選んだ日は臨時休業です。別の日をお選びください";
+    if (capacity && capacity.total_remaining <= 0) return "選んだ日は満室です。別の日をお選びください";
+    if (form.plan === "stay" && form.checkout_date && stayClosedDates.length > 0)
+      return "お預かり期間に休業日が含まれています。日程をご確認ください";
+    const need: string[] = [];
+    if (!form.checkin_time) need.push(form.plan === "stay" ? "到着予定時間" : "チェックイン時間");
+    if (form.plan === "stay" && !form.checkout_date) need.push("チェックアウト日");
+    if (form.plan === "stay" && form.checkin_extension && !form.checkin_extension_from)
+      need.push("早預かりの開始時間");
+    if (form.plan === "stay" && form.checkout_extension && !form.checkout_extension_until)
+      need.push("延長のお迎え時間");
+    if (need.length > 0) return `あと「${need.join("」「")}」をお選びください`;
+    return null;
+  })();
+
   return (
     <div className="space-y-6">
       {/* 施設情報（HPを見ずに来た方向け） */}
@@ -668,6 +690,13 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           <p className="text-amber-700 text-[13px] leading-relaxed">
             前日17時以降のご予約のため、仮予約として受け付けます。翌朝9時までにスタッフが確認のうえ、メールにて確定のご連絡をいたします。空き状況によりお受けできない場合もございますので、ご了承ください。
           </p>
+        </div>
+      )}
+
+      {/* 「次へ」が押せない理由の案内（離脱が最も多いステップのため明示する） */}
+      {proceedHint && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <p className="text-sm text-amber-800">{proceedHint}</p>
         </div>
       )}
 

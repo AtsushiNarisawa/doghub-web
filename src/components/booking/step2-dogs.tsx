@@ -427,6 +427,30 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
       ((d.rabies_vaccine_status !== "unable" && d.mixed_vaccine_status !== "unable") || d.vaccine_unable_reason.trim())
   );
 
+  // 「次へ」が押せないとき、何をすれば進めるかを具体的に伝える。
+  const dogHint: string | null = (() => {
+    if (isValid) return null;
+    if (!visitType) return "「初めて」か「2回目以降」をお選びください";
+    if (visitType === "returning" && lookupState !== "found" && lookupState !== "not_found")
+      return "ご登録の電話番号で検索してください";
+    for (let i = 0; i < form.dogs.length; i++) {
+      const d = form.dogs[i];
+      const need: string[] = [];
+      if (!d.name) need.push("お名前");
+      if (!d.breed) need.push("犬種");
+      if (!d.weight) need.push("体重");
+      if (!d.age) need.push("年齢");
+      if (!d.sex) need.push("性別");
+      if ((d.rabies_vaccine_status === "unable" || d.mixed_vaccine_status === "unable") && !d.vaccine_unable_reason.trim())
+        need.push("ワクチン未接種の理由");
+      if (need.length > 0) {
+        const label = form.dogs.length > 1 ? `${i + 1}頭目の` : "";
+        return `${label}「${need.join("」「")}」をご入力ください`;
+      }
+    }
+    return null;
+  })();
+
   return (
     <div className="space-y-4">
       {/* 初めて / 2回目以降 の選択 */}
@@ -561,6 +585,13 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
         >
           + もう1頭追加
         </button>
+      )}
+
+      {/* 「次へ」が押せない理由の案内 */}
+      {dogHint && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <p className="text-sm text-amber-800">{dogHint}</p>
+        </div>
       )}
 
       {/* ナビゲーション */}

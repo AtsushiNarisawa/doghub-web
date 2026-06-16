@@ -109,6 +109,20 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
     phoneOk && emailOk &&
     (isReturning || form.referral_source);
 
+  // 「次へ」が押せないとき、何をすれば進めるかを具体的に伝える。
+  // 形式エラー（電話・メール）は各入力欄の直下にも表示済み。
+  const customerHint: string | null = (() => {
+    if (isValid) return null;
+    const need: string[] = [];
+    if (!c.last_name || !c.first_name) need.push("お名前");
+    if (!c.last_name_kana || !c.first_name_kana) need.push("ふりがな");
+    if (!phoneOk) need.push("電話番号");
+    if (!emailOk) need.push("メールアドレス");
+    if (!isReturning && !form.referral_source) need.push("ご利用のきっかけ");
+    if (need.length > 0) return `あと「${need.join("」「")}」をご入力ください`;
+    return null;
+  })();
+
   return (
     <div className="space-y-6">
       {/* 入力フォーム */}
@@ -343,6 +357,13 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
           );
         })()}
       </div>
+
+      {/* 「次へ」が押せない理由の案内 */}
+      {customerHint && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <p className="text-sm text-amber-800">{customerHint}</p>
+        </div>
+      )}
 
       {/* ナビゲーション */}
       <div className="flex gap-3">
