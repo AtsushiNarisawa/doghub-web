@@ -139,7 +139,7 @@ export default function YunessunPage() {
               {[
                 { title: "ユネッサンから車15分", body: "箱根仙石原に位置するDogHubは、ユネッサンから車で約15分。お預け・お迎えがスムーズです。" },
                 { title: "1日¥5,500から", body: "ユネッサンは移動含めて4時間では足りないため、1日プラン（8時間 ¥5,500）がおすすめです。" },
-                { title: "完全個室＆お散歩付き", body: "ケージではなく完全個室。スタッフがお散歩にお連れするので、わんちゃんもストレスフリーです。" },
+                { title: "完全個室＆ドッグラン", body: "ケージではなく完全個室。お預かり中は必ず専用ドッグランにお出しするので、わんちゃんもストレスフリーです。" },
               ].map((item) => (
                 <div key={item.title} className="bg-[#F7F7F7] p-6">
                   <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "18px", fontWeight: 400 }}>{item.title}</h3>
