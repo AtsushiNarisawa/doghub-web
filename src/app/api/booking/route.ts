@@ -359,6 +359,17 @@ export async function POST(req: NextRequest) {
     const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) >= 15);
     const status = isStaffBooking ? "confirmed" : (hasHeavyDog || isLateBooking) ? "pending" : "confirmed";
 
+    // ワクチン未接種(事情あり)の理由を備考に取り込む。従来はフォームで収集してもサーバーで破棄され、
+    // スタッフが理由を把握できなかった（データ消失）。備考に保存することで、管理画面の予約詳細と
+    // 確認メールの両方に残す（reservations.notes は admin 予約詳細・メールの「備考」に表示される）。
+    const vaccineReasonNotes = body.dogs
+      .filter((d) => (d.rabies_vaccine_status === "unable" || d.mixed_vaccine_status === "unable") && d.vaccine_unable_reason?.trim())
+      .map((d) => `【${d.name?.trim() || "ワンちゃん"} ワクチン未接種理由】${d.vaccine_unable_reason.trim()}`)
+      .join("\n");
+    if (vaccineReasonNotes) {
+      body.notes = [body.notes?.trim(), vaccineReasonNotes].filter(Boolean).join("\n");
+    }
+
     // 4. 予約作成（UUIDを事前生成してSELECT不要にする）
     const reservationId = randomUUID();
     const { error: reservationError } = await supabase

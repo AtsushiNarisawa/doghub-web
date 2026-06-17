@@ -19,6 +19,43 @@ type DbCustomer = {
   phone: string; email: string; postal_code: string | null; address: string | null;
 };
 
+// リピーターの「前回登録値」。鮮度依存項目(年齢/体重/ワクチン)は空欄化して毎回入力させるため、
+// 旧値は参考表示用にだけ保持する（フォームには載せない＝送信されない）。
+type PrevDog = {
+  age: number | null; age_months: number | null; weight: number | string;
+  has_rabies_vaccine: boolean | null; has_mixed_vaccine: boolean | null;
+};
+
+// DbDog → 「鮮度依存項目を空欄化した」フォーム初期値。
+// 引き継ぐ: 名前/犬種/性別/注意事項。毎回入力: 年齢/月齢/体重/ワクチン状況
+// （古い値を無編集のまま再保存して年齢・体重・ワクチンが固定化するのを防ぐ）。
+function blankFormFromDbDog(d: DbDog): DogFormData {
+  return {
+    id: d.id,
+    name: d.name,
+    breed: d.breed,
+    sex: d.sex === "male" || d.sex === "female" ? d.sex : "",
+    weight: "",
+    age: "",
+    age_months: "",
+    has_rabies_vaccine: false,
+    has_mixed_vaccine: false,
+    rabies_vaccine_status: "",
+    mixed_vaccine_status: "",
+    vaccine_unable_reason: "",
+    allergies: d.allergies || "",
+    meal_notes: d.meal_notes || "",
+    medication_notes: d.medication_notes || "",
+  };
+}
+
+function prevFromDbDog(d: DbDog): PrevDog {
+  return {
+    age: d.age, age_months: d.age_months, weight: d.weight,
+    has_rabies_vaccine: d.has_rabies_vaccine, has_mixed_vaccine: d.has_mixed_vaccine,
+  };
+}
+
 interface Props {
   form: BookingFormData;
   onChange: (form: BookingFormData) => void;
@@ -32,12 +69,14 @@ function DogForm({
   onUpdate,
   onRemove,
   canRemove,
+  prevDog,
 }: {
   dog: DogFormData;
   index: number;
   onUpdate: (d: DogFormData) => void;
   onRemove: () => void;
   canRemove: boolean;
+  prevDog?: PrevDog | null;
 }) {
   return (
     <div className="p-4 rounded-xl border-2 border-[#E5DDD8] bg-white space-y-4">
@@ -55,6 +94,23 @@ function DogForm({
           </button>
         )}
       </div>
+
+      {/* リピーター: 前回登録値を参考表示。年齢/体重/ワクチンは空欄化しているため最新値の入力を促す。 */}
+      {prevDog && (
+        <p className="text-[12px] text-[#888] bg-[#F8F5F0] rounded-lg px-3 py-2 leading-relaxed">
+          前回のご登録：
+          {prevDog.age != null
+            ? prevDog.age === 0
+              ? `${prevDog.age_months ?? 0}ヶ月`
+              : `${prevDog.age}歳`
+            : "年齢未登録"}
+          {" ・ "}
+          {prevDog.weight}kg{" ／ "}狂犬病 {prevDog.has_rabies_vaccine ? "接種済" : "なし"}・混合{" "}
+          {prevDog.has_mixed_vaccine ? "接種済" : "なし"}
+          <br />
+          <span className="text-[#B87942]">最新の年齢・体重・ワクチン状況をご入力ください。</span>
+        </p>
+      )}
 
       {/* 名前 */}
       <div>
@@ -275,6 +331,8 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
   );
   const [phoneInput, setPhoneInput] = useState(form.customer.phone || "");
   const [lineAutoLooked, setLineAutoLooked] = useState(false);
+  // リピーターの前回登録値（dog.id をキーに参考表示用に保持）。
+  const [prevDogs, setPrevDogs] = useState<Record<string, PrevDog>>({});
 
   // LINE IDがある場合に自動で顧客検索
   useEffect(() => {
@@ -301,18 +359,11 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
       }
 
       if (customer) {
-        const dogData: DogFormData[] = dogs.length > 0
-          ? dogs.map((d) => ({
-              id: d.id, name: d.name, breed: d.breed, weight: String(d.weight),
-              age: d.age ? String(d.age) : "", age_months: d.age_months ? String(d.age_months) : "",
-              sex: d.sex as "male" | "female",
-              has_rabies_vaccine: d.has_rabies_vaccine || false, has_mixed_vaccine: d.has_mixed_vaccine || false,
-              rabies_vaccine_status: d.rabies_vaccine_status || (d.has_rabies_vaccine ? "within_1year" : ""),
-              mixed_vaccine_status: d.mixed_vaccine_status || (d.has_mixed_vaccine ? "within_1year" : ""),
-              vaccine_unable_reason: d.vaccine_unable_reason || "",
-              allergies: d.allergies || "", meal_notes: d.meal_notes || "", medication_notes: d.medication_notes || "",
-            }))
-          : [{ ...INITIAL_DOG }];
+        // 鮮度依存項目(年齢/体重/ワクチン)は空欄化し毎回入力させる。旧値は参考表示用に保持。
+        const dogData: DogFormData[] = dogs.length > 0 ? dogs.map(blankFormFromDbDog) : [{ ...INITIAL_DOG }];
+        const prevMap: Record<string, PrevDog> = {};
+        dogs.forEach((d) => { prevMap[d.id] = prevFromDbDog(d); });
+        setPrevDogs(prevMap);
 
         onChange({
           ...form,
@@ -359,26 +410,12 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
 
     if (found) {
       // 犬情報のみセット（個人情報はStep3でお客様が入力）
+      // 鮮度依存項目(年齢/体重/ワクチン)は空欄化し毎回入力させる。旧値は参考表示用に保持。
       const dogData: DogFormData[] =
-        dogs.length > 0
-          ? dogs.map((d) => ({
-              id: d.id,
-              name: d.name,
-              breed: d.breed,
-              weight: String(d.weight),
-              age: d.age ? String(d.age) : "",
-              age_months: d.age_months ? String(d.age_months) : "",
-              sex: d.sex as "male" | "female",
-              has_rabies_vaccine: d.has_rabies_vaccine || false,
-              has_mixed_vaccine: d.has_mixed_vaccine || false,
-              rabies_vaccine_status: d.rabies_vaccine_status || (d.has_rabies_vaccine ? "within_1year" : ""),
-              mixed_vaccine_status: d.mixed_vaccine_status || (d.has_mixed_vaccine ? "within_1year" : ""),
-              vaccine_unable_reason: d.vaccine_unable_reason || "",
-              allergies: d.allergies || "",
-              meal_notes: d.meal_notes || "",
-              medication_notes: d.medication_notes || "",
-            }))
-          : [{ ...INITIAL_DOG }];
+        dogs.length > 0 ? dogs.map(blankFormFromDbDog) : [{ ...INITIAL_DOG }];
+      const prevMap: Record<string, PrevDog> = {};
+      dogs.forEach((d) => { prevMap[d.id] = prevFromDbDog(d); });
+      setPrevDogs(prevMap);
 
       // 電話番号のみ保持（Step3で名前等を入力してもらう）
       onChange({
@@ -424,6 +461,9 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
   const isValid = form.dogs.every(
     (d) =>
       d.name && d.breed && d.weight && d.age && d.sex &&
+      // ワクチン状況は「未選択(空欄)」を不可にする（空欄送信で has_*=false=未接種に化けるのを防ぐ）。
+      // 「事情により未接種」は理由を書けば従来どおり受け付ける。
+      d.rabies_vaccine_status && d.mixed_vaccine_status &&
       ((d.rabies_vaccine_status !== "unable" && d.mixed_vaccine_status !== "unable") || d.vaccine_unable_reason.trim())
   );
 
@@ -441,6 +481,7 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
       if (!d.weight) need.push("体重");
       if (!d.age) need.push("年齢");
       if (!d.sex) need.push("性別");
+      if (!d.rabies_vaccine_status || !d.mixed_vaccine_status) need.push("ワクチン接種状況");
       if ((d.rabies_vaccine_status === "unable" || d.mixed_vaccine_status === "unable") && !d.vaccine_unable_reason.trim())
         need.push("ワクチン未接種の理由");
       if (need.length > 0) {
@@ -573,6 +614,7 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
           onUpdate={(d) => updateDog(i, d)}
           onRemove={() => removeDog(i)}
           canRemove={form.dogs.length > 1}
+          prevDog={dog.id ? prevDogs[dog.id] : undefined}
         />
       ))}
 
