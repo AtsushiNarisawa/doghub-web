@@ -91,6 +91,9 @@ export default function BookingPage() {
             date: form.date,
             value: calculateBookingTotal(form),
             currency: "JPY",
+            // 行き先カテゴリ（GA4「広告ソース×行き先」分析用）。サーバーが destination_master 辞書を
+            // 引いて返す（空=「なし」/辞書外=「未分類」）。レスポンス欠落時は安全側で「なし」。
+            destination_category: data.destination_category ?? "なし",
           });
         }
         setResult(data.email_failed ? "success_no_email" : "success");

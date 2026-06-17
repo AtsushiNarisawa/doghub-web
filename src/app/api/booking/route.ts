@@ -515,10 +515,26 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    // 行き先カテゴリ（GA4 booking_complete 用）を辞書から解決してレスポンスに含める。
+    // destination_master が唯一の正準ソース（分析ビュー v_reservation_destination と同一辞書）。
+    // クライアントにカテゴリ判定を複製すると辞書とドリフトするためサーバーで引く。
+    // 空（未入力）=「なし」/ 辞書に一致=そのカテゴリ / 非空だが辞書外（新施設）=「未分類」。
+    let destinationCategory = "なし";
+    const destRaw = (body.destination || "").trim();
+    if (destRaw) {
+      const { data: dm } = await supabase
+        .from("destination_master")
+        .select("category")
+        .eq("alias", destRaw)
+        .maybeSingle();
+      destinationCategory = dm?.category ?? "未分類";
+    }
+
     return NextResponse.json({
       success: true,
       reservation_id: reservation.id,
       status,
+      destination_category: destinationCategory,
     });
   } catch (error) {
     console.error("Booking error:", error);
