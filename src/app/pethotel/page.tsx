@@ -87,19 +87,19 @@ export default function PetHotelPage() {
               泊まる宿のタイプで、愛犬の預け方が決まります。当てはまるものをお選びください。
             </p>
             <div className="grid md:grid-cols-3 gap-6">
-              <Link href="/4h" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
+              <Link href="/4h" data-cta-id="pethotel_3choice_A" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>A. ペット可の宿に泊まる</p>
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>チェックイン前後・観光中だけ預ける</h3>
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>愛犬と泊まれる宿でも、美術館や温泉など犬NGの数時間だけお預け。半日¥3,300〜。</p>
                 <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>半日・1日のお預かりを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
-              <Link href="/ryokan" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
+              <Link href="/ryokan" data-cta-id="pethotel_3choice_B" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>B. ペット不可の憧れの宿に泊まる</p>
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>夜は預けて、宿泊分離型で泊まる</h3>
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>高級旅館や温泉宿の多くはペット不可。愛犬は完全個室で1泊¥7,700〜お預けし、憧れの宿へ。</p>
                 <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>高級旅館×お預かりを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
-              <Link href="/stay" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
+              <Link href="/stay" data-cta-id="pethotel_3choice_C" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>C. 犬と泊まれる宿が見つからない</p>
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>普通の宿に泊まって、犬はDogHubへ</h3>
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>ペット可の部屋が満室でも大丈夫。お好きな宿に泊まり、愛犬は安心の個室で1泊¥7,700〜。</p>
@@ -151,6 +151,7 @@ export default function PetHotelPage() {
 
                 <a
                   href="/booking"
+                  data-cta-id="pethotel_booking"
                   className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                   style={{ fontSize: "18px", fontWeight: 400 }}
                 >

@@ -33,6 +33,7 @@ export function ArticleFloatingBar({ href }: { href: string; label: string }) {
       </a>
       <a
         href={href}
+        data-cta-id="article_floatbar"
         className="flex-1 flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur border border-border rounded-xl shadow-lg"
         style={{ textDecoration: "none" }}
       >

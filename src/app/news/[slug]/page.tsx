@@ -595,7 +595,7 @@ export default async function NewsDetailPage({ params }: Props) {
               </div>
               <p style={{ fontSize: "15px", color: "#3C200F", marginBottom: "1.2em", textAlign: "left" }}>{cta.subtext}</p>
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                <a href={cta.href}>{cta.btnLabel}</a>
+                <a href={cta.href} data-cta-id="article_end">{cta.btnLabel}</a>
                 <a href="tel:0460-80-0290" data-phone-location="news_cta" className="article-cta-secondary">電話で相談する</a>
               </div>
             </div>
@@ -625,7 +625,7 @@ export default async function NewsDetailPage({ params }: Props) {
                   </Link>
                 ))}
                 {/* 関連サービスページへのブリッジ */}
-                <Link href={cta.href} className="block bg-[#F8F5F0] border border-[#E5DDD8] hover:border-[#B87942] transition-colors group">
+                <Link href={cta.href} data-cta-id="article_related" className="block bg-[#F8F5F0] border border-[#E5DDD8] hover:border-[#B87942] transition-colors group">
                   <div className="w-full h-32 bg-[#E5DDD8] flex items-center justify-center">
                     <span style={{ fontSize: "32px" }}>🐕</span>
                   </div>

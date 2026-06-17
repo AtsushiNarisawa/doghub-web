@@ -144,6 +144,7 @@ export default function StayPage() {
                 <div className="mt-8">
                   <a
                     href="/booking"
+                    data-cta-id="stay_booking"
                     className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                     style={{ fontSize: "18px", fontWeight: 400 }}
                   >
@@ -236,13 +237,13 @@ export default function StayPage() {
               どんな宿に泊まるかで、愛犬の預け方も変わります。目的に合わせてご覧ください。
             </p>
             <div className="grid md:grid-cols-2 gap-6">
-              <Link href="/ryokan" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
+              <Link href="/ryokan" data-cta-id="stay_typenav_ryokan" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>ペット不可の高級旅館に泊まる</p>
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>高級旅館 × お預かり</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>憧れの高級旅館に泊まる日の、愛犬の過ごし方とDogHub周辺の宿をご案内します。</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
-              <Link href="/pethotel" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
+              <Link href="/pethotel" data-cta-id="stay_typenav_pethotel" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>ペット可の宿に泊まる × 日中だけ預ける</p>
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>ペット可ホテル × 日中預かり</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>愛犬と泊まれる宿でも、チェックイン前後や観光の数時間だけ預けたい時に。</p>
