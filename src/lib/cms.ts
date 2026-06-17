@@ -432,6 +432,9 @@ function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string):
     { pattern: /1日お預かり（8時間/g, href: "/8h", label: "1日お預かり（8時間" },
     { pattern: /宿泊プラン（1泊/g, href: "/stay", label: "宿泊プラン（1泊" },
     { pattern: /宿泊1泊/g, href: "/stay", label: "宿泊1泊" },
+    // 「犬と泊まれる宿」→/ryokan。既存「愛犬と泊まれる宿」との部分一致を否定後読みで回避。
+    // gフラグ無し＝本文で最初の1回のみリンク化（多重リンク防止）
+    { pattern: /(?<!愛)犬と泊まれる宿/, href: "/ryokan", label: "犬と泊まれる宿" },
     { pattern: /OMUSUBI &amp; SOUP CAFE/g, href: "/cafe", label: "OMUSUBI & SOUP CAFE" },
     { pattern: /OMUSUBI & SOUP CAFE/g, href: "/cafe", label: "OMUSUBI & SOUP CAFE" },
   ];

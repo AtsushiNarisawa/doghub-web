@@ -244,6 +244,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "1日お預かりプランを見る", href: "/8h", description: "¥5,500 ゴルフ1ラウンドに。早朝7時〜" },
     { label: "半日プランを見る", href: "/4h", description: "¥3,300 チェックイン前後・ハーフに" },
     { label: "宿泊プランを見る", href: "/stay", description: "前泊・連泊に便利。1泊¥7,700〜" },
+    { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-dog-trip-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりでユネッサンをたっぷり満喫" },
@@ -370,21 +371,25 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
     { label: "8時間プランを見る", href: "/8h", description: "¥5,500 翌日17時までの延長に" },
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 翌日15時までの延長に" },
+    { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-miyanoshita-xiv-dog-guide": [
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
     { label: "8時間プランを見る", href: "/8h", description: "¥5,500 翌日17時までの延長に" },
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 翌日15時までの延長に" },
+    { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-daihakone-cc-dog-guide": [
     { label: "8時間プランを見る", href: "/8h", description: "¥5,500 早朝7時〜のお預かり対応" },
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 短時間ラウンドに" },
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 前泊に便利" },
+    { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-regina-resort-dog-guide": [
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 チェックイン前後の観光に" },
     { label: "8時間プランを見る", href: "/8h", description: "¥5,500 ユネッサンや1日観光に" },
     { label: "スポットプラン", href: "/service", description: "1時間¥1,100〜 短時間のお預けに" },
+    { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-gw-traffic-route-guide": [
     { label: "DogHubへのアクセス", href: "/access", description: "乙女峠から仙石原へ。駐車場情報もこちら" },

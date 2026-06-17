@@ -325,6 +325,9 @@ export default function PetHotelPage() {
                 <Link href="/news/hakone-pet-hotel-comparison" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
                   → 箱根のペットホテル比較｜預かり環境・料金・サービスの違い
                 </Link>
+                <Link href="/news/hakone-dog-friendly-hotels" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 箱根で犬と泊まれる宿が見つからない時に｜現実と選択肢
+                </Link>
                 <Link href="/hakone" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
                   → 箱根 犬連れ旅行ガイド｜犬と箱根を楽しむすべてがここに
                 </Link>
