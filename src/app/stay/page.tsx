@@ -255,30 +255,23 @@ export default function StayPage() {
         {/* DogHub difference */}
         <section className="py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>DogHub箱根仙石原が選ばれる理由</h2>
+            <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400 }}>ただお預かりするのではなく、ワンちゃんにもくつろいでもらうために</h2>
+            <p className="text-[#3C200F] mb-8" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>お部屋もスタッフ体制もドッグランも、ワンちゃんが安心してくつろげる滞在のために整えています。飼い主様が箱根を満喫されている間、愛犬にものびのび過ごしてもらえます。</p>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse" style={{ fontSize: "15px" }}>
-                <thead>
-                  <tr className="border-b-2 border-[#3C200F]">
-                    <th className="py-3 px-4 text-[#3C200F]" style={{ fontWeight: 400 }}>比較項目</th>
-                    <th className="py-3 px-4 text-[#B87942]" style={{ fontWeight: 400 }}>DogHub箱根仙石原</th>
-                    <th className="py-3 px-4 text-[#8F7B65]" style={{ fontWeight: 400 }}>一般的なペットホテル</th>
-                  </tr>
-                </thead>
                 <tbody className="text-[#3C200F]">
                   {[
-                    ["お預かり環境", "完全個室（壁で仕切り）", "ケージ・サークル"],
-                    ["スタッフ体制", "24時間常駐", "夜間無人の場合あり"],
-                    ["運動環境", "専用ドッグラン併設", "散歩のみ or なし"],
-                    ["早朝対応", "朝7時から可能", "9時〜が一般的"],
-                    ["立地", "箱根仙石原（観光地の中心）", "市街地が多い"],
-                    ["カフェ併設", "犬同伴ランチOK", "なし"],
-                    ["料金（1泊）", "¥7,700〜", "¥5,000〜¥15,000"],
+                    ["お部屋", "鉄格子のケージではなく、木のぬくもりのある壁に囲まれた完全個室（お部屋）。わんちゃんが落ち着いて過ごせる空間でお預かりします。"],
+                    ["スタッフ体制", "24時間スタッフが常駐。夜間も宿直し、ライブカメラで随時見守ります。飼い主様も安心してお休みいただけます。"],
+                    ["運動環境", "お預かり中は毎日必ず専用ドッグランへ。屋根付きなので雨の日でも安心です。"],
+                    ["早朝対応", "朝7時からお預かり可能。出発の早いご旅行にも対応します。"],
+                    ["立地", "箱根仙石原・観光地の中心。お宿や観光地への行き来に便利な場所にあります。"],
+                    ["カフェ併設", "お迎えの後は、そのまま犬同伴OKのカフェでおむすび＆スープのランチも楽しめます。"],
+                    ["料金（1泊）", "1泊¥7,700〜（税込）。箱根町在住の方は¥5,500〜の地元割引もございます。"],
                   ].map((row) => (
-                    <tr key={row[0]} className="border-b border-[#E5DDD8]">
-                      <td className="py-3 px-4" style={{ fontWeight: 400 }}>{row[0]}</td>
-                      <td className="py-3 px-4 text-[#B87942]" style={{ fontWeight: 400 }}>{row[1]}</td>
-                      <td className="py-3 px-4 text-[#8F7B65]" style={{ fontWeight: 400 }}>{row[2]}</td>
+                    <tr key={row[0]} className="border-b border-[#E5DDD8] align-top">
+                      <td className="py-3 px-4 whitespace-nowrap text-[#B87942]" style={{ fontWeight: 400 }}>{row[0]}</td>
+                      <td className="py-3 px-4" style={{ fontWeight: 400 }}>{row[1]}</td>
                     </tr>
                   ))}
                 </tbody>
