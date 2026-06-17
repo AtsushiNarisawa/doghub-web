@@ -77,20 +77,34 @@ export default function PetHotelPage() {
           </div>
         </section>
 
-        {/* 3つの使い方 */}
+        {/* 宿泊分離型の3択ナビ（泊まりたい宿のタイプから、愛犬の預け方を選ぶ） */}
         <section className="py-12 px-6 bg-white">
           <div className="max-w-7xl mx-auto">
+            <h2 className="text-[#3C200F] mb-2 text-center" style={{ fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 400 }}>
+              あなたが泊まりたいのは、どんな宿ですか？
+            </h2>
+            <p className="text-[#8F7B65] mb-8 text-center" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
+              泊まる宿のタイプで、愛犬の預け方が決まります。当てはまるものをお選びください。
+            </p>
             <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { title: "① 観光中の預かり", body: "美術館・温泉・ユネッサンなど犬NGの施設に行く間だけお預け。半日¥3,300〜で箱根の選択肢が広がります。" },
-                { title: "② ペット可の宿との組合せ", body: "レジーナ仙石原など近隣のペット可宿にお泊まりの方が、チェックイン前後の観光時にご利用。" },
-                { title: "③ 犬NGの宿に泊まりたい時", body: "憧れの温泉旅館や高級ホテルに泊まりたい時、愛犬だけ1泊¥7,700〜でお預け。飼い主さんも安心。" },
-              ].map((item) => (
-                <div key={item.title} className="border border-[#E5DDD8] p-6 rounded-sm">
-                  <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>{item.title}</h3>
-                  <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>{item.body}</p>
-                </div>
-              ))}
+              <Link href="/4h" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>A. ペット可の宿に泊まる</p>
+                <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>チェックイン前後・観光中だけ預ける</h3>
+                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>愛犬と泊まれる宿でも、美術館や温泉など犬NGの数時間だけお預け。半日¥3,300〜。</p>
+                <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>半日・1日のお預かりを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+              <Link href="/ryokan" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>B. ペット不可の憧れの宿に泊まる</p>
+                <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>夜は預けて、宿泊分離型で泊まる</h3>
+                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>高級旅館や温泉宿の多くはペット不可。愛犬は完全個室で1泊¥7,700〜お預けし、憧れの宿へ。</p>
+                <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>高級旅館×お預かりを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+              <Link href="/stay" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>C. 犬と泊まれる宿が見つからない</p>
+                <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>普通の宿に泊まって、犬はDogHubへ</h3>
+                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>ペット可の部屋が満室でも大丈夫。お好きな宿に泊まり、愛犬は安心の個室で1泊¥7,700〜。</p>
+                <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>宿泊プランを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
             </div>
           </div>
         </section>

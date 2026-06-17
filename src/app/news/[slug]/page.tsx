@@ -57,10 +57,10 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     btnLabel: "DogHubのサービス・料金を見る",
   },
   "hakone-dog-friendly-hotels": {
-    text: "ペット可の宿でも、日中のお預かりに",
-    subtext: "チェックイン前やチェックアウト後の観光中、愛犬をDogHubにお預け。近隣施設からのご案内多数。",
+    text: "犬と泊まれる宿が見つからない時の、もう一つの選択肢",
+    subtext: "お好きな宿に泊まって、愛犬は近くのDogHubに預ける「宿泊分離型」という過ごし方。泊まる宿のタイプ別に、無理のない預け方をご案内します。",
     href: "/pethotel",
-    btnLabel: "ペット可ホテル×日中預かりプランを見る",
+    btnLabel: "泊まる宿のタイプ別に、預け方を見る",
   },
   "hakone-dog-trip-guide": {
     text: "箱根観光中の愛犬のお預かり",
