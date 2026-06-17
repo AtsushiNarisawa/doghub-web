@@ -30,6 +30,8 @@ const scenes = [
 ];
 
 const articles = [
+  { href: "/news/hakone-summer-dog-guide", label: "夏の箱根は避暑地", desc: "標高約650m、犬連れで涼しく過ごすコツ" },
+  { href: "/news/hakone-dog-heatstroke-guide", label: "犬の熱中症対策", desc: "夏のお出かけ前に知っておきたいこと" },
   { href: "/news/hakone-dog-trip-guide", label: "犬連れ旅行ガイド", desc: "犬と行けるスポット、モデルコース付き" },
   { href: "/news/hakone-dog-hotel-guide", label: "犬のホテルの選び方", desc: "預かりの種類と選び方のポイント" },
   { href: "/news/hakone-dog-lunch-guide", label: "犬連れランチガイド", desc: "室内OKのお店と楽しむコツ" },
@@ -210,6 +212,12 @@ export default function HakonePage() {
             <div className="p-6 bg-[#F8F5F0] rounded-xl">
               <p className="text-[#3C200F] font-medium mb-2" style={{ fontSize: "16px" }}>あわせて読みたい</p>
               <div className="space-y-2">
+                <Link href="/news/hakone-summer-dog-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 夏の箱根は避暑地｜犬連れで涼しく過ごすガイド
+                </Link>
+                <Link href="/news/hakone-dog-heatstroke-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 犬の熱中症対策｜夏のお出かけ前に知っておきたいこと
+                </Link>
                 <Link href="/news/hakone-dog-trip-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
                   → 箱根 犬連れ旅行ガイド｜1泊2日モデルコース
                 </Link>

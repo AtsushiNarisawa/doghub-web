@@ -190,8 +190,14 @@ export default function YunessunPage() {
         </section>
 
         <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
-          <div className="max-w-7xl mx-auto text-center">
-            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+          <div className="max-w-7xl mx-auto text-center space-y-2">
+            <Link href="/news/hakone-summer-dog-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              夏の箱根は避暑地｜犬連れで涼しく過ごすガイド →
+            </Link>
+            <Link href="/news/hakone-dog-heatstroke-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+              犬の熱中症対策｜夏のお出かけ前に →
+            </Link>
+            <Link href="/hakone" className="block text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
               箱根 犬連れ旅行ガイド トップへ →
             </Link>
           </div>
