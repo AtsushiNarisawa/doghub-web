@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { fetchVisitCounts } from "@/lib/visit-count";
+import { DestinationPicker } from "@/components/admin/destination-picker";
 
 interface Reservation {
   id: string;
@@ -19,6 +20,7 @@ interface Reservation {
   referral_source: string | null;
   notes: string | null;
   admin_notes: string | null;
+  destination: string | null;
   source: string;
   dog_count: number;
   cancel_reason: string | null;
@@ -72,6 +74,9 @@ export default function ReservationDetailPage() {
   const router = useRouter();
   const [res, setRes] = useState<Reservation | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [destination, setDestination] = useState("");
+  const [destEditing, setDestEditing] = useState(false);
+  const [destSaved, setDestSaved] = useState(false);
   const [pastVisits, setPastVisits] = useState<{ id: string; date: string; plan: string }[]>([]);
   const [visitCount, setVisitCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -99,6 +104,7 @@ export default function ReservationDetailPage() {
     if (data) {
       setRes(data as unknown as Reservation);
       setAdminNotes(data.admin_notes || "");
+      setDestination(data.destination || "");
       const customerId = (data as unknown as Reservation).customers.id;
       const { data: history } = await supabase
         .from("reservations")
@@ -184,6 +190,23 @@ export default function ReservationDetailPage() {
       setMemoEditing(false);
       setMemoSaved(true);
       setTimeout(() => setMemoSaved(false), 3000);
+    }
+  };
+
+  const saveDestination = async () => {
+    setSaving(true);
+    setDestSaved(false);
+    const { error } = await supabase
+      .from("reservations")
+      .update({ destination: destination.trim() || null })
+      .eq("id", id);
+    setSaving(false);
+    if (error) {
+      alert("行き先の保存に失敗しました");
+    } else {
+      setDestEditing(false);
+      setDestSaved(true);
+      setTimeout(() => setDestSaved(false), 3000);
     }
   };
 
@@ -513,6 +536,56 @@ export default function ReservationDetailPage() {
           </div>
         </div>
       )}
+
+      {/* 行き先（来店時にスタッフが後から入力する導線） */}
+      <div className="bg-white rounded-xl p-4">
+        <p className="text-xs font-medium text-gray-500 mb-2">行き先</p>
+        {destEditing ? (
+          <>
+            <DestinationPicker plan={res.plan} value={destination} onChange={setDestination} />
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={saveDestination}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830] disabled:opacity-50"
+              >
+                {saving ? "保存中..." : "保存"}
+              </button>
+              <button
+                onClick={() => { setDestEditing(false); setDestination(res?.destination || ""); }}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-sm text-gray-500 active:bg-gray-200"
+              >
+                キャンセル
+              </button>
+            </div>
+          </>
+        ) : destination ? (
+          <>
+            <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
+              {destination}
+            </div>
+            <div className="flex items-center gap-3 mt-2">
+              <button
+                onClick={() => setDestEditing(true)}
+                className="text-xs text-[#B87942] font-medium active:text-[#A06830]"
+              >
+                行き先を修正
+              </button>
+              {destSaved && <span className="text-xs text-green-600">保存しました</span>}
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDestEditing(true)}
+              className="text-sm text-[#B87942] font-medium active:text-[#A06830]"
+            >
+              + 行き先を入力
+            </button>
+            {destSaved && <span className="text-xs text-green-600">保存しました</span>}
+          </div>
+        )}
+      </div>
 
       {/* スタッフメモ */}
       <div className="bg-white rounded-xl p-4">

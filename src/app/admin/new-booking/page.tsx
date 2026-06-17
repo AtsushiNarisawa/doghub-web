@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { PLANS } from "@/types/booking";
+import { DestinationPicker } from "@/components/admin/destination-picker";
 
 interface CustomerResult {
   id: string;
@@ -68,6 +69,7 @@ function NewBookingForm() {
   const [checkoutDate, setCheckoutDate] = useState("");
   const [selectedDogIds, setSelectedDogIds] = useState<string[]>([]);
   const [walkOption, setWalkOption] = useState(false);
+  const [destination, setDestination] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -248,6 +250,7 @@ function NewBookingForm() {
         checkout_date: plan === "stay" ? checkoutDate : undefined,
         walk_option: walkOption,
         notes,
+        destination,
         dogs: selectedDogs,
         customer: customer
           ? {
@@ -692,6 +695,12 @@ function NewBookingForm() {
             />
           </div>
         )}
+      </div>
+
+      {/* 行き先（任意・マーケティング用） */}
+      <div className="bg-white rounded-xl p-4 space-y-3">
+        <p className="text-sm font-medium text-gray-500">行き先（任意）</p>
+        <DestinationPicker plan={plan} value={destination} onChange={setDestination} />
       </div>
 
       {/* オプション */}
