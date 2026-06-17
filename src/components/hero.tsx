@@ -38,7 +38,7 @@ export function Hero() {
             className="text-white mb-3"
             style={{ fontSize: "clamp(20px, 3vw, 32px)", fontWeight: 400, lineHeight: "1.6", letterSpacing: "0.05em" }}
           >
-            箱根のペットホテル｜DogHub箱根仙石原
+            箱根の犬のホテル・ペットホテル｜DogHub箱根仙石原
           </h1>
           <p
             className="text-white/80 max-w-lg"

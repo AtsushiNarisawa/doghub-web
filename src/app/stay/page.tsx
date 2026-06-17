@@ -10,13 +10,13 @@ import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   openGraph: {
-    title: "箱根 犬のホテル 宿泊・お預かり｜24時間常駐・完全個室｜DogHub箱根仙石原",
-    description: "箱根で犬のホテルをお探しなら、DogHub箱根仙石原。宿泊1泊¥7,700〜、日帰り預かり¥3,300〜。24時間スタッフ常駐・完全個室・専用ドッグラン併設。ペット不可の旅館に泊まる時、ゴルフや温泉の間にも。箱根仙石原の犬専門ペットホテル。",
+    title: "箱根 犬の宿泊・お預かり 1泊¥7,700〜｜完全個室・24時間常駐｜DogHub箱根仙石原",
+    description: "箱根で犬を預けて宿泊するなら、DogHub箱根仙石原の宿泊プラン。1泊¥7,700〜、24時間スタッフ常駐・完全個室・専用ドッグラン併設。ペット不可の宿に泊まる時、愛犬を安心してお預けいただけます。チェックイン14時〜、お迎え〜翌11時。",
     url: "https://dog-hub.shop/stay",
     type: "website",
   },
-  title: "箱根 犬のホテル 宿泊・お預かり｜24時間常駐・完全個室｜DogHub箱根仙石原",
-  description: "箱根で犬のホテルをお探しなら、DogHub箱根仙石原。宿泊1泊¥7,700〜、日帰り預かり¥3,300〜。24時間スタッフ常駐・完全個室・専用ドッグラン併設。ペット不可の旅館に泊まる時、ゴルフや温泉の間にも。箱根仙石原の犬専門ペットホテル。",
+  title: "箱根 犬の宿泊・お預かり 1泊¥7,700〜｜完全個室・24時間常駐｜DogHub箱根仙石原",
+  description: "箱根で犬を預けて宿泊するなら、DogHub箱根仙石原の宿泊プラン。1泊¥7,700〜、24時間スタッフ常駐・完全個室・専用ドッグラン併設。ペット不可の宿に泊まる時、愛犬を安心してお預けいただけます。チェックイン14時〜、お迎え〜翌11時。",
   alternates: { canonical: "/stay" },
 };
 
@@ -50,7 +50,7 @@ const scenes = [
   },
   {
     title: "宿泊する宿がペット不可の時",
-    body: "箱根吟遊、富士屋ホテル、強羅花壇など、憧れの高級旅館はペット不可がほとんど。DogHubなら愛犬を安心して預けて、特別な宿での滞在を楽しめます。",
+    body: "箱根の憧れの高級旅館の多くはペット不可です。DogHubに愛犬を安心して預けて、お好きな宿での特別な時間をお楽しみください。",
   },
   {
     title: "翌日もゴルフや観光を楽しみたい時",
@@ -228,36 +228,26 @@ export default function StayPage() {
           </div>
         </section>
 
-        {/* Why Hakone needs a dog hotel */}
+        {/* 泊まる宿のタイプから選ぶ（意図を所有ページへ誘導） */}
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>箱根で犬のホテルが必要な理由</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  箱根は関東屈指の人気観光地ですが、犬連れの旅行者にとって意外なハードルがあります。
-                  箱根吟遊、富士屋ホテル、強羅花壇など人気の高級旅館はほとんどがペット不可。
-                  温泉施設や美術館も犬の入場を認めていない施設が大半です。
-                </p>
-                <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  「せっかくの箱根旅行なのに、愛犬を車の中で待たせるのはかわいそう…」
-                  「ペット可の宿に泊まっても、チェックイン前後の観光が制限される…」
-                  そんなお悩みを解決するのが、DogHub箱根仙石原です。
-                </p>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { title: "ペット不可の旅館に泊まりたい時", desc: "愛犬はDogHubで一泊、飼い主様は憧れの旅館を満喫" },
-                  { title: "温泉・ユネッサンを楽しみたい時", desc: "温泉なら半日¥3,300、ユネッサンなら1日¥5,500で自由に" },
-                  { title: "ゴルフの朝、早朝から預けたい時", desc: "朝7時からお預かり対応。大箱根CC提携" },
-                  { title: "美術館をゆっくり巡りたい時", desc: "ポーラ美術館から車4分。預けて美術館めぐり" },
-                ].map((item) => (
-                  <div key={item.title} className="border border-[#E5DDD8] p-4">
-                    <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>{item.title}</h3>
-                    <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>{item.desc}</p>
-                  </div>
-                ))}
-              </div>
+            <h2 className="text-[#3C200F] mb-3" style={{ fontSize: "26px", fontWeight: 400 }}>泊まる宿のタイプから選ぶ</h2>
+            <p className="text-[#8F7B65] mb-8" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
+              どんな宿に泊まるかで、愛犬の預け方も変わります。目的に合わせてご覧ください。
+            </p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Link href="/ryokan" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>ペット不可の高級旅館に泊まる</p>
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>高級旅館 × お預かり</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>憧れの高級旅館に泊まる日の、愛犬の過ごし方とDogHub周辺の宿をご案内します。</p>
+                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
+              <Link href="/pethotel" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>ペット可の宿に泊まる × 日中だけ預ける</p>
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>ペット可ホテル × 日中預かり</h3>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>愛犬と泊まれる宿でも、チェックイン前後や観光の数時間だけ預けたい時に。</p>
+                <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </Link>
             </div>
           </div>
         </section>

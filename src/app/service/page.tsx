@@ -10,13 +10,13 @@ import { InstagramFollowLight } from "@/components/instagram-follow";
 
 export const metadata: Metadata = {
   openGraph: {
-    title: "箱根のペット ホテル｜犬の一時預かり・宿泊｜DogHub箱根仙石原",
-    description: "箱根仙石原のペットホテル DogHub。犬の一時預かり¥1,100〜/1時間・宿泊¥7,700〜。24時間スタッフ常駐・完全個室・ドッグラン併設で安心。箱根観光中の愛犬のお預け先に。",
+    title: "犬のお預かりサービス｜料金・時間・プラン一覧｜DogHub箱根仙石原",
+    description: "DogHub箱根仙石原のお預かりサービス一覧。犬の一時預かり1時間¥1,100〜・半日¥3,300〜・1日¥5,500〜・宿泊¥7,700〜。24時間スタッフ常駐・完全個室・専用ドッグラン併設。目的に合わせてプランをお選びいただけます。",
     url: "https://dog-hub.shop/service",
     type: "website",
   },
-  title: "箱根のペット ホテル｜犬の一時預かり・宿泊｜DogHub箱根仙石原",
-  description: "箱根仙石原のペットホテル DogHub。犬の一時預かり¥1,100〜/1時間・宿泊¥7,700〜。24時間スタッフ常駐・完全個室・ドッグラン併設で安心。箱根観光中の愛犬のお預け先に。",
+  title: "犬のお預かりサービス｜料金・時間・プラン一覧｜DogHub箱根仙石原",
+  description: "DogHub箱根仙石原のお預かりサービス一覧。犬の一時預かり1時間¥1,100〜・半日¥3,300〜・1日¥5,500〜・宿泊¥7,700〜。24時間スタッフ常駐・完全個室・専用ドッグラン併設。目的に合わせてプランをお選びいただけます。",
   alternates: { canonical: "/service" },
 };
 
