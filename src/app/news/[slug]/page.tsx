@@ -101,8 +101,8 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   "hakone-ashinoko-dog-guide": {
     text: "芦ノ湖観光の前後にお預け",
     subtext: "桃源台から車10分、元箱根から車20分。半日預かり¥3,300〜。",
-    href: "/service",
-    btnLabel: "お預かりプランを見る",
+    href: "/4h",
+    btnLabel: "半日お預かりプランを見る",
   },
   "hakone-dog-cafe-guide": {
     text: "箱根で室内犬連れOKのカフェ",
@@ -155,26 +155,26 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   "hakone-jinja-dog-guide": {
     text: "参拝の後は美術館や温泉も。犬はDogHubへ",
     subtext: "箱根神社は犬OKでも、美術館や温泉は犬NG。参拝後の観光中だけお預かりできます。半日¥3,300〜。",
-    href: "/service",
-    btnLabel: "お預かりプラン・料金を見る",
+    href: "/4h",
+    btnLabel: "半日お預かりプランを見る",
   },
   "hakone-ropeway-pirate-ship-dog-guide": {
     text: "ゴールデンコースの前後にお預け",
     subtext: "ケージなしで身軽に楽しみたいなら、半日¥3,300〜でお預かり。",
-    href: "/service",
-    btnLabel: "お預かりプラン・料金を見る",
+    href: "/4h",
+    btnLabel: "半日お預かりプランを見る",
   },
   "hakone-en-dog-guide": {
     text: "箱根園の前後にDogHubへ",
     subtext: "箱根園まで車約20分。ふれあい動物園の間だけお預かりも。",
-    href: "/service",
-    btnLabel: "お預かりプラン・料金を見る",
+    href: "/4h",
+    btnLabel: "半日お預かりプランを見る",
   },
   "hakone-gora-park-dog-guide": {
     text: "強羅エリアのお出かけ拠点に",
     subtext: "強羅から車10分。クラフト体験の間だけ預けて、庭園は犬と一緒に。",
-    href: "/service",
-    btnLabel: "お預かりプラン・料金を見る",
+    href: "/4h",
+    btnLabel: "半日お預かりプランを見る",
   },
   "hakone-gw-spring-dog-guide": {
     text: "GWの箱根旅行、愛犬のお預かり",
