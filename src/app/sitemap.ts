@@ -11,6 +11,10 @@ const ARTICLE_PRIORITY: Record<string, number> = {
   "hakone-dog-lunch-guide": 0.8,       // ランチKW狙い
   "hakone-dog-hotel-guide": 0.8,       // 犬のホテルKW
   "hakone-summer-dog-guide": 0.8,      // 夏避暑グリーンフィールド（市場創造）
+  "hakone-dog-heatstroke-guide": 0.8,  // 夏の信頼/教育＋避暑との内部リンクハブ
+  "hakone-chokoku-no-mori-dog-guide": 0.8,        // 彫刻の森×犬（239imp・1.5位の実績スポット記事）
+  "hakone-pola-museum-dog-guide": 0.8,            // ポーラ×犬（306imp）
+  "hakone-glass-forest-museum-dog-guide": 0.8,    // ガラスの森×犬（161imp・2.3位）
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

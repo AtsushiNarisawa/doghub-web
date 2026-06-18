@@ -406,6 +406,46 @@ const DEFAULT_CTA = {
   btnLabel: "料金・サービスを確認する",
 };
 
+// 「あわせて読みたい」の関連記事を明示的に上書き（親子クラスタ・テーマ近接の連結）。
+// 未定義の記事は従来の表示カテゴリ順ソートにフォールバックする。
+// 目的: 美術館まとめ（ハブ・表示カテゴリ=コラム）と個別3館（表示カテゴリ=箱根観光）は
+// 表示カテゴリが異なり自動relatedで連結されず、個別3館がサイト内で孤立していた。
+// ハブ↔個別3館をフルメッシュで結び、孤立解消＋同KWのカニバリ（ハブが個別の影で低順位表示）を整理する。
+const ARTICLE_RELATED: Record<string, string[]> = {
+  // 美術館クラスタ（ハブ↔個別3館・フルメッシュ）
+  "hakone-museum-dog-guide": [
+    "hakone-chokoku-no-mori-dog-guide",
+    "hakone-pola-museum-dog-guide",
+    "hakone-glass-forest-museum-dog-guide",
+  ],
+  "hakone-chokoku-no-mori-dog-guide": [
+    "hakone-pola-museum-dog-guide",
+    "hakone-glass-forest-museum-dog-guide",
+    "hakone-museum-dog-guide",
+  ],
+  "hakone-pola-museum-dog-guide": [
+    "hakone-chokoku-no-mori-dog-guide",
+    "hakone-glass-forest-museum-dog-guide",
+    "hakone-museum-dog-guide",
+  ],
+  "hakone-glass-forest-museum-dog-guide": [
+    "hakone-chokoku-no-mori-dog-guide",
+    "hakone-pola-museum-dog-guide",
+    "hakone-museum-dog-guide",
+  ],
+  // 夏クラスタ（避暑↔熱中症の相互リンク＋夏に近接する記事）
+  "hakone-summer-dog-guide": [
+    "hakone-dog-heatstroke-guide",
+    "hakone-yunessun-pet-guide",
+    "hakone-dog-day-trip",
+  ],
+  "hakone-dog-heatstroke-guide": [
+    "hakone-summer-dog-guide",
+    "hakone-yunessun-pet-guide",
+    "hakone-dog-day-hot-spring-guide",
+  ],
+};
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -459,12 +499,19 @@ export default async function NewsDetailPage({ params }: Props) {
     }
   }
 
-  // 関連記事を取得（同カテゴリ優先、最大2件）+ 関連サービスページ1つ
+  // 関連記事を取得 + 関連サービスページ1つ
+  // ARTICLE_RELATED に明示指定があればそれを最優先（親子クラスタの連結）。
+  // 無ければ従来どおり同表示カテゴリ優先のソートで最大2件。
   const allArticles = await getArticles();
-  const relatedArticles = allArticles
-    .filter((a) => a.slug !== slug)
-    .sort((a, b) => (a.category === article.category ? -1 : 1) - (b.category === article.category ? -1 : 1))
-    .slice(0, 2);
+  const relatedOverride = ARTICLE_RELATED[slug];
+  const relatedArticles = relatedOverride
+    ? (relatedOverride
+        .map((s) => allArticles.find((a) => a.slug === s))
+        .filter(Boolean) as typeof allArticles).slice(0, 3)
+    : allArticles
+        .filter((a) => a.slug !== slug)
+        .sort((a, b) => (a.category === article.category ? -1 : 1) - (b.category === article.category ? -1 : 1))
+        .slice(0, 2);
 
   return (
     <>
