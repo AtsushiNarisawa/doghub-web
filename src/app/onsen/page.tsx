@@ -245,7 +245,7 @@ export default function OnsenPage() {
                   <p>11:00 温泉でゆっくり</p>
                   <p>12:00 館内でランチ</p>
                   <p>13:30 DogHubでお迎え</p>
-                  <p>14:00 愛犬と湿生花園を散策</p>
+                  <p>14:00 愛犬と湿生花園の周辺をお散歩</p>
                 </div>
               </div>
               <div className="bg-white border border-[#E5DDD8] p-8">

@@ -39,7 +39,7 @@ const plans: Plan[] = [
           { time: "8:00", place: "ゴルフ", icon: "golf" },
           { time: "11:00", place: "DogHubお預かり開始", icon: "hub", plan: "半日プラン" },
           { time: "15:00", place: "DogHubお迎え", icon: "hub" },
-          { time: "15:30", place: "箱根湿生花園", icon: "dog", withDog: true },
+          { time: "15:30", place: "湿生花園（周辺さんぽ）", icon: "dog", withDog: true },
           { time: "17:00", place: "帰宅", icon: "car" },
         ],
       },
