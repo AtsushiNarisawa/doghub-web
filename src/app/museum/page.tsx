@@ -66,7 +66,7 @@ const museums = [
     name: "成川美術館",
     distance: "車で約20分",
     area: "元箱根",
-    note: "わんちゃん同伴可",
+    note: "小型犬は抱っこ・カート等で同伴可",
   },
   {
     name: "箱根関所・箱根関所資料館",
@@ -113,7 +113,7 @@ export default function MuseumPage() {
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   箱根仙石原は美術館の宝庫。ポーラ美術館、箱根ガラスの森美術館、
                   箱根ラリック美術館が集まるエリアですが、ほとんどの美術館はペット入館不可です。
-                  唯一、成川美術館はわんちゃん同伴で入館できます。
+                  成川美術館のみ、小型犬を抱っこ・キャリー・ペットカートに乗せれば（足を床につけない状態で）同伴入館できます。
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   DogHub箱根仙石原はこれらの美術館から車でわずか2〜4分。

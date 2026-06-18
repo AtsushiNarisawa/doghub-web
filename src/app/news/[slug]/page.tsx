@@ -94,7 +94,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-pet-hotel-area-guide": {
     text: "仙石原の中心にあるペットホテル",
-    subtext: "強羅から車10分、芦ノ湖から車20分。箱根のどこからでもアクセスしやすい立地です。",
+    subtext: "強羅から車10分、芦ノ湖・桃源台から車10分（元箱根方面は約20分）。箱根のどこからでもアクセスしやすい立地です。",
     href: "/service",
     btnLabel: "料金・サービスを見る",
   },
@@ -130,7 +130,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-chokoku-no-mori-dog-guide": {
     text: "彫刻の森美術館の間、愛犬をお預け",
-    subtext: "美術館まで車15分。半日¥3,300〜で、ピカソ館までゆっくり鑑賞できます。",
+    subtext: "美術館まで車13分。半日¥3,300〜で、ピカソ館までゆっくり鑑賞できます。",
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
