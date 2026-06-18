@@ -42,13 +42,7 @@ const museums = [
     name: "箱根美術館",
     distance: "車で約10分",
     area: "強羅",
-    note: "",
-  },
-  {
-    name: "箱根写真美術館",
-    distance: "車で約10分",
-    area: "強羅",
-    note: "",
+    note: "改修休館中（〜2026/10/29）",
   },
   {
     name: "彫刻の森美術館",
@@ -166,7 +160,7 @@ export default function MuseumPage() {
                   <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>{m.name}</h3>
                   <p className="text-[#B87942]" style={{ fontSize: "14px", fontWeight: 400 }}>{m.distance}</p>
                   <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>{m.area}エリア</p>
-                  {m.note && <p className="text-[#2A7B4F] mt-2" style={{ fontSize: "13px", fontWeight: 400 }}>{m.note}</p>}
+                  {m.note && <p className={`mt-2 ${m.note.includes("休館") ? "text-[#8F7B65]" : "text-[#2A7B4F]"}`} style={{ fontSize: "13px", fontWeight: 400 }}>{m.note}</p>}
                 </div>
               ))}
             </div>

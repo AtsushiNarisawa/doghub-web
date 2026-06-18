@@ -227,7 +227,7 @@ export default function PetHotelPage() {
             <div className="grid sm:grid-cols-3 gap-8">
               {[
                 { title: "ドッグラン併設", body: "お預かり中もドッグランで自由に遊べます。ケージに入れっぱなしにしない、のびのびした環境です。" },
-                { title: "仙石原の中心で好アクセス", body: "レジーナ仙石原から車3分。仙石原エリアのペット可施設からすぐの立地です。" },
+                { title: "仙石原の中心で好アクセス", body: "レジーナ仙石原から車2分。仙石原エリアのペット可施設からすぐの立地です。" },
                 { title: "当日予約・短時間もOK", body: "スポット利用は1時間¥1,100から。「ちょっとだけ預けたい」にも柔軟に対応します。" },
               ].map((item) => (
                 <div key={item.title} className="bg-white p-6">

@@ -214,7 +214,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-regina-resort-dog-guide": {
     text: "レジーナリゾート箱根仙石原ご滞在中のお預かり",
-    subtext: "宿まで車で約3分。チェックイン前・アウト後・観光中の愛犬お預けに。半日¥3,300〜。",
+    subtext: "宿まで車で約2分。チェックイン前・アウト後・観光中の愛犬お預けに。半日¥3,300〜。",
     href: "/4h",
     btnLabel: "半日プランを見る",
   },

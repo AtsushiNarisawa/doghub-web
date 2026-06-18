@@ -79,7 +79,7 @@ export default function YumotoPage() {
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
                   箱根湯本 → 国道1号 → 宮ノ下 → 国道138号 → 仙石原
                 </p>
-                <p className="text-[#B87942] font-medium" style={{ fontSize: "20px" }}>約25分</p>
+                <p className="text-[#B87942] font-medium" style={{ fontSize: "20px" }}>約30分</p>
                 <p className="text-[#8F7B65] mt-2" style={{ fontSize: "14px", fontWeight: 400 }}>
                   ※ 週末・連休は宮ノ下付近で渋滞の場合あり（+10〜15分）
                 </p>
