@@ -79,12 +79,11 @@ export default function AdminDashboard() {
   const [selectedDate, setSelectedDate] = useState(realToday);
   const [calOffset, setCalOffset] = useState(0);
 
-  // 週の開始日（月曜）
+  // 週の開始日（日曜）
   const getWeekStart = (offset: number) => {
     const d = new Date();
     const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff + offset * 7);
+    d.setDate(d.getDate() - day + offset * 7);
     return d;
   };
 
@@ -96,7 +95,7 @@ export default function AdminDashboard() {
     const year = d.getFullYear();
     const month = d.getMonth();
     const firstDay = new Date(year, month, 1).getDay(); // 0=日
-    const startPad = firstDay === 0 ? 6 : firstDay - 1; // 月曜始まり
+    const startPad = firstDay; // 日曜始まり
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const dates: (string | null)[] = [];
     for (let i = 0; i < startPad; i++) dates.push(null);
@@ -303,7 +302,7 @@ export default function AdminDashboard() {
         {/* 曜日ヘッダー */}
         {calView === "month" && (
           <div className="grid grid-cols-7 mb-1">
-            {DAYS.slice(1).concat(DAYS[0]).map((day) => (
+            {DAYS.map((day) => (
               <div key={day} className="text-center text-[10px] text-gray-400">{day}</div>
             ))}
           </div>
