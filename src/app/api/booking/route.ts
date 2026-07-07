@@ -383,7 +383,9 @@ export async function POST(req: NextRequest) {
         checkout_date: body.plan === "stay" ? body.checkout_date || null : null,
         status,
         dog_count: dogCount,
-        walk_option: body.walk_option,
+        // お散歩オプションは宿泊のお預かりのみ受付（日帰りは営業時間中に店を空けられないため）。
+        // 古い画面/LINE/直POSTからの回避を封じるためサーバー側で強制する。
+        walk_option: body.plan === "stay" ? body.walk_option : false,
         destination: body.destination || null,
         early_morning: body.early_morning || false,
         referral_source: body.referral_source || null,

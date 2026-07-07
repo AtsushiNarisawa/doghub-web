@@ -153,18 +153,21 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
 
       {/* オプション・備考 */}
       <div className="space-y-3">
-        <label className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F5F0]">
-          <input
-            type="checkbox"
-            checked={form.walk_option}
-            onChange={(e) => onChange({ ...form, walk_option: e.target.checked })}
-            className="w-5 h-5 rounded accent-[#B87942]"
-          />
-          <div>
-            <span className="text-sm">お散歩オプションを希望する（¥{WALK_OPTION_FEE.toLocaleString()}/1回1頭）</span>
-            <p className="text-[11px] text-[#888] mt-0.5">複数回ご希望の場合はチェックイン時にお伝えください</p>
-          </div>
-        </label>
+        {/* お散歩オプションは宿泊のお預かり限定（営業時間中に店を空けられないため） */}
+        {form.plan === "stay" && (
+          <label className="flex items-center gap-3 p-3 rounded-lg bg-[#F8F5F0]">
+            <input
+              type="checkbox"
+              checked={form.walk_option}
+              onChange={(e) => onChange({ ...form, walk_option: e.target.checked })}
+              className="w-5 h-5 rounded accent-[#B87942]"
+            />
+            <div>
+              <span className="text-sm">お散歩オプションを希望する（¥{WALK_OPTION_FEE.toLocaleString()}/1回1頭）</span>
+              <p className="text-[11px] text-[#888] mt-0.5">複数回ご希望の場合はチェックイン時にお伝えください</p>
+            </div>
+          </label>
+        )}
 
         <div>
           <label className="text-sm text-[#888] block mb-1">
@@ -203,8 +206,8 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
           coExtFee = coExtHours * EXTRA_HOUR_FEE * dogCount;
         }
 
-        // 散歩オプション
-        const walkFee = form.walk_option ? WALK_OPTION_FEE * dogCount : 0;
+        // 散歩オプション（宿泊のお預かりのみ）
+        const walkFee = form.plan === "stay" && form.walk_option ? WALK_OPTION_FEE * dogCount : 0;
 
         const totalEstimate = baseFee + ciExtFee + coExtFee + walkFee;
 

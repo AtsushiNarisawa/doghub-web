@@ -33,7 +33,8 @@ export function calculateBookingTotal(form: BookingFormData): number {
     coExtFee = hours * EXTRA_HOUR_FEE * dogCount;
   }
 
-  const walkFee = form.walk_option ? WALK_OPTION_FEE * dogCount : 0;
+  // お散歩オプションは宿泊のお預かりのみ
+  const walkFee = form.plan === "stay" && form.walk_option ? WALK_OPTION_FEE * dogCount : 0;
 
   return baseFee + ciExtFee + coExtFee + walkFee;
 }

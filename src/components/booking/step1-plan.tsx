@@ -322,6 +322,9 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   checkout_extension: false,
                   checkout_extension_until: "",
                   early_morning: false,
+                  // お散歩オプションは宿泊のみ。プランを切り替えたら選択を外す
+                  // （宿泊で選択→日帰りに戻した時の取りこぼし防止）
+                  walk_option: false,
                 })
               }
               className={`w-full text-left p-4 rounded-xl border-2 transition-all ${

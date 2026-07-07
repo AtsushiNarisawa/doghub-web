@@ -59,7 +59,7 @@ export default function DogrunPage() {
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   屋根付きエリアもあるので、雨の日でも安心して遊べます。
-                  お預かり中のわんちゃんは、毎日必ず専用ドッグランにお出しして運動します。お散歩は¥550/回のオプションでも承ります。
+                  お預かり中のわんちゃんは、毎日必ず専用ドッグランにお出しして運動します。お散歩は宿泊のお預かりのみ、¥550/回のオプションで承ります。
                   ケージに閉じ込めっぱなしにはしません。
                 </p>
                 <div className="bg-[#FFF8F3] border-l-4 border-[#B87942] px-4 py-3 mb-6">
@@ -105,7 +105,7 @@ export default function DogrunPage() {
                 },
                 {
                   title: "お散歩オプション",
-                  body: "ドッグランに加え、お散歩オプション（¥550/回・税込）もご用意。仙石原周辺を一緒にお散歩します。",
+                  body: "宿泊のお預かりのわんちゃんには、ドッグランに加えてお散歩オプション（¥550/回・税込）もご用意。仙石原周辺を一緒にお散歩します。",
                 },
               ].map((item) => (
                 <div key={item.title} className="bg-white p-6">

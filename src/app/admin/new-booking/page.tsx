@@ -635,7 +635,7 @@ function NewBookingForm() {
           {PLANS.map((p) => (
             <button
               key={p.id}
-              onClick={() => { setPlan(p.id); setCheckinTime(""); }}
+              onClick={() => { setPlan(p.id); setCheckinTime(""); if (p.id !== "stay") setWalkOption(false); }}
               className={`py-3 px-2 rounded-xl border text-sm font-medium transition-colors ${
                 plan === p.id
                   ? "border-[#B87942] bg-orange-50 text-[#B87942]"
@@ -703,19 +703,21 @@ function NewBookingForm() {
         <DestinationPicker plan={plan} value={destination} onChange={setDestination} />
       </div>
 
-      {/* オプション */}
-      <div className="bg-white rounded-xl p-4 space-y-3">
-        <p className="text-sm font-medium text-gray-500">オプション</p>
-        <label className="flex items-center gap-3 py-2">
-          <input
-            type="checkbox"
-            checked={walkOption}
-            onChange={(e) => setWalkOption(e.target.checked)}
-            className="w-5 h-5 rounded border-gray-300"
-          />
-          <span className="text-sm text-gray-700">お散歩オプション（¥550/回・1頭）</span>
-        </label>
-      </div>
+      {/* オプション（お散歩は宿泊のお預かりのみ） */}
+      {plan === "stay" && (
+        <div className="bg-white rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-gray-500">オプション</p>
+          <label className="flex items-center gap-3 py-2">
+            <input
+              type="checkbox"
+              checked={walkOption}
+              onChange={(e) => setWalkOption(e.target.checked)}
+              className="w-5 h-5 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">お散歩オプション（¥550/回・1頭）</span>
+          </label>
+        </div>
+      )}
 
       {/* メモ */}
       <div className="bg-white rounded-xl p-4 space-y-3">

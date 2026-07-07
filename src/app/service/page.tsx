@@ -62,7 +62,7 @@ const priceFaqs = [
   },
   {
     q: "当日の追加料金やオプションはありますか？",
-    a: "お散歩オプション¥550/回のほか、ご飯・おやつ・マナーウェアの販売（¥220〜）もございます。1日プランは早朝7時からのお預かりに対応しています。",
+    a: "お散歩オプション（¥550/回・宿泊のお預かりのみ）のほか、ご飯・おやつ・マナーウェアの販売（¥220〜）もございます。1日プランは早朝7時からのお預かりに対応しています。",
   },
 ];
 
@@ -273,6 +273,7 @@ export default function ServicePage() {
                 <div className="mt-3">
                   <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "18px", fontWeight: 400 }}>お散歩</h3>
                   <p className="text-[#B87942]" style={{ fontSize: "16px", fontWeight: 400 }}>¥550-/1回</p>
+                  <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊のお預かり限定</p>
                 </div>
               </div>
               <div>
