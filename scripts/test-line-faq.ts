@@ -1,5 +1,7 @@
 // LINE FAQ マッチャの決定論的テスト。実コード（src/lib/line-faq.ts の matchFaqReply）を
 // そのまま実走し、現実的な顧客文面が意図どおりのカテゴリへ落ちるかを検証する。
+// 2026-07〜: 自由文は常に fallbackReply＋アラートになるため（webhook/route.ts）、
+// ここではカテゴリ判定（アラートメールのラベル用）だけを検証する。needsHuman は廃止済み。
 // 実行: node scripts/test-line-faq.ts   （Node v23.6+ は .ts を直接実行可能）
 import { matchFaqReply } from "../src/lib/line-faq.ts";
 
@@ -76,6 +78,16 @@ const CASES: Case[] = [
   { text: "予約を変更できますか", expect: "キャンセル/変更", note: "予約語を含むが変更優先" },
   { text: "日程変更をお願いします", expect: "キャンセル/変更" },
 
+  // ───── 新規: 到着時間の変更・遅刻（2026-07・長谷部様ケースの再発防止）─────
+  { text: "今日車が混んでいて到着が遅れそうです", expect: "到着時間の変更・遅刻" },
+  { text: "少し遅刻しそうなのですが大丈夫でしょうか", expect: "到着時間の変更・遅刻" },
+  { text: "到着時間を変更したいのですが", expect: "到着時間の変更・遅刻" },
+  {
+    text: "初めまして。7月25日に9時から予約してます長谷部と申します。予約時間についてお聞きしたいのですが、お預かり時間が9時からになってると思いますが9時半から13時半とかでも大丈夫なんでしょうか？",
+    expect: "営業時間",
+    note: "実例(2026-07-05)。カテゴリラベルは営業時間のままだが、自由文は常にfallback+アラートになるため実害なし",
+  },
+
   // ───── 既存: 料金 ─────
   { text: "料金はいくらですか", expect: "料金" },
   { text: "1泊おいくらですか", expect: "料金" },
@@ -110,41 +122,22 @@ const CASES: Case[] = [
   { text: "泊まりで預けたい", expect: "予約" },
   { text: "明日預かってもらえますか", expect: "予約" },
 
-  // ───── フォールバック（FAQ非該当・needsHuman=true想定）─────
+  // ───── フォールバック（FAQ非該当）─────
   { text: "こんにちは", expect: "フォールバック" },
   { text: "ありがとうございました", expect: "フォールバック" },
   { text: "うちの犬はチワワです", expect: "フォールバック" },
   { text: "ペット保険ってどこのがおすすめですか？加入しといた方がいいのかなと", expect: "フォールバック", note: "旧:どこ で住所へ誤爆" },
 ];
 
-// needsHuman の期待値（false でないとアラートが鳴ってしまうカテゴリ）
-const SHOULD_NOT_ALERT = new Set([
-  "対応外サービス", "支払い方法", "お散歩オプション", "様子確認",
-  "料金", "ワクチン", "持ち物", "大型犬", "営業時間", "アクセス", "予約",
-]);
-const SHOULD_ALERT = new Set(["受入確認", "キャンセル/変更", "フォールバック"]);
-
 let pass = 0;
 const fails: string[] = [];
 
 for (const c of CASES) {
-  const { category, needsHuman } = matchFaqReply(c.text);
-  const catOk = category === c.expect;
-
-  // needsHuman の整合チェック（カテゴリが期待どおりの場合のみ評価）
-  let alertOk = true;
-  if (catOk) {
-    if (SHOULD_NOT_ALERT.has(category) && needsHuman) alertOk = false;
-    if (SHOULD_ALERT.has(category) && !needsHuman) alertOk = false;
-  }
-
-  if (catOk && alertOk) {
+  const { category } = matchFaqReply(c.text);
+  if (category === c.expect) {
     pass++;
   } else {
-    const reason = !catOk
-      ? `期待=${c.expect} 実際=${category}`
-      : `needsHuman不整合 (category=${category}, needsHuman=${needsHuman})`;
-    fails.push(`✗ "${c.text}" → ${reason}${c.note ? `  〈${c.note}〉` : ""}`);
+    fails.push(`✗ "${c.text}" → 期待=${c.expect} 実際=${category}${c.note ? `  〈${c.note}〉` : ""}`);
   }
 }
 
@@ -154,5 +147,5 @@ if (fails.length) {
   console.log(`\n❌ ${fails.length} 件 FAIL`);
   process.exit(1);
 } else {
-  console.log("✅ 全ケース PASS（カテゴリ・アラート要否ともに意図どおり）");
+  console.log("✅ 全ケース PASS（カテゴリ判定は意図どおり）");
 }

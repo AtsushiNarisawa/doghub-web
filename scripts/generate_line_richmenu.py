@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""DogHub LINE リッチメニュー画像を生成（2500×1686・6マス）。
-ブランドカラー（globals.css の @theme と一致）で6分割の固定メニューを描画する。
+"""DogHub LINE リッチメニュー画像を生成（2500×1686・8マス）。
+ブランドカラー（globals.css の @theme と一致）で8分割の固定メニューを描画する。
 出力: web/scripts/line-richmenu.png
 """
 from PIL import Image, ImageDraw, ImageFont
 import os
 
 W, H = 2500, 1686
-COLS, ROWS = 3, 2
+COLS, ROWS = 4, 2
 CW, CH = W // COLS, H // ROWS
 
 # ブランドカラー
@@ -29,10 +29,12 @@ def font(size, bold=False):
 
 # 各セル: (見出し, サブ, アクセント背景か)
 CELLS = [
-    ("料金・プラン", "半日4時間 ¥3,300", False),
+    ("料金", "半日4h ¥3,300", False),
     ("アクセス", "場所・駐車場", False),
-    ("営業時間", "9-17 / 水木定休", False),
-    ("持ち物", "ワクチン・ご準備", False),
+    ("営業時間", "9-17 水木定休", False),
+    ("持ち物", "ワクチン・準備", False),
+    ("支払い方法", "現金・カード等", False),
+    ("遅刻・時間変更", "当日は電話へ", False),
     ("予約する", "24時間受付", True),
     ("お電話", "0460-80-0290", True),
 ]

@@ -4,7 +4,7 @@ import {
   sendLineReplyMessage,
   buildWelcomeMessage,
 } from "@/lib/line";
-import { matchFaqReply, nonTextReply } from "@/lib/line-faq";
+import { matchFaqReply, nonTextReply, fallbackReply, FAQ_RULES } from "@/lib/line-faq";
 import { sendLineStaffAlert } from "@/lib/email";
 import { recordInboundWithBotReply, ensureLineConversation } from "@/lib/line-store";
 import { createClient } from "@supabase/supabase-js";
@@ -54,18 +54,37 @@ async function handleEvent(event: LineEvent) {
       await ensureLineConversation(userId);
       break;
 
-    // メッセージ受信 → 定番FAQを自動回答、該当なしはフォールバック（すべてreply・無料）
+    // リッチメニューのボタン(postback) → お客様が「選んだ」ものだけ自動回答（アラートなし）。
+    // 自由文と違い、data=category名で一意に決まるためキーワード判定は使わない。
+    case "postback": {
+      const category = event.postback?.data ?? "";
+      const rule = FAQ_RULES.find((r) => r.category === category);
+      if (rule) {
+        await sendLineReplyMessage(replyToken, rule.reply);
+        await recordInboundWithBotReply({
+          lineUserId: userId,
+          inboundType: "text",
+          inboundText: category,
+          inboundMessageId: undefined,
+          botReply: rule.reply,
+        });
+      }
+      break;
+    }
+
+    // メッセージ受信（お客様が自由文で入力） → ボタンと違い、内容にかかわらず
+    // 受付メッセージのみ返し、必ずスタッフへエスカレーションする（自動のカテゴリ別
+    // 定型文は送らない＝キーワード誤爆でお客様の実際の質問に的外れな回答をしないため）。
     case "message": {
       const messageType = event.message?.type ?? "不明";
       if (messageType === "text") {
         const text = event.message?.text ?? "";
-        const { reply, category, needsHuman } = matchFaqReply(text);
+        const { category } = matchFaqReply(text);
+        const reply = fallbackReply();
         // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
         await sendLineReplyMessage(replyToken, reply);
-        // 人間対応が必要なメッセージはスタッフへメールでエスカレーション
-        if (needsHuman) {
-          await alertStaff(userId, text, category);
-        }
+        // 自由文は内容を問わず必ずスタッフへメールでエスカレーション
+        await alertStaff(userId, text, category);
         // 受信トレイへ記録（reply送信後・独立処理。失敗してもreply/200を壊さない）
         await recordInboundWithBotReply({
           lineUserId: userId,
@@ -141,5 +160,6 @@ interface LineEvent {
   type: string;
   source?: { userId?: string; type?: string };
   message?: { type: string; text?: string; id?: string };
+  postback?: { data: string };
   replyToken?: string;
 }

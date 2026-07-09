@@ -9,8 +9,11 @@
 //  - 対応外サービス（トリミング等のケア・送迎）は「料金」「予約」より前
 //    （"トリミング料金" "シャンプー予約" を対応外案内へ寄せる）。
 //
-// needsHuman=true のルールは、定型回答を返したうえでスタッフへアラートメールを送る。
-// needsHuman=false（確定回答が言える質問）は自動返信だけで完結＝不要なアラートを出さない。
+// 2026-07〜: リッチメニューのボタンは postback 化し、ボタン経由（=このcategory名を直接指定）
+// のときだけ bot が reply を自動送信する。お客様が自由文でタイプした場合は matchFaqReply の
+// category を「アラートメールのラベル用」に使うだけで、reply は送らずスタッフが個別対応する
+// （webhook/route.ts 参照）。そのため needsHuman フラグは廃止済み（旧: カテゴリ単位でアラート
+// 要否を制御していたが、今は「ボタン=自動」「自由文=常に人」で一律に決まるため不要）。
 import type { LineMessage } from "./line";
 
 export const BOOKING_URL = "https://liff.line.me/2009688745-qZi2jM4g";
@@ -20,7 +23,6 @@ export interface FaqRule {
   category: string;
   keywords: string[];
   reply: LineMessage[];
-  needsHuman?: boolean;
 }
 
 export const FAQ_RULES: FaqRule[] = [
@@ -29,7 +31,6 @@ export const FAQ_RULES: FaqRule[] = [
     // これを最上位に置かないと "預か/預け" で予約ルールに誤爆し、確認なく予約導線を返してしまう。
     category: "受入確認",
     keywords: ["猫", "ねこ", "ネコ", "発情", "ヒート", "多頭", "持病", "投薬", "てんかん", "噛みつ", "咬"],
-    needsHuman: true,
     reply: [
       {
         type: "text",
@@ -41,10 +42,26 @@ export const FAQ_RULES: FaqRule[] = [
     ],
   },
   {
+    // 到着時間の変更・遅刻（2026-07新設。「キャンセル/変更」より前に置く。
+    // "到着時間を変更したい" のように「変更」を含む文面がキャンセル/変更へ誤分類されるのを防ぐ）。
+    // 事前に分かっている変更は予約変更リンクへ、当日の急な遅れは電話へ、と案内先を明確に分ける
+    // （CEO確認: 当日分はLINEでなく電話が実態に合う）。
+    category: "到着時間の変更・遅刻",
+    keywords: ["遅刻", "遅れ", "遅くなり", "間に合わな", "到着が遅", "到着時間"],
+    reply: [
+      {
+        type: "text",
+        text:
+          "到着時間の変更・遅刻についてです🕐\n" +
+          "・あらかじめ分かっている到着時間の変更は、ご予約確定時にお送りした「変更はこちら」のリンクから承っております。\n" +
+          `・当日、道路事情などで到着が遅れる場合は、お電話（${TEL}）までご連絡ください。`,
+      },
+    ],
+  },
+  {
     // キャンセル・変更（「予約」より前。"予約を変更" を変更案内に寄せる）
     category: "キャンセル/変更",
     keywords: ["キャンセル", "取り消し", "取消", "変更", "日程変更", "リスケ"],
-    needsHuman: true,
     reply: [
       {
         type: "text",
@@ -74,7 +91,6 @@ export const FAQ_RULES: FaqRule[] = [
       // 送迎（限定的に）
       "送迎", "送り迎え", "ピックアップ", "お届け", "家まで迎え", "自宅まで迎え", "家まで送", "自宅まで送", "集荷",
     ],
-    needsHuman: false,
     reply: [
       {
         type: "text",
@@ -114,7 +130,6 @@ export const FAQ_RULES: FaqRule[] = [
       "クレジット", "クレカ", "カード", "タッチ決済",
       "電子マネー", "現金", "ペイペイ", "paypay", "PayPay", "QR決済", "交通系",
     ],
-    needsHuman: false,
     reply: [
       {
         type: "text",
@@ -211,7 +226,6 @@ export const FAQ_RULES: FaqRule[] = [
     category: "お散歩オプション",
     // 「運動させて」「外に連れ出して」「歩かせて」等の言い換えを追加（敵対的テスト2026-06-09）。
     keywords: ["散歩", "おさんぽ", "さんぽ", "お散歩", "運動", "歩かせ", "走らせ", "連れ出"],
-    needsHuman: false,
     reply: [
       {
         type: "text",
@@ -231,7 +245,6 @@ export const FAQ_RULES: FaqRule[] = [
     // ⚠️ "写真"/"動画" は外す＝「HPの写真可愛い」等の雑談に誤爆し、かつ写真要望は
     //    Botがカメラ案内で逃げるよりフォールバック→人間が実際に送る方が良いサービスのため。
     keywords: ["カメラ", "ライブカメラ", "ウェブカメラ", "様子", "見守", "モニタ", "面会"],
-    needsHuman: false,
     reply: [
       {
         type: "text",
@@ -258,27 +271,30 @@ export const FAQ_RULES: FaqRule[] = [
   },
 ];
 
-// 返信本文・カテゴリ・人間対応要否を返す。フォールバック（FAQ非該当）は人間対応が必要扱い。
-export function matchFaqReply(text: string): { reply: LineMessage[]; category: string; needsHuman: boolean } {
+// 自由文のカテゴリ判定のみに使う（スタッフ向けアラートメールのラベル表示用）。
+// お客様への自動返信は、ボタン(postback)経由のときだけ rule.reply を直接使う
+// （webhook/route.ts が category でFAQ_RULESを検索）。自由文には常に fallbackReply を
+// 返す＝人が確認する前提のため、キーワードが一致してもカテゴリ別の定型文は送らない。
+export function matchFaqReply(text: string): { category: string } {
   const t = text.trim();
   for (const rule of FAQ_RULES) {
     if (rule.keywords.some((k) => t.includes(k))) {
-      return { reply: rule.reply, category: rule.category, needsHuman: !!rule.needsHuman };
+      return { category: rule.category };
     }
   }
-  return { reply: fallbackReply(), category: "フォールバック", needsHuman: true };
+  return { category: "フォールバック" };
 }
 
-// フォールバック：ボットは24時間稼働。URLを本文に入れるとLINEがプレビュー画像カードを
-// 生成し、リンク2つで画像が2枚並んでしまうため、本文からURLは外し画面下のリッチメニュー
-// （予約する／各FAQボタン）へ誘導する＝プレビュー画像ゼロ＋24時間使える点を明示。
+// 自由文への受付メッセージ（共通）。ボットは24時間稼働。URLを本文に入れるとLINEが
+// プレビュー画像カードを生成し、リンク2つで画像が2枚並んでしまうため、本文からURLは
+// 外し画面下のリッチメニューへ誘導する＝プレビュー画像ゼロ＋24時間使える点を明示。
 export function fallbackReply(): LineMessage[] {
   return [
     {
       type: "text",
       text:
         "お問い合わせありがとうございます🐾\n" +
-        "料金・アクセス・営業時間・持ち物は、下のメニューから24時間いつでもご確認いただけます。\n" +
+        "料金・アクセス・営業時間・持ち物・お支払い方法などは、下のメニューから24時間いつでもご確認いただけます。\n" +
         `個別のご質問には、スタッフから順次お返事します。お急ぎはお電話（${TEL}）へ。\n` +
         "ご予約は下のメニュー【予約する】から24時間受付中です。",
     },

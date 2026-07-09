@@ -8,20 +8,15 @@ const cases: { text: string; expectedCategory: string; why?: string }[] = JSON.p
   readFileSync(path, "utf8")
 ).cases;
 
-const NO_ALERT = new Set([
-  "対応外サービス", "支払い方法", "お散歩オプション", "様子確認",
-  "料金", "ワクチン", "持ち物", "大型犬", "営業時間", "アクセス", "予約",
-]);
-
 let match = 0;
-const mismatches: { text: string; expected: string; actual: string; needsHuman: boolean; why?: string }[] = [];
+const mismatches: { text: string; expected: string; actual: string; why?: string }[] = [];
 
 for (const c of cases) {
   const r = matchFaqReply(c.text);
   if (r.category === c.expectedCategory) {
     match++;
   } else {
-    mismatches.push({ text: c.text, expected: c.expectedCategory, actual: r.category, needsHuman: r.needsHuman, why: c.why });
+    mismatches.push({ text: c.text, expected: c.expectedCategory, actual: r.category, why: c.why });
   }
 }
 
