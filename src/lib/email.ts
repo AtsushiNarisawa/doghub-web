@@ -330,7 +330,7 @@ export async function sendBookingEmails(
 // お礼メール（利用完了後に送信）
 // ──────────────────────────────────────────
 
-const GOOGLE_REVIEW_URL = "https://search.google.com/local/writereview?placeid=ChIJZ4GCMaOfGWAR9WTxcF0Jkpk";
+export const GOOGLE_REVIEW_URL = "https://search.google.com/local/writereview?placeid=ChIJZ4GCMaOfGWAR9WTxcF0Jkpk";
 
 function buildThankYouEmailHtml(
   customerName: string,

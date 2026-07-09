@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { GOOGLE_REVIEW_URL } from "./email";
 
 const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 // Channel ID は過去に "\n" 混入の事故があるため数字のみに正規化する
@@ -182,6 +183,54 @@ export function buildWelcomeMessage(): LineMessage[] {
         "ご不明な点は、このトークにそのままメッセージを送ってください。個別のお返事はスタッフから順次お送りします。",
     },
   ];
+}
+
+// ───────────────────────────────────────────
+// お礼メッセージ（利用完了後に送信・LINE友だち登録済みのお客様向け）
+// メール版（email.ts の buildThankYouEmailHtml）と同内容をLINE向けに構成。
+// URLは1メッセージ1つまで（本文にURLを2つ以上入れるとOGPカードが並んでしまうため、
+// buttonsテンプレートで分割）。
+// ───────────────────────────────────────────
+export function buildThankYouLineMessage(
+  customerName: string,
+  isFirstVisit: boolean
+): LineMessage[] {
+  const messages: LineMessage[] = [
+    {
+      type: "text",
+      text: [
+        `${customerName}様`,
+        "",
+        "先日はDogHub箱根仙石原にお越しいただき、ありがとうございました。わんちゃんとの箱根旅行はいかがでしたか？",
+        "",
+        "看板犬のポロ・ぱんち・ムックともども、またお会いできるのを楽しみにしています。",
+      ].join("\n"),
+    },
+  ];
+
+  if (isFirstVisit) {
+    messages.push({
+      type: "template",
+      altText: "よろしければご感想をお聞かせください",
+      template: {
+        type: "buttons",
+        text: "よろしければ、ご感想をお聞かせください。皆さまの声が私たちの励みになります。",
+        actions: [{ type: "uri", label: "Googleで口コミを書く", uri: GOOGLE_REVIEW_URL }],
+      },
+    });
+  }
+
+  messages.push({
+    type: "template",
+    altText: "次回のご予約はこちら",
+    template: {
+      type: "buttons",
+      text: "またのご利用をお待ちしております🐾",
+      actions: [{ type: "uri", label: "次回のご予約はこちら", uri: "https://dog-hub.shop/booking" }],
+    },
+  });
+
+  return messages;
 }
 
 // ───────────────────────────────────────────

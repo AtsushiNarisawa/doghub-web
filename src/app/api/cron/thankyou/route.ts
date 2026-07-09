@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendThankYouEmail } from "@/lib/email";
+import { sendLinePushMessage, buildThankYouLineMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
     .from("reservations")
     .select(`
       id, plan, date, checkout_date, customer_id,
-      customers!inner(id, last_name, first_name, email),
+      customers!inner(id, last_name, first_name, email, line_id),
       reservation_dogs(dogs(name))
     `)
     .eq("date", yesterdayStr)
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
     .from("reservations")
     .select(`
       id, plan, date, checkout_date, customer_id,
-      customers!inner(id, last_name, first_name, email),
+      customers!inner(id, last_name, first_name, email, line_id),
       reservation_dogs(dogs(name))
     `)
     .eq("checkout_date", yesterdayStr)
@@ -67,8 +68,10 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  let sent = 0;
+  let sentEmail = 0;
+  let sentLine = 0;
   let failed = 0;
+  let skipped = 0;
 
   for (const r of reservations) {
     const customer = r.customers as unknown as {
@@ -76,8 +79,12 @@ export async function GET(req: NextRequest) {
       last_name: string;
       first_name: string;
       email: string;
+      line_id: string | null;
     };
-    if (!customer?.email) continue;
+    if (!customer?.email && !customer?.line_id) {
+      skipped++;
+      continue;
+    }
 
     const dogNames = (
       r.reservation_dogs as unknown as { dogs: { name: string } | null }[]
@@ -97,8 +104,21 @@ export async function GET(req: NextRequest) {
 
     const isFirstVisit = (count ?? 0) <= 1;
 
+    // LINE友だち登録済みのお客様はLINEを優先（開封率が高く、二重連絡を避けるためメールは送らない）
+    const useLine = !!customer.line_id;
+
     try {
-      await sendThankYouEmail(customer.email, customerName, dogNames, planName, isFirstVisit);
+      if (useLine) {
+        const ok = await sendLinePushMessage(
+          customer.line_id!,
+          buildThankYouLineMessage(customerName, isFirstVisit)
+        );
+        if (!ok) throw new Error("LINE push failed");
+        sentLine++;
+      } else {
+        await sendThankYouEmail(customer.email, customerName, dogNames, planName, isFirstVisit);
+        sentEmail++;
+      }
 
       // 送信成功後、thankyou_sent = true に更新
       const { error: updateError } = await supabase
@@ -109,18 +129,18 @@ export async function GET(req: NextRequest) {
       if (updateError) {
         console.error(`Failed to update thankyou_sent for ${r.id}:`, updateError);
       }
-
-      sent++;
     } catch (err) {
-      console.error(`Thank-you email failed for ${r.id}:`, err);
+      console.error(`Thank-you ${useLine ? "LINE" : "email"} failed for ${r.id}:`, err);
       failed++;
     }
   }
 
   return NextResponse.json({
-    message: `Thank-you emails for ${yesterdayStr}`,
+    message: `Thank-you messages for ${yesterdayStr}`,
     total: reservations.length,
-    sent,
+    sentEmail,
+    sentLine,
     failed,
+    skipped,
   });
 }

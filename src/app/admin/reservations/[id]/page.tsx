@@ -704,7 +704,7 @@ export default function ReservationDetailPage() {
           {effectiveStatus === "completed" && (
             <button
               onClick={async () => {
-                if (!confirm(`${customer.last_name}様にお礼メールを送信しますか？`)) return;
+                if (!confirm(`${customer.last_name}様にお礼のご連絡（LINE登録があればLINE、なければメール）を送信しますか？`)) return;
                 setSaving(true);
                 try {
                   const resp = await fetch("/api/admin/send-thankyou", {
@@ -714,7 +714,8 @@ export default function ReservationDetailPage() {
                   });
                   const data = await resp.json();
                   if (resp.ok) {
-                    alert(`お礼メールを送信しました${data.isFirstVisit ? "（口コミリンク付き）" : ""}`);
+                    const channelLabel = data.channel === "line" ? "LINE" : "メール";
+                    alert(`お礼を${channelLabel}で送信しました${data.isFirstVisit ? "（口コミリンク付き）" : ""}`);
                   } else {
                     alert(data.error || "送信に失敗しました");
                   }

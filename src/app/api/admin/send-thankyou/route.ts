@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendThankYouEmail } from "@/lib/email";
+import { sendLinePushMessage, buildThankYouLineMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,12 +42,15 @@ export async function POST(req: NextRequest) {
     // 顧客情報を取得
     const { data: customer } = await supabase
       .from("customers")
-      .select("email, last_name, first_name")
+      .select("email, last_name, first_name, line_id")
       .eq("id", reservation.customer_id)
       .single();
 
-    if (!customer?.email) {
-      return NextResponse.json({ error: "メールアドレスが登録されていません" }, { status: 400 });
+    if (!customer?.email && !customer?.line_id) {
+      return NextResponse.json(
+        { error: "メールアドレス・LINEどちらも登録されていません" },
+        { status: 400 }
+      );
     }
 
     // 犬情報を取得
@@ -64,16 +68,30 @@ export async function POST(req: NextRequest) {
       .neq("id", reservation_id);
 
     const isFirstVisit = (count ?? 0) === 0;
+    const customerName = `${customer.last_name}${customer.first_name || ""}`;
 
-    await sendThankYouEmail(
-      customer.email,
-      `${customer.last_name}${customer.first_name || ""}`,
-      dogs?.map(d => d.name) || [],
-      PLAN_NAMES[reservation.plan] || "お預かり",
-      isFirstVisit,
-    );
+    // LINE友だち登録済みのお客様はLINEを優先（開封率が高く、二重連絡を避けるためメールは送らない）
+    const useLine = !!customer.line_id;
 
-    return NextResponse.json({ success: true, isFirstVisit });
+    if (useLine) {
+      const ok = await sendLinePushMessage(
+        customer.line_id!,
+        buildThankYouLineMessage(customerName, isFirstVisit)
+      );
+      if (!ok) {
+        return NextResponse.json({ error: "LINE送信に失敗しました" }, { status: 500 });
+      }
+    } else {
+      await sendThankYouEmail(
+        customer.email,
+        customerName,
+        dogs?.map(d => d.name) || [],
+        PLAN_NAMES[reservation.plan] || "お預かり",
+        isFirstVisit,
+      );
+    }
+
+    return NextResponse.json({ success: true, isFirstVisit, channel: useLine ? "line" : "email" });
   } catch (e) {
     console.error("Send thank-you email error:", e);
     return NextResponse.json({ error: "送信に失敗しました" }, { status: 500 });
