@@ -59,27 +59,29 @@ const BOOKING_URL = "https://liff.line.me/2009688745-qZi2jM4g";
 const TEL_URI = "tel:0460800290";
 
 // 2500×1686 を 4列×2行に分割（タップ領域）。
-// FAQボタンは postback（data=category名）→ Webhookが「ボタン経由」と判別して自動回答。
-// 自由文タイプと違い postback はアラートを飛ばさない（webhook/route.ts 参照）。
+// FAQボタンは message方式（テキスト送信→Webhookが自動回答）。postback方式は
+// LINE公式アカウント管理アプリのチャット履歴に残らないため2026-07-09に撤回。
+// ボタンのtextはFAQ_RULESのcategory名と完全一致させる（webhookのmatchExactButtonReplyが
+// 完全一致判定に使うため。アクセスは"アクセス"、支払い方法は"支払い方法"、等）。
 const W = 2500, H = 1686;
 const colW = [625, 625, 625, 625];
 const colX = [0, 625, 1250, 1875];
 const rowH = 843;
-const faqPostback = (category) => ({ type: "postback", data: category, displayText: category });
+const faqMessage = (category) => ({ type: "message", text: category });
 const richmenu = {
   size: { width: W, height: H },
   selected: true,
-  name: "DogHub メインメニュー v2",
+  name: "DogHub メインメニュー v3",
   chatBarText: "メニュー",
   areas: [
-    // 上段：FAQ（postback→Webhookが該当カテゴリを自動回答）
-    { bounds: { x: colX[0], y: 0, width: colW[0], height: rowH }, action: faqPostback("料金") },
-    { bounds: { x: colX[1], y: 0, width: colW[1], height: rowH }, action: faqPostback("アクセス") },
-    { bounds: { x: colX[2], y: 0, width: colW[2], height: rowH }, action: faqPostback("営業時間") },
-    { bounds: { x: colX[3], y: 0, width: colW[3], height: rowH }, action: faqPostback("持ち物") },
+    // 上段：FAQ（テキスト送信→Webhookが完全一致判定で自動回答）
+    { bounds: { x: colX[0], y: 0, width: colW[0], height: rowH }, action: faqMessage("料金") },
+    { bounds: { x: colX[1], y: 0, width: colW[1], height: rowH }, action: faqMessage("アクセス") },
+    { bounds: { x: colX[2], y: 0, width: colW[2], height: rowH }, action: faqMessage("営業時間") },
+    { bounds: { x: colX[3], y: 0, width: colW[3], height: rowH }, action: faqMessage("持ち物") },
     // 下段：支払い方法・遅刻/時間変更（FAQ）／予約（LIFF）／電話
-    { bounds: { x: colX[0], y: rowH, width: colW[0], height: rowH }, action: faqPostback("支払い方法") },
-    { bounds: { x: colX[1], y: rowH, width: colW[1], height: rowH }, action: faqPostback("到着時間の変更・遅刻") },
+    { bounds: { x: colX[0], y: rowH, width: colW[0], height: rowH }, action: faqMessage("支払い方法") },
+    { bounds: { x: colX[1], y: rowH, width: colW[1], height: rowH }, action: faqMessage("到着時間の変更・遅刻") },
     { bounds: { x: colX[2], y: rowH, width: colW[2], height: rowH }, action: { type: "uri", uri: BOOKING_URL } },
     { bounds: { x: colX[3], y: rowH, width: colW[3], height: rowH }, action: { type: "uri", uri: TEL_URI } },
   ],

@@ -9,11 +9,13 @@
 //  - 対応外サービス（トリミング等のケア・送迎）は「料金」「予約」より前
 //    （"トリミング料金" "シャンプー予約" を対応外案内へ寄せる）。
 //
-// 2026-07〜: リッチメニューのボタンは postback 化し、ボタン経由（=このcategory名を直接指定）
-// のときだけ bot が reply を自動送信する。お客様が自由文でタイプした場合は matchFaqReply の
-// category を「アラートメールのラベル用」に使うだけで、reply は送らずスタッフが個別対応する
-// （webhook/route.ts 参照）。そのため needsHuman フラグは廃止済み（旧: カテゴリ単位でアラート
-// 要否を制御していたが、今は「ボタン=自動」「自由文=常に人」で一律に決まるため不要）。
+// 2026-07〜: リッチメニューのボタンは message方式のまま（postback方式は「LINE公式アカウント
+// 管理アプリのチャット画面に履歴が残らない」ため2026-07-09に撤回）。代わりに、お客様の入力が
+// リッチメニュー掲載の6カテゴリ（buttonExact）の見出し・キーワードに完全一致するときだけ
+// 「ボタンを押したのと同じ」とみなして自動返信・アラートなしにする（matchExactButtonReply）。
+// それ以外の自由文（部分一致だけの場合や、受入確認・キャンセル/変更など個別判断が必要な
+// カテゴリ）は常に fallbackReply＋スタッフへエスカレーション。matchFaqReply はアラート
+// メールのラベル表示用にカテゴリだけを返す（部分一致・reply送信には使わない）。
 import type { LineMessage } from "./line";
 
 export const BOOKING_URL = "https://liff.line.me/2009688745-qZi2jM4g";
@@ -23,6 +25,9 @@ export interface FaqRule {
   category: string;
   keywords: string[];
   reply: LineMessage[];
+  // true: リッチメニューに載っている6カテゴリ。お客様の入力がcategory名かkeywordsに
+  // 完全一致したときだけ、ボタンを押したのと同じ扱いで自動返信・アラートなしにできる。
+  buttonExact?: true;
 }
 
 export const FAQ_RULES: FaqRule[] = [
@@ -48,6 +53,7 @@ export const FAQ_RULES: FaqRule[] = [
     // （CEO確認: 当日分はLINEでなく電話が実態に合う）。
     category: "到着時間の変更・遅刻",
     keywords: ["遅刻", "遅れ", "遅くなり", "間に合わな", "到着が遅", "到着時間"],
+    buttonExact: true,
     reply: [
       {
         type: "text",
@@ -106,6 +112,7 @@ export const FAQ_RULES: FaqRule[] = [
     // 料金
     category: "料金",
     keywords: ["料金", "いくら", "値段", "価格", "費用", "金額", "おいくら"],
+    buttonExact: true,
     reply: [
       {
         type: "text",
@@ -130,6 +137,7 @@ export const FAQ_RULES: FaqRule[] = [
       "クレジット", "クレカ", "カード", "タッチ決済",
       "電子マネー", "現金", "ペイペイ", "paypay", "PayPay", "QR決済", "交通系",
     ],
+    buttonExact: true,
     reply: [
       {
         type: "text",
@@ -158,6 +166,7 @@ export const FAQ_RULES: FaqRule[] = [
     // 持ち物
     category: "持ち物",
     keywords: ["持ち物", "持参", "必要なもの", "用意", "持っていくもの", "もちもの"],
+    buttonExact: true,
     reply: [
       {
         type: "text",
@@ -190,6 +199,7 @@ export const FAQ_RULES: FaqRule[] = [
     // 営業時間・定休日
     category: "営業時間",
     keywords: ["営業", "何時", "時間", "定休", "休み", "開い", "閉ま", "何曜", "営業日"],
+    buttonExact: true,
     reply: [
       {
         type: "text",
@@ -208,6 +218,7 @@ export const FAQ_RULES: FaqRule[] = [
     //   位置を尋ねる形（どこに/どこです/どこあ）に限定（敵対的テスト2026-06-09）。
     category: "アクセス",
     keywords: ["場所", "住所", "アクセス", "行き方", "どこに", "どこです", "どこあ", "駐車", "パーキング", "車", "道順", "地図", "最寄"],
+    buttonExact: true,
     reply: [
       {
         type: "text",
@@ -271,10 +282,8 @@ export const FAQ_RULES: FaqRule[] = [
   },
 ];
 
-// 自由文のカテゴリ判定のみに使う（スタッフ向けアラートメールのラベル表示用）。
-// お客様への自動返信は、ボタン(postback)経由のときだけ rule.reply を直接使う
-// （webhook/route.ts が category でFAQ_RULESを検索）。自由文には常に fallbackReply を
-// 返す＝人が確認する前提のため、キーワードが一致してもカテゴリ別の定型文は送らない。
+// 自由文のカテゴリ判定のみに使う（スタッフ向けアラートメールのラベル表示用）。部分一致なので
+// 誤爆しうる＝reply の自動送信には使わない（webhook/route.ts は常に fallbackReply を送る）。
 export function matchFaqReply(text: string): { category: string } {
   const t = text.trim();
   for (const rule of FAQ_RULES) {
@@ -283,6 +292,14 @@ export function matchFaqReply(text: string): { category: string } {
     }
   }
   return { category: "フォールバック" };
+}
+
+// 「ボタンを押したのと同じ」とみなせる自由文かを判定する。入力全体が buttonExact な
+// カテゴリの見出し名 or キーワードと完全一致する場合のみ true＝自動返信・アラートなしにできる。
+// 部分一致は使わない（"予約時間について..." のような文章がここに乗って誤答しないため）。
+export function matchExactButtonReply(text: string): FaqRule | undefined {
+  const t = text.trim();
+  return FAQ_RULES.find((r) => r.buttonExact && (t === r.category || r.keywords.includes(t)));
 }
 
 // 自由文への受付メッセージ（共通）。ボットは24時間稼働。URLを本文に入れるとLINEが

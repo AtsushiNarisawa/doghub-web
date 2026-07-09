@@ -4,7 +4,7 @@ import {
   sendLineReplyMessage,
   buildWelcomeMessage,
 } from "@/lib/line";
-import { matchFaqReply, nonTextReply, fallbackReply, FAQ_RULES } from "@/lib/line-faq";
+import { matchFaqReply, matchExactButtonReply, nonTextReply, fallbackReply } from "@/lib/line-faq";
 import { sendLineStaffAlert } from "@/lib/email";
 import { recordInboundWithBotReply, ensureLineConversation } from "@/lib/line-store";
 import { createClient } from "@supabase/supabase-js";
@@ -54,31 +54,28 @@ async function handleEvent(event: LineEvent) {
       await ensureLineConversation(userId);
       break;
 
-    // リッチメニューのボタン(postback) → お客様が「選んだ」ものだけ自動回答（アラートなし）。
-    // 自由文と違い、data=category名で一意に決まるためキーワード判定は使わない。
-    case "postback": {
-      const category = event.postback?.data ?? "";
-      const rule = FAQ_RULES.find((r) => r.category === category);
-      if (rule) {
-        await sendLineReplyMessage(replyToken, rule.reply);
-        await recordInboundWithBotReply({
-          lineUserId: userId,
-          inboundType: "text",
-          inboundText: category,
-          inboundMessageId: undefined,
-          botReply: rule.reply,
-        });
-      }
-      break;
-    }
-
-    // メッセージ受信（お客様が自由文で入力） → ボタンと違い、内容にかかわらず
-    // 受付メッセージのみ返し、必ずスタッフへエスカレーションする（自動のカテゴリ別
-    // 定型文は送らない＝キーワード誤爆でお客様の実際の質問に的外れな回答をしないため）。
+    // メッセージ受信（リッチメニューのボタンも message として届く。message方式は
+    // LINE公式アカウント管理アプリのチャット履歴に残るため採用＝postback方式は不採用）。
+    // 入力全体がボタンの見出し・キーワードと完全一致する場合だけ「ボタンを押したのと同じ」
+    // とみなして自動回答・アラートなし。それ以外の自由文は、キーワードを含んでいても
+    // 内容にかかわらず受付メッセージのみ返し、必ずスタッフへエスカレーションする
+    // （部分一致の自動回答はキーワード誤爆で的外れな回答をするリスクがあるため使わない）。
     case "message": {
       const messageType = event.message?.type ?? "不明";
       if (messageType === "text") {
         const text = event.message?.text ?? "";
+        const exactRule = matchExactButtonReply(text);
+        if (exactRule) {
+          await sendLineReplyMessage(replyToken, exactRule.reply);
+          await recordInboundWithBotReply({
+            lineUserId: userId,
+            inboundType: "text",
+            inboundText: text,
+            inboundMessageId: event.message?.id,
+            botReply: exactRule.reply,
+          });
+          break;
+        }
         const { category } = matchFaqReply(text);
         const reply = fallbackReply();
         // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
@@ -160,6 +157,5 @@ interface LineEvent {
   type: string;
   source?: { userId?: string; type?: string };
   message?: { type: string; text?: string; id?: string };
-  postback?: { data: string };
   replyToken?: string;
 }

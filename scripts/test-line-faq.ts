@@ -1,9 +1,10 @@
-// LINE FAQ マッチャの決定論的テスト。実コード（src/lib/line-faq.ts の matchFaqReply）を
-// そのまま実走し、現実的な顧客文面が意図どおりのカテゴリへ落ちるかを検証する。
+// LINE FAQ マッチャの決定論的テスト。実コード（src/lib/line-faq.ts）をそのまま実走し、
+// 現実的な顧客文面が意図どおりのカテゴリへ落ちるかを検証する。
 // 2026-07〜: 自由文は常に fallbackReply＋アラートになるため（webhook/route.ts）、
-// ここではカテゴリ判定（アラートメールのラベル用）だけを検証する。needsHuman は廃止済み。
+// matchFaqReply はカテゴリ判定（アラートメールのラベル用）だけを検証する。needsHuman は廃止済み。
+// 完全一致（ボタン相当）だけが自動返信・アラートなしになる＝ matchExactButtonReply を別途検証。
 // 実行: node scripts/test-line-faq.ts   （Node v23.6+ は .ts を直接実行可能）
-import { matchFaqReply } from "../src/lib/line-faq.ts";
+import { matchFaqReply, matchExactButtonReply } from "../src/lib/line-faq.ts";
 
 type Case = { text: string; expect: string; note?: string };
 
@@ -148,4 +149,51 @@ if (fails.length) {
   process.exit(1);
 } else {
   console.log("✅ 全ケース PASS（カテゴリ判定は意図どおり）");
+}
+
+// ───── matchExactButtonReply（ボタン相当＝完全一致のみ自動返信・アラートなし）─────
+type ExactCase = { text: string; expectMatch: boolean; note?: string };
+
+const EXACT_CASES: ExactCase[] = [
+  // リッチメニューの6ボタンと完全一致 → 自動返信対象
+  { text: "料金", expectMatch: true },
+  { text: "アクセス", expectMatch: true },
+  { text: "営業時間", expectMatch: true },
+  { text: "持ち物", expectMatch: true },
+  { text: "支払い方法", expectMatch: true, note: "categoryとキーワードが別語のため直接一致も要確認" },
+  { text: "到着時間の変更・遅刻", expectMatch: true },
+  // ボタンのキーワード同義語も完全一致なら対象（例: 手打ちで「いくら」とだけ送った場合）
+  { text: "いくら", expectMatch: true },
+  { text: "駐車", expectMatch: true },
+  // 文章の一部にキーワードを含むだけ（完全一致でない）→ 対象外（スタッフ対応へ）
+  { text: "料金を教えてください", expectMatch: false },
+  { text: "予約時間についてお聞きしたいのですが、9時半から13時半とかでも大丈夫なんでしょうか？", expectMatch: false, note: "長谷部様の実例" },
+  // 受入確認・キャンセル/変更・予約など「個別判断が必要」なカテゴリは、完全一致でも対象外
+  { text: "猫", expectMatch: false, note: "受入確認は完全一致でも常にスタッフ対応" },
+  { text: "キャンセル", expectMatch: false, note: "キャンセル/変更は完全一致でも常にスタッフ対応" },
+  { text: "予約", expectMatch: false, note: "予約はbuttonExact対象外＝常にスタッフ対応" },
+  { text: "こんにちは", expectMatch: false },
+];
+
+let exactPass = 0;
+const exactFails: string[] = [];
+
+for (const c of EXACT_CASES) {
+  const matched = !!matchExactButtonReply(c.text);
+  if (matched === c.expectMatch) {
+    exactPass++;
+  } else {
+    exactFails.push(
+      `✗ "${c.text}" → 期待=${c.expectMatch ? "自動返信" : "スタッフ対応"} 実際=${matched ? "自動返信" : "スタッフ対応"}${c.note ? `  〈${c.note}〉` : ""}`
+    );
+  }
+}
+
+console.log(`\nmatchExactButtonReply テスト: ${exactPass}/${EXACT_CASES.length} PASS\n`);
+if (exactFails.length) {
+  console.log(exactFails.join("\n"));
+  console.log(`\n❌ ${exactFails.length} 件 FAIL`);
+  process.exit(1);
+} else {
+  console.log("✅ 全ケース PASS（完全一致判定は意図どおり）");
 }
