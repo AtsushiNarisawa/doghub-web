@@ -91,11 +91,21 @@ async function handleEvent(event: LineEvent) {
           botReply: reply,
         });
       } else {
-        // 非テキスト（画像・スタンプ・位置情報・音声など）→ 受領を返しつつ必ずエスカレーション
-        // 例: ワクチン証明書の写真を送るお客様への「無音」を解消する
+        // 非テキスト（画像・スタンプ・位置情報・音声など）→ 受領を返す。
+        // スタンプだけは特別扱い: 直前（5分以内）に本人のテキストがあれば、その内容への
+        // 相槌とみなしアラートを省略する（そのテキスト自体は既にアラート済みのため二重通知
+        // になっていた・2026-07実例で確認）。画像・動画・音声・位置情報などは、内容そのものが
+        // 情報を持ちうる（例: ワクチン証明書の写真）ため、常にアラートし「無音」を避ける。
         const reply = nonTextReply();
         await sendLineReplyMessage(replyToken, reply);
-        await alertStaff(userId, `（${messageType}メッセージ）`, "非テキスト");
+
+        let shouldAlert = true;
+        if (messageType === "sticker" && userId && (await hasRecentCustomerText(userId))) {
+          shouldAlert = false;
+        }
+        if (shouldAlert) {
+          await alertStaff(userId, `（${messageType}メッセージ）`, "非テキスト");
+        }
         // 受信トレイへ記録（本文は持たず message_type だけ保存。実体DLはしない）
         await recordInboundWithBotReply({
           lineUserId: userId,
@@ -110,6 +120,39 @@ async function handleEvent(event: LineEvent) {
 
     default:
       break;
+  }
+}
+
+const STICKER_ECHO_WINDOW_MS = 5 * 60 * 1000;
+
+// 直近5分以内に、この会話で本人からのテキストメッセージがあったかを調べる
+// （スタンプ単独のアラート要否判定用）。判定に失敗した場合は安全側（アラートする）に倒す。
+async function hasRecentCustomerText(lineUserId: string): Promise<boolean> {
+  try {
+    const { data: conv } = await supabase
+      .from("line_conversations")
+      .select("id")
+      .eq("line_user_id", lineUserId)
+      .limit(1)
+      .maybeSingle();
+    if (!conv) return false;
+
+    const { data: msg } = await supabase
+      .from("line_messages")
+      .select("created_at")
+      .eq("conversation_id", conv.id)
+      .eq("direction", "inbound")
+      .eq("sender", "customer")
+      .eq("message_type", "text")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!msg) return false;
+
+    return Date.now() - new Date(msg.created_at).getTime() < STICKER_ECHO_WINDOW_MS;
+  } catch (e) {
+    console.error("hasRecentCustomerText failed:", e);
+    return false;
   }
 }
 
