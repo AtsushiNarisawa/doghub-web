@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
 import { sendBookingEmails } from "@/lib/email";
 import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
-import { exceedsRoomLimit, ROOM_LIMIT } from "@/lib/capacity";
+import { exceedsRoomLimit, WEB_ROOM_LIMIT, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -173,8 +173,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "同じ内容の予約が直前に送信されています。しばらくお待ちください。" }, { status: 429 });
     }
 
-    // サーバー側：容量チェック（全19室の物理プールで判定）
+    // サーバー側：容量チェック（頭数=部屋の物理プールで判定）
+    // Web客は運用上限15で満席とし、スタッフ入力(source=phone)は物理上限19まで受付可能にする
+    // （満席のお問い合わせをスタッフが手動で受けられるようにするソフト上限。2026-07-13 CEO決定）。
     const dogCount = body.dogs.length;
+    const roomLimit = isStaffBooking ? PHYSICAL_ROOM_LIMIT : WEB_ROOM_LIMIT;
     {
       const datesToCheck: string[] = [];
 
@@ -190,7 +193,8 @@ export async function POST(req: NextRequest) {
         datesToCheck.push(body.date);
       }
 
-      // 各日の合計使用部屋数（day_booked + stay_booked）+ 追加頭数 が 19 を超えないこと
+      // 各日の合計使用部屋数（day_booked + stay_booked）+ 追加頭数 が上限を超えないこと
+      // （Web=15 / スタッフ=19）
       for (const date of datesToCheck) {
         const { data: cap } = await supabase
           .from("daily_capacity")
@@ -202,8 +206,11 @@ export async function POST(req: NextRequest) {
           if (cap.closed) {
             return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
           }
-          if (exceedsRoomLimit(cap, dogCount)) {
-            return NextResponse.json({ error: `${date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
+          if (exceedsRoomLimit(cap, dogCount, roomLimit)) {
+            return NextResponse.json(
+              { error: `${date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
+              { status: 400 },
+            );
           }
         }
       }
@@ -472,7 +479,10 @@ export async function POST(req: NextRequest) {
         // 満室レース → 直前に作成した予約を取り消してロールバック（オーバーブック防止）。
         await supabase.from("reservation_dogs").delete().eq("reservation_id", reservation.id);
         await supabase.from("reservations").delete().eq("id", reservation.id);
-        return NextResponse.json({ error: `${body.date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
+        return NextResponse.json(
+          { error: `${body.date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
+          { status: 400 },
+        );
       }
       // 想定外のRPCエラー時は予約を失わせないよう従来の加算ロジックにフォールバック（容量の取りこぼし防止）。
       console.error("reserve_capacity unexpected error, fallback to non-atomic update:", msg);

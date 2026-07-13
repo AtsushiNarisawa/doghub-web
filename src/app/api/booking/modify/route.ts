@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
-import { exceedsRoomLimit, ROOM_LIMIT } from "@/lib/capacity";
+import { exceedsRoomLimit, WEB_ROOM_LIMIT } from "@/lib/capacity";
 import { verifyPhoneLast4 } from "@/lib/booking-auth";
 
 const supabase = createClient(
@@ -134,8 +134,11 @@ export async function POST(req: Request) {
           if (cap.closed) {
             return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
           }
-          if (exceedsRoomLimit(cap, dogCount)) {
-            return NextResponse.json({ error: `${date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
+          if (exceedsRoomLimit(cap, dogCount, WEB_ROOM_LIMIT)) {
+            return NextResponse.json(
+              { error: `${date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
+              { status: 400 },
+            );
           }
         }
       }

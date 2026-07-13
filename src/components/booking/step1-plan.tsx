@@ -6,7 +6,7 @@ import { PLANS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { HOLIDAYS } from "@/lib/holidays";
-import { ROOM_LIMIT } from "@/lib/capacity";
+import { WEB_ROOM_LIMIT } from "@/lib/capacity";
 import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
 
 interface Props {
@@ -55,7 +55,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           const remMap: Record<string, number> = {};
           data.forEach((r) => {
             closedMap[r.date] = r.closed;
-            remMap[r.date] = ROOM_LIMIT - ((r.day_booked || 0) + (r.stay_booked || 0));
+            remMap[r.date] = WEB_ROOM_LIMIT - ((r.day_booked || 0) + (r.stay_booked || 0));
           });
           setClosedOverrides(closedMap);
           setRemainingMap(remMap);
@@ -86,9 +86,9 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   // 各日の空き室数（カレンダーの ○/△/× 表示で使用）。レコードがない日は満室でない＝空きありとみなす。
   const [remainingMap, setRemainingMap] = useState<Record<string, number>>({});
 
-  // カレンダー1マスの空き状況（レコードなし=ROOM_LIMIT=空きあり）
+  // カレンダー1マスの空き状況（レコードなし=WEB_ROOM_LIMIT=空きあり）
   const getDayRemaining = (dateStr: string): number =>
-    dateStr in remainingMap ? remainingMap[dateStr] : ROOM_LIMIT;
+    dateStr in remainingMap ? remainingMap[dateStr] : WEB_ROOM_LIMIT;
 
   const isClosedDay = (dateStr: string) => {
     // daily_capacityにオーバーライドがあればそちらを優先
@@ -183,13 +183,13 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             .in("date", dates);
           if (error) throw error;
 
-          let minRemaining = ROOM_LIMIT;
+          let minRemaining = WEB_ROOM_LIMIT;
           let closed = false;
           for (const date of dates) {
             const row = rows?.find((r) => r.date === date);
             if (row?.closed) { closed = true; break; }
             const occupied = (row?.day_booked || 0) + (row?.stay_booked || 0);
-            minRemaining = Math.min(minRemaining, ROOM_LIMIT - occupied);
+            minRemaining = Math.min(minRemaining, WEB_ROOM_LIMIT - occupied);
           }
 
           setCapacity({ total_remaining: minRemaining, closed });
@@ -205,18 +205,18 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           if (data) {
             const occupied = (data.day_booked || 0) + (data.stay_booked || 0);
             setCapacity({
-              total_remaining: ROOM_LIMIT - occupied,
+              total_remaining: WEB_ROOM_LIMIT - occupied,
               closed: data.closed,
             });
           } else {
-            setCapacity({ total_remaining: ROOM_LIMIT, closed: false });
+            setCapacity({ total_remaining: WEB_ROOM_LIMIT, closed: false });
           }
         }
       } catch (e) {
         // Supabase 一時障害・ネットワーク不安定時のフェイルセーフ
         // フォールバック: 通常容量で続行（ユーザーが「次へ」進めなくなるのを防ぐ）
         console.error("[booking] capacity fetch error:", e);
-        setCapacity({ total_remaining: ROOM_LIMIT, closed: false });
+        setCapacity({ total_remaining: WEB_ROOM_LIMIT, closed: false });
       } finally {
         setLoadingCapacity(false);
       }
@@ -274,7 +274,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     if (!form.date) return "カレンダーから日付をお選びください";
     if (isClosedDay(form.date)) return "選んだ日は定休日です。別の日をお選びください";
     if (capacity?.closed) return "選んだ日は臨時休業です。別の日をお選びください";
-    if (capacity && capacity.total_remaining <= 0) return "選んだ日は満室です。別の日をお選びください";
+    if (capacity && capacity.total_remaining <= 0) return "選んだ日は満席です。お問い合わせください（TEL 0460-80-0290）";
     if (form.plan === "stay" && form.checkout_date && stayClosedDates.length > 0)
       return "お預かり期間に休業日が含まれています。日程をご確認ください";
     const need: string[] = [];
@@ -452,7 +452,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
               <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-[#888]">
                 <span className="text-green-600">○ 空きあり</span>
                 <span className="text-orange-500">△ 残りわずか</span>
-                <span className="text-red-500">× 満室</span>
+                <span className="text-red-500">× 満席（お問い合わせ）</span>
                 <span>グレー: 定休日</span>
                 <span className="text-orange-400">数字オレンジ: 祝日</span>
               </div>
@@ -466,7 +466,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                 ) : capacity && !capacity.closed ? (
                   <div className="flex gap-3">
                     {capacity.total_remaining <= 0
-                      ? <span className="text-red-500 text-sm font-medium">× 満室（別の日程をお選びください）</span>
+                      ? <span className="text-red-500 text-sm font-medium">× 満席です。お問い合わせください（TEL 0460-80-0290）</span>
                       : capacity.total_remaining < 5
                         ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
                         : <span className="text-green-600 text-sm">○ 空きあり</span>

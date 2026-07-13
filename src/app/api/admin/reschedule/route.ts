@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { exceedsRoomLimit, ROOM_LIMIT } from "@/lib/capacity";
+import { exceedsRoomLimit, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -94,8 +94,8 @@ export async function POST(req: NextRequest) {
       if (isClosedDate(date, cap)) {
         return NextResponse.json({ error: `${date}は休業日のため、この日程には変更できません` }, { status: 400 });
       }
-      if (cap && exceedsRoomLimit(cap, dogCount)) {
-        return NextResponse.json({ error: `${date}は満室です（全${ROOM_LIMIT}室）` }, { status: 400 });
+      if (cap && exceedsRoomLimit(cap, dogCount, PHYSICAL_ROOM_LIMIT)) {
+        return NextResponse.json({ error: `${date}は満室です（全${PHYSICAL_ROOM_LIMIT}室）` }, { status: 400 });
       }
     }
 
