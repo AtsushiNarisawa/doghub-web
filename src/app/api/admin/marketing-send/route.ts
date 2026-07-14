@@ -52,6 +52,30 @@ export async function POST(req: NextRequest) {
   }
 
   const sp = req.nextUrl.searchParams;
+
+  // テスト送信モード: 指定アドレスへ両文面を1通ずつプレビュー送信する。
+  // 顧客DB・送信ログには一切触れない（自己確認専用）。
+  const testEmail = sp.get("test");
+  if (testEmail) {
+    const results: Record<string, string> = {};
+    for (const t of ["harvest", "discovery"] as WinbackTemplate[]) {
+      try {
+        await sendWinbackEmail({
+          to: testEmail,
+          customerName: "成澤",
+          // ダミートークン（テスト用・実顧客と照合されないため配信停止しても無害）
+          unsubscribeToken: "00000000-0000-0000-0000-0000000000ff",
+          campaignKey: `test_${t}`,
+          template: t,
+        });
+        results[t] = "sent";
+      } catch (e) {
+        results[t] = "failed: " + ((e as Error).message || "").slice(0, 150);
+      }
+    }
+    return NextResponse.json({ test: true, to: testEmail, results });
+  }
+
   const campaign = sp.get("campaign") || "";
   const segment = sp.get("segment") || "";
   const limit = Math.max(0, Math.min(200, parseInt(sp.get("limit") || "100", 10)));
