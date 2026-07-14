@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendWinbackEmail } from "@/lib/email";
+import { sendWinbackEmail, winbackSubject, type WinbackTemplate } from "@/lib/email";
 
 // 本番(Vercel)では service role を使う（RLS対象外でログ書込/顧客更新）。ビルド時のモジュール評価で
 // undefined にならないよう anon key にフォールバック（既存 cron ルートと同じ方式）。
@@ -22,8 +22,8 @@ const supabase = createClient(
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const SUBJECT = "夏・連休のお預かり、承っています｜DogHub箱根仙石原";
 const THROTTLE_MS = 250;
+const SEGMENTS = ["vip", "lapsed", "summer_harvest", "summer_discovery"] as const;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -57,12 +57,16 @@ export async function POST(req: NextRequest) {
   const limit = Math.max(0, Math.min(200, parseInt(sp.get("limit") || "100", 10)));
   const dryRun = sp.get("dryRun") === "1";
 
-  if (!campaign || !["vip", "lapsed"].includes(segment)) {
+  if (!campaign || !SEGMENTS.includes(segment as (typeof SEGMENTS)[number])) {
     return NextResponse.json(
-      { error: "campaign と segment(vip|lapsed) は必須です" },
+      { error: `campaign と segment(${SEGMENTS.join("|")}) は必須です` },
       { status: 400 },
     );
   }
+
+  // 発見型（他季節客への「夏の提案」）は discovery 文面、それ以外は harvest 文面。
+  const template: WinbackTemplate = segment === "summer_discovery" ? "discovery" : "harvest";
+  const subject = winbackSubject(template);
 
   // 対象抽出（opt_out除外・送信済み除外はRPC内で実施）
   const { data, error } = await supabase.rpc("get_winback_recipients", {
@@ -81,6 +85,8 @@ export async function POST(req: NextRequest) {
       dryRun: true,
       campaign,
       segment,
+      template,
+      subject,
       eligible: recipients.length,
       sample: recipients.slice(0, 5).map((r) => ({
         name: `${r.last_name || ""}様`,
@@ -106,7 +112,7 @@ export async function POST(req: NextRequest) {
           customer_id: r.customer_id,
           campaign_key: campaign,
           email: r.email,
-          subject: SUBJECT,
+          subject,
           status: "sending",
         },
         { onConflict: "customer_id,campaign_key", ignoreDuplicates: true },
@@ -130,6 +136,7 @@ export async function POST(req: NextRequest) {
         customerName: r.last_name || "",
         unsubscribeToken: r.unsubscribe_token,
         campaignKey: campaign,
+        template,
       });
       await supabase
         .from("marketing_email_log")

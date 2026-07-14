@@ -883,18 +883,65 @@ function esc(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-/** B-3「夏・連休のお預かり、承っています」本文（プレーンテキスト） */
-function buildWinbackTextB3(customerName: string, bookingUrl: string, unsubscribeUrl: string): string {
+// ウィンバック文面テンプレート。
+//  harvest   ＝ 夏の利用経験者向け「おかえり」型（もとのB-3）
+//  discovery ＝ 他季節の利用者向け「夏の箱根という提案」型（星野トマム式＝夏に来る理由を売る）
+export type WinbackTemplate = "harvest" | "discovery";
+
+const WINBACK_SUBJECTS: Record<WinbackTemplate, string> = {
+  harvest: "夏・連休のお預かり、承っています｜DogHub箱根仙石原",
+  discovery: "犬と過ごす、夏の箱根・仙石原という選択｜DogHub箱根仙石原",
+};
+
+export function winbackSubject(template: WinbackTemplate): string {
+  return WINBACK_SUBJECTS[template];
+}
+
+// 本文段落（テキスト用・宛名とフッターは共通シェルが付与）
+function winbackBodyText(template: WinbackTemplate): string[] {
+  if (template === "discovery") {
+    return [
+      "DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただき、ありがとうございました。",
+      "今日は少し、“夏の箱根”のご提案です。仙石原は標高およそ700m。真夏でも朝晩はすずしく、日中もアスファルトの照り返しがきびしい街なかとはずいぶん違います。肉球への負担が気になる季節こそ、高原の風の通る場所で過ごす休日はいかがでしょうか。",
+      "観光やお食事の間の数時間のお預かりから、ご宿泊まで。「預けている間に、飼い主さまだけでゆっくり観光」も、「涼しい高原で愛犬と一緒に」も、どちらもこの季節の箱根らしい過ごし方です。",
+      "お盆や9月の連休のお預かりも承っております。ご旅行のご予定がおありでしたら、お気軽にご相談ください。",
+      "看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。",
+    ];
+  }
+  return [
+    "DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただきありがとうございました。",
+    "箱根はこれから夏本番。標高の高い仙石原は避暑地として過ごしやすく、わんちゃん連れの旅行にちょうど良い季節です。お盆や9月の連休のお預かりも承っておりますので、ご旅行のご予定がおありでしたら、混み合う前にお早めにご相談ください。",
+    "観光やお食事の間の数時間のお預かりから、ご宿泊まで。「預けている間に、飼い主さまだけでゆっくり観光」という箱根の楽しみ方も、ぜひどうぞ。",
+    "看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。",
+  ];
+}
+
+// 本文段落（HTML用・軽い<strong>強調を含む。ハードコード文字列なのでエスケープ不要）
+function winbackBodyHtml(template: WinbackTemplate): string[] {
+  if (template === "discovery") {
+    return [
+      "DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただき、ありがとうございました。",
+      "今日は少し、“夏の箱根”のご提案です。仙石原は<strong>標高およそ700m</strong>。真夏でも朝晩はすずしく、日中もアスファルトの照り返しがきびしい街なかとはずいぶん違います。肉球への負担が気になる季節こそ、高原の風の通る場所で過ごす休日はいかがでしょうか。",
+      "観光やお食事の間の<strong>数時間のお預かり</strong>から、<strong>ご宿泊</strong>まで。「預けている間に、飼い主さまだけでゆっくり観光」も、「涼しい高原で愛犬と一緒に」も、どちらもこの季節の箱根らしい過ごし方です。",
+      "お盆や9月の連休のお預かりも承っております。ご旅行のご予定がおありでしたら、お気軽にご相談ください。",
+      "看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。",
+    ];
+  }
+  return [
+    "DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただきありがとうございました。",
+    "箱根はこれから夏本番。標高の高い仙石原は避暑地として過ごしやすく、わんちゃん連れの旅行にちょうど良い季節です。お盆や9月の連休のお預かりも承っておりますので、ご旅行のご予定がおありでしたら、混み合う前にお早めにご相談ください。",
+    "観光やお食事の間の<strong>数時間のお預かり</strong>から、<strong>ご宿泊</strong>まで。「預けている間に、飼い主さまだけでゆっくり観光」という箱根の楽しみ方も、ぜひどうぞ。",
+    "看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。",
+  ];
+}
+
+/** ウィンバック本文（プレーンテキスト・宛名＋本文＋特電法フッター＋配信停止） */
+function buildWinbackText(template: WinbackTemplate, customerName: string, bookingUrl: string, unsubscribeUrl: string): string {
   const name = customerName ? `${customerName}様` : "お客様";
+  const body = winbackBodyText(template).join("\n\n");
   return `${name}
 
-DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただきありがとうございました。
-
-箱根はこれから夏本番。標高の高い仙石原は避暑地として過ごしやすく、わんちゃん連れの旅行にちょうど良い季節です。お盆や9月の連休のお預かりも承っておりますので、ご旅行のご予定がおありでしたら、混み合う前にお早めにご相談ください。
-
-観光やお食事の間の数時間のお預かりから、ご宿泊まで。「預けている間に、飼い主さまだけでゆっくり観光」という箱根の楽しみ方も、ぜひどうぞ。
-
-看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。
+${body}
 
 ▷ ご予約はこちら: ${bookingUrl}
 ▷ お電話でのご相談: 0460-80-0290
@@ -911,9 +958,15 @@ Instagram: @doghub.hakone__
 ────────────────────`;
 }
 
-/** B-3 のHTML版（ブランド体裁＋特電法フッター＋配信停止リンク） */
-function buildWinbackEmailHtmlB3(customerName: string, bookingUrl: string, unsubscribeUrl: string): string {
+/** ウィンバックHTML（ブランド体裁＋特電法フッター＋配信停止リンク・テンプレート差し替え式） */
+function buildWinbackEmailHtml(template: WinbackTemplate, customerName: string, bookingUrl: string, unsubscribeUrl: string): string {
   const name = customerName ? `${esc(customerName)}様` : "お客様";
+  const paras = winbackBodyHtml(template)
+    .map(
+      (p, i, arr) =>
+        `    <p style="margin:0 0 ${i === arr.length - 1 ? 24 : 16}px;font-size:15px;color:#3C200F;line-height:1.9;">${p}</p>`,
+    )
+    .join("\n");
   return `<!DOCTYPE html>
 <html lang="ja">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -931,10 +984,7 @@ function buildWinbackEmailHtmlB3(customerName: string, bookingUrl: string, unsub
   <!-- 本文 -->
   <div style="background:white;border-radius:16px;padding:28px 24px;margin-bottom:16px;">
     <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">${name}</p>
-    <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただきありがとうございました。</p>
-    <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">箱根はこれから夏本番。標高の高い仙石原は避暑地として過ごしやすく、わんちゃん連れの旅行にちょうど良い季節です。お盆や9月の連休のお預かりも承っておりますので、ご旅行のご予定がおありでしたら、混み合う前にお早めにご相談ください。</p>
-    <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">観光やお食事の間の<strong>数時間のお預かり</strong>から、<strong>ご宿泊</strong>まで。「預けている間に、飼い主さまだけでゆっくり観光」という箱根の楽しみ方も、ぜひどうぞ。</p>
-    <p style="margin:0 0 24px;font-size:15px;color:#3C200F;line-height:1.9;">看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。</p>
+${paras}
 
     <div style="text-align:center;margin:24px 0 8px;">
       <a href="${bookingUrl}" style="display:inline-block;background:#B87942;color:white;text-decoration:none;font-size:15px;font-weight:600;padding:13px 32px;border-radius:10px;">ご予約はこちら</a>
@@ -962,7 +1012,7 @@ function buildWinbackEmailHtmlB3(customerName: string, bookingUrl: string, unsub
 
 /**
  * ウィンバックメール送信（1通）。
- * campaignKey に応じて文面を出し分ける（現状 summer2026_b3 のみ＝B-3文面）。
+ * template で文面を出し分ける（harvest＝夏経験者向け／discovery＝他季節客向け「夏の提案」）。
  * 戻り値は成功可否（呼び出し側で送信ログに記録する）。
  */
 export async function sendWinbackEmail(params: {
@@ -970,19 +1020,21 @@ export async function sendWinbackEmail(params: {
   customerName: string;
   unsubscribeToken: string;
   campaignKey: string;
+  template?: WinbackTemplate;
 }): Promise<void> {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     throw new Error("Gmailの設定がされていません");
   }
+  const template = params.template ?? "harvest";
   const token = encodeURIComponent(params.unsubscribeToken);
   const bookingUrl = `${SITE_URL}/booking?utm_source=email&utm_medium=crm&utm_campaign=${encodeURIComponent(params.campaignKey)}`;
   // 可視リンク＝確認ページ（人間向け）。ヘッダ＝POST受けAPI（メールクライアントのワンクリック用）。
   const unsubscribeUrl = `${SITE_URL}/unsubscribe?token=${token}`;
   const unsubscribeApiUrl = `${SITE_URL}/api/email/unsubscribe?token=${token}`;
 
-  const subject = "夏・連休のお預かり、承っています｜DogHub箱根仙石原";
-  const html = buildWinbackEmailHtmlB3(params.customerName, bookingUrl, unsubscribeUrl);
-  const text = buildWinbackTextB3(params.customerName, bookingUrl, unsubscribeUrl);
+  const subject = WINBACK_SUBJECTS[template];
+  const html = buildWinbackEmailHtml(template, params.customerName, bookingUrl, unsubscribeUrl);
+  const text = buildWinbackText(template, params.customerName, bookingUrl, unsubscribeUrl);
 
   await transporter.sendMail({
     from: `"DogHub箱根仙石原" <${process.env.GMAIL_USER}>`,
