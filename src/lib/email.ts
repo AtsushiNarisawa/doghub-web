@@ -866,3 +866,135 @@ export async function sendLineStaffAlert(params: {
     console.error(`[line-alert] FAILED category=${params.category} message=${e.message?.slice(0, 200)}`);
   }
 }
+
+// ──────────────────────────────────────────
+// ウィンバック / 季節先行案内メール（リピートエンジン）
+// 過去にご利用いただいた顧客への"取引関係に基づく"案内メール。
+// 特定電子メール法に準拠し、送信者情報＋配信停止導線を必ず末尾に付与する。
+// ──────────────────────────────────────────
+const SITE_URL = "https://dog-hub.shop";
+
+function esc(s: string): string {
+  return (s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/** B-3「夏・連休のお預かり、承っています」本文（プレーンテキスト） */
+function buildWinbackTextB3(customerName: string, bookingUrl: string, unsubscribeUrl: string): string {
+  const name = customerName ? `${customerName}様` : "お客様";
+  return `${name}
+
+DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただきありがとうございました。
+
+箱根はこれから夏本番。標高の高い仙石原は避暑地として過ごしやすく、わんちゃん連れの旅行にちょうど良い季節です。お盆や9月の連休のお預かりも承っておりますので、ご旅行のご予定がおありでしたら、混み合う前にお早めにご相談ください。
+
+観光やお食事の間の数時間のお預かりから、ご宿泊まで。「預けている間に、飼い主さまだけでゆっくり観光」という箱根の楽しみ方も、ぜひどうぞ。
+
+看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。
+
+▷ ご予約はこちら: ${bookingUrl}
+▷ お電話でのご相談: 0460-80-0290
+
+────────────────────
+DogHub箱根仙石原
+神奈川県足柄下郡箱根町仙石原928-15
+TEL: 0460-80-0290 ／ 営業時間: 金〜火 9:00〜17:00（水・木定休）
+Instagram: @doghub.hakone__
+
+※このメールは、以前DogHubをご利用いただいた際にご登録のメールアドレスへお送りしています。
+　今後のご案内が不要な場合は、下記よりお手続きください。
+　配信停止: ${unsubscribeUrl}
+────────────────────`;
+}
+
+/** B-3 のHTML版（ブランド体裁＋特電法フッター＋配信停止リンク） */
+function buildWinbackEmailHtmlB3(customerName: string, bookingUrl: string, unsubscribeUrl: string): string {
+  const name = customerName ? `${esc(customerName)}様` : "お客様";
+  return `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f7f5f0;font-family:-apple-system,'Hiragino Sans',sans-serif;">
+<div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+
+  <!-- ヘッダー -->
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="display:inline-block;background:#3C200F;border-radius:10px;padding:10px 24px;">
+      <span style="color:white;font-size:20px;font-weight:700;letter-spacing:2px;">DogHub</span>
+    </div>
+    <p style="color:#8F7B65;font-size:13px;margin:8px 0 0;">箱根仙石原</p>
+  </div>
+
+  <!-- 本文 -->
+  <div style="background:white;border-radius:16px;padding:28px 24px;margin-bottom:16px;">
+    <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">${name}</p>
+    <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">DogHub箱根仙石原です。以前はわんちゃんとご一緒にご利用いただきありがとうございました。</p>
+    <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">箱根はこれから夏本番。標高の高い仙石原は避暑地として過ごしやすく、わんちゃん連れの旅行にちょうど良い季節です。お盆や9月の連休のお預かりも承っておりますので、ご旅行のご予定がおありでしたら、混み合う前にお早めにご相談ください。</p>
+    <p style="margin:0 0 16px;font-size:15px;color:#3C200F;line-height:1.9;">観光やお食事の間の<strong>数時間のお預かり</strong>から、<strong>ご宿泊</strong>まで。「預けている間に、飼い主さまだけでゆっくり観光」という箱根の楽しみ方も、ぜひどうぞ。</p>
+    <p style="margin:0 0 24px;font-size:15px;color:#3C200F;line-height:1.9;">看板犬のポロ・ぱんち・ムックともども、お会いできるのを楽しみにしております。</p>
+
+    <div style="text-align:center;margin:24px 0 8px;">
+      <a href="${bookingUrl}" style="display:inline-block;background:#B87942;color:white;text-decoration:none;font-size:15px;font-weight:600;padding:13px 32px;border-radius:10px;">ご予約はこちら</a>
+    </div>
+    <p style="margin:12px 0 0;font-size:13px;color:#888;line-height:1.8;text-align:center;">
+      お電話でのご相談は <a href="tel:0460800290" style="color:#B87942;text-decoration:none;">0460-80-0290</a> まで
+    </p>
+  </div>
+
+  <!-- フッター（特定電子メール法：送信者情報＋配信停止） -->
+  <div style="text-align:center;padding:16px 8px;">
+    <p style="margin:0 0 4px;font-size:13px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原928-15</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460800290" style="color:#B87942;">0460-80-0290</a> ／ 営業時間: 金〜火 9:00〜17:00（水・木定休）</p>
+    <p style="margin:0 0 12px;font-size:12px;color:#888;">Instagram: @doghub.hakone__</p>
+    <p style="margin:0;font-size:11px;color:#aaa;line-height:1.7;">
+      このメールは、以前DogHubをご利用いただいた際にご登録のメールアドレスへお送りしています。<br>
+      今後のご案内が不要な場合は <a href="${unsubscribeUrl}" style="color:#999;text-decoration:underline;">配信停止</a> よりお手続きください。
+    </p>
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+/**
+ * ウィンバックメール送信（1通）。
+ * campaignKey に応じて文面を出し分ける（現状 summer2026_b3 のみ＝B-3文面）。
+ * 戻り値は成功可否（呼び出し側で送信ログに記録する）。
+ */
+export async function sendWinbackEmail(params: {
+  to: string;
+  customerName: string;
+  unsubscribeToken: string;
+  campaignKey: string;
+}): Promise<void> {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    throw new Error("Gmailの設定がされていません");
+  }
+  const token = encodeURIComponent(params.unsubscribeToken);
+  const bookingUrl = `${SITE_URL}/booking?utm_source=email&utm_medium=crm&utm_campaign=${encodeURIComponent(params.campaignKey)}`;
+  // 可視リンク＝確認ページ（人間向け）。ヘッダ＝POST受けAPI（メールクライアントのワンクリック用）。
+  const unsubscribeUrl = `${SITE_URL}/unsubscribe?token=${token}`;
+  const unsubscribeApiUrl = `${SITE_URL}/api/email/unsubscribe?token=${token}`;
+
+  const subject = "夏・連休のお預かり、承っています｜DogHub箱根仙石原";
+  const html = buildWinbackEmailHtmlB3(params.customerName, bookingUrl, unsubscribeUrl);
+  const text = buildWinbackTextB3(params.customerName, bookingUrl, unsubscribeUrl);
+
+  await transporter.sendMail({
+    from: `"DogHub箱根仙石原" <${process.env.GMAIL_USER}>`,
+    replyTo: "info@dog-hub.shop",
+    to: params.to,
+    subject,
+    html,
+    text,
+    // 配信停止をメールクライアントのUIからもワンクリックで行えるように（RFC 8058 / Gmail一括送信者要件）
+    headers: {
+      "List-Unsubscribe": `<${unsubscribeApiUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  });
+}
