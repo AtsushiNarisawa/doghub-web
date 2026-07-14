@@ -19,6 +19,11 @@ export const PHYSICAL_ROOM_LIMIT = 19;
 // 後方互換エイリアス。管理画面など「物理上限」を指したい既存コードが参照する。
 export const ROOM_LIMIT = PHYSICAL_ROOM_LIMIT;
 
+// カレンダーで「△ 混み合っています」を出す残数の上限（残数がこれ以下＝△）。
+// 2026-07-14 CEO決定: 残り7以下（＝占有8頭以上）で△にする（お盆周辺の人気日を可視化）。
+// 変更する場合はここ1箇所でよい（step1-plan が参照）。
+export const LOW_STOCK_REMAINING = 7;
+
 export type CapacitySnapshot = {
   day_booked: number;
   stay_booked: number;

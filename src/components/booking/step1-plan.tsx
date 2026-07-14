@@ -6,7 +6,7 @@ import { PLANS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { HOLIDAYS } from "@/lib/holidays";
-import { WEB_ROOM_LIMIT } from "@/lib/capacity";
+import { WEB_ROOM_LIMIT, LOW_STOCK_REMAINING } from "@/lib/capacity";
 import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
 
 interface Props {
@@ -436,12 +436,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                           className={`text-[9px] leading-none mt-0.5 ${
                             remaining <= 0
                               ? "text-red-500"
-                              : remaining < 5
+                              : remaining <= LOW_STOCK_REMAINING
                                 ? "text-orange-500"
                                 : "text-green-600"
                           }`}
                         >
-                          {remaining <= 0 ? "×" : remaining < 5 ? "△" : "○"}
+                          {remaining <= 0 ? "×" : remaining <= LOW_STOCK_REMAINING ? "△" : "○"}
                         </span>
                       )}
                     </button>
@@ -451,7 +451,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
               {/* 凡例 */}
               <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-[#888]">
                 <span className="text-green-600">○ 空きあり</span>
-                <span className="text-orange-500">△ 残りわずか</span>
+                <span className="text-orange-500">△ 混み合っています</span>
                 <span className="text-red-500">× 満席（お問い合わせ）</span>
                 <span>グレー: 定休日</span>
                 <span className="text-orange-400">数字オレンジ: 祝日</span>
@@ -467,8 +467,8 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   <div className="flex gap-3">
                     {capacity.total_remaining <= 0
                       ? <span className="text-red-500 text-sm font-medium">× 満席です。お問い合わせください（TEL 0460-80-0290）</span>
-                      : capacity.total_remaining < 5
-                        ? <span className="text-orange-500 text-sm">△ 残りわずか</span>
+                      : capacity.total_remaining <= LOW_STOCK_REMAINING
+                        ? <span className="text-orange-500 text-sm">△ 混み合っています</span>
                         : <span className="text-green-600 text-sm">○ 空きあり</span>
                     }
                   </div>
