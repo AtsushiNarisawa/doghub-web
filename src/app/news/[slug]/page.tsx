@@ -220,9 +220,9 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-gw-traffic-route-guide": {
     text: "仙石原到着後のお預かりはDogHubへ",
-    subtext: "乙女峠を越えて仙石原に着いたら、美術館やユネッサンは犬NGです。半日¥3,300〜、1日¥5,500〜でお預かりします。",
-    href: "/access",
-    btnLabel: "DogHubへのアクセス・駐車場を見る",
+    subtext: "乙女峠を越えて仙石原に着いたら、犬NGの施設もあります。到着後の観光の間、涼しい個室で愛犬をお預かりします。半日¥3,300〜、1日¥5,500〜。",
+    href: "/service",
+    btnLabel: "お預かりプラン・料金を見る",
   },
 };
 
