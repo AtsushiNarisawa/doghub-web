@@ -131,7 +131,7 @@ export default function HakonePage() {
                 <p className="text-[#8F7B65] mb-3" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
                   宿泊¥7,700〜、半日¥3,300〜。24時間スタッフ常駐・個室・ドッグラン併設。
                 </p>
-                <Link href="/service" className="text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>料金・サービス →</Link>
+                <Link href="/service" data-cta-id="hakone_service" className="text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>料金・サービス →</Link>
               </div>
               <div className="bg-white p-6">
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "18px", fontWeight: 400 }}>犬連れカフェ</h3>

@@ -145,6 +145,7 @@ export default function DogrunPage() {
             </p>
             <Link
               href="/service"
+              data-cta-id="dogrun_service"
               className="text-[#3C200F] hover:text-[#B87942] transition-colors group border-b border-[#3C200F] pb-1"
               style={{ fontSize: "16px", fontWeight: 400 }}
             >

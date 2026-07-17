@@ -75,6 +75,7 @@ export function Pricing() {
           </Link>
           <a
             href="/booking"
+            data-cta-id="home_pricing_booking"
             className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-8 py-3 hover:opacity-90 transition-opacity"
             style={{ fontSize: "16px", fontWeight: 400 }}
           >

@@ -228,6 +228,7 @@ export function Header() {
             ))}
             <a
               href="/booking"
+              data-cta-id="header_booking_mobile"
               className="bg-[#3C200F] text-white text-sm font-medium px-6 py-4 text-center mt-3 min-h-11"
               onClick={() => setMenuOpen(false)}
             >
@@ -257,6 +258,7 @@ export function Header() {
       {/* Right fixed booking tab */}
       <a
         href="/booking"
+        data-cta-id="header_booking_sidetab"
         className="hidden sm:flex fixed right-0 z-40 bg-[#3C200F] text-white flex-col items-center justify-center gap-3 hover:bg-[#5a3e28] transition-colors rounded-l-md"
         style={{ top: "76px", width: "74px", height: "296px" }}
       >

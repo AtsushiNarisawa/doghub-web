@@ -64,7 +64,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-dog-trip-guide": {
     text: "箱根観光中の愛犬のお預かり",
-    subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。半日¥3,300〜、1日¥5,500〜。",
+    subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。観光中の暑い時間だけでも、涼しい個室でお預かりします。半日¥3,300〜、1日¥5,500〜。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
@@ -112,7 +112,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-owakudani-dog-guide": {
     text: "大涌谷観光中の愛犬はDogHubへ",
-    subtext: "大涌谷から車約20分。硫黄ガスの心配なく、愛犬を安心してお預けください。",
+    subtext: "大涌谷から車約20分。硫黄ガスの心配なく、愛犬を安心してお預けください。夏は駐車場も混み合います。観光の間、涼しい個室でお預かりします。半日¥3,300〜。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
@@ -160,7 +160,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-ropeway-pirate-ship-dog-guide": {
     text: "ゴールデンコースの前後にお預け",
-    subtext: "ケージなしで身軽に楽しみたいなら、半日¥3,300〜でお預かり。",
+    subtext: "ロープウェイから海賊船への周遊中、ケージを持ち歩かずに身軽に。半日¥3,300〜でお預かりします。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
@@ -191,8 +191,8 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   "pet-hotel-first-time-tips": {
     text: "初めてのペットホテルはDogHubで",
     subtext: "完全個室で安心。まずは1時間¥1,100〜のスポット利用から始められます。",
-    href: "/guide",
-    btnLabel: "ご利用ガイドを見る",
+    href: "/service",
+    btnLabel: "スポット利用・料金を見る",
   },
   "hakone-sengokuhara-prince-dog-guide": {
     text: "仙石原プリンスホテルにお泊まりの日のお預かり",
@@ -270,7 +270,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐" },
   ],
   "hakone-ashinoko-dog-guide": [
-    { label: "芦ノ湖観光中のお預かり", href: "/service", description: "桃源台から車10分。半日¥3,300〜" },
+    { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "桃源台から車10分。半日¥3,300〜" },
     { label: "芦ノ湖エリアの温泉", href: "/onsen", description: "龍宮殿本館まで車約20分" },
     { label: "海賊船＋遊覧の間に預ける", href: "/4h", description: "半日プランで芦ノ湖をたっぷり満喫" },
     { label: "カフェでランチ", href: "/cafe", description: "お迎え前後におむすび＆スープ" },
@@ -284,6 +284,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-dog-lunch-guide": [
     { label: "カフェのメニューを見る", href: "/cafe", description: "室内犬連れOK。おむすび＆スープ" },
     { label: "ランチ後に観光するなら", href: "/service", description: "食後にお預けして温泉・美術館へ" },
+    { label: "ランチのあと観光するなら", href: "/4h", description: "その間だけお預かり。半日¥3,300〜" },
   ],
   "hakone-dog-cafe-guide": [
     { label: "カフェの詳細", href: "/cafe", description: "メニュー・営業時間・アクセス" },
@@ -332,7 +333,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "カフェで休憩", href: "/cafe", description: "お迎え前後に" },
   ],
   "hakone-en-dog-guide": [
-    { label: "芦ノ湖観光のお預かり", href: "/service", description: "半日¥3,300〜" },
+    { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "半日¥3,300〜" },
     { label: "箱根神社もセットで", href: "/service", description: "芦ノ湖エリアを満喫" },
     { label: "カフェで休憩", href: "/cafe", description: "仙石原でおむすび＆スープ" },
   ],
@@ -587,6 +588,7 @@ export default async function NewsDetailPage({ params }: Props) {
             {inlineBridge && htmlSecondHalf && (
               <Link
                 href={inlineBridge.href}
+                data-cta-id="article_inline"
                 className="block my-8 px-5 py-4 bg-[#F8F5F0] border-l-4 border-[#B87942] hover:bg-[#F0EBE4] transition-colors"
                 style={{ textDecoration: "none" }}
               >
@@ -617,6 +619,7 @@ export default async function NewsDetailPage({ params }: Props) {
                     <Link
                       key={bridge.href}
                       href={bridge.href}
+                      data-cta-id="article_scene"
                       className="flex items-center justify-between px-4 py-3 bg-white rounded-lg border border-[#E5DDD8] hover:border-[#B87942] transition-colors"
                       style={{ textDecoration: "none" }}
                     >
