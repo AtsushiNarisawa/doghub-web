@@ -2,26 +2,51 @@ import nodemailer from "nodemailer";
 import type { BookingFormData } from "@/types/booking";
 import { PLANS } from "@/types/booking";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-  // 一括送信対策（2026-07-18）: プーリング無しだと1通ごとに再ログインし、Gmailの
-  // 「454-4.7.0 Too many login attempts」制限に当たる（200通送信で約87通目で発生）。
-  // 接続を1本プールして使い回し、ログイン回数を最小化する。
-  pool: true,
-  maxConnections: 1,   // 並行ログインを避ける（1本を順に使い回す）
-  maxMessages: 100,    // 1接続あたり最大100通で再接続（Gmailの接続あたり上限に合わせる）
-  // Gmail SMTP がハングした際に予約処理が無限に待たされる/関数が生き続けるのを防ぐ。
-  // 接続・挨拶・ソケットそれぞれに上限を設ける（feedback: 送信が固まる体感の主因対策）。
-  connectionTimeout: 10000, // 接続確立まで最大10秒
-  greetingTimeout: 10000,   // SMTP挨拶まで最大10秒
-  socketTimeout: 20000,     // 応答待ち最大20秒
-});
+// SMTP トランスポート設定を1箇所に集約（単発共有・一括専用の両方でこの設定を使う）。
+function buildTransport() {
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+    // 一括送信対策（2026-07-18）: プーリング無しだと1通ごとに再ログインし、Gmailの
+    // 「454-4.7.0 Too many login attempts」制限に当たる（200通送信で約87通目で発生）。
+    // 接続を1本プールして使い回し、ログイン回数を最小化する。
+    pool: true,
+    maxConnections: 1,   // 並行ログインを避ける（1本を順に使い回す）
+    maxMessages: 100,    // 1接続あたり最大100通で再接続（Gmailの接続あたり上限に合わせる）
+    // Gmail SMTP がハングした際に予約処理が無限に待たされる/関数が生き続けるのを防ぐ。
+    // 接続・挨拶・ソケットそれぞれに上限を設ける（feedback: 送信が固まる体感の主因対策）。
+    connectionTimeout: 10000, // 接続確立まで最大10秒
+    greetingTimeout: 10000,   // SMTP挨拶まで最大10秒
+    socketTimeout: 20000,     // 応答待ち最大20秒
+  });
+}
+
+// 予約確認・お礼・キャンセル・LINEアラート等の「単発送信」で共有するトランスポート。
+const transporter = buildTransport();
+
+// 一括送信で渡すトランスポートの型（sendWinbackEmail の任意引数用）。
+export type MailTransport = ReturnType<typeof buildTransport>;
+
+/**
+ * 一括送信専用トランスポートを新規生成する（リクエストごとに作り、呼び出し側が finally で必ず close する）。
+ *
+ * 理由（2026-07-18 判明・断続的5分ハングの真因）:
+ *   モジュール共有の `transporter` を一括送信に使うと、maxDuration(300s) で強制終了された前回リクエストが
+ *   closeEmailPool() を呼べずに死に、ウォーム状態のサーバレスコンテナに「壊れた／半開きのプール接続」を残す。
+ *   次に同じコンテナへ来たリクエスト（別の一括送信や、予約確認メールまで）がその接続を掴もうとして、
+ *   socketTimeout も効かないまま（＝ソケット応答待ちではなくプール取得待ちのため）maxDuration まで固まる。
+ *   汚染コンテナが強制終了のたびに増えるため「当たった時だけ固まる」断続症状になる。
+ *   一括送信をリクエスト単位の専用トランスポートへ隔離し、共有トランスポートを一括送信の
+ *   ライフサイクルから完全に切り離すことで、この汚染を根絶する（予約確認メールへの巻き込みも防ぐ）。
+ */
+export function createBulkTransport(): MailTransport {
+  return buildTransport();
+}
 
 /** 一括送信の最後にプール接続を解放する（サーバレス関数が開いた接続を抱えて残らないように）。 */
 export function closeEmailPool(): void {
@@ -1030,16 +1055,22 @@ ${paras}
  * template で文面を出し分ける（harvest＝夏経験者向け／discovery＝他季節客向け「夏の提案」）。
  * 戻り値は成功可否（呼び出し側で送信ログに記録する）。
  */
-export async function sendWinbackEmail(params: {
-  to: string;
-  customerName: string;
-  unsubscribeToken: string;
-  campaignKey: string;
-  template?: WinbackTemplate;
-}): Promise<void> {
+export async function sendWinbackEmail(
+  params: {
+    to: string;
+    customerName: string;
+    unsubscribeToken: string;
+    campaignKey: string;
+    template?: WinbackTemplate;
+  },
+  // 一括送信時はリクエスト専用トランスポート（createBulkTransport）を渡す。
+  // 省略時はモジュール共有トランスポート（テスト送信・単発用）。
+  transport?: MailTransport,
+): Promise<void> {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     throw new Error("Gmailの設定がされていません");
   }
+  const mailer = transport ?? transporter;
   const template = params.template ?? "harvest";
   const token = encodeURIComponent(params.unsubscribeToken);
   const bookingUrl = `${SITE_URL}/booking?utm_source=email&utm_medium=crm&utm_campaign=${encodeURIComponent(params.campaignKey)}`;
@@ -1051,7 +1082,7 @@ export async function sendWinbackEmail(params: {
   const html = buildWinbackEmailHtml(template, params.customerName, bookingUrl, unsubscribeUrl);
   const text = buildWinbackText(template, params.customerName, bookingUrl, unsubscribeUrl);
 
-  await transporter.sendMail({
+  await mailer.sendMail({
     from: `"DogHub箱根仙石原" <${process.env.GMAIL_USER}>`,
     replyTo: "info@dog-hub.shop",
     to: params.to,

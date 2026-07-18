@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendWinbackEmail, winbackSubject, closeEmailPool, type WinbackTemplate } from "@/lib/email";
+import { sendWinbackEmail, winbackSubject, createBulkTransport, type WinbackTemplate } from "@/lib/email";
 
 // 本番(Vercel)では service role を使う（RLS対象外でログ書込/顧客更新）。ビルド時のモジュール評価で
 // undefined にならないよう anon key にフォールバック（既存 cron ルートと同じ方式）。
@@ -23,9 +23,22 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const THROTTLE_MS = 250;
+// 1通あたりの上限。socketTimeout(20s)より少し長く置き、通常のSMTPタイムアウトは nodemailer 側の
+// エラーとして拾いつつ、それでも返ってこない「プール取得待ち」型ハングをここで打ち切る保険。
+const SEND_TIMEOUT_MS = 30000;
 const SEGMENTS = ["vip", "lapsed", "summer_harvest", "summer_discovery"] as const;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Promise にハード上限を付ける。上限超過で reject（元の Promise は裏で継続しうるが、
+// 一括送信ではバッチ終了時に専用トランスポートを close して破棄するため無害）。
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`__SEND_TIMEOUT__ ${ms}ms: ${label}`)), ms);
+  });
+  return Promise.race([p.finally(() => clearTimeout(timer)), timeout]);
+}
 
 function maskEmail(email: string): string {
   const [u, d] = (email || "").split("@");
@@ -122,63 +135,97 @@ export async function POST(req: NextRequest) {
   }
 
   // 実送信（sequential + throttle）
+  // 一括送信はこのリクエスト専用トランスポートを使う。モジュール共有だと、前回 maxDuration で
+  // 強制終了された際にウォームコンテナへ残った壊れた接続を掴んでハングする（詳細は createBulkTransport のコメント）。
   const batch = recipients.slice(0, limit);
+  const bulkTransport = createBulkTransport();
   let sent = 0;
   let failed = 0;
   let skipped = 0;
+  let aborted = false;
 
-  for (const r of batch) {
-    // 1) claim: 一意制約で二重送信を防ぐ。既にログがあれば skip。
-    const { data: claimed, error: claimErr } = await supabase
-      .from("marketing_email_log")
-      .upsert(
-        {
-          customer_id: r.customer_id,
-          campaign_key: campaign,
-          email: r.email,
-          subject,
-          status: "sending",
-        },
-        { onConflict: "customer_id,campaign_key", ignoreDuplicates: true },
-      )
-      .select("id");
-    if (claimErr) {
-      console.error(`[marketing-send] claim error cust=${r.customer_id}:`, claimErr.message);
-      failed++;
-      continue;
-    }
-    if (!claimed || claimed.length === 0) {
-      // 既に送信済み/送信中 → skip
-      skipped++;
-      continue;
-    }
+  try {
+    for (const r of batch) {
+      // 1) claim: 一意制約で二重送信を防ぐ。既にログがあれば skip。
+      const { data: claimed, error: claimErr } = await supabase
+        .from("marketing_email_log")
+        .upsert(
+          {
+            customer_id: r.customer_id,
+            campaign_key: campaign,
+            email: r.email,
+            subject,
+            status: "sending",
+          },
+          { onConflict: "customer_id,campaign_key", ignoreDuplicates: true },
+        )
+        .select("id");
+      if (claimErr) {
+        console.error(`[marketing-send] claim error cust=${r.customer_id}:`, claimErr.message);
+        failed++;
+        continue;
+      }
+      if (!claimed || claimed.length === 0) {
+        // 既に送信済み/送信中 → skip
+        skipped++;
+        continue;
+      }
 
-    // 2) send
+      // 2) send（1通ごとにハード上限。返ってこないハングでバッチ全体を固まらせない）
+      try {
+        await withTimeout(
+          sendWinbackEmail(
+            {
+              to: r.email,
+              customerName: r.last_name || "",
+              unsubscribeToken: r.unsubscribe_token,
+              campaignKey: campaign,
+              template,
+            },
+            bulkTransport,
+          ),
+          SEND_TIMEOUT_MS,
+          `cust=${r.customer_id}`,
+        );
+        await supabase
+          .from("marketing_email_log")
+          .update({ status: "sent", sent_at: new Date().toISOString() })
+          .eq("customer_id", r.customer_id)
+          .eq("campaign_key", campaign);
+        sent++;
+      } catch (err) {
+        const msg = (err as Error).message?.slice(0, 300) || "unknown";
+        const isTimeout = msg.startsWith("__SEND_TIMEOUT__");
+        console.error(`[marketing-send] send ${isTimeout ? "TIMEOUT" : "failed"} cust=${r.customer_id}:`, msg);
+        if (isTimeout) {
+          // 接続が wedged した可能性が高い。claim を取り消して次バッチで自動再送できるようにし、
+          // このバッチは打ち切る（同じ壊れた接続で後続まで巻き添えにしない）。
+          await supabase
+            .from("marketing_email_log")
+            .delete()
+            .eq("customer_id", r.customer_id)
+            .eq("campaign_key", campaign);
+          failed++;
+          aborted = true;
+          break;
+        }
+        // 通常のSMTP失敗（無効アドレス等）は failed として記録（再送対象から除外）。
+        await supabase
+          .from("marketing_email_log")
+          .update({ status: "failed", error: msg })
+          .eq("customer_id", r.customer_id)
+          .eq("campaign_key", campaign);
+        failed++;
+      }
+      await sleep(THROTTLE_MS);
+    }
+  } finally {
+    // このリクエストで開いた接続を必ず解放（次リクエストへ壊れた接続を残さない）。
     try {
-      await sendWinbackEmail({
-        to: r.email,
-        customerName: r.last_name || "",
-        unsubscribeToken: r.unsubscribe_token,
-        campaignKey: campaign,
-        template,
-      });
-      await supabase
-        .from("marketing_email_log")
-        .update({ status: "sent", sent_at: new Date().toISOString() })
-        .eq("customer_id", r.customer_id)
-        .eq("campaign_key", campaign);
-      sent++;
-    } catch (err) {
-      const msg = (err as Error).message?.slice(0, 300) || "unknown";
-      console.error(`[marketing-send] send failed cust=${r.customer_id}:`, msg);
-      await supabase
-        .from("marketing_email_log")
-        .update({ status: "failed", error: msg })
-        .eq("customer_id", r.customer_id)
-        .eq("campaign_key", campaign);
-      failed++;
+      bulkTransport.close();
+    } catch {
+      // 解放失敗は無視（関数終了時にランタイムが片付ける）
     }
-    await sleep(THROTTLE_MS);
   }
 
   // 残りの未送信数（この segment/campaign でまだ送れる人数）
@@ -189,8 +236,5 @@ export async function POST(req: NextRequest) {
   });
   const remaining = (remainRows || []).length;
 
-  // 一括送信で開いたプール接続を解放（関数が接続を抱えて残らないように）
-  closeEmailPool();
-
-  return NextResponse.json({ campaign, segment, requested: batch.length, sent, failed, skipped, remaining });
+  return NextResponse.json({ campaign, segment, requested: batch.length, sent, failed, skipped, aborted, remaining });
 }
