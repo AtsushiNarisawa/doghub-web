@@ -10,12 +10,27 @@ const transporter = nodemailer.createTransport({
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
+  // 一括送信対策（2026-07-18）: プーリング無しだと1通ごとに再ログインし、Gmailの
+  // 「454-4.7.0 Too many login attempts」制限に当たる（200通送信で約87通目で発生）。
+  // 接続を1本プールして使い回し、ログイン回数を最小化する。
+  pool: true,
+  maxConnections: 1,   // 並行ログインを避ける（1本を順に使い回す）
+  maxMessages: 100,    // 1接続あたり最大100通で再接続（Gmailの接続あたり上限に合わせる）
   // Gmail SMTP がハングした際に予約処理が無限に待たされる/関数が生き続けるのを防ぐ。
   // 接続・挨拶・ソケットそれぞれに上限を設ける（feedback: 送信が固まる体感の主因対策）。
   connectionTimeout: 10000, // 接続確立まで最大10秒
   greetingTimeout: 10000,   // SMTP挨拶まで最大10秒
   socketTimeout: 20000,     // 応答待ち最大20秒
 });
+
+/** 一括送信の最後にプール接続を解放する（サーバレス関数が開いた接続を抱えて残らないように）。 */
+export function closeEmailPool(): void {
+  try {
+    transporter.close();
+  } catch {
+    // 解放失敗は無視（関数終了時にランタイムが片付ける）
+  }
+}
 
 const PLAN_NAMES: Record<string, string> = {
   spot: "スポットお預かり（1時間〜）",

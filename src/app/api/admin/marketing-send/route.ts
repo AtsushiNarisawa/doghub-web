@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendWinbackEmail, winbackSubject, type WinbackTemplate } from "@/lib/email";
+import { sendWinbackEmail, winbackSubject, closeEmailPool, type WinbackTemplate } from "@/lib/email";
 
 // 本番(Vercel)では service role を使う（RLS対象外でログ書込/顧客更新）。ビルド時のモジュール評価で
 // undefined にならないよう anon key にフォールバック（既存 cron ルートと同じ方式）。
@@ -188,6 +188,9 @@ export async function POST(req: NextRequest) {
     p_limit: 1000,
   });
   const remaining = (remainRows || []).length;
+
+  // 一括送信で開いたプール接続を解放（関数が接続を抱えて残らないように）
+  closeEmailPool();
 
   return NextResponse.json({ campaign, segment, requested: batch.length, sent, failed, skipped, remaining });
 }
