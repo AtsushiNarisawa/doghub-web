@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { fetchVisitCounts } from "@/lib/visit-count";
+import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
 interface Customer {
   id: string;
@@ -14,6 +15,8 @@ interface Customer {
   first_name_kana: string;
   phone: string;
   email: string;
+  email_bounced: boolean;
+  email_opt_out: boolean;
   postal_code: string | null;
   address: string | null;
   source: string;
@@ -312,9 +315,12 @@ export default function CustomerDetailPage() {
               </a>
             </div>
             {customer.email && (
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-gray-500 shrink-0">メール</span>
-                <span className="text-base text-gray-700 text-right truncate">{customer.email}</span>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-sm text-gray-500 shrink-0 mt-0.5">メール</span>
+                <div className="flex flex-col items-end gap-1 min-w-0">
+                  <span className="text-base text-gray-700 text-right truncate max-w-full">{customer.email}</span>
+                  <EmailStatusBadge bounced={customer.email_bounced} optedOut={customer.email_opt_out} />
+                </div>
               </div>
             )}
             {customer.address && (

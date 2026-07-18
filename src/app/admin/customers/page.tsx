@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { computeVisitCount } from "@/lib/visit-count";
+import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
 interface CustomerRow {
   id: string;
@@ -13,6 +14,8 @@ interface CustomerRow {
   first_name_kana: string;
   phone: string;
   email: string;
+  email_bounced: boolean;
+  email_opt_out: boolean;
   created_at: string;
   dogs: { name: string; breed: string }[];
   reservations: { status: string }[];
@@ -34,7 +37,7 @@ export default function CustomersPage() {
       const { data } = await supabase
         .from("customers")
         .select(`
-          id, last_name, first_name, last_name_kana, first_name_kana, phone, email, created_at, legacy_visit_count,
+          id, last_name, first_name, last_name_kana, first_name_kana, phone, email, email_bounced, email_opt_out, created_at, legacy_visit_count,
           dogs(name, breed),
           reservations(status)
         `)
@@ -107,10 +110,13 @@ export default function CustomersPage() {
               className="block bg-white rounded-xl p-4 active:bg-gray-50 transition-colors"
             >
               <div className="flex items-start justify-between mb-1">
-                <p className="font-medium text-base">
-                  {c.last_name} {c.first_name}
-                </p>
-                <span className="text-sm text-gray-500 font-dm">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <p className="font-medium text-base">
+                    {c.last_name} {c.first_name}
+                  </p>
+                  <EmailStatusBadge bounced={c.email_bounced} optedOut={c.email_opt_out} />
+                </div>
+                <span className="text-sm text-gray-500 font-dm shrink-0">
                   {computeVisitCount(c.legacy_visit_count, c.reservations.map((r) => r.status))}回利用
                 </span>
               </div>

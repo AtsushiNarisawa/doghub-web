@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { fetchVisitCounts } from "@/lib/visit-count";
 import { DestinationPicker } from "@/components/admin/destination-picker";
+import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
 interface Reservation {
   id: string;
@@ -33,6 +34,8 @@ interface Reservation {
     first_name_kana: string;
     phone: string;
     email: string;
+    email_bounced: boolean;
+    email_opt_out: boolean;
     postal_code: string | null;
     address: string | null;
     total_visits: number;
@@ -484,7 +487,17 @@ export default function ReservationDetailPage() {
           </div>
 
           <p className="text-xs text-gray-500 mb-1">宛先</p>
-          <p className="text-sm text-gray-700 mb-3 break-all">{customer.email}</p>
+          <p className="text-sm text-gray-700 mb-1 break-all">{customer.email}</p>
+          {(customer.email_bounced || customer.email_opt_out) && (
+            <div className="mb-3">
+              <EmailStatusBadge bounced={customer.email_bounced} optedOut={customer.email_opt_out} />
+              <p className="text-xs text-red-600 mt-1">
+                {customer.email_bounced
+                  ? "このアドレスは過去に不達（宛先不明）でした。送信しても届かない可能性が高いです。"
+                  : "このお客様はメール配信を停止しています。送信前にご確認ください。"}
+              </p>
+            </div>
+          )}
 
           {res.notes && (
             <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
@@ -666,7 +679,12 @@ export default function ReservationDetailPage() {
           {customer.email && (
             <button
               onClick={async () => {
-                if (!confirm(`${customer.last_name}様（${customer.email}）に確認メールを再送しますか？`)) return;
+                const warn = customer.email_bounced
+                  ? "⚠ このアドレスは過去に不達（宛先不明）です。届かない可能性が高いです。\n\n"
+                  : customer.email_opt_out
+                    ? "⚠ このお客様はメール配信を停止しています。\n\n"
+                    : "";
+                if (!confirm(`${warn}${customer.last_name}様（${customer.email}）に確認メールを再送しますか？`)) return;
                 setSaving(true);
                 try {
                   const r = await fetch("/api/admin/resend-email", {
@@ -745,7 +763,12 @@ export default function ReservationDetailPage() {
           </svg>
         </summary>
         <div className="px-4 pb-4 space-y-2 text-sm">
-          {customer.email && <p className="text-gray-600">{customer.email}</p>}
+          {customer.email && (
+            <p className="text-gray-600 flex items-center gap-2 flex-wrap">
+              <span className="break-all">{customer.email}</span>
+              <EmailStatusBadge bounced={customer.email_bounced} optedOut={customer.email_opt_out} />
+            </p>
+          )}
           {customer.address && <p className="text-gray-500">〒{customer.postal_code} {customer.address}</p>}
           <p className="text-gray-400 text-xs">予約元: {res.source}{res.referral_source ? ` / ${res.referral_source}` : ""}</p>
 

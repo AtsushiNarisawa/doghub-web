@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { PLANS } from "@/types/booking";
 import { DestinationPicker } from "@/components/admin/destination-picker";
+import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
 interface CustomerResult {
   id: string;
@@ -12,6 +13,8 @@ interface CustomerResult {
   first_name: string;
   phone: string;
   email: string;
+  email_bounced: boolean;
+  email_opt_out: boolean;
   dogs: { id: string; name: string; breed: string; weight: number; age: number | null; sex: string; has_rabies_vaccine: boolean; has_mixed_vaccine: boolean; allergies: string | null; meal_notes: string | null; medication_notes: string | null }[];
 }
 
@@ -23,6 +26,8 @@ interface SearchResult {
   first_name: string;
   phone: string;
   email: string;
+  email_bounced: boolean;
+  email_opt_out: boolean;
   dogs: { id: string; name: string; breed: string; weight: number; age: number | null; sex: string; has_rabies_vaccine: boolean; has_mixed_vaccine: boolean; allergies: string | null; meal_notes: string | null; medication_notes: string | null }[];
 }
 
@@ -85,7 +90,7 @@ function NewBookingForm() {
   const loadCustomerById = async (customerId: string) => {
     const { data } = await supabase
       .from("customers")
-      .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+      .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
       .eq("id", customerId)
       .single();
     if (data) {
@@ -95,7 +100,7 @@ function NewBookingForm() {
   };
 
   // 再発防止: 新規入力中に「同姓 or 同じ犬名」の既存客を自動検出して重複を警告
-  const SEL = "id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)";
+  const SEL = "id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)";
   useEffect(() => {
     if (!isNewCustomer) { setDupCandidates([]); return; }
     const ln = newCustomer.last_name.trim();
@@ -138,7 +143,7 @@ function NewBookingForm() {
       const normalized = q.replace(/[-\s]/g, "");
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+        .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
         .ilike("phone", `%${normalized}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -146,7 +151,7 @@ function NewBookingForm() {
       // 名前・カナ検索
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+        .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
         .or(`last_name.ilike.%${q}%,first_name.ilike.%${q}%,last_name_kana.ilike.%${q}%,first_name_kana.ilike.%${q}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -163,7 +168,7 @@ function NewBookingForm() {
           if (cids.length > 0) {
             const { data: extra } = await supabase
               .from("customers")
-              .select("id, last_name, first_name, phone, email, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+              .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
               .in("id", cids)
               .limit(5);
             if (extra) results = [...results, ...(extra as unknown as SearchResult[])];
@@ -347,8 +352,9 @@ function NewBookingForm() {
                 className="w-full p-4 text-left active:bg-gray-50 flex items-center justify-between"
               >
                 <div>
-                  <p className="text-base font-medium text-gray-800">
-                    {c.last_name} {c.first_name}
+                  <p className="text-base font-medium text-gray-800 flex items-center gap-2 flex-wrap">
+                    <span>{c.last_name} {c.first_name}</span>
+                    <EmailStatusBadge bounced={c.email_bounced} optedOut={c.email_opt_out} />
                   </p>
                   <p className="text-sm text-gray-500 mt-0.5">
                     {c.phone}
@@ -426,8 +432,18 @@ function NewBookingForm() {
       {customer ? (
         <div className="bg-white rounded-xl p-4">
           <p className="text-sm text-gray-500 mb-1">お客様</p>
-          <p className="font-medium">{customer.last_name} {customer.first_name} 様</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-medium">{customer.last_name} {customer.first_name} 様</p>
+            <EmailStatusBadge bounced={customer.email_bounced} optedOut={customer.email_opt_out} />
+          </div>
           <a href={`tel:${customer.phone}`} className="text-sm text-[#B87942]">{customer.phone}</a>
+          {(customer.email_bounced || customer.email_opt_out) && (
+            <p className="text-xs text-red-600 mt-1.5">
+              {customer.email_bounced
+                ? "⚠ このお客様のメールは過去に不達（宛先不明）です。予約完了メールが届かない可能性が高いため、お電話等でご確認ください。"
+                : "⚠ このお客様はメール配信を停止しています。予約完了メールの扱いにご注意ください。"}
+            </p>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-xl p-4 space-y-3">
@@ -446,6 +462,11 @@ function NewBookingForm() {
                   <span className="text-xs text-gray-500 ml-2">{c.phone}</span>
                   {c.dogs && c.dogs.length > 0 && (
                     <span className="text-xs text-gray-500 ml-2">🐶 {c.dogs.map((d) => d.name).join("・")}</span>
+                  )}
+                  {(c.email_bounced || c.email_opt_out) && (
+                    <span className="ml-2 inline-flex align-middle">
+                      <EmailStatusBadge bounced={c.email_bounced} optedOut={c.email_opt_out} />
+                    </span>
                   )}
                   <span className="block text-xs text-[#B87942] mt-0.5">→ この方を選ぶ</span>
                 </button>
