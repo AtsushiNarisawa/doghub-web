@@ -4,7 +4,7 @@ export function TrustSignals() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center text-white">
           <div>
-            <p style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400 }}>4.8<span className="text-[#B87942]">★</span></p>
+            <p style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400 }}>4.9<span className="text-[#B87942]">★</span></p>
             <p className="mt-1 text-white/70" style={{ fontSize: "13px", fontWeight: 400 }}>Google レビュー</p>
           </div>
           <div>

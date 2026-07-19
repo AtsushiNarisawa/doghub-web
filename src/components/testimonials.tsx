@@ -35,7 +35,7 @@ export function Testimonials() {
         {/* Trust numbers */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center mb-12 md:mb-16">
           <div>
-            <p className="text-[#3C200F]" style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400 }}>4.8<span className="text-[#B87942]">★</span></p>
+            <p className="text-[#3C200F]" style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400 }}>4.9<span className="text-[#B87942]">★</span></p>
             <p className="mt-1 text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>Google レビュー</p>
           </div>
           <div>
@@ -64,11 +64,11 @@ export function Testimonials() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-[#3C200F] leading-none" style={{ fontSize: "48px", fontWeight: 400 }}>
-              4.8
+              4.9
             </span>
             <div>
               <div className="text-[#B87942] tracking-[0.2em] text-lg mb-1">★★★★★</div>
-              <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>Google レビュー 38件</p>
+              <p className="text-[#8F7B65]" style={{ fontSize: "13px", fontWeight: 400 }}>Google レビュー 45件</p>
             </div>
           </div>
         </div>
@@ -108,7 +108,9 @@ export function Testimonials() {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-[#8F7B65]" style={{ fontSize: "12px", fontWeight: 400 }}>
             <span>大箱根カントリークラブ 提携</span>
-            <span>リロクラブ 加盟</span>
+            <span>リトナ箱根 提携</span>
+            <span>レジーナリゾート箱根仙石原 連携</span>
+            <span>エクシブ箱根離宮 相互紹介</span>
           </div>
         </div>
       </div>
