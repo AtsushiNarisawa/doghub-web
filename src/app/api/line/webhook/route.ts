@@ -6,7 +6,11 @@ import {
 } from "@/lib/line";
 import { matchFaqReply, matchExactButtonReply, nonTextReply, fallbackReply } from "@/lib/line-faq";
 import { sendLineStaffAlert } from "@/lib/email";
-import { recordInboundWithBotReply, ensureLineConversation } from "@/lib/line-store";
+import {
+  recordInboundWithBotReply,
+  ensureLineConversation,
+  enrichConversation,
+} from "@/lib/line-store";
 import { createClient } from "@supabase/supabase-js";
 
 // 顧客マスタ参照用クライアント。既存admin APIと同様 service_role 優先・無い環境は anon へフォールバック。
@@ -120,6 +124,13 @@ async function handleEvent(event: LineEvent) {
 
     default:
       break;
+  }
+
+  // 会話に「誰なのか」を埋める（表示名＋顧客レコードへの紐付け）。
+  // 返信は既に送信済みのため、ここで時間がかかっても・失敗してもお客様の体験は変わらない。
+  // 顧客紐付けは未解決の間だけ試すので、あとからLINE登録された時点で自動的に埋まる。
+  if (userId && (event.type === "follow" || event.type === "message")) {
+    await enrichConversation(userId);
   }
 }
 

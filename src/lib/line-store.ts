@@ -7,7 +7,7 @@
 // 重要: すべての export 関数は内部で try/catch し、失敗しても例外を投げない。
 // DB 障害で Webhook の 200 応答・LINE への返信を壊さないため（呼び出し側の握りつぶしと二重防御）。
 import { createClient } from "@supabase/supabase-js";
-import type { LineMessage } from "./line";
+import { fetchLineProfile, type LineMessage } from "./line";
 
 // 本番は service_role（RLS バイパス＋RPC 実行権限あり）。RPC は service_role 限定に
 // revoke 済みのため anon では 403。ローカルは anon フォールバックだが Webhook は
@@ -60,7 +60,7 @@ async function recordLineMessage(p: RecordParams): Promise<void> {
   }
 }
 
-// 友だち追加: 会話だけ作成（メッセージ行は作らない）。display_name は 2B で取得・保存予定。
+// 友だち追加: 会話だけ作成（メッセージ行は作らない）。
 export async function ensureLineConversation(
   lineUserId: string | undefined,
   displayName?: string | null
@@ -74,6 +74,54 @@ export async function ensureLineConversation(
     if (error) console.error("ensureLineConversation rpc error:", error);
   } catch (e) {
     console.error("ensureLineConversation failed:", e);
+  }
+}
+
+// 会話に「誰なのか」を埋める（表示名＋顧客レコードへの紐付け）。
+//
+// これが無かったため、会話41件すべてで display_name / customer_id が NULL のままだった
+// （＝受信トレイを見ても誰からのメッセージか分からない）。
+// 表示名は LINE から取得、customer_id は customers.line_id との照合で解決する。
+// customers.line_id は「LIFF経由の予約」と「あいさつメッセージからの登録」で入る。
+//
+// 呼び出し側を待たせないよう await せず投げっぱなしで使う想定（失敗しても本処理を妨げない）。
+export async function enrichConversation(lineUserId: string | undefined): Promise<void> {
+  if (!lineUserId) return;
+  try {
+    const { data: conv } = await supabase
+      .from("line_conversations")
+      .select("id, display_name, customer_id")
+      .eq("line_user_id", lineUserId)
+      .maybeSingle();
+    if (!conv) return;
+
+    const patch: { display_name?: string; customer_id?: string } = {};
+
+    // 表示名は未取得のときだけ取りに行く（毎メッセージで叩かない）
+    if (!conv.display_name) {
+      const profile = await fetchLineProfile(lineUserId);
+      if (profile?.displayName) patch.display_name = profile.displayName;
+    }
+
+    // 顧客との紐付けは、未解決の間は毎回試す（あとから登録された時点で自動的に埋まる）
+    if (!conv.customer_id) {
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("line_id", lineUserId)
+        .maybeSingle();
+      if (customer) patch.customer_id = customer.id;
+    }
+
+    if (Object.keys(patch).length === 0) return;
+
+    const { error } = await supabase
+      .from("line_conversations")
+      .update(patch)
+      .eq("id", conv.id);
+    if (error) console.error("enrichConversation update error:", error);
+  } catch (e) {
+    console.error("enrichConversation failed:", e);
   }
 }
 

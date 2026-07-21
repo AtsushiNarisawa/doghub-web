@@ -78,6 +78,39 @@ async function postToLine(url: string, payload: object): Promise<boolean> {
 }
 
 // ───────────────────────────────────────────
+// 友だちのプロフィール取得（表示名）
+// 受信トレイで「誰からのメッセージか」を表示するために使う。
+// 取得できないケース（ブロック済み・プロフィール取得に同意していない等）は null を返す。
+// ───────────────────────────────────────────
+export async function fetchLineProfile(
+  lineUserId: string
+): Promise<{ displayName: string | null } | null> {
+  let token = await getAccessToken();
+  if (!token) return null;
+
+  const get = (t: string) =>
+    fetch(`https://api.line.me/v2/bot/profile/${encodeURIComponent(lineUserId)}`, {
+      headers: { Authorization: `Bearer ${t}` },
+    });
+
+  try {
+    let res = await get(token);
+    if (res.status === 401) {
+      cachedToken = null;
+      token = await getAccessToken();
+      if (!token) return null;
+      res = await get(token);
+    }
+    if (!res.ok) return null;
+    const data = (await res.json()) as { displayName?: string };
+    return { displayName: data.displayName ?? null };
+  } catch (e) {
+    console.error("fetchLineProfile failed:", e);
+    return null;
+  }
+}
+
+// ───────────────────────────────────────────
 // 署名検証（Webhookの正当性確認）
 // ───────────────────────────────────────────
 export function verifyLineSignature(body: string, signature: string): boolean {
