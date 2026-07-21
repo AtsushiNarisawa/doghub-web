@@ -1096,3 +1096,62 @@ export async function sendWinbackEmail(
     },
   });
 }
+
+// ──────────────────────────────────────────
+// LINE連携の完了通知（お客様向け）
+// 身に覚えのない連携（＝他人が電話番号を騙って紐付けた場合）に本人が気づけるようにするための
+// セキュリティ通知。紐付け成立時に必ず送る。送信失敗は紐付け処理自体を妨げない設計。
+// ──────────────────────────────────────────
+export async function sendLineLinkNoticeEmail(params: {
+  to: string;
+  customerName: string;
+}): Promise<void> {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    throw new Error("Gmailの設定がされていません");
+  }
+
+  const subject = "LINEアカウントを連携しました｜DogHub箱根仙石原";
+  const text = `${params.customerName} 様
+
+いつもDogHub箱根仙石原をご利用いただき、ありがとうございます。
+
+お客様のLINEアカウントと、当店のお客様情報の連携が完了しました。
+今後、ご予約の確認やお知らせをLINEでもお送りできるようになります。
+
+※お心当たりのない場合は、お手数ですがこのメールへのご返信、
+　またはお電話（0460-80-0290）にてお知らせください。すぐに解除いたします。
+
+────────────────
+DogHub箱根仙石原
+神奈川県足柄下郡箱根町仙石原1246-4
+TEL: 0460-80-0290
+${SITE_URL}
+────────────────`;
+
+  const html = `<!DOCTYPE html><html lang="ja"><body style="margin:0;padding:0;background:#f7f5f0;">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px;font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;color:#3c200f;line-height:1.8;">
+  <p style="font-size:16px;margin:0 0 20px;">${escapeHtml(params.customerName)} 様</p>
+  <p style="margin:0 0 16px;">いつもDogHub箱根仙石原をご利用いただき、ありがとうございます。</p>
+  <p style="margin:0 0 16px;">お客様のLINEアカウントと、当店のお客様情報の連携が完了しました。<br>
+  今後、ご予約の確認やお知らせをLINEでもお送りできるようになります。</p>
+  <div style="background:#f4ead3;border-radius:8px;padding:14px 16px;margin:24px 0;font-size:14px;">
+    お心当たりのない場合は、お手数ですがこのメールへのご返信、またはお電話（0460-80-0290）にてお知らせください。すぐに解除いたします。
+  </div>
+  <hr style="border:none;border-top:1px solid #e5ddd8;margin:24px 0;">
+  <p style="font-size:12px;color:#97826f;margin:0;">
+    DogHub箱根仙石原<br>
+    神奈川県足柄下郡箱根町仙石原1246-4<br>
+    TEL: 0460-80-0290<br>
+    <a href="${SITE_URL}" style="color:#8a5426;">${SITE_URL}</a>
+  </p>
+</div></body></html>`;
+
+  await transporter.sendMail({
+    from: `"DogHub箱根仙石原" <${process.env.GMAIL_USER}>`,
+    replyTo: "info@dog-hub.shop",
+    to: params.to,
+    subject,
+    html,
+    text,
+  });
+}

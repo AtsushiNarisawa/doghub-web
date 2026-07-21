@@ -172,6 +172,12 @@ export function buildBookingConfirmMessage(params: {
 // ───────────────────────────────────────────
 // 友だち追加時のウェルカムメッセージ
 // ───────────────────────────────────────────
+// 「お客様情報のご登録」の入口。LIFF のエンドポイントURLが /booking のため、
+// 専用 LIFF を増やさず ?mode=link で出し分けている（BookingPage 側で分岐）。
+const LINE_LINK_LIFF_URL = `https://liff.line.me/${
+  process.env.NEXT_PUBLIC_LIFF_ID || "2009688745-qZi2jM4g"
+}?mode=link`;
+
 export function buildWelcomeMessage(): LineMessage[] {
   return [
     {
@@ -181,6 +187,27 @@ export function buildWelcomeMessage(): LineMessage[] {
         "画面下の【メニュー】から、料金・アクセス・営業時間・持ち物などをワンタップで24時間いつでもご確認いただけます。\n" +
         "ご予約は【予約する】から24時間受付中です。\n\n" +
         "ご不明な点は、このトークにそのままメッセージを送ってください。個別のお返事はスタッフから順次お送りします。",
+    },
+    // 既にご利用のあるお客様を、この場で顧客情報と結びつけるための導線。
+    // 友だち追加直後は最も見ていただけるタイミングのため、ここに置くのが最も効率が良い
+    // （設計＝marketing/reports/line_linking_implementation_plan_2026-07-21.md）。
+    // reply で送るため通数は無料。
+    {
+      type: "template",
+      altText: "これまでにご利用いただいたことがある方は、お客様情報のご登録をお願いします",
+      template: {
+        type: "buttons",
+        title: "ご利用いただいたことのある方へ",
+        text:
+          "お客様情報をご登録いただくと、ご予約の確認やお知らせをLINEでもお受け取りいただけます。",
+        actions: [
+          {
+            type: "uri",
+            label: "お客様情報の登録",
+            uri: LINE_LINK_LIFF_URL,
+          },
+        ],
+      },
     },
   ];
 }

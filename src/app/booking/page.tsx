@@ -11,6 +11,7 @@ import { Step2Dogs } from "@/components/booking/step2-dogs";
 import { Step3Customer } from "@/components/booking/step3-customer";
 import { Step4Confirm } from "@/components/booking/step4-confirm";
 import { LineAddFriendBanner } from "@/components/line-cta";
+import { LineLinkForm } from "@/components/line-link-form";
 import { calculateBookingTotal } from "@/lib/pricing";
 import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
 
@@ -27,10 +28,24 @@ export default function BookingPage() {
   const [result, setResult] = useState<"success" | "success_no_email" | "error" | null>(null);
   const [isLiff, setIsLiff] = useState(false);
   const [editingFromConfirm, setEditingFromConfirm] = useState(false);
+  // ?mode=link のときは予約フォームではなく「お客様情報のご登録」を出す。
+  // LIFF のエンドポイントURLが /booking のため、専用LIFFを増やさずここで出し分けている
+  // （将来 LIFF を分けるのが本来の形。marketing/reports/line_linking_implementation_plan_2026-07-21.md §3）
+  const [linkMode, setLinkMode] = useState(false);
 
   // LIFF初期化 + LINE ID取得
   useEffect(() => {
-    pushEvent("begin_booking");
+    let isLinkMode = false;
+    if (typeof window !== "undefined") {
+      const mode = new URLSearchParams(window.location.search).get("mode");
+      if (mode === "link") {
+        isLinkMode = true;
+        setLinkMode(true);
+      }
+    }
+
+    // 紐付け画面は「予約の開始」ではないので begin_booking を発火させない（CV計測を汚さない）
+    if (!isLinkMode) pushEvent("begin_booking");
 
     if (!LIFF_ID) return;
 
@@ -110,6 +125,15 @@ export default function BookingPage() {
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // 「お客様情報のご登録」画面（LINEのあいさつメッセージ／メニューから ?mode=link で来る）
+  if (linkMode) {
+    return (
+      <div className="min-h-dvh bg-[#F8F5F0]">
+        <LineLinkForm lineId={form.line_id ?? ""} isLiff={isLiff} />
+      </div>
+    );
+  }
 
   // 送信完了画面
   if (result === "success" || result === "success_no_email") {
