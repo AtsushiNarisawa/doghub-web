@@ -367,15 +367,16 @@ export default function CustomerDetailPage() {
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
-            checked={!!customer.review_request_opt_out}
+            checked={!customer.review_request_opt_out}
             disabled={savingOptOut}
-            onChange={(e) => toggleReviewOptOut(e.target.checked)}
+            onChange={(e) => toggleReviewOptOut(!e.target.checked)}
             className="mt-0.5 w-5 h-5 shrink-0 accent-[#B87942] disabled:opacity-50"
           />
           <span className="text-sm text-gray-700">
-            口コミ依頼を送らない
+            口コミ依頼を送る
             <span className="block text-xs text-gray-500 mt-1 leading-relaxed">
-              オンにすると、お礼メール・LINEから「Googleで口コミを書く」のご案内だけを外します。
+              通常は全員オンです。<strong className="font-medium">チェックを外すと</strong>、このお客様には
+              お礼メール・LINEの「Googleで口コミを書く」のご案内だけを送りません。
               お礼メッセージ本体・リマインド・予約確認メールはこれまで通りお送りします。
             </span>
           </span>
