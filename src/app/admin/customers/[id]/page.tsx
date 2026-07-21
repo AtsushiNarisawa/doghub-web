@@ -17,6 +17,7 @@ interface Customer {
   email: string;
   email_bounced: boolean;
   email_opt_out: boolean;
+  review_request_opt_out: boolean;
   postal_code: string | null;
   address: string | null;
   source: string;
@@ -91,6 +92,8 @@ export default function CustomerDetailPage() {
   const [saving, setSaving] = useState(false);
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [savingOptOut, setSavingOptOut] = useState(false);
+  const [optOutSaved, setOptOutSaved] = useState(false);
   const [editingDogId, setEditingDogId] = useState<string | null>(null);
   const [editDog, setEditDog] = useState<Partial<Dog>>({});
   const [savingDog, setSavingDog] = useState(false);
@@ -136,6 +139,25 @@ export default function CustomerDetailPage() {
     setSavingNotes(true);
     await supabase.from("customers").update({ notes }).eq("id", id);
     setSavingNotes(false);
+  };
+
+  // 口コミ依頼のオン/オフ（お礼メール・LINEの口コミ案内だけに効く）
+  const toggleReviewOptOut = async (next: boolean) => {
+    setSavingOptOut(true);
+    setOptOutSaved(false);
+    const { error } = await supabase
+      .from("customers")
+      .update({ review_request_opt_out: next })
+      .eq("id", id);
+    setSavingOptOut(false);
+    if (error) {
+      alert(`保存に失敗しました: ${error.message}`);
+      return;
+    }
+    setCustomer((prev) => (prev ? { ...prev, review_request_opt_out: next } : prev));
+    setEditData((prev) => ({ ...prev, review_request_opt_out: next }));
+    setOptOutSaved(true);
+    setTimeout(() => setOptOutSaved(false), 3000);
   };
 
   const startEditDog = (dog: Dog) => {
@@ -337,6 +359,29 @@ export default function CustomerDetailPage() {
             )}
           </div>
         )}
+      </div>
+
+      {/* お礼メッセージの設定 */}
+      <div className="bg-white rounded-xl p-4">
+        <p className="text-sm font-medium text-gray-500 mb-2">お礼メッセージの設定</p>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!customer.review_request_opt_out}
+            disabled={savingOptOut}
+            onChange={(e) => toggleReviewOptOut(e.target.checked)}
+            className="mt-0.5 w-5 h-5 shrink-0 accent-[#B87942] disabled:opacity-50"
+          />
+          <span className="text-sm text-gray-700">
+            口コミ依頼を送らない
+            <span className="block text-xs text-gray-500 mt-1 leading-relaxed">
+              オンにすると、お礼メール・LINEから「Googleで口コミを書く」のご案内だけを外します。
+              お礼メッセージ本体・リマインド・予約確認メールはこれまで通りお送りします。
+            </span>
+          </span>
+        </label>
+        {savingOptOut && <p className="mt-2 text-xs text-gray-500">保存中...</p>}
+        {optOutSaved && <p className="mt-2 text-xs text-green-600">保存しました</p>}
       </div>
 
       {/* 犬の重複候補 警告 */}

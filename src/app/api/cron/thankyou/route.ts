@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendThankYouEmail } from "@/lib/email";
 import { sendLinePushMessage, buildThankYouLineMessage } from "@/lib/line";
+import { isReviewRequestOptedOut } from "@/lib/review-opt-out";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -102,7 +103,10 @@ export async function GET(req: NextRequest) {
       .eq("customer_id", r.customer_id)
       .in("status", ["confirmed", "completed"]);
 
-    const isFirstVisit = (count ?? 0) <= 1;
+    // 口コミ依頼を出すかの最終判定（メール・LINE 共通の唯一の判定箇所）。
+    // 初回利用であっても review_request_opt_out のお客様には口コミ依頼を付けない。
+    const optedOut = await isReviewRequestOptedOut(supabase, r.customer_id);
+    const isFirstVisit = (count ?? 0) <= 1 && !optedOut;
 
     // LINE友だち登録済みのお客様はLINEを優先（開封率が高く、二重連絡を避けるためメールは送らない）
     const useLine = !!customer.line_id;
