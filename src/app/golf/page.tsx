@@ -5,6 +5,7 @@ import { Reservation } from "@/components/reservation";
 import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
+import { GolfEventNotice } from "@/components/golf-event-notice";
 import Image from "next/image";
 
 export const metadata: Metadata = {
@@ -111,6 +112,9 @@ export default function GolfPage() {
             <span>ゴルフ × ペットホテル</span>
           </p>
         </div>
+
+        {/* 女子プロゴルフ大会（大箱根CC・2026-08-21〜23）会期告知。会期後に自動で非表示 */}
+        <GolfEventNotice />
 
         {/* Main content */}
         <section className="py-16 px-6 bg-white">
