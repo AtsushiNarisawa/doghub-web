@@ -11,12 +11,12 @@ import { InstagramFollowLight } from "@/components/instagram-follow";
 export const metadata: Metadata = {
   openGraph: {
     title: "箱根 犬連れランチ＆ドッグカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
-    description: "箱根で犬連れランチならDogHubのドッグカフェへ。5つ星お米マイスター厳選のおむすびとスープを愛犬と一緒に。イートイン・テイクアウトOK、ドッグラン併設。営業11時〜17時、予約不要。",
+    description: "箱根で犬連れランチならDogHubのドッグカフェへ。5つ星お米マイスター厳選のおむすびとスープを愛犬と一緒に。イートイン・テイクアウトOK、ドッグラン併設。おむすび＆スープは土日祝11〜17時、平日はお飲み物のみ。予約不要。",
     url: "https://dog-hub.shop/cafe",
     type: "website",
   },
   title: "箱根 犬連れランチ＆ドッグカフェ OMUSUBI & SOUP CAFE｜DogHub箱根仙石原",
-  description: "箱根で犬連れランチならDogHubのドッグカフェへ。5つ星お米マイスター厳選のおむすびとスープを愛犬と一緒に。イートイン・テイクアウトOK、ドッグラン併設。営業11時〜17時、予約不要。",
+  description: "箱根で犬連れランチならDogHubのドッグカフェへ。5つ星お米マイスター厳選のおむすびとスープを愛犬と一緒に。イートイン・テイクアウトOK、ドッグラン併設。おむすび＆スープは土日祝11〜17時、平日はお飲み物のみ。予約不要。",
   alternates: { canonical: "/cafe" },
 };
 
@@ -93,7 +93,8 @@ export default function CafePage() {
                   店内ではリードの着用をお願いしておりますが、併設のドッグランでは飼い主様同伴であればリード不要でのびのびとお過ごしいただけます。
                 </p>
                 <div className="bg-[#F7F7F7] p-6 mb-6">
-                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>カフェ営業時間：午前11時〜午後5時</p>
+                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>おむすび＆スープ：土日祝 午前11時〜午後5時</p>
+                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>お飲み物のみ：平日 午前9時〜午後5時</p>
                   <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>定休日：水曜・木曜</p>
                   <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
                     テイクアウトメインのお店ですが、<br />
@@ -239,7 +240,7 @@ export default function CafePage() {
                 "@context": "https://schema.org",
                 "@type": "FAQPage",
                 mainEntity: [
-                  { "@type": "Question", name: "箱根で犬と一緒に室内で食事できるお店はありますか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原のOMUSUBI & SOUP CAFEでは、室内のイートインスペースで犬と一緒にお食事いただけます。リード着用でご利用ください。予約不要、犬の頭数制限なし。営業時間11:00〜17:00。" }},
+                  { "@type": "Question", name: "箱根で犬と一緒に室内で食事できるお店はありますか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原のOMUSUBI & SOUP CAFEでは、室内のイートインスペースで犬と一緒にお食事いただけます。リード着用でご利用ください。予約不要、犬の頭数制限なし。おむすび＆スープのご提供は土日祝の11:00〜17:00です（それ以外の営業日はお飲み物のみ・9:00〜17:00）。" }},
                   { "@type": "Question", name: "テイクアウトはできますか？", acceptedAnswer: { "@type": "Answer", text: "はい、テイクアウトもOKです。天気の良い日は併設ドッグランの横のベンチで食べるのもおすすめです。" }},
                   { "@type": "Question", name: "カフェだけの利用でもドッグランを使えますか？", acceptedAnswer: { "@type": "Answer", text: "はい、カフェをご利用いただければ、併設の専用ドッグランもご利用いただけます。飼い主様同伴でリードなしOKです。" }},
                   { "@type": "Question", name: "メニューの内容は？", acceptedAnswer: { "@type": "Answer", text: "おむすび（しらすヤンギン¥300、たらこヤンギン¥330、しゃけ¥330など）、スープ（牛カルビスープ¥500、鶏スープ¥400）、日替わりおかず、ドリンク各種。おむすび2個+スープ+おかずのセットが人気です。" }},
@@ -248,7 +249,7 @@ export default function CafePage() {
             />
             <div className="space-y-4">
               {[
-                { q: "箱根で犬と一緒に室内で食事できるお店はありますか？", a: "DogHub箱根仙石原のOMUSUBI & SOUP CAFEでは、室内のイートインスペースで犬と一緒にお食事いただけます。リード着用でご利用ください。予約不要、犬の頭数制限なし。営業時間11:00〜17:00。" },
+                { q: "箱根で犬と一緒に室内で食事できるお店はありますか？", a: "DogHub箱根仙石原のOMUSUBI & SOUP CAFEでは、室内のイートインスペースで犬と一緒にお食事いただけます。リード着用でご利用ください。予約不要、犬の頭数制限なし。おむすび＆スープのご提供は土日祝の11:00〜17:00です（それ以外の営業日はお飲み物のみ・9:00〜17:00）。" },
                 { q: "テイクアウトはできますか？", a: "はい、テイクアウトもOKです。天気の良い日は併設ドッグランの横のベンチで食べるのもおすすめです。" },
                 { q: "カフェだけの利用でもドッグランを使えますか？", a: "はい、カフェをご利用いただければ、併設の専用ドッグランもご利用いただけます。飼い主様同伴でリードなしOKです。" },
                 { q: "メニューの内容は？", a: "おむすび（しらすヤンギン¥300、たらこヤンギン¥330、しゃけ¥330など）、スープ（牛カルビスープ¥500、鶏スープ¥400）、日替わりおかず、ドリンク各種。おむすび2個+スープ+おかずのセットが人気です。" },

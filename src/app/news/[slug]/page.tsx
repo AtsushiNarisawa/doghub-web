@@ -70,7 +70,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "spring-walk-guide": {
     text: "お散歩のついでに立ち寄れます",
-    subtext: "仙石原すすき草原から徒歩圏内。愛犬同伴OKのカフェでおむすび＆スープはいかがですか？",
+    subtext: "仙石原すすき草原から徒歩圏内。愛犬同伴OKのカフェでおむすび＆スープはいかがですか？（土日祝のご提供）",
     href: "/cafe",
     btnLabel: "カフェメニュー・アクセスを見る",
   },
@@ -82,13 +82,13 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-dog-lunch-guide": {
     text: "箱根で犬連れランチならDogHubのカフェへ",
-    subtext: "室内で犬と一緒に食事OK。予約不要・頭数制限なし。ドッグラン併設で食後も遊べます。",
+    subtext: "室内で犬と一緒に食事OK（おむすび＆スープは土日祝）。予約不要・頭数制限なし。ドッグラン併設で食後も遊べます。",
     href: "/cafe",
     btnLabel: "カフェメニューを見る",
   },
   "hakone-dog-rainy-day": {
     text: "雨の日でも安心。屋根付きドッグラン併設",
-    subtext: "天候を気にせず愛犬を遊ばせられます。カフェで室内ランチもOK。",
+    subtext: "天候を気にせず愛犬を遊ばせられます。カフェで室内ランチもOK（土日祝）。",
     href: "/dogrun",
     btnLabel: "ドッグラン詳細を見る",
   },
@@ -273,16 +273,16 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "桃源台から車10分。半日¥3,300〜" },
     { label: "芦ノ湖エリアの温泉", href: "/onsen", description: "龍宮殿本館まで車約20分" },
     { label: "海賊船＋遊覧の間に預ける", href: "/4h", description: "半日プランで芦ノ湖をたっぷり満喫" },
-    { label: "カフェでランチ", href: "/cafe", description: "お迎え前後におむすび＆スープ" },
+    { label: "カフェでランチ", href: "/cafe", description: "お迎え前後におむすび＆スープ（土日祝）" },
   ],
   "hakone-owakudani-dog-guide": [
     { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
     { label: "観光の後に温泉へ", href: "/onsen", description: "仙石原・小涌谷の温泉施設" },
     { label: "ロープウェイ＋芦ノ湖も行くなら", href: "/service", description: "1日プラン¥5,500〜で大涌谷→芦ノ湖コース" },
-    { label: "カフェで一休み", href: "/cafe", description: "お迎え前に仙石原でおむすびランチ" },
+    { label: "カフェで一休み", href: "/cafe", description: "お迎え前に仙石原でおむすびランチ（土日祝）" },
   ],
   "hakone-dog-lunch-guide": [
-    { label: "カフェのメニューを見る", href: "/cafe", description: "室内犬連れOK。おむすび＆スープ" },
+    { label: "カフェのメニューを見る", href: "/cafe", description: "室内犬連れOK。おむすび＆スープ（土日祝）" },
     { label: "ランチ後に観光するなら", href: "/service", description: "食後にお預けして温泉・美術館へ" },
     { label: "ランチのあと観光するなら", href: "/4h", description: "その間だけお預かり。半日¥3,300〜" },
   ],
@@ -291,7 +291,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "hakone-dog-spot-sengokuhara": [
     { label: "美術館×お預かり", href: "/museum", description: "ポーラ美術館まで車4分" },
-    { label: "カフェでランチ", href: "/cafe", description: "室内犬連れOK" },
+    { label: "カフェでランチ", href: "/cafe", description: "室内犬連れOK（ランチは土日祝）" },
   ],
   "hakone-dog-hotel-guide": [
     { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700〜" },
@@ -308,19 +308,19 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "美術館×お預かりプラン", href: "/museum", description: "半日で彫刻の森＋ランチ" },
     { label: "美術館の後に温泉へ", href: "/onsen", description: "小涌谷の森の湯にもアクセス良好" },
     { label: "ポーラ美術館も行くなら", href: "/4h", description: "1日プラン¥5,500〜で2館回れる" },
-    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "hakone-pola-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "ポーラ美術館まで車4分" },
     { label: "美術館の後に温泉へ", href: "/onsen", description: "仙石原周辺の温泉施設" },
     { label: "彫刻の森もセットで", href: "/8h", description: "1日プラン¥5,500〜" },
-    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "hakone-glass-forest-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "ガラスの森美術館まで車3分" },
     { label: "温泉もセットで", href: "/onsen", description: "仙石原の日帰り温泉も近隣に" },
     { label: "ポーラ美術館もセットで", href: "/8h", description: "1日プラン¥5,500〜で2館ハシゴ" },
-    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "hakone-jinja-dog-guide": [
     { label: "美術館にも行くなら", href: "/museum", description: "犬NG。参拝後にDogHubに預けて美術館へ" },
@@ -335,12 +335,12 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-en-dog-guide": [
     { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "半日¥3,300〜" },
     { label: "箱根神社もセットで", href: "/service", description: "芦ノ湖エリアを満喫" },
-    { label: "カフェで休憩", href: "/cafe", description: "仙石原でおむすび＆スープ" },
+    { label: "カフェで休憩", href: "/cafe", description: "仙石原でおむすび＆スープ（土日祝）" },
   ],
   "hakone-gora-park-dog-guide": [
     { label: "クラフト体験中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
     { label: "温泉も行くなら", href: "/onsen", description: "強羅エリアの温泉" },
-    { label: "カフェでランチ", href: "/cafe", description: "DogHubのおむすび＆スープ" },
+    { label: "カフェでランチ", href: "/cafe", description: "DogHubのおむすび＆スープ（土日祝）" },
   ],
   "hakone-gw-spring-dog-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで温泉プール満喫" },
@@ -351,17 +351,17 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "日帰り温泉プラン", href: "/onsen", description: "半日お預かりで温泉＋ランチ" },
     { label: "半日お預かり", href: "/4h", description: "¥3,300〜 美術館1館＋温泉に" },
     { label: "1日お預かり", href: "/8h", description: "¥5,500〜 芦ノ湖方面まで" },
-    { label: "カフェで休憩", href: "/cafe", description: "おむすび＆スープ" },
+    { label: "カフェで休憩", href: "/cafe", description: "おむすび＆スープ（土日祝）" },
   ],
   "hakone-dog-day-hot-spring-guide": [
     { label: "温泉×お預かりプラン", href: "/onsen", description: "仙石原・強羅・湯本の温泉施設へ" },
     { label: "半日お預かり", href: "/4h", description: "¥3,300〜 温泉＋ランチにちょうどいい" },
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで温泉プール満喫" },
-    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+    { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "spring-walk-guide": [
     { label: "カフェで休憩", href: "/cafe", description: "お散歩後におむすび＆スープ" },
-    { label: "お散歩後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み" },
+    { label: "お散歩後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
     { label: "ドッグランで遊ぶ", href: "/dogrun", description: "お散歩のあとに自由に走り回れる" },
   ],
   "pet-hotel-first-time-tips": [

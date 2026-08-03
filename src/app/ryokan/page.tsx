@@ -123,7 +123,7 @@ export default function RyokanPage() {
                   <p className="text-[#3C200F] mb-3" style={{ fontSize: "16px", fontWeight: 400 }}>1日目</p>
                   <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                     <p>11:00 箱根到着・愛犬と仙石原を散策</p>
-                    <p>12:00 DogHubカフェでランチ</p>
+                    <p>12:00 DogHubカフェでランチ（土日祝）</p>
                     <p>14:00 DogHubにチェックイン</p>
                     <p>15:00 箱根吟遊にチェックイン</p>
                     <p>夕食・露天風呂を堪能</p>
