@@ -34,9 +34,9 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "箱根の犬のホテル・ペットホテル｜DogHub箱根仙石原（宿泊¥7,700〜）",
+  title: "箱根の犬のホテル・ペットホテル｜完全個室・24時間常駐｜DogHub",
   description:
-    "箱根の犬のホテル・ペットホテルをお探しの方へ。DogHub箱根仙石原は犬の宿泊¥7,700〜、日中の一時預かり半日¥3,300〜に対応。24時間スタッフ常駐・完全個室・ドッグラン併設。ゴルフ・温泉・美術館の間のお預かりもお任せください。",
+    "箱根仙石原で犬をお預かりするペットホテル。宿泊1泊¥7,700〜、日中の一時預かりは半日¥3,300〜・1日¥5,500〜。ケージではなく完全個室、24時間スタッフ常駐、専用ドッグラン併設。ペット不可の宿や温泉・美術館・ゴルフの間も安心してお任せいただけます。",
   metadataBase: new URL("https://dog-hub.shop"),
   icons: {
     icon: [
@@ -46,8 +46,8 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "箱根の犬のホテル・ペットホテル｜DogHub箱根仙石原（宿泊¥7,700〜）",
-    description: "箱根の犬のホテル・ペットホテルをお探しの方へ。DogHub箱根仙石原は犬の宿泊¥7,700〜、日中の一時預かり半日¥3,300〜に対応。24時間スタッフ常駐・完全個室・ドッグラン併設。",
+    title: "箱根の犬のホテル・ペットホテル｜完全個室・24時間常駐｜DogHub",
+    description: "箱根仙石原で犬をお預かりするペットホテル。宿泊1泊¥7,700〜、日中の一時預かりは半日¥3,300〜・1日¥5,500〜。ケージではなく完全個室、24時間スタッフ常駐、専用ドッグラン併設。",
     url: "https://dog-hub.shop",
     siteName: "DogHub箱根仙石原",
     locale: "ja_JP",
