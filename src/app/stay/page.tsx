@@ -8,15 +8,21 @@ import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 import { InstagramFollowLight } from "@/components/instagram-follow";
 
+// meta は文字数でなく「日本語SERPの表示幅」で設計する（title 約30全角 / desc 約58全角）。
+// 旧版は title 37.5全角・desc 109.5全角で、最も刺さる「ペット不可の宿に泊まる日」も
+// チェックイン時刻も表示域の外にあり、一度も表示されていなかった。
+// またトップ / と「｜完全個室・24時間常駐｜」が完全一致していたためカニバリの原因になっていた
+// （同じクエリで両ページが出て /stay が常に下位に沈む）→ title からは重複語を排除し、
+// /stay 固有の情報（宿泊・価格・連泊・お迎え時刻）だけを載せる。作法＝.claude/skills/doghub-seo/SKILL.md
 export const metadata: Metadata = {
   openGraph: {
-    title: "箱根 犬の宿泊・お預かり 1泊¥7,700〜｜完全個室・24時間常駐｜DogHub箱根仙石原",
-    description: "箱根で犬を預けて宿泊するなら、DogHub箱根仙石原の宿泊プラン。1泊¥7,700〜、24時間スタッフ常駐・完全個室・専用ドッグラン併設。ペット不可の宿に泊まる時、愛犬を安心してお預けいただけます。チェックイン14時〜、お迎え〜翌11時。",
+    title: "箱根 犬の宿泊お預かり ¥7,700〜｜連泊OK・翌11時お迎え",
+    description: "ペット不可の宿に泊まる日、愛犬は1泊¥7,700〜。14時IN・翌11時まで、連泊も可。箱根仙石原で24時間スタッフが見守ります。",
     url: "https://dog-hub.shop/stay",
     type: "website",
   },
-  title: "箱根 犬の宿泊・お預かり 1泊¥7,700〜｜完全個室・24時間常駐｜DogHub箱根仙石原",
-  description: "箱根で犬を預けて宿泊するなら、DogHub箱根仙石原の宿泊プラン。1泊¥7,700〜、24時間スタッフ常駐・完全個室・専用ドッグラン併設。ペット不可の宿に泊まる時、愛犬を安心してお預けいただけます。チェックイン14時〜、お迎え〜翌11時。",
+  title: "箱根 犬の宿泊お預かり ¥7,700〜｜連泊OK・翌11時お迎え",
+  description: "ペット不可の宿に泊まる日、愛犬は1泊¥7,700〜。14時IN・翌11時まで、連泊も可。箱根仙石原で24時間スタッフが見守ります。",
   alternates: { canonical: "/stay" },
 };
 
