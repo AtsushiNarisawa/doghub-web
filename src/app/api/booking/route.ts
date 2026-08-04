@@ -80,13 +80,23 @@ export async function POST(req: NextRequest) {
     const isRegularClosed = closedWeekdays.includes(checkinDay);
     const { data: ciCap } = await supabase
       .from("daily_capacity")
-      .select("closed")
+      .select("closed, web_closed")
       .eq("date", body.date)
       .maybeSingle();
 
     const isClosed = ciCap ? ciCap.closed : isRegularClosed;
     if (isClosed) {
       return NextResponse.json({ error: isRegularClosed ? "チェックイン日が定休日です" : `${body.date}は臨時休業です` }, { status: 400 });
+    }
+
+    // Web受付停止（web_closed）: お客様のWeb/LINE予約だけ止め、電話のお問い合わせで受ける運用フラグ。
+    // closed（臨時休業）と違い店は開いているので、スタッフ入力(source=phone)はここを通す。
+    // フェイルセーフ: 値が取れない/列が無い場合は止めない（誤ブロックで予約を失う損失の方が大きい）。
+    if (!isStaffBooking && ciCap?.web_closed === true) {
+      return NextResponse.json(
+        { error: `${body.date}は満席です。お手数ですがお電話（0460-80-0290）でお問い合わせください` },
+        { status: 400 },
+      );
     }
 
     // サーバー側：宿泊期間中の休業日チェック（CI日〜CO前日。CO日は除外）
@@ -104,7 +114,7 @@ export async function POST(req: NextRequest) {
       if (datesToCheck.length > 0) {
         const { data: capData } = await supabase
           .from("daily_capacity")
-          .select("date, closed")
+          .select("date, closed, web_closed")
           .in("date", datesToCheck);
 
         const closedDates = datesToCheck.filter((date) => {
@@ -117,6 +127,20 @@ export async function POST(req: NextRequest) {
 
         if (closedDates.length > 0) {
           return NextResponse.json({ error: "お預かり期間中に休業日が含まれています" }, { status: 400 });
+        }
+
+        // 滞在期間に1日でもWeb受付停止日が含まれるなら、その滞在はWebで取らない
+        // （その日の頭数が増えるため。スタッフ入力は上と同じくここも通す）
+        if (!isStaffBooking) {
+          const webClosedDates = datesToCheck.filter(
+            (date) => capData?.find((r) => r.date === date)?.web_closed === true,
+          );
+          if (webClosedDates.length > 0) {
+            return NextResponse.json(
+              { error: `お預かり期間中の${webClosedDates.join("・")}が満席です。お手数ですがお電話（0460-80-0290）でお問い合わせください` },
+              { status: 400 },
+            );
+          }
         }
       }
     }

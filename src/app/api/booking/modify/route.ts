@@ -127,12 +127,19 @@ export async function POST(req: Request) {
       for (const date of addedDates) {
         const { data: cap } = await supabase
           .from("daily_capacity")
-          .select("day_booked, stay_booked, closed")
+          .select("day_booked, stay_booked, closed, web_closed")
           .eq("date", date)
           .maybeSingle();
         if (cap) {
           if (cap.closed) {
             return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
+          }
+          // Web受付停止日への延長はお客様側からは受けない（電話で相談いただく）
+          if (cap.web_closed === true) {
+            return NextResponse.json(
+              { error: `${date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
+              { status: 400 },
+            );
           }
           if (exceedsRoomLimit(cap, dogCount, WEB_ROOM_LIMIT)) {
             return NextResponse.json(

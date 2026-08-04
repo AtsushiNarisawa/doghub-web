@@ -135,6 +135,8 @@ export type Database = {
           stay_booked: number;
           day_booked: number;
           closed: boolean;
+          /** true=Web予約のみ停止（お客様は×満席＋お問い合わせ導線／スタッフの管理画面入力は可）。店を閉めるのは closed */
+          web_closed: boolean;
           note: string | null;
           updated_at: string;
         };
@@ -145,6 +147,7 @@ export type Database = {
           stay_booked?: number;
           day_booked?: number;
           closed?: boolean;
+          web_closed?: boolean;
           note?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["daily_capacity"]["Insert"]>;

@@ -66,6 +66,10 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [savingDate, setSavingDate] = useState<string | null>(null);
   const [calendarSaved, setCalendarSaved] = useState<string | null>(null);
+  // Web受付停止日（web_closed=true）。臨時休業（closed）とは別軸で持つ
+  const [webClosedDates, setWebClosedDates] = useState<string[]>([]);
+  // カレンダーをタップしたときに何を切り替えるか
+  const [calMode, setCalMode] = useState<"closed" | "web">("closed");
   const [calMonth, setCalMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -111,9 +115,14 @@ export default function SettingsPage() {
     const rangeEnd = new Date(calMonth.year, calMonth.month + 2, 0);
     const { data: capData } = await supabase
       .from("daily_capacity")
-      .select("date, closed")
+      .select("date, closed, web_closed")
       .gte("date", fmtDate(rangeStart))
       .lte("date", fmtDate(rangeEnd));
+
+    // Web受付停止日（臨時休業とは別軸なので独立して持つ）
+    setWebClosedDates(
+      capData ? capData.filter((r) => r.web_closed).map((r) => r.date) : [],
+    );
 
     if (capData && settingsData) {
       const cw = settingsData
@@ -145,6 +154,48 @@ export default function SettingsPage() {
     const override = overrides.find((o) => o.date === dateStr);
     if (override) return override.closed;
     return settings.closed_weekdays.includes(date.getDay());
+  };
+
+  const isWebClosed = (date: Date) => webClosedDates.includes(fmtDate(date));
+
+  /**
+   * Web受付停止の ON/OFF。
+   * 臨時休業（closed）とは別物＝店は開いており、スタッフはこの画面から予約を入れられる。
+   * お客様側は「× 満席です。お問い合わせください」になる。
+   */
+  const toggleWebClosed = async (date: Date) => {
+    const dateStr = fmtDate(date);
+    const todayStr = fmtDate(new Date());
+    if (dateStr < todayStr) return;
+
+    const DAYS_JP = ["日", "月", "火", "水", "木", "金", "土"];
+    const dateLabel = `${date.getMonth() + 1}/${date.getDate()}（${DAYS_JP[date.getDay()]}）`;
+    const next = !isWebClosed(date);
+
+    const message = next
+      ? `${dateLabel} のWeb受付を停止しますか？\n\n・お客様のカレンダーは「×」になり、「満席です。お問い合わせください」と表示されます\n・お店は通常どおり営業します（臨時休業ではありません）\n・スタッフはこの管理画面から引き続き予約を入れられます`
+      : `${dateLabel} のWeb受付を再開しますか？\n\nお客様が通常どおりWebから予約できるようになります。`;
+    if (!confirm(message)) return;
+
+    setSavingDate(dateStr);
+
+    const { data: existing } = await supabase
+      .from("daily_capacity")
+      .select("date")
+      .eq("date", dateStr)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from("daily_capacity").update({ web_closed: next }).eq("date", dateStr);
+    } else {
+      await supabase.from("daily_capacity").insert({ date: dateStr, web_closed: next });
+    }
+
+    setWebClosedDates((prev) =>
+      next ? [...prev.filter((d) => d !== dateStr), dateStr] : prev.filter((d) => d !== dateStr),
+    );
+    setSavingDate(null);
+    setCalendarSaved(next ? "Web受付を停止しました" : "Web受付を再開しました");
   };
 
   const isOverridden = (date: Date) => {
@@ -293,11 +344,44 @@ export default function SettingsPage() {
           </button>
         </div>
 
+        {/* 日付をタップしたときに切り替える対象 */}
+        <div className="space-y-1.5">
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+            <button
+              onClick={() => setCalMode("closed")}
+              className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+                calMode === "closed" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"
+              }`}
+            >
+              臨時休業／臨時営業
+            </button>
+            <button
+              onClick={() => setCalMode("web")}
+              className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+                calMode === "web" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"
+              }`}
+            >
+              Web受付の停止
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            {calMode === "closed" ? (
+              <>日付をタップすると<strong>お店の営業日そのもの</strong>を切り替えます。臨時休業にすると、お客様も<strong>スタッフも</strong>その日の予約を入れられなくなります。</>
+            ) : (
+              <>日付をタップすると<strong>お客様のWeb予約だけ</strong>止めます。お客様には「<strong>× 満席です。お問い合わせください</strong>」と表示され、お店は通常どおり営業。<strong>スタッフはこの管理画面から引き続き予約を入れられます</strong>（お電話で受けた分など）。</>
+            )}
+          </p>
+        </div>
+
         {/* 凡例 */}
         <div className="flex flex-wrap gap-2 text-xs text-gray-500">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded bg-white border border-gray-200 inline-block" />
             営業
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded bg-white border-2 border-purple-400 inline-block" />
+            Web受付停止
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded bg-gray-300 inline-block" />
@@ -340,6 +424,7 @@ export default function SettingsPage() {
             const isSaving = savingDate === dateStr;
             const isThisMonth = date.getMonth() === calMonth.month;
             const holiday = HOLIDAYS[dateStr];
+            const webClosed = isWebClosed(date);
 
             let bgClass = "bg-white border border-gray-100";
             if (!isThisMonth) {
@@ -355,11 +440,17 @@ export default function SettingsPage() {
             } else if (holiday) {
               bgClass = "bg-orange-50 border border-orange-200";
             }
+            // Web受付停止は営業日そのものの状態とは別軸なので、枠線で重ねて示す
+            if (isThisMonth && !isPast && webClosed && !closed) {
+              bgClass = "bg-purple-50 border-2 border-purple-400";
+            }
 
             return (
               <button
                 key={dateStr}
-                onClick={() => isThisMonth && !isPast && toggleDay(date)}
+                onClick={() =>
+                  isThisMonth && !isPast && (calMode === "web" ? toggleWebClosed(date) : toggleDay(date))
+                }
                 disabled={!isThisMonth || isPast || isSaving}
                 className={`aspect-square rounded-lg flex flex-col items-center justify-center transition-all ${bgClass} ${
                   !isThisMonth || isPast ? "cursor-default" : "active:scale-95"
@@ -385,7 +476,10 @@ export default function SettingsPage() {
                 {isToday && (
                   <span className="text-xs text-[#B87942] font-medium leading-none mt-0.5">今日</span>
                 )}
-                {holiday && isThisMonth && !isToday && (
+                {webClosed && isThisMonth && !isPast && (
+                  <span className="text-xs text-purple-600 font-medium leading-none mt-0.5">Web停止</span>
+                )}
+                {holiday && isThisMonth && !isToday && !webClosed && (
                   <span className="text-xs text-orange-500 leading-none mt-0.5 truncate w-full text-center px-0.5">
                     {holiday.length > 3 ? holiday.slice(0, 3) : holiday}
                   </span>

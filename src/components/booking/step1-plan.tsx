@@ -40,7 +40,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     // 臨時休業/臨時営業 + 各日の空き室数をまとめて取得（カレンダーの空き表示に使う）
     supabase
       .from("daily_capacity")
-      .select("date, closed, day_booked, stay_booked")
+      .select("date, closed, web_closed, day_booked, stay_booked")
       .gte("date", new Date().toISOString().split("T")[0])
       .then(({ data, error }) => {
         if (error) {
@@ -55,7 +55,11 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           const remMap: Record<string, number> = {};
           data.forEach((r) => {
             closedMap[r.date] = r.closed;
-            remMap[r.date] = WEB_ROOM_LIMIT - ((r.day_booked || 0) + (r.stay_booked || 0));
+            // web_closed=true の日は「Web受付停止」＝残0扱いにして × 満席（お問い合わせ）へ倒す。
+            // 店を閉める closed とは別物で、スタッフは管理画面から引き続き受け付けられる。
+            remMap[r.date] = r.web_closed
+              ? 0
+              : WEB_ROOM_LIMIT - ((r.day_booked || 0) + (r.stay_booked || 0));
           });
           setClosedOverrides(closedMap);
           setRemainingMap(remMap);
@@ -179,7 +183,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
           const { data: rows, error } = await supabase
             .from("daily_capacity")
-            .select("date, day_booked, stay_booked, closed")
+            .select("date, day_booked, stay_booked, closed, web_closed")
             .in("date", dates);
           if (error) throw error;
 
@@ -188,6 +192,8 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           for (const date of dates) {
             const row = rows?.find((r) => r.date === date);
             if (row?.closed) { closed = true; break; }
+            // 滞在期間に1日でもWeb受付停止日が含まれるなら、その滞在はWebで取らない
+            if (row?.web_closed) { minRemaining = 0; break; }
             const occupied = (row?.day_booked || 0) + (row?.stay_booked || 0);
             minRemaining = Math.min(minRemaining, WEB_ROOM_LIMIT - occupied);
           }
@@ -197,7 +203,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           // 日帰り or 宿泊でCO日未選択：CI日のみチェック
           const { data, error } = await supabase
             .from("daily_capacity")
-            .select("day_booked, stay_booked, closed")
+            .select("day_booked, stay_booked, closed, web_closed")
             .eq("date", form.date)
             .maybeSingle();
           if (error) throw error;
@@ -205,7 +211,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           if (data) {
             const occupied = (data.day_booked || 0) + (data.stay_booked || 0);
             setCapacity({
-              total_remaining: WEB_ROOM_LIMIT - occupied,
+              total_remaining: data.web_closed ? 0 : WEB_ROOM_LIMIT - occupied,
               closed: data.closed,
             });
           } else {
