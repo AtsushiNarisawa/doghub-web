@@ -48,8 +48,8 @@ export function Access() {
                 </p>
                 <p className="text-[#DDD8D0] text-sm leading-[1.9]">
                   ドッグホテル：9:00〜17:00<br />
-                  カフェ：土日祝 11:00〜17:00（おむすび＆スープ）<br />
-                  平日 9:00〜17:00（お飲み物のみ）
+                  カフェ：土日祝 11:00〜17:00（おむすび＆スープ・店内可）<br />
+                  平日 9:00〜17:00（お飲み物のテイクアウト販売のみ）
                 </p>
                 <p className="text-[#6B6B6B] text-xs mt-1">定休日：水曜・木曜</p>
                 <p className="text-[#C49A3C] text-xs mt-2">早朝7:00〜お預かり対応（要事前連絡）</p>

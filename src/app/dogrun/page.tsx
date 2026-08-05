@@ -64,7 +64,7 @@ export default function DogrunPage() {
                 </p>
                 <div className="bg-[#FFF8F3] border-l-4 border-[#B87942] px-4 py-3 mb-6">
                   <p className="text-[#3C200F]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
-                    <span className="font-medium">ご利用について：</span>ドッグランの単独利用はできません。お預かりサービスまたはカフェをご利用のお客様にご利用いただけます。お預かり中のわんちゃんが優先となりますので、カフェご利用時の長時間のご利用はご遠慮ください。
+                    <span className="font-medium">ご利用について：</span>ドッグランの単独利用はできません。お預かりサービスをご利用のお客様、または<span className="font-medium">おむすび＆スープをご提供する土日祝にカフェをご利用のお客様</span>にご利用いただけます（平日はお飲み物のテイクアウト販売のみのため、ドッグランのご利用はできません）。お預かり中のわんちゃんが優先となりますので、カフェご利用時の長時間のご利用はご遠慮ください。
                   </p>
                 </div>
               </div>

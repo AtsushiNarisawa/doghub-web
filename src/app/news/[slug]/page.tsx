@@ -82,13 +82,13 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-dog-lunch-guide": {
     text: "箱根で犬連れランチならDogHubのカフェへ",
-    subtext: "室内で犬と一緒に食事OK（おむすび＆スープは土日祝）。予約不要・頭数制限なし。ドッグラン併設で食後も遊べます。",
+    subtext: "土日祝は室内で犬と一緒に食事OK（おむすび＆スープ）。予約不要・頭数制限なし。ご利用のお客様は食後にドッグランも。",
     href: "/cafe",
     btnLabel: "カフェメニューを見る",
   },
   "hakone-dog-rainy-day": {
     text: "雨の日でも安心。屋根付きドッグラン併設",
-    subtext: "天候を気にせず愛犬を遊ばせられます。カフェで室内ランチもOK（土日祝）。",
+    subtext: "お預かり中は天候を気にせず愛犬を遊ばせられます。カフェで室内ランチもOK（土日祝）。",
     href: "/dogrun",
     btnLabel: "ドッグラン詳細を見る",
   },
@@ -106,7 +106,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-dog-cafe-guide": {
     text: "箱根で室内犬連れOKのカフェ",
-    subtext: "DogHubのOMUSUBI & SOUP CAFE。予約不要・頭数制限なし・ドッグラン併設。",
+    subtext: "DogHubのOMUSUBI & SOUP CAFE。予約不要・頭数制限なし。店内のご飲食とドッグランは土日祝のみ。",
     href: "/cafe",
     btnLabel: "カフェの詳細を見る",
   },

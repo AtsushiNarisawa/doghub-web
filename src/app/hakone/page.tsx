@@ -143,7 +143,7 @@ export default function HakonePage() {
               <div className="bg-white p-6">
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "18px", fontWeight: 400 }}>ドッグラン</h3>
                 <p className="text-[#8F7B65] mb-3" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
-                  専用ドッグラン併設。屋根付きエリアあり。カフェ利用時も使えます。
+                  専用ドッグラン併設。屋根付きエリアあり。土日祝にカフェをご利用のお客様もお使いいただけます。
                 </p>
                 <Link href="/dogrun" className="text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>ドッグラン →</Link>
               </div>
