@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     .from("reservations")
     .select(`
       id, plan, date, checkout_date, customer_id,
-      customers!inner(id, last_name, first_name, email, line_id),
+      customers!inner(id, last_name, first_name, email, line_id, email_opt_out, email_bounced),
       reservation_dogs(dogs(name))
     `)
     .eq("date", yesterdayStr)
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     .from("reservations")
     .select(`
       id, plan, date, checkout_date, customer_id,
-      customers!inner(id, last_name, first_name, email, line_id),
+      customers!inner(id, last_name, first_name, email, line_id, email_opt_out, email_bounced),
       reservation_dogs(dogs(name))
     `)
     .eq("checkout_date", yesterdayStr)
@@ -73,6 +73,7 @@ export async function GET(req: NextRequest) {
   let sentLine = 0;
   let failed = 0;
   let skipped = 0;
+  let skippedOptOut = 0;
 
   for (const r of reservations) {
     const customer = r.customers as unknown as {
@@ -81,9 +82,23 @@ export async function GET(req: NextRequest) {
       first_name: string;
       email: string;
       line_id: string | null;
+      email_opt_out: boolean | null;
+      email_bounced: boolean | null;
     };
     if (!customer?.email && !customer?.line_id) {
       skipped++;
+      continue;
+    }
+
+    // LINE友だち登録済みのお客様はLINEを優先（開封率が高く、二重連絡を避けるためメールは送らない）
+    const useLine = !!customer.line_id;
+
+    // メールで送る場合だけ、配信停止（email_opt_out）と不達（email_bounced）を尊重する。
+    // 一斉送信は RPC get_winback_recipients が両方を除外しており、この自動お礼だけが素通りしていた。
+    // ⚠️ thankyou_sent は false のまま残す＝管理画面から警告つきで手動送信する余地を残すため。
+    // ⚠️ フラグは email の話なので LINE 送信には適用しない（LINE側の意思表示はブロックで表れる）。
+    if (!useLine && (customer.email_opt_out === true || customer.email_bounced === true)) {
+      skippedOptOut++;
       continue;
     }
 
@@ -107,9 +122,6 @@ export async function GET(req: NextRequest) {
     // 初回利用であっても review_request_opt_out のお客様には口コミ依頼を付けない。
     const optedOut = await isReviewRequestOptedOut(supabase, r.customer_id);
     const isFirstVisit = (count ?? 0) <= 1 && !optedOut;
-
-    // LINE友だち登録済みのお客様はLINEを優先（開封率が高く、二重連絡を避けるためメールは送らない）
-    const useLine = !!customer.line_id;
 
     try {
       if (useLine) {
@@ -146,5 +158,6 @@ export async function GET(req: NextRequest) {
     sentLine,
     failed,
     skipped,
+    skippedOptOut,
   });
 }

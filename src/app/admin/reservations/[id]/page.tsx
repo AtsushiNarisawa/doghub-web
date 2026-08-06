@@ -36,6 +36,7 @@ interface Reservation {
     email: string;
     email_bounced: boolean;
     email_opt_out: boolean;
+    line_id: string | null;
     postal_code: string | null;
     address: string | null;
     total_visits: number;
@@ -722,7 +723,17 @@ export default function ReservationDetailPage() {
           {effectiveStatus === "completed" && (
             <button
               onClick={async () => {
-                if (!confirm(`${customer.last_name}様にお礼のご連絡（LINE登録があればLINE、なければメール）を送信しますか？`)) return;
+                // メールで送る場合だけ不達・配信停止を警告する（LINEで送るなら関係ないため出さない）。
+                // 自動送信（毎朝のcron）はこの2つを送らない側に倒しているが、
+                // 手動はスタッフが承知のうえで送れるよう「止めずに知らせる」に留める。
+                const warn = customer.line_id
+                  ? ""
+                  : customer.email_bounced
+                    ? "⚠ このアドレスは過去に不達（宛先不明）です。届かない可能性が高いです。\n（自動のお礼メールは送っていません）\n\n"
+                    : customer.email_opt_out
+                      ? "⚠ このお客様はメール配信を停止しています。\n（自動のお礼メールは送っていません）\n\n"
+                      : "";
+                if (!confirm(`${warn}${customer.last_name}様にお礼のご連絡（LINE登録があればLINE、なければメール）を送信しますか？`)) return;
                 setSaving(true);
                 try {
                   const resp = await fetch("/api/admin/send-thankyou", {
