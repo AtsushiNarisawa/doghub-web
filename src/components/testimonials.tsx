@@ -111,6 +111,7 @@ export function Testimonials() {
             <span>リトナ箱根 提携</span>
             <span>レジーナリゾート箱根仙石原 連携</span>
             <span>エクシブ箱根離宮 相互紹介</span>
+            <span>アニマルクリニック仙石原 提携</span>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 import { InstagramFollowLight } from "@/components/instagram-follow";
+import { EmergencyCare } from "@/components/emergency-care";
 
 // meta は文字数でなく「日本語SERPの表示幅」で設計する（title 約30全角 / desc 約58全角）。
 // 旧版は title 37.5全角・desc 109.5全角で、最も刺さる「ペット不可の宿に泊まる日」も
@@ -287,6 +288,9 @@ export default function StayPage() {
           </div>
         </section>
 
+        {/* 万が一のときの体制（提携動物病院） */}
+        <EmergencyCare bg="white" />
+
         {/* FAQ */}
         <section className="py-16 px-6 bg-white">
           <div className="max-w-7xl mx-auto">
@@ -302,6 +306,7 @@ export default function StayPage() {
                   { "@type": "Question", name: "犬のホテルの料金はいくらですか？", acceptedAnswer: { "@type": "Answer", text: "宿泊1泊¥7,700〜、1日預かり（8時間）¥5,500、半日預かり（4時間）¥3,300、スポット利用1時間¥1,100〜です。箱根町在住の方は宿泊¥5,500〜の地元割引もございます。すべて税込料金です。" }},
                   { "@type": "Question", name: "早朝からの預かりは可能ですか？", acceptedAnswer: { "@type": "Answer", text: "はい、朝7時からお預かり対応しています。大箱根カントリークラブとも提携しており、早朝のゴルフ前にお預けいただくお客様も多くいらっしゃいます。" }},
                   { "@type": "Question", name: "犬種や体重の制限はありますか？", acceptedAnswer: { "@type": "Answer", text: "体重15kgまでの犬をお預かりしています。小型犬・中型犬が対象です。犬種による制限は特にございません。" }},
+                  { "@type": "Question", name: "お預かり中に体調を崩したらどうなりますか？", acceptedAnswer: { "@type": "Answer", text: "まず飼い主様へご連絡いたします。DogHub箱根仙石原は車で4分の場所にあるアニマルクリニック仙石原と提携しており、クリニックの診療時間内であればご相談・受診いたします。夜間や診療時間外は、24時間常駐のスタッフとライブカメラで見守りながら、飼い主様と連絡を取り合って対応いたします。24時間いつでも受診できる体制ではございませんので、あらかじめご了承ください。" }},
                   { "@type": "Question", name: "当日の予約は可能ですか？", acceptedAnswer: { "@type": "Answer", text: "空きがあれば当日予約も承っております。ただし、繁忙期（GW、夏休み、年末年始、紅葉シーズン）は満室になることが多いため、お早めのご予約をおすすめします。" }},
                 ],
               }) }}
@@ -313,6 +318,7 @@ export default function StayPage() {
                 { q: "犬のホテルの料金はいくらですか？", a: "宿泊1泊¥7,700〜、1日預かり（8時間）¥5,500、半日預かり（4時間）¥3,300、スポット利用1時間¥1,100〜です。箱根町在住の方は宿泊¥5,500〜の地元割引もございます。すべて税込料金です。" },
                 { q: "早朝からの預かりは可能ですか？", a: "はい、朝7時からお預かり対応しています。大箱根カントリークラブとも提携しており、早朝のゴルフ前にお預けいただくお客様も多くいらっしゃいます。" },
                 { q: "犬種や体重の制限はありますか？", a: "体重15kgまでの犬をお預かりしています。小型犬・中型犬が対象です。犬種による制限は特にございません。" },
+                { q: "お預かり中に体調を崩したらどうなりますか？", a: "まず飼い主様へご連絡いたします。DogHub箱根仙石原は車で4分の場所にあるアニマルクリニック仙石原と提携しており、クリニックの診療時間内であればご相談・受診いたします。夜間や診療時間外は、24時間常駐のスタッフとライブカメラで見守りながら、飼い主様と連絡を取り合って対応いたします。24時間いつでも受診できる体制ではございませんので、あらかじめご了承ください。" },
                 { q: "当日の予約は可能ですか？", a: "空きがあれば当日予約も承っております。ただし、繁忙期（GW、夏休み、年末年始、紅葉シーズン）は満室になることが多いため、お早めのご予約をおすすめします。" },
               ].map((faq) => (
                 <details key={faq.q} className="border border-[#E5DDD8] group">

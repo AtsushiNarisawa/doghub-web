@@ -14,6 +14,12 @@ import Image from "next/image";
 
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string; btnLabel: string }> = {
+  "hakone-dog-sick-during-trip": {
+    text: "旅先でも、見ていてくれる人がいる場所へ",
+    subtext: "24時間スタッフ常駐・完全個室。車で4分のアニマルクリニック仙石原と提携しています（受診はクリニックの診療時間内）。宿泊1泊¥7,700〜、日帰りは半日¥3,300〜。",
+    href: "/stay",
+    btnLabel: "宿泊プラン・料金を見る",
+  },
   "hakone-summer-dog-guide": {
     text: "夏の暑い時間だけ、涼しい個室で愛犬をお預かり",
     subtext: "ユネッサンや美術館など犬NGスポットの間に。完全個室と屋根付きドッグランで、暑い車内に待たせずに済みます。半日¥3,300〜、1日¥5,500〜。",
@@ -228,6 +234,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
 const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; description: string }[]> = {
+  "hakone-dog-sick-during-trip": [
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐・完全個室" },
+    { label: "ペット可の宿に泊まるなら", href: "/pethotel", description: "チェックイン前・アウト後のお預かり" },
+    { label: "はじめての方へ", href: "/guide/pet-hotel-tips", description: "預ける前の不安と、選ぶときの5つの視点" },
+    { label: "よくある質問", href: "/faq", description: "持ち物・ワクチン・体調面のご質問" },
+  ],
   "hakone-summer-dog-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで真夏の温泉プールを満喫" },
     { label: "日帰り温泉に行くなら", href: "/onsen", description: "犬NGの温泉の間だけお預かり" },

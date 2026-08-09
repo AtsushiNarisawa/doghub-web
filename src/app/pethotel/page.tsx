@@ -6,6 +6,7 @@ import { QuickNav } from "@/components/quick-nav";
 import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
+import { EmergencyCare } from "@/components/emergency-care";
 
 export const metadata: Metadata = {
   openGraph: {
@@ -239,6 +240,9 @@ export default function PetHotelPage() {
           </div>
         </section>
 
+        {/* 万が一のときの体制（提携動物病院） */}
+        <EmergencyCare bg="white" />
+
         {/* Other scenes */}
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
@@ -276,6 +280,7 @@ export default function PetHotelPage() {
                   { "@type": "Question", name: "ペット可の宿に泊まっていても預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい、もちろんです。チェックイン前やチェックアウト後の観光時間に、日中預かりとしてご利用いただくお客様が多くいらっしゃいます。レジーナリゾート仙石原など、近隣のペット可施設からのご案内も多数いただいています。" }},
                   { "@type": "Question", name: "当日でも預けられますか？", acceptedAnswer: { "@type": "Answer", text: "空きがあれば当日予約も承っています。お電話（0460-80-0290）でご確認ください。" }},
                   { "@type": "Question", name: "短時間でも預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい、1時間¥1,100〜のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" }},
+                  { "@type": "Question", name: "お預かり中に体調を崩したらどうなりますか？", acceptedAnswer: { "@type": "Answer", text: "まず飼い主様へご連絡いたします。DogHub箱根仙石原は車で4分の場所にあるアニマルクリニック仙石原と提携しており、クリニックの診療時間内であればご相談・受診いたします。夜間や診療時間外は、24時間常駐のスタッフとライブカメラで見守りながら、飼い主様と連絡を取り合って対応いたします。24時間いつでも受診できる体制ではございませんので、あらかじめご了承ください。" }},
                 ],
               }) }}
             />
@@ -284,6 +289,7 @@ export default function PetHotelPage() {
                 { q: "ペット可の宿に泊まっていても預けられますか？", a: "はい、もちろんです。チェックイン前やチェックアウト後の観光時間に、日中預かりとしてご利用いただくお客様が多くいらっしゃいます。レジーナリゾート仙石原など、近隣のペット可施設からのご案内も多数いただいています。" },
                 { q: "当日でも預けられますか？", a: "空きがあれば当日予約も承っています。お電話（0460-80-0290）でご確認ください。" },
                 { q: "短時間でも預けられますか？", a: "はい、1時間¥1,100〜のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" },
+                { q: "お預かり中に体調を崩したらどうなりますか？", a: "まず飼い主様へご連絡いたします。DogHub箱根仙石原は車で4分の場所にあるアニマルクリニック仙石原と提携しており、クリニックの診療時間内であればご相談・受診いたします。夜間や診療時間外は、24時間常駐のスタッフとライブカメラで見守りながら、飼い主様と連絡を取り合って対応いたします。24時間いつでも受診できる体制ではございませんので、あらかじめご了承ください。" },
               ].map((faq) => (
                 <details key={faq.q} className="border border-[#E5DDD8] group">
                   <summary className="flex items-center justify-between cursor-pointer p-6 text-[#3C200F] hover:bg-[#F7F7F7] transition-colors" style={{ fontSize: "16px", fontWeight: 400 }}>
