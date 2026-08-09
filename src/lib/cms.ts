@@ -167,7 +167,9 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "持ち物", images: ["/images/img-037.jpg"] },
   ],
   "hakone-pet-hotel-comparison": [
-    { keyword: "預かり環境", images: ["/images/doghub-hotel-room-full-01.jpg", "/images/img-037.jpg"] },
+    // img-037.jpg は doghub-hotel-room-full-01.jpg の低解像度版＝同じお部屋の写真で、
+    // 本番で2枚並んで表示されていた（CEO指摘 2026-08-09）。高解像度の1枚だけに絞る。
+    { keyword: "預かり環境", images: ["/images/doghub-hotel-room-full-01.jpg"] },
     { keyword: "運動できる環境", images: ["/images/doghub-dogrun-sunset.jpg"] },
   ],
   "hakone-golf-pet-guide": [
