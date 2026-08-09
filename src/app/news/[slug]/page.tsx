@@ -58,7 +58,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-pet-hotel-comparison": {
     text: "箱根で選ばれているドッグホテル",
-    subtext: "広いドッグランで自由に遊べる。ゲージに入れっぱなしにしない環境です。",
+    subtext: "木の壁で仕切った完全個室（お部屋）でお預かり。お預かり中は広いドッグランにもお出しするので、閉じ込めっぱなしにはしません。",
     href: "/service",
     btnLabel: "DogHubのサービス・料金を見る",
   },
