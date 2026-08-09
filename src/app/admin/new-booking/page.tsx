@@ -76,6 +76,8 @@ function NewBookingForm() {
   const [walkOption, setWalkOption] = useState(false);
   const [destination, setDestination] = useState("");
   const [notes, setNotes] = useState("");
+  // スタッフ専用メモ（reservations.admin_notes）。notes（備考）はお客様の確認メールに載るため別枠にする
+  const [adminNotes, setAdminNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -255,6 +257,7 @@ function NewBookingForm() {
         checkout_date: plan === "stay" ? checkoutDate : undefined,
         walk_option: walkOption,
         notes,
+        admin_notes: adminNotes,
         destination,
         dogs: selectedDogs,
         customer: customer
@@ -740,9 +743,27 @@ function NewBookingForm() {
         </div>
       )}
 
+      {/* スタッフメモ（お客様には一切表示されない・reservations.admin_notes に保存） */}
+      <div className="bg-white rounded-xl p-4 space-y-3">
+        <div>
+          <p className="text-sm font-medium text-gray-500">スタッフメモ</p>
+          <p className="text-xs text-gray-400 mt-0.5">お客様には表示されません（メールにも載りません）</p>
+        </div>
+        <textarea
+          value={adminNotes}
+          onChange={(e) => setAdminNotes(e.target.value)}
+          placeholder="スタッフ間で共有したいこと..."
+          rows={3}
+          className="w-full px-3 py-2 text-base bg-gray-50 border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none resize-none"
+        />
+      </div>
+
       {/* メモ */}
       <div className="bg-white rounded-xl p-4 space-y-3">
-        <p className="text-sm font-medium text-gray-500">備考</p>
+        <div>
+          <p className="text-sm font-medium text-gray-500">備考</p>
+          <p className="text-xs text-gray-400 mt-0.5">お客様の予約確認メールにも表示されます</p>
+        </div>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}

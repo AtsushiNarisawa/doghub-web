@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
-import { fetchVisitCounts } from "@/lib/visit-count";
+import { fetchVisitOrdinals } from "@/lib/visit-count";
 
 interface DogInfo {
   name: string;
@@ -47,10 +47,6 @@ interface DaySummary {
   stayCount: number;
 }
 
-interface CustomerHistory {
-  visitCount: number;
-  lastVisitDate: string | null;
-}
 
 const PLAN_LABELS: Record<string, string> = {
   spot: "スポット", "4h": "半日", "8h": "1日", stay: "宿泊",
@@ -68,7 +64,8 @@ export default function AdminDashboard() {
   const [todayRes, setTodayRes] = useState<ReservationRow[]>([]);
   const [stayingOver, setStayingOver] = useState<ReservationRow[]>([]);
   const [pendingRes, setPendingRes] = useState<ReservationRow[]>([]);
-  const [customerHistories, setCustomerHistories] = useState<Record<string, CustomerHistory>>({});
+  // 予約ID → その予約が何回目のご利用か（顧客の通算回数ではない）
+  const [visitOrdinals, setVisitOrdinals] = useState<Record<string, number>>({});
   const [calSummaries, setCalSummaries] = useState<DaySummary[]>([]);
   const [closedMap, setClosedMap] = useState<Record<string, boolean>>({});
   const [calView, setCalView] = useState<"week" | "month">("week");
@@ -209,29 +206,9 @@ export default function AdminDashboard() {
     ]);
 
     const allData = [...(todayData || []), ...(stayData || []), ...(pendingData || [])] as unknown as ReservationRow[];
+    // 予約ごとの「何回目か」を取得（来店日順。顧客の通算回数を全カードに貼ると全部同じ数字になるため）
     const customerIds = [...new Set(allData.map((r) => r.customers.id))];
-    const histories: Record<string, CustomerHistory> = {};
-    if (customerIds.length > 0) {
-      // 利用回数は正準ソース（legacy_visit_count + 確定/完了予約数）に統一
-      const visitCounts = await fetchVisitCounts(customerIds);
-      // 最終利用日は過去の確定/完了予約のうち最新（無ければ移行時の last_visit_date）
-      const { data: pastRes } = await supabase
-        .from("reservations")
-        .select("customer_id, date, status")
-        .in("customer_id", customerIds)
-        .in("status", ["confirmed", "completed"])
-        .lt("date", selectedDate)
-        .order("date", { ascending: false });
-
-      for (const cid of customerIds) {
-        const past = (pastRes || []).filter((r) => r.customer_id === cid);
-        const customer = allData.find((r) => r.customers.id === cid)?.customers;
-        const lastDate = past.length > 0 ? past[0].date : customer?.last_visit_date || null;
-        histories[cid] = { visitCount: visitCounts[cid] ?? 0, lastVisitDate: lastDate };
-      }
-    }
-
-    setCustomerHistories(histories);
+    setVisitOrdinals(customerIds.length > 0 ? await fetchVisitOrdinals(customerIds) : {});
     setTodayRes((todayData as unknown as ReservationRow[]) || []);
     setStayingOver((stayData as unknown as ReservationRow[]) || []);
     setPendingRes((pendingData as unknown as ReservationRow[]) || []);
@@ -477,7 +454,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-2 ml-1">
                       {group.map((r) => (
-                        <ReservationCards key={r.id} r={r} history={customerHistories[r.customers.id]} />
+                        <ReservationCards key={r.id} r={r} visitOrdinal={visitOrdinals[r.id]} />
                       ))}
                     </div>
                   </div>
@@ -525,7 +502,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                       {stayCheckout.map((r) => (
-                        <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
+                        <ReservationCards key={r.id} r={r} isStayOver visitOrdinal={visitOrdinals[r.id]} />
                       ))}
                     </div>
                   </div>
@@ -542,7 +519,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                       {stayOver.map((r) => (
-                        <ReservationCards key={r.id} r={r} isStayOver history={customerHistories[r.customers.id]} />
+                        <ReservationCards key={r.id} r={r} isStayOver visitOrdinal={visitOrdinals[r.id]} />
                       ))}
                     </div>
                   </div>
@@ -575,13 +552,14 @@ function DogLine({ dog }: { dog: DogInfo }) {
 }
 
 /** 1予約=1カード（複数頭は縦並びで表示） */
-function ReservationCards({ r, isStayOver, history }: { r: ReservationRow; isStayOver?: boolean; history?: CustomerHistory }) {
+function ReservationCards({ r, isStayOver, visitOrdinal }: { r: ReservationRow; isStayOver?: boolean; visitOrdinal?: number }) {
   const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
   const totalDogs = dogs.length || r.dog_count || 1;
   const hasDogAlert = dogs.some((d) => d.allergies || d.meal_notes || d.medication_notes);
   const hasNotes = r.notes;
   const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
-  const isRepeater = history && history.visitCount >= 2;
+  // 「◯回目」はこの予約が何回目か（来店日順）。初回はバッジを出さない（従来どおり）
+  const isRepeater = !!visitOrdinal && visitOrdinal >= 2;
 
   return (
     <Link
@@ -617,7 +595,7 @@ function ReservationCards({ r, isStayOver, history }: { r: ReservationRow; isSta
           )}
           {isRepeater && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
-              {history.visitCount}回利用
+              {visitOrdinal}回目
             </span>
           )}
           {r.status === "pending" && (

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { fetchVisitCounts } from "@/lib/visit-count";
+import { fetchVisitOrdinals } from "@/lib/visit-count";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
@@ -82,7 +82,8 @@ export default function ReservationDetailPage() {
   const [destEditing, setDestEditing] = useState(false);
   const [destSaved, setDestSaved] = useState(false);
   const [pastVisits, setPastVisits] = useState<{ id: string; date: string; plan: string }[]>([]);
-  const [visitCount, setVisitCount] = useState(0);
+  // この予約が何回目のご利用か（顧客の通算回数ではない）
+  const [visitOrdinal, setVisitOrdinal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [memoSaved, setMemoSaved] = useState(false);
@@ -119,8 +120,9 @@ export default function ReservationDetailPage() {
         .order("date", { ascending: false })
         .limit(10);
       setPastVisits(history || []);
-      // 利用回数は正準ソース（legacy_visit_count + 確定/完了予約数）。pastVisits は履歴リスト表示用に別途保持。
-      setVisitCount((await fetchVisitCounts([customerId]))[customerId] ?? 0);
+      // 「◯回目」はこの予約が何回目か（来店日順）。顧客の通算回数だと同じ方の予約が全部同じ数字になる。
+      // pastVisits は履歴リスト表示用に別途保持。
+      setVisitOrdinal((await fetchVisitOrdinals([customerId]))[id as string] ?? 0);
     }
     setLoading(false);
   };
@@ -356,8 +358,8 @@ export default function ReservationDetailPage() {
             </p>
             <p className="text-xs text-gray-400">
               {customer.last_name_kana} {customer.first_name_kana}
-              {visitCount >= 2 ? (
-                <span className="ml-2 text-blue-500">{visitCount}回利用</span>
+              {visitOrdinal >= 2 ? (
+                <span className="ml-2 text-blue-500">{visitOrdinal}回目</span>
               ) : null}
             </p>
           </div>

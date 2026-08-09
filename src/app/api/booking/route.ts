@@ -437,6 +437,11 @@ export async function POST(req: NextRequest) {
         ]
           .filter(Boolean)
           .join("\n") || null,
+        // スタッフメモ。お客様のフォームには無い項目なので、スタッフ入力(source:"phone")のときだけ
+        // 保存する（公開APIから任意のテキストを書き込まれないようにするため）。
+        admin_notes: isStaffBooking && body.admin_notes?.trim()
+          ? body.admin_notes.trim().slice(0, 2000)
+          : null,
         source: (["web", "line", "phone", "walk_in"].includes(body.source as string) ? body.source : "web") as "web" | "line" | "phone" | "walk_in",
       });
 

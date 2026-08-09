@@ -64,6 +64,9 @@ export interface BookingFormData {
   // STEP4
   walk_option: boolean;
   notes: string;
+  // スタッフ専用メモ。お客様のフォームには存在せず、管理画面の新規予約からのみ送られる。
+  // notes（備考）と違いお客様のメールには一切載らない（サーバー側で source:"phone" のときだけ保存）。
+  admin_notes?: string;
   agreed: boolean;
   // LINE連携（LIFFから取得）
   line_id?: string;

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
-import { fetchVisitCounts } from "@/lib/visit-count";
+import { fetchVisitOrdinals } from "@/lib/visit-count";
 
 interface ReservationRow {
   id: string;
@@ -63,7 +63,8 @@ export default function ReservationsPage() {
   const [selectedDate, setSelectedDate] = useState<string>(formatDateKey(new Date()));
   const [search, setSearch] = useState("");
   const [capacityMap, setCapacityMap] = useState<Record<string, { day_booked: number; day_limit: number; stay_booked: number; stay_limit: number; closed: boolean }>>({});
-  const [visitCounts, setVisitCounts] = useState<Record<string, number>>({});
+  // 予約ID → その予約が何回目のご利用か（顧客の通算回数ではない）
+  const [visitOrdinals, setVisitOrdinals] = useState<Record<string, number>>({});
 
   // カレンダーの表示範囲を計算
   const getDateRange = useCallback(() => {
@@ -132,10 +133,10 @@ export default function ReservationsPage() {
     const rows = (data as unknown as ReservationRow[]) || [];
     setReservations(rows);
 
-    // 顧客ごとの利用回数を取得（正準ソース: legacy_visit_count + 確定/完了予約数）
+    // 予約ごとの「何回目か」を取得（来店日順。顧客の通算回数を全行に貼ると全部同じ数字になるため）
     const customerIds = [...new Set(rows.map(r => r.customer_id).filter(Boolean))];
     if (customerIds.length > 0) {
-      setVisitCounts(await fetchVisitCounts(customerIds));
+      setVisitOrdinals(await fetchVisitOrdinals(customerIds));
     }
 
     // カレンダーモード：容量データも取得
@@ -475,13 +476,13 @@ export default function ReservationsPage() {
                 </div>
                 <p className="text-base font-medium flex items-center flex-wrap gap-1">
                   <span>{r.customers.last_name} {r.customers.first_name} 様</span>
-                  {visitCounts[r.customer_id] && (
+                  {visitOrdinals[r.id] && (
                     <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                      visitCounts[r.customer_id] === 1
+                      visitOrdinals[r.id] === 1
                         ? "bg-green-50 text-green-600 border border-green-200"
                         : "bg-orange-50 text-orange-600 border border-orange-200"
                     }`}>
-                      {visitCounts[r.customer_id] === 1 ? "初回" : `${visitCounts[r.customer_id]}回目`}
+                      {visitOrdinals[r.id] === 1 ? "初回" : `${visitOrdinals[r.id]}回目`}
                     </span>
                   )}
                   {dogNames && (
