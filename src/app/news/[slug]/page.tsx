@@ -64,9 +64,9 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-dog-friendly-hotels": {
     text: "犬と泊まれる宿が見つからない時の、もう一つの選択肢",
-    subtext: "お好きな宿に泊まって、愛犬は近くのDogHubに預ける「宿泊分離型」という過ごし方。泊まる宿のタイプ別に、無理のない預け方をご案内します。",
-    href: "/pethotel",
-    btnLabel: "泊まる宿のタイプ別に、預け方を見る",
+    subtext: "お好きな宿に泊まって、愛犬は近くのDogHubに1泊お預けする「宿泊分離型」という過ごし方。完全個室・24時間スタッフ常駐で、1泊¥7,700〜。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
+    href: "/stay",
+    btnLabel: "宿泊お預かりのプラン・料金を見る",
   },
   "hakone-dog-trip-guide": {
     text: "箱根観光中の愛犬のお預かり",
@@ -412,6 +412,18 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
 };
 
+// 宿泊ブリッジ（🎯3 市場創造テスト・2026-08-18）:
+// 泊まりがけで箱根に来る読者が多い高PV記事に、日帰りCTAを置き換えず「夜だけ預ける」提案を併置する。
+// 効果測定は GTM cta_click（cta_id=article_stay / cta_destination=/stay）。
+// キル基準: 90日で /stay 行きクリック20件未満なら撤去（正本 marketing/reports/market_creation_scale_estimate_2026-08-18.md §8）
+const STAY_BRIDGE_SLUGS = new Set([
+  "hakone-dog-trip-guide",
+  "hakone-en-dog-guide",
+  "hakone-gw-traffic-route-guide",
+  "hakone-ashinoko-dog-guide",
+  "hakone-summer-dog-guide",
+]);
+
 const DEFAULT_CTA = {
   text: "箱根旅行中の愛犬のお預かりはDogHubへ",
   subtext: "ドッグランで自由に遊べる環境。宿泊・日帰りプランをご用意しています。",
@@ -643,6 +655,27 @@ export default async function NewsDetailPage({ params }: Props) {
                     </Link>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* 宿泊ブリッジ — 泊まりがけの読者への「夜だけ預ける」提案（🎯3テスト） */}
+            {STAY_BRIDGE_SLUGS.has(slug) && (
+              <div style={{ margin: "2em 0", padding: "20px", background: "#F8F5F0", borderRadius: "12px" }}>
+                <p style={{ fontSize: "15px", fontWeight: 600, color: "#3C200F", marginBottom: "6px" }}>
+                  泊まりがけの箱根旅行なら、夜だけお預けする方法も
+                </p>
+                <p style={{ fontSize: "13px", color: "#8F7B65", marginBottom: "12px", lineHeight: "1.7" }}>
+                  お泊まりの宿がペット不可でも、旅程はそのままで大丈夫。愛犬は完全個室のお部屋で1泊お預かりします（1泊¥7,700〜・24時間スタッフ常駐）。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。
+                </p>
+                <Link
+                  href="/stay"
+                  data-cta-id="article_stay"
+                  className="flex items-center justify-between px-4 py-3 bg-white rounded-lg border border-[#E5DDD8] hover:border-[#B87942] transition-colors"
+                  style={{ textDecoration: "none" }}
+                >
+                  <span style={{ fontSize: "14px", fontWeight: 500, color: "#3C200F" }}>宿泊お預かりのプラン・料金を見る</span>
+                  <span style={{ fontSize: "14px", color: "#B87942", fontWeight: 500, flexShrink: 0, marginLeft: "12px" }}>→</span>
+                </Link>
               </div>
             )}
 
