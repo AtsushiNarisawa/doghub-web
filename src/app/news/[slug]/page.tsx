@@ -86,6 +86,18 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
     href: "/stay",
     btnLabel: "宿泊・預かりプランを見る",
   },
+  "hakone-dog-overnight-stay-guide": {
+    text: "宿泊のお預かりは、14時から翌朝11時まで",
+    subtext: "木の壁で仕切った完全個室で1泊¥7,700〜。夜は宿直スタッフが建物に泊まり、ライブカメラで見守ります。お預かり中は毎日、スタッフがドッグランにもお出しします。",
+    href: "/stay",
+    btnLabel: "宿泊プラン・料金を見る",
+  },
+  "hakone-pet-not-allowed-stay-guide": {
+    text: "宿はそのままで、愛犬は近くで1泊",
+    subtext: "ペットを受けていない宿にお泊まりの日も、旅の予定を変えずに済みます。完全個室・24時間スタッフ常駐で1泊¥7,700〜。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
+    href: "/stay",
+    btnLabel: "宿泊お預かりのプラン・料金を見る",
+  },
   "hakone-dog-lunch-guide": {
     text: "箱根で犬連れランチならDogHubのカフェへ",
     subtext: "土日祝は室内で犬と一緒に食事OK（おむすび＆スープ）。予約不要・頭数制限なし。ご利用のお客様は食後にドッグランも。",
@@ -274,6 +286,18 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "温泉で過ごすなら", href: "/onsen", description: "雨の日の温泉は格別" },
     { label: "ユネッサンで1日遊ぶなら", href: "/yunessun", description: "屋内温泉プールで天候を気にせず" },
     { label: "美術館巡りなら", href: "/museum", description: "雨の日こそ美術館日和" },
+  ],
+  "hakone-dog-overnight-stay-guide": [
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 14時IN・翌朝11時までお預かり" },
+    { label: "ペット可の宿に泊まるなら", href: "/pethotel", description: "チェックイン前・チェックアウト後のお預かり" },
+    { label: "はじめて預ける方へ", href: "/guide/pet-hotel-tips", description: "預ける前の不安と、選ぶときの5つの視点" },
+    { label: "よくある質問", href: "/faq", description: "持ち物・ワクチン・体調面のご質問" },
+  ],
+  "hakone-pet-not-allowed-stay-guide": [
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐・完全個室" },
+    { label: "旅館にお泊まりなら", href: "/ryokan", description: "ペット不可の旅館に泊まりたい時の選択肢" },
+    { label: "犬と泊まれる宿をお探しなら", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びと、分離型という過ごし方" },
+    { label: "よくある質問", href: "/faq", description: "持ち物・ワクチン・体調面のご質問" },
   ],
   "hakone-dog-friendly-hotels": [
     { label: "ペット可ホテル×日中預かり", href: "/pethotel", description: "チェックイン前・チェックアウト後の観光に" },
@@ -468,6 +492,36 @@ const ARTICLE_RELATED: Record<string, string[]> = {
     "hakone-summer-dog-guide",
     "hakone-yunessun-pet-guide",
     "hakone-dog-day-hot-spring-guide",
+  ],
+  // 宿泊クラスタ（2026-08-18 新設）
+  // 記事内CTAの行き先は /stay が36記事中5本しかなく、記事は日帰りしか提案していなかった
+  // （記事内CTAクリック419件中 /stay 行きは13件＝3.1%）。宿泊テーマの新規2記事を追加し、
+  // 既存の宿泊系3記事とフルメッシュで相互リンクして、新記事が内部リンクゼロにならないようにする。
+  // 正本＝marketing/reports/market_creation_scale_estimate_2026-08-18.md
+  "hakone-dog-overnight-stay-guide": [
+    "hakone-pet-not-allowed-stay-guide",
+    "hakone-dog-friendly-hotels",
+    "hakone-dog-hotel-guide",
+  ],
+  "hakone-pet-not-allowed-stay-guide": [
+    "hakone-dog-overnight-stay-guide",
+    "hakone-dog-friendly-hotels",
+    "hakone-dog-hotel-cost-comparison",
+  ],
+  "hakone-dog-friendly-hotels": [
+    "hakone-dog-overnight-stay-guide",
+    "hakone-pet-not-allowed-stay-guide",
+    "hakone-dog-hotel-cost-comparison",
+  ],
+  "hakone-dog-hotel-cost-comparison": [
+    "hakone-pet-not-allowed-stay-guide",
+    "hakone-dog-overnight-stay-guide",
+    "hakone-dog-friendly-hotels",
+  ],
+  "hakone-dog-hotel-guide": [
+    "hakone-dog-overnight-stay-guide",
+    "hakone-dog-friendly-hotels",
+    "hakone-dog-hotel-cost-comparison",
   ],
 };
 
