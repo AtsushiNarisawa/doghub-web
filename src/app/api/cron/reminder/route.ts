@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { sendLinePushMessage, buildReminderLineMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -136,7 +137,7 @@ export async function GET(req: NextRequest) {
     .from("reservations")
     .select(`
       id, plan, date, checkin_time, checkout_date, notes,
-      customers!inner(last_name, first_name, email),
+      customers!inner(last_name, first_name, email, line_id),
       reservation_dogs(dogs(name))
     `)
     .eq("date", targetDateStr)
@@ -161,39 +162,87 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  let sent = 0;
+  let sentEmail = 0;
+  let sentLine = 0;
   let failed = 0;
+  let skipped = 0;
 
   for (const r of reservations) {
-    const customer = r.customers as unknown as { last_name: string; first_name: string; email: string };
-    if (!customer?.email) continue;
+    const customer = r.customers as unknown as {
+      last_name: string;
+      first_name: string;
+      email: string | null;
+      line_id: string | null;
+    };
+    // 連絡手段が1つも無い方は送りようがない（従来はメール前提でスキップしていた）
+    if (!customer?.email && !customer?.line_id) {
+      skipped++;
+      continue;
+    }
 
     const dogs = (r.reservation_dogs as unknown as { dogs: { name: string } | null }[])
       .map((rd) => rd.dogs?.name)
       .filter(Boolean) as string[];
 
-    const html = buildReminderHtml({
-      id: r.id,
-      plan: r.plan,
-      date: r.date,
-      checkin_time: r.checkin_time,
-      checkout_date: r.checkout_date,
-      notes: r.notes,
-      customer_name: `${customer.last_name} ${customer.first_name}`,
-      dogs,
-    });
+    const customerName = `${customer.last_name} ${customer.first_name}`;
 
-    try {
+    const sendEmail = async () => {
+      const html = buildReminderHtml({
+        id: r.id,
+        plan: r.plan,
+        date: r.date,
+        checkin_time: r.checkin_time,
+        checkout_date: r.checkout_date,
+        notes: r.notes,
+        customer_name: customerName,
+        dogs,
+      });
       await transporter.sendMail({
         from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
         replyTo: "info@dog-hub.shop",
-        to: customer.email,
+        to: customer.email!,
         subject: `【DogHub箱根】ご予約のリマインド（${formatDate(r.date)}）`,
         html,
       });
-      sent++;
+    };
+
+    // LINE友だち登録済みのお客様はLINEを優先（開封率が高く、二重連絡を避けるためメールは送らない）。
+    // お礼メッセージ（api/cron/thankyou）と同じ方針。
+    // ⚠️ ただしお礼と違い、リマインドは日付が決まった時限性のある連絡で、落ちると当日まで
+    // 誰も気づけない。そのため LINE が失敗したらメールへフォールバックする。
+    try {
+      if (customer.line_id) {
+        // postToLine は API エラーなら false を返すが、fetch 自体が落ちると throw する。
+        // どちらもメールへのフォールバック対象にしたいので、ここで false に寄せる。
+        const ok = await sendLinePushMessage(
+          customer.line_id,
+          buildReminderLineMessage({
+            customerName,
+            plan: r.plan,
+            date: r.date,
+            checkinTime: r.checkin_time,
+            checkoutDate: r.checkout_date,
+            dogs,
+            reservationId: r.id,
+          })
+        ).catch((e) => {
+          console.error(`Reminder LINE threw for ${r.id}:`, e);
+          return false;
+        });
+        if (ok) {
+          sentLine++;
+          continue;
+        }
+        console.error(`Reminder LINE failed for ${r.id}, falling back to email`);
+        if (!customer.email) {
+          failed++;
+          continue;
+        }
+      }
+      await sendEmail();
+      sentEmail++;
     } catch (err) {
-      console.error(`Reminder email failed for ${r.id}:`, err);
+      console.error(`Reminder failed for ${r.id}:`, err);
       failed++;
     }
   }
@@ -201,7 +250,9 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     message: `Reminders for ${targetDateStr}`,
     total: reservations.length,
-    sent,
+    sentEmail,
+    sentLine,
     failed,
+    skipped,
   });
 }

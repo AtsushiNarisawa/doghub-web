@@ -203,6 +203,55 @@ export function buildBookingConfirmMessage(params: {
 }
 
 // ───────────────────────────────────────────
+// ご予約日前のリマインド（前々日・cron/reminder から送る）
+// ───────────────────────────────────────────
+// メール版（api/cron/reminder の buildReminderHtml）と同じ情報を1通にまとめる。
+// 通数課金のため複数バブルに割らない（無料枠200通/月）。
+export function buildReminderLineMessage(params: {
+  customerName: string;
+  plan: string;
+  date: string;
+  checkinTime: string;
+  checkoutDate: string | null;
+  dogs: string[];
+  reservationId: string;
+}): LineMessage[] {
+  const { customerName, plan, date, checkinTime, checkoutDate, dogs, reservationId } = params;
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  const fmt = (d: string) => {
+    const dt = new Date(d + "T00:00:00");
+    return `${dt.getFullYear()}年${dt.getMonth() + 1}月${dt.getDate()}日（${days[dt.getDay()]}）`;
+  };
+
+  const lines = [
+    `${customerName}様`,
+    "",
+    "ご予約日が近づいてまいりました🐾",
+    "",
+    `📅 ${fmt(date)}`,
+    `🕐 チェックイン ${checkinTime.slice(0, 5)}`,
+  ];
+  if (plan === "stay" && checkoutDate) {
+    lines.push(`🏠 チェックアウト ${fmt(checkoutDate)} 9:00〜11:00`);
+  }
+  lines.push(`📋 ${PLAN_LABELS[plan] ?? plan}`);
+  // 多頭は「ポロちゃん、ぱんちちゃん」。まとめて「ポロ、ぱんち ちゃん」にすると読みが不自然になる。
+  if (dogs.length > 0) lines.push(`🐕 ${dogs.map((d) => `${d}ちゃん`).join("、")}`);
+  lines.push(
+    "",
+    "当日のお持ち物・ご注意点はこちらをご覧ください",
+    "https://dog-hub.shop/guide",
+    "",
+    "📝 ご変更・キャンセルはこちら",
+    `https://dog-hub.shop/booking/modify/${reservationId}`,
+    "",
+    "お気をつけてお越しくださいませ。"
+  );
+
+  return [{ type: "text", text: lines.join("\n") }];
+}
+
+// ───────────────────────────────────────────
 // 友だち追加時のウェルカムメッセージ
 // ───────────────────────────────────────────
 // 「お客様情報のご登録」の入口。LIFF のエンドポイントURLが /booking のため、
