@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendLineLinkNoticeEmail } from "@/lib/email";
+import { verifyLinkToken } from "@/lib/link-token";
 
 // LINE友だちと顧客レコードの紐付け（LIFF「お客様情報のご登録」から呼ばれる）
 //
@@ -26,9 +27,10 @@ function getSupabase() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { line_id, phone } = await req.json();
+    // token = メール経由の1タップ連携（お客様の入力ゼロ）。phone = 従来のLIFF手入力。
+    const { line_id, phone, token } = await req.json();
 
-    if (!line_id || !phone) {
+    if (!line_id || (!phone && !token)) {
       return NextResponse.json({ ok: false, reason: "invalid_request" }, { status: 400 });
     }
 
@@ -48,23 +50,53 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, customerName: name, reason: "already_linked_self" });
     }
 
-    // 数字のみに正規化。実データの電話番号は893件すべて数字のみで、
-    // ハイフンを含む9件は「電話番号なし」を表すプレースホルダー（NO_PHONE_DH-XXXX）のため、
-    // 桁数で弾いておけばプレースホルダーに誤って一致することもない。
-    const normalizedPhone = String(phone).replace(/^\+81/, "0").replace(/[^0-9]/g, "");
-    if (normalizedPhone.length < 10) {
-      return NextResponse.json({ ok: false, reason: "not_a_customer" });
-    }
+    const SELECT = "id, last_name, first_name, email, line_id";
+    let customer: {
+      id: string;
+      last_name: string | null;
+      first_name: string | null;
+      email: string | null;
+      line_id: string | null;
+    } | null = null;
 
-    const { data: customer } = await supabase
-      .from("customers")
-      .select("id, last_name, first_name, email, line_id")
-      .eq("phone", normalizedPhone)
-      .maybeSingle();
+    if (token) {
+      // ── メール経由（署名付きトークン）＝入力ゼロ。
+      // トークンが壊れている/期限切れなら画面側が電話番号入力へフォールバックする。
+      const verified = verifyLinkToken(String(token));
+      if (!verified) {
+        return NextResponse.json({ ok: false, reason: "invalid_token" });
+      }
+      const { data } = await supabase
+        .from("customers")
+        .select(SELECT)
+        .eq("id", verified.customerId)
+        .maybeSingle();
+      // 署名は正しいのに顧客が居ない＝削除済み等。連携先が無いので同じ扱いにする。
+      if (!data) {
+        return NextResponse.json({ ok: false, reason: "not_a_customer" });
+      }
+      customer = data;
+    } else {
+      // ── 従来のLIFF手入力（お電話番号）
+      // 数字のみに正規化。実データの電話番号は893件すべて数字のみで、
+      // ハイフンを含む9件は「電話番号なし」を表すプレースホルダー（NO_PHONE_DH-XXXX）のため、
+      // 桁数で弾いておけばプレースホルダーに誤って一致することもない。
+      const normalizedPhone = String(phone).replace(/^\+81/, "0").replace(/[^0-9]/g, "");
+      if (normalizedPhone.length < 10) {
+        return NextResponse.json({ ok: false, reason: "not_a_customer" });
+      }
 
-    // 電話番号が見つからない＝まだご利用のない方（＝紐付ける相手がいない。エラーではない）
-    if (!customer) {
-      return NextResponse.json({ ok: false, reason: "not_a_customer" });
+      const { data } = await supabase
+        .from("customers")
+        .select(SELECT)
+        .eq("phone", normalizedPhone)
+        .maybeSingle();
+
+      // 電話番号が見つからない＝まだご利用のない方（＝紐付ける相手がいない。エラーではない）
+      if (!data) {
+        return NextResponse.json({ ok: false, reason: "not_a_customer" });
+      }
+      customer = data;
     }
 
     // 既に別のLINEアカウントが紐付いている顧客は上書きしない（乗っ取り防止）

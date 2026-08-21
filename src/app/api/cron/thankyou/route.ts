@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendThankYouEmail } from "@/lib/email";
 import { sendLinePushMessage, buildThankYouLineMessage } from "@/lib/line";
+import { buildLineLinkUrl } from "@/lib/link-token";
 import { isReviewRequestOptedOut } from "@/lib/review-opt-out";
 
 const supabase = createClient(
@@ -124,15 +125,34 @@ export async function GET(req: NextRequest) {
     const isFirstVisit = (count ?? 0) <= 1 && !optedOut;
 
     try {
+      // 友だち解除・ブロック後は push が失敗する。LINE優先のままだとお礼が丸ごと消えるため、
+      // メールがあれば切り替える（cron/reminder と同じ考え方）。
+      let lineFailed = false;
       if (useLine) {
         const ok = await sendLinePushMessage(
           customer.line_id!,
           buildThankYouLineMessage(customerName, isFirstVisit)
+        ).catch(() => false);
+        if (ok) {
+          sentLine++;
+        } else if (customer.email && customer.email_opt_out !== true && customer.email_bounced !== true) {
+          console.error(`Thank-you LINE failed for ${r.id}, falling back to email`);
+          lineFailed = true;
+        } else {
+          throw new Error("LINE push failed");
+        }
+      }
+      if (!useLine || lineFailed) {
+        // メールで送る＝まだLINEと紐付いていない方。1タップで連携できるリンクを同梱する
+        // （初回のお客様は口コミ依頼を優先するため、雛形側で表示されない）。
+        await sendThankYouEmail(
+          customer.email,
+          customerName,
+          dogNames,
+          planName,
+          isFirstVisit,
+          buildLineLinkUrl(customer.id)
         );
-        if (!ok) throw new Error("LINE push failed");
-        sentLine++;
-      } else {
-        await sendThankYouEmail(customer.email, customerName, dogNames, planName, isFirstVisit);
         sentEmail++;
       }
 

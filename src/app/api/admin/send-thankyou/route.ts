@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendThankYouEmail } from "@/lib/email";
 import { sendLinePushMessage, buildThankYouLineMessage } from "@/lib/line";
+import { buildLineLinkUrl } from "@/lib/link-token";
 import { isReviewRequestOptedOut } from "@/lib/review-opt-out";
 
 const supabase = createClient(
@@ -92,6 +93,8 @@ export async function POST(req: NextRequest) {
         dogs?.map(d => d.name) || [],
         PLAN_NAMES[reservation.plan] || "お預かり",
         isFirstVisit,
+        // メール経路＝まだLINE未紐付けの方。1タップ連携リンクを同梱する
+        buildLineLinkUrl(reservation.customer_id),
       );
     }
 

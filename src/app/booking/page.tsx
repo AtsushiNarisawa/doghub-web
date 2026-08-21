@@ -32,15 +32,25 @@ export default function BookingPage() {
   // LIFF のエンドポイントURLが /booking のため、専用LIFFを増やさずここで出し分けている
   // （将来 LIFF を分けるのが本来の形。marketing/reports/line_linking_implementation_plan_2026-07-21.md §3）
   const [linkMode, setLinkMode] = useState(false);
+  // メールの「1タップ連携」リンクに乗ってくる署名付きトークン（?t=...）。
+  // あればお電話番号の入力なしで顧客を特定できる。
+  const [linkToken, setLinkToken] = useState<string | undefined>(undefined);
+  // LIFFで開けても「友だち」とは限らない。友だちでないと push が送れず、
+  // 連携だけ済んで通知が届かない状態になるため、連携完了画面で友だち追加を促す。
+  // null = 未判定（判定できないときは促さない＝余計な案内を出さない）
+  const [isLineFriend, setIsLineFriend] = useState<boolean | null>(null);
 
   // LIFF初期化 + LINE ID取得
   useEffect(() => {
     let isLinkMode = false;
     if (typeof window !== "undefined") {
-      const mode = new URLSearchParams(window.location.search).get("mode");
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get("mode");
       if (mode === "link") {
         isLinkMode = true;
         setLinkMode(true);
+        const t = params.get("t");
+        if (t) setLinkToken(t);
       }
     }
 
@@ -52,6 +62,9 @@ export default function BookingPage() {
     liff.init({ liffId: LIFF_ID }).then(() => {
       if (liff.isInClient() || liff.isLoggedIn()) {
         setIsLiff(true);
+        liff.getFriendship()
+          .then((f) => setIsLineFriend(!!f.friendFlag))
+          .catch(() => setIsLineFriend(null));
         liff.getProfile().then((profile) => {
           setForm((prev) => ({
             ...prev,
@@ -130,7 +143,12 @@ export default function BookingPage() {
   if (linkMode) {
     return (
       <div className="min-h-dvh bg-[#F8F5F0]">
-        <LineLinkForm lineId={form.line_id ?? ""} isLiff={isLiff} />
+        <LineLinkForm
+          lineId={form.line_id ?? ""}
+          isLiff={isLiff}
+          token={linkToken}
+          isFriend={isLineFriend}
+        />
       </div>
     );
   }

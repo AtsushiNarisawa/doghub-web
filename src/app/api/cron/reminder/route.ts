@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { sendLinePushMessage, buildReminderLineMessage } from "@/lib/line";
+import { buildLineLinkUrl } from "@/lib/link-token";
+import { buildLineLinkSection } from "@/lib/email";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,6 +32,8 @@ function buildReminderHtml(reservation: {
   notes: string | null;
   customer_name: string;
   dogs: string[];
+  // まだLINEと紐付いていない方にだけ渡す1タップ連携リンク（lib/link-token.ts）
+  lineLinkUrl?: string | null;
 }) {
   const stayInfo = reservation.plan === "stay" && reservation.checkout_date
     ? `<tr>
@@ -96,6 +100,8 @@ function buildReminderHtml(reservation: {
       <p style="margin:8px 0 0;font-size:12px;color:#888;">初めてのご利用の方はぜひご確認ください</p>
     </div>
 
+    ${buildLineLinkSection(reservation.lineLinkUrl, true)}
+
     <!-- 変更・キャンセルリンク -->
     <div style="margin-top:16px;text-align:center;">
       <a href="https://dog-hub.shop/booking/modify/${reservation.id}" style="color:#B87942;font-size:13px;">予約内容を変更する</a>
@@ -136,7 +142,7 @@ export async function GET(req: NextRequest) {
   const { data: reservations, error } = await supabase
     .from("reservations")
     .select(`
-      id, plan, date, checkin_time, checkout_date, notes,
+      id, customer_id, plan, date, checkin_time, checkout_date, notes,
       customers!inner(last_name, first_name, email, line_id),
       reservation_dogs(dogs(name))
     `)
@@ -196,6 +202,8 @@ export async function GET(req: NextRequest) {
         notes: r.notes,
         customer_name: customerName,
         dogs,
+        // ここに来る＝LINE未紐付け（紐付け済みの方はLINEで送っている）
+        lineLinkUrl: buildLineLinkUrl(r.customer_id),
       });
       await transporter.sendMail({
         from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,

@@ -372,11 +372,38 @@ export async function sendBookingEmails(
 
 export const GOOGLE_REVIEW_URL = "https://search.google.com/local/writereview?placeid=ChIJZ4GCMaOfGWAR9WTxcF0Jkpk";
 
+// ──────────────────────────────────────────
+// LINE連携のご案内（メール共通パーツ）
+// ──────────────────────────────────────────
+// メールは宛先が既知なので、署名付きトークン入りのLIFFリンク（lib/link-token.ts）を
+// 載せておけば、LINEで開くだけで顧客情報と紐付く＝お客様の入力はゼロ。
+// 呼び出し側は「まだ紐付いていない方」にだけ url を渡すこと（紐付け済みの方には出さない）。
+export function buildLineLinkSection(url: string | null | undefined, compact = false): string {
+  if (!url) return "";
+  if (compact) {
+    return `
+    <div style="margin:16px 0 0;padding:12px 14px;background:#F0F7F0;border-radius:10px;">
+      <p style="margin:0 0 6px;font-size:13px;color:#3C200F;font-weight:600;">LINEでもお知らせをお受け取りいただけます</p>
+      <p style="margin:0;font-size:12px;color:#888;line-height:1.7;">
+        <a href="${url}" style="color:#06C755;font-weight:600;">こちらをタップ</a>していただくと、ご予約の確認やお知らせをLINEでお送りできます（ご入力は不要です）。
+      </p>
+    </div>`;
+  }
+  return `
+    <div style="margin:24px 0;padding:20px;background:#F0F7F0;border-radius:12px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:14px;color:#3C200F;font-weight:600;">LINEでもつながりませんか？</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#888;line-height:1.7;">ご予約の確認やお知らせを、LINEでお受け取りいただけます。<br>お問い合わせもLINEからそのままどうぞ。</p>
+      <a href="${url}" style="display:inline-block;padding:12px 32px;background:#06C755;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">LINEで受け取る</a>
+      <p style="margin:8px 0 0;font-size:11px;color:#bbb;">タップするだけで完了します（ご入力は不要です）</p>
+    </div>`;
+}
+
 function buildThankYouEmailHtml(
   customerName: string,
   dogNames: string[],
   planName: string,
   isFirstVisit: boolean,
+  lineLinkUrl?: string | null,
 ): string {
   const reviewSection = isFirstVisit
     ? `
@@ -414,6 +441,7 @@ function buildThankYouEmailHtml(
     </p>
 
     ${reviewSection}
+    ${isFirstVisit ? "" : buildLineLinkSection(lineLinkUrl)}
 
     <!-- 次回予約 -->
     <div style="margin:20px 0;text-align:center;">
@@ -443,6 +471,9 @@ export async function sendThankYouEmail(
   dogNames: string[],
   planName: string,
   isFirstVisit: boolean,
+  // まだLINEと紐付いていない方にだけ渡す（lib/link-token.ts の buildLineLinkUrl で生成）。
+  // 初回のお客様には口コミ依頼を優先するため、この案内は2回目以降にのみ表示される。
+  lineLinkUrl?: string | null,
 ) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn("Email not configured");
@@ -457,7 +488,7 @@ export async function sendThankYouEmail(
       replyTo: "info@dog-hub.shop",
       to: email,
       subject,
-      html: buildThankYouEmailHtml(customerName, dogNames, planName, isFirstVisit),
+      html: buildThankYouEmailHtml(customerName, dogNames, planName, isFirstVisit, lineLinkUrl),
     });
     console.log(`Thank-you email sent to ${email}`);
   } catch (err) {
