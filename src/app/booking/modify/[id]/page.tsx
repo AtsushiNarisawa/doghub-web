@@ -284,9 +284,21 @@ export default function ModifyPage() {
           {saving ? "変更中..." : hasChanges ? "変更を確定する" : "変更なし"}
         </button>
 
-        <p className="text-center text-xs text-[#888]">
-          日付やプランの変更は、一度キャンセルして再予約をお願いいたします。
-        </p>
+        {/* キャンセル導線。LINE予約のお客様には変更ページのリンクしか届かないため
+            （lib/line.ts buildBookingConfirmMessage は modify の1本のみ）、ここに
+            キャンセルへの導線が無いと「一度キャンセルして再予約を」と案内しながら
+            行き止まりになる。キャンセル側は独立して電話番号下4桁の本人確認を行う。 */}
+        <div className="text-center space-y-3 pt-1">
+          <p className="text-xs text-[#888]">
+            日付やプランの変更は、一度キャンセルして再予約をお願いいたします。
+          </p>
+          <a
+            href={`/booking/cancel/${id}`}
+            className="inline-block text-sm text-[#888] underline underline-offset-4"
+          >
+            予約をキャンセルする
+          </a>
+        </div>
       </main>
     </div>
   );
