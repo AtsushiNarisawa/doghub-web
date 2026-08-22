@@ -137,6 +137,17 @@ const WM: Record<string, WmImage> = {
     title: "箱根園",
     fileName: "Hakone-en_Zoo_-_Hakone,_Japan_-_DSC05664.jpg",
   },
+  // 秋（2026-08-23 追加・ともに CC BY 2.0）
+  hakoneAutumn: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/51/Hakone%27s_autumn_selection_%2845519478341%29.jpg",
+    title: "箱根の秋（箱根湿生花園）",
+    fileName: "Hakone's_autumn_selection_(45519478341).jpg",
+  },
+  ashinokoAutumnCruise: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Autumn_foliage_%40_Sightseeing_Cruise_%40_Lake_Ashi_%40_From_Togendai_to_Hakone-Machi_%2810621214244%29.jpg",
+    title: "芦ノ湖 海賊船から見た紅葉",
+    fileName: "Autumn_foliage_@_Sightseeing_Cruise_@_Lake_Ashi_@_From_Togendai_to_Hakone-Machi_(10621214244).jpg",
+  },
   // 箱根湯本
   yumoto: {
     url: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Hakone-Yumoto_station_2024.jpg",
@@ -158,6 +169,11 @@ const WM_BY_URL: Record<string, WmImage> = Object.fromEntries(
 // 記事に挿入する画像マッピング（slug → 見出しキーワード → 画像URL）
 // 観光地・施設画像は Wikimedia Commons、DogHub自社写真は /images/ 配下
 const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = {
+  "hakone-autumn-dog-guide": [
+    { keyword: "犬と一緒に歩ける場所", images: [WM.goraPark.url] },
+    { keyword: "乗り物と建物", images: [WM.ashinokoAutumnCruise.url] },
+    { keyword: "ゴルフの季節", images: ["/images/daihakone-cc-course.jpg"] },
+  ],
   "spring-walk-guide": [
     { keyword: "お散歩コース", images: [WM.sengokuSusuki.url, WM.sengokuSusuki2.url] },
     { keyword: "カフェ", images: ["/images/doghub-cafe-counter-mimosa.jpg"] },

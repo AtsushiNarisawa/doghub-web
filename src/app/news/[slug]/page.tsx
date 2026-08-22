@@ -14,6 +14,12 @@ import Image from "next/image";
 
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string; btnLabel: string }> = {
+  "hakone-autumn-dog-guide": {
+    text: "ロープウェイや美術館の時間だけ、愛犬をお預かり",
+    subtext: "ケージが苦手な子、ゴルフでコースに出る日に。完全個室で過ごしながら、スタッフがドッグランに出します。半日¥3,300、1日（8時間）¥5,500。1日は早朝7時から。",
+    href: "/service",
+    btnLabel: "お預かりプラン・料金を見る",
+  },
   "hakone-dog-sick-during-trip": {
     text: "旅先でも、見ていてくれる人がいる場所へ",
     subtext: "24時間スタッフ常駐・完全個室。車で4分のアニマルクリニック仙石原と提携しています（受診はクリニックの診療時間内）。宿泊1泊¥7,700〜、日帰りは半日¥3,300〜。",
@@ -130,7 +136,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-owakudani-dog-guide": {
     text: "大涌谷観光中の愛犬はDogHubへ",
-    subtext: "大涌谷から車約20分。硫黄ガスの心配なく、愛犬を安心してお預けください。夏は駐車場も混み合います。観光の間、涼しい個室でお預かりします。半日¥3,300〜。",
+    subtext: "大涌谷から車約20分。硫黄ガスの心配なく、愛犬を安心してお預けください。紅葉期と夏の週末は駐車場も混み合います。観光の間、個室でお預かりします。半日¥3,300〜。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
@@ -238,7 +244,7 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
   },
   "hakone-gw-traffic-route-guide": {
     text: "仙石原到着後のお預かりはDogHubへ",
-    subtext: "乙女峠を越えて仙石原に着いたら、犬NGの施設もあります。到着後の観光の間、涼しい個室で愛犬をお預かりします。半日¥3,300〜、1日¥5,500〜。",
+    subtext: "乙女峠を越えて仙石原に着いたら、犬NGの施設もあります。到着後の観光の間、個室で愛犬をお預かりします。半日¥3,300〜、1日¥5,500〜。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
@@ -246,6 +252,12 @@ const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string;
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
 const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; description: string }[]> = {
+  "hakone-autumn-dog-guide": [
+    { label: "半日お預かり", href: "/4h", description: "¥3,300 美術館1館や乗り物の往復に" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500 ゴルフ1ラウンド・1日観光に。早朝7時〜" },
+    { label: "ゴルフに行くなら", href: "/golf", description: "大箱根CCまで車で約5分" },
+    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車で4分" },
+  ],
   "hakone-dog-sick-during-trip": [
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐・完全個室" },
     { label: "ペット可の宿に泊まるなら", href: "/pethotel", description: "チェックイン前・アウト後のお預かり" },
@@ -461,6 +473,29 @@ const DEFAULT_CTA = {
 // 表示カテゴリが異なり自動relatedで連結されず、個別3館がサイト内で孤立していた。
 // ハブ↔個別3館をフルメッシュで結び、孤立解消＋同KWのカニバリ（ハブが個別の影で低順位表示）を整理する。
 const ARTICLE_RELATED: Record<string, string[]> = {
+  // 秋クラスタ（2026-08-23 新設）
+  // 新記事が内部リンクゼロにならないよう、記事本文が言及する乗り物・ゴルフ・夏の各記事から
+  // 相互に張る。KPIは流入と日帰りお預かり・カフェ（宿泊の梃子としては起案しない）。
+  "hakone-autumn-dog-guide": [
+    "hakone-summer-dog-guide",
+    "hakone-ropeway-pirate-ship-dog-guide",
+    "hakone-golf-pet-guide",
+  ],
+  "hakone-ropeway-pirate-ship-dog-guide": [
+    "hakone-autumn-dog-guide",
+    "hakone-owakudani-dog-guide",
+    "hakone-ashinoko-dog-guide",
+  ],
+  "hakone-owakudani-dog-guide": [
+    "hakone-autumn-dog-guide",
+    "hakone-ropeway-pirate-ship-dog-guide",
+    "hakone-ashinoko-dog-guide",
+  ],
+  "hakone-golf-pet-guide": [
+    "hakone-autumn-dog-guide",
+    "hakone-daihakone-cc-dog-guide",
+    "hakone-dog-hotel-guide",
+  ],
   // 美術館クラスタ（ハブ↔個別3館・フルメッシュ）
   "hakone-museum-dog-guide": [
     "hakone-chokoku-no-mori-dog-guide",
@@ -484,9 +519,9 @@ const ARTICLE_RELATED: Record<string, string[]> = {
   ],
   // 夏クラスタ（避暑↔熱中症の相互リンク＋夏に近接する記事）
   "hakone-summer-dog-guide": [
+    "hakone-autumn-dog-guide",
     "hakone-dog-heatstroke-guide",
     "hakone-yunessun-pet-guide",
-    "hakone-dog-day-trip",
   ],
   "hakone-dog-heatstroke-guide": [
     "hakone-summer-dog-guide",
