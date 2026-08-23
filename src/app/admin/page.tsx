@@ -379,12 +379,18 @@ export default function AdminDashboard() {
           <span className="text-lg font-medium font-dm">{totalDogs}頭</span>
         </div>
         {totalDogs > 0 && (() => {
-          const dayCount = todayRes.filter((r) => r.plan !== "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
-          const stayCount = todayRes.filter((r) => r.plan === "stay").reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0)
-            + stayingOver.reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          // 下のリスト部と同じ分類・同じ語彙で内訳を出す（日中 + IN + OUT + 連泊中 = totalDogs）
+          const headCount = (rs: ReservationRow[]) =>
+            rs.reduce((s, r) => s + (r.dog_count || r.reservation_dogs.length), 0);
+          const dayCount = headCount(todayRes.filter((r) => r.plan !== "stay"));
+          const checkinCount = headCount(todayRes.filter((r) => r.plan === "stay"));
+          const checkoutCount = headCount(stayingOver.filter((r) => r.checkout_date === selectedDate));
+          const stayOverCount = headCount(stayingOver.filter((r) => r.checkout_date && r.checkout_date > selectedDate));
           const parts: string[] = [];
           if (dayCount > 0) parts.push(`日中${dayCount}`);
-          if (stayCount > 0) parts.push(`宿泊${stayCount}`);
+          if (checkinCount > 0) parts.push(`チェックイン${checkinCount}`);
+          if (checkoutCount > 0) parts.push(`チェックアウト${checkoutCount}`);
+          if (stayOverCount > 0) parts.push(`連泊中${stayOverCount}`);
           return (
             <div className="mt-1 text-xs text-gray-400">
               {parts.join("・")}
