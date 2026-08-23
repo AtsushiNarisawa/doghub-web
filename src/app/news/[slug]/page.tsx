@@ -13,237 +13,198 @@ import { InstagramFollowFull } from "@/components/instagram-follow";
 import Image from "next/image";
 
 // 記事スラッグ別CTA設定
-const ARTICLE_CTA: Record<string, { text: string; subtext: string; href: string; btnLabel: string }> = {
+const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: string }> = {
   "hakone-autumn-dog-guide": {
-    text: "ロープウェイや美術館の時間だけ、愛犬をお預かり",
     subtext: "ケージが苦手な子、ゴルフでコースに出る日に。完全個室で過ごしながら、スタッフがドッグランに出します。半日¥3,300、1日（8時間）¥5,500。1日は早朝7時から。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
   "hakone-dog-sick-during-trip": {
-    text: "旅先でも、見ていてくれる人がいる場所へ",
     subtext: "24時間スタッフ常駐・完全個室。車で4分のアニマルクリニック仙石原と提携しています（受診はクリニックの診療時間内）。宿泊1泊¥7,700〜、日帰りは半日¥3,300〜。",
     href: "/stay",
     btnLabel: "宿泊プラン・料金を見る",
   },
   "hakone-summer-dog-guide": {
-    text: "夏の暑い時間だけ、涼しい個室で愛犬をお預かり",
     subtext: "ユネッサンや美術館など犬NGスポットの間に。完全個室と屋根付きドッグランで、暑い車内に待たせずに済みます。半日¥3,300〜、1日¥5,500〜。",
     href: "/service",
     btnLabel: "夏のお預かりプラン・料金を見る",
   },
   "hakone-dog-heatstroke-guide": {
-    text: "夏の暑い時間は、涼しい個室で愛犬をお預かり",
     subtext: "空調のきいた完全個室と屋根付きドッグランで、夏の暑さから愛犬を守ります。暑い時間帯やNGスポットの間だけでも。半日¥3,300〜、1日¥5,500〜。",
     href: "/service",
     btnLabel: "夏のお預かりプラン・料金を見る",
   },
   "hakone-retona-dog-guide": {
-    text: "ゴルフの日も、愛犬と泊まる箱根を",
     subtext: "早朝7時からお預かり。大箱根CCまで約5分、リトナ箱根さんからDogHubまで約10分です。1日¥5,500〜。",
     href: "/golf",
     btnLabel: "ゴルフ×お預かりプランを見る",
   },
   "hakone-golf-pet-guide": {
-    text: "ゴルフ前に愛犬を安心してお預け",
     subtext: "早朝7時からお預かり。大箱根CCへのアクセスも便利な仙石原にあります。",
     href: "/golf",
     btnLabel: "ゴルフ×お預かりプランを見る",
   },
   "hakone-yunessun-pet-guide": {
-    text: "ユネッサンを愛犬なしで楽しむために",
     subtext: "DogHubは1日8時間プランあり。ユネッサンまで車で約15分の立地です。",
     href: "/yunessun",
     btnLabel: "日帰りお預かりプランを見る",
   },
   "hakone-museum-dog-guide": {
-    text: "美術館めぐりの間、愛犬をお預け",
     subtext: "ポーラ美術館まで車4分。2時間¥2,200〜のスポット利用で気軽にお預けできます。",
     href: "/museum",
     btnLabel: "美術館×お預かりのモデルコースを見る",
   },
   "hakone-pet-hotel-comparison": {
-    text: "箱根で選ばれているドッグホテル",
     subtext: "木の壁で仕切った完全個室（お部屋）でお預かり。お預かり中は広いドッグランにもお出しするので、閉じ込めっぱなしにはしません。",
     href: "/service",
     btnLabel: "DogHubのサービス・料金を見る",
   },
   "hakone-dog-friendly-hotels": {
-    text: "犬と泊まれる宿が見つからない時の、もう一つの選択肢",
     subtext: "お好きな宿に泊まって、愛犬は近くのDogHubに1泊お預けする「宿泊分離型」という過ごし方。完全個室・24時間スタッフ常駐で、1泊¥7,700〜。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
     href: "/stay",
     btnLabel: "宿泊お預かりのプラン・料金を見る",
   },
   "hakone-dog-trip-guide": {
-    text: "箱根観光中の愛犬のお預かり",
     subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。観光中の暑い時間だけでも、涼しい個室でお預かりします。半日¥3,300〜、1日¥5,500〜。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
   "spring-walk-guide": {
-    text: "お散歩のついでに立ち寄れます",
     subtext: "仙石原すすき草原から徒歩圏内。愛犬同伴OKのカフェでおむすび＆スープはいかがですか？（土日祝のご提供）",
     href: "/cafe",
     btnLabel: "カフェメニュー・アクセスを見る",
   },
   "hakone-dog-hotel-guide": {
-    text: "箱根の犬のホテルならDogHub箱根仙石原",
     subtext: "24時間スタッフ常駐・完全個室・ドッグラン併設。宿泊¥7,700〜、半日預かり¥3,300〜。",
     href: "/stay",
     btnLabel: "宿泊・預かりプランを見る",
   },
   "hakone-dog-overnight-stay-guide": {
-    text: "宿泊のお預かりは、14時から翌朝11時まで",
     subtext: "木の壁で仕切った完全個室で1泊¥7,700〜。夜は宿直スタッフが建物に泊まり、ライブカメラで見守ります。お預かり中は毎日、スタッフがドッグランにもお出しします。",
     href: "/stay",
     btnLabel: "宿泊プラン・料金を見る",
   },
   "hakone-pet-not-allowed-stay-guide": {
-    text: "宿はそのままで、愛犬は近くで1泊",
     subtext: "ペットを受けていない宿にお泊まりの日も、旅の予定を変えずに済みます。完全個室・24時間スタッフ常駐で1泊¥7,700〜。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
     href: "/stay",
     btnLabel: "宿泊お預かりのプラン・料金を見る",
   },
   "hakone-dog-lunch-guide": {
-    text: "箱根で犬連れランチならDogHubのカフェへ",
     subtext: "土日祝は室内で犬と一緒に食事OK（おむすび＆スープ）。予約不要・頭数制限なし。ご利用のお客様は食後にドッグランも。",
     href: "/cafe",
     btnLabel: "カフェメニューを見る",
   },
   "hakone-dog-rainy-day": {
-    text: "雨の日でも安心。屋根付きドッグラン併設",
     subtext: "お預かり中は天候を気にせず愛犬を遊ばせられます。カフェで室内ランチもOK（土日祝）。",
     href: "/dogrun",
     btnLabel: "ドッグラン詳細を見る",
   },
   "hakone-pet-hotel-area-guide": {
-    text: "仙石原の中心にあるペットホテル",
     subtext: "強羅から車10分、芦ノ湖・桃源台から車10分（元箱根方面は約20分）。箱根のどこからでもアクセスしやすい立地です。",
     href: "/service",
     btnLabel: "料金・サービスを見る",
   },
   "hakone-ashinoko-dog-guide": {
-    text: "芦ノ湖観光の前後にお預け",
     subtext: "桃源台から車10分、元箱根から車20分。半日預かり¥3,300〜。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
   "hakone-dog-cafe-guide": {
-    text: "箱根で室内犬連れOKのカフェ",
     subtext: "DogHubのOMUSUBI & SOUP CAFE。予約不要・頭数制限なし。店内のご飲食とドッグランは土日祝のみ。",
     href: "/cafe",
     btnLabel: "カフェの詳細を見る",
   },
   "hakone-owakudani-dog-guide": {
-    text: "大涌谷観光中の愛犬はDogHubへ",
     subtext: "大涌谷から車約20分。硫黄ガスの心配なく、愛犬を安心してお預けください。紅葉期と夏の週末は駐車場も混み合います。観光の間、個室でお預かりします。半日¥3,300〜。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
   "hakone-dog-spot-sengokuhara": {
-    text: "仙石原の犬連れ旅行の拠点に",
     subtext: "ペットホテル・カフェ・ドッグランが仙石原の中心にあります。",
     href: "/service",
     btnLabel: "DogHubのサービスを見る",
   },
   "hakone-dog-hotel-cost-comparison": {
-    text: "1泊¥7,700〜で愛犬を安心してお預け",
     subtext: "24時間スタッフ常駐・個室・ドッグラン併設。飼い主さんは憧れの旅館を満喫できます。",
     href: "/stay",
     btnLabel: "宿泊プランを見る",
   },
   "hakone-chokoku-no-mori-dog-guide": {
-    text: "彫刻の森美術館の間、愛犬をお預け",
     subtext: "美術館まで車13分。半日¥3,300〜で、ピカソ館までゆっくり鑑賞できます。",
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
   "hakone-pola-museum-dog-guide": {
-    text: "ポーラ美術館の間、愛犬をお預け",
     subtext: "DogHubから車たった4分。半日¥3,300〜で名画をゆっくり楽しめます。",
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
   "hakone-glass-forest-museum-dog-guide": {
-    text: "館内鑑賞の間だけ、愛犬をお預け",
     subtext: "ガラスの森美術館までDogHubから車3分。半日¥3,300〜で館内もじっくり鑑賞できます。",
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
   "hakone-dog-day-hot-spring-guide": {
-    text: "日帰り温泉の間、愛犬をお預け",
     subtext: "仙石原・強羅・湯本の温泉施設へ好アクセス。半日¥3,300〜で温泉＋ランチにちょうどいい時間配分。",
     href: "/onsen",
     btnLabel: "温泉×お預かりプランを見る",
   },
   "hakone-jinja-dog-guide": {
-    text: "参拝の後は美術館や温泉も。犬はDogHubへ",
     subtext: "箱根神社は犬OKでも、美術館や温泉は犬NG。参拝後の観光中だけお預かりできます。半日¥3,300〜。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
   "hakone-ropeway-pirate-ship-dog-guide": {
-    text: "ゴールデンコースの前後にお預け",
     subtext: "ロープウェイから海賊船への周遊中、ケージを持ち歩かずに身軽に。半日¥3,300〜でお預かりします。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
   "hakone-en-dog-guide": {
-    text: "箱根園の前後にDogHubへ",
     subtext: "箱根園まで車約20分。ふれあい動物園の間だけお預かりも。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
   "hakone-gora-park-dog-guide": {
-    text: "強羅エリアのお出かけ拠点に",
     subtext: "強羅から車10分。クラフト体験の間だけ預けて、庭園は犬と一緒に。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
   "hakone-gw-spring-dog-guide": {
-    text: "GWの箱根旅行、愛犬のお預かり",
     subtext: "GW期間は混み合います。宿泊・半日プランともに早めのご予約がおすすめです。",
     href: "/service",
     btnLabel: "プラン・料金を見る",
   },
   "hakone-dog-day-trip": {
-    text: "日帰り箱根の拠点にDogHub",
     subtext: "半日¥3,300〜。仙石原を拠点に美術館も温泉も効率よく。",
     href: "/service",
     btnLabel: "日帰りプラン・料金を見る",
   },
   "pet-hotel-first-time-tips": {
-    text: "初めてのペットホテルはDogHubで",
     subtext: "完全個室で安心。まずは1時間¥1,100〜のスポット利用から始められます。",
     href: "/service",
     btnLabel: "スポット利用・料金を見る",
   },
   "hakone-sengokuhara-prince-dog-guide": {
-    text: "仙石原プリンスホテルにお泊まりの日のお預かり",
     subtext: "ホテルまで車で約5分。宿泊プラン¥7,700〜、翌日延長は4時間/8時間プランで。",
     href: "/stay",
     btnLabel: "宿泊プランを見る",
   },
   "hakone-miyanoshita-xiv-dog-guide": {
-    text: "エクシブ箱根離宮にご滞在の日のお預かり",
     subtext: "宿まで車で約13分。観光の途中にお立ち寄りいただけます。宿泊プラン¥7,700〜。",
     href: "/stay",
     btnLabel: "宿泊プランを見る",
   },
   "hakone-daihakone-cc-dog-guide": {
-    text: "大箱根カントリークラブでゴルフの日のお預かり",
     subtext: "ゴルフ場まで車で約5分。早朝7時からお預かり対応。8時間プラン¥5,500。",
     href: "/8h",
     btnLabel: "1日お預かりプランを見る",
   },
   "hakone-regina-resort-dog-guide": {
-    text: "レジーナリゾート箱根仙石原ご滞在中のお預かり",
     subtext: "宿まで車で約2分。チェックイン前・アウト後・観光中の愛犬お預けに。半日¥3,300〜。",
     href: "/4h",
     btnLabel: "半日プランを見る",
   },
   "hakone-gw-traffic-route-guide": {
-    text: "仙石原到着後のお預かりはDogHubへ",
     subtext: "乙女峠を越えて仙石原に着いたら、犬NGの施設もあります。到着後の観光の間、個室で愛犬をお預かりします。半日¥3,300〜、1日¥5,500〜。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
@@ -461,7 +422,6 @@ const STAY_BRIDGE_SLUGS = new Set([
 ]);
 
 const DEFAULT_CTA = {
-  text: "箱根旅行中の愛犬のお預かりはDogHubへ",
   subtext: "ドッグランで自由に遊べる環境。宿泊・日帰りプランをご用意しています。",
   href: "/service",
   btnLabel: "料金・サービスを確認する",
