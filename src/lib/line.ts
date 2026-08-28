@@ -157,6 +157,10 @@ const PLAN_LABELS: Record<string, string> = {
   spot: "スポット",
 };
 
+// 呼び出し元によって "09:00"（予約フォームの入力値）と "09:00:00"（DBのtime型）の
+// 両方が渡るため、通知文に出す前にここで揃える。
+const toHHMM = (t: string | null | undefined) => (t || "").slice(0, 5);
+
 export function buildBookingConfirmMessage(params: {
   customerName: string;
   plan: string;
@@ -186,7 +190,7 @@ export function buildBookingConfirmMessage(params: {
         statusText,
         "",
         `📅 ${dateLabel}`,
-        `🕐 チェックイン ${checkinTime}`,
+        `🕐 チェックイン ${toHHMM(checkinTime)}`,
         `📋 ${PLAN_LABELS[plan] ?? plan}`,
         "",
         `予約番号: ${reservationId.slice(0, 8).toUpperCase()}`,
@@ -229,7 +233,7 @@ export function buildReminderLineMessage(params: {
     "ご予約日が近づいてまいりました🐾",
     "",
     `📅 ${fmt(date)}`,
-    `🕐 チェックイン ${checkinTime.slice(0, 5)}`,
+    `🕐 チェックイン ${toHHMM(checkinTime)}`,
   ];
   if (plan === "stay" && checkoutDate) {
     lines.push(`🏠 チェックアウト ${fmt(checkoutDate)} 9:00〜11:00`);
