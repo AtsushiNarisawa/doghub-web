@@ -840,6 +840,166 @@ export async function sendCancellationEmails(params: {
 }
 
 // ──────────────────────────────────────────
+// 予約内容の変更通知メール（お客様宛）
+// スタッフ操作の日程変更（api/admin/reschedule）と、お客様ご自身の変更（api/booking/modify）の
+// 両方から呼ぶ。従来はどちらもスタッフにしか通知が飛ばず、お客様の手元に変更後の記録が
+// 一切残らなかった（2026-08-30 総点検 #2/#3）。
+// 取引通知（予約者本人への連絡）なので email_opt_out（マーケ配信停止）は参照しない。
+// 予約確認・リマインド・キャンセル通知と同じ扱い。
+// 戻り値: お客様へメールを実際に送ったか（宛先なし・送信失敗のときは false）
+// ──────────────────────────────────────────
+export async function sendReservationChangeEmail(params: {
+  reservationId: string;
+  customer: { last_name: string; first_name: string | null; email: string | null } | null;
+  reservation: {
+    plan: string;
+    date: string;
+    checkin_time: string | null;
+    checkout_date: string | null;
+  };
+  changes: string[];
+  changedBy: "customer" | "staff";
+}): Promise<boolean> {
+  const { customer, reservation, changes } = params;
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return false;
+  if (!customer?.email || !customer.email.trim()) return false;
+  if (changes.length === 0) return false;
+
+  const planName = PLAN_NAMES[reservation.plan] || reservation.plan;
+  const checkinTime = reservation.checkin_time?.slice(0, 5) || "";
+  const changesHtml = changes
+    .map(
+      (ch) =>
+        `<li style="margin:0 0 6px;font-size:14px;color:#3C200F;line-height:1.7;">${escapeHtml(ch)}</li>`
+    )
+    .join("");
+
+  // スタッフ操作のときは「お客様が操作していない変更」なので、心当たりがない場合の導線を必ず添える。
+  const intro =
+    params.changedBy === "staff"
+      ? `ご予約の日程を変更いたしましたので、変更後の内容をお送りいたします。<br>
+         お心当たりがない場合は、お手数ですがご連絡ください。`
+      : `ご予約内容の変更を承りました。<br>
+         変更後の内容は以下のとおりです。`;
+
+  try {
+    await transporter.sendMail({
+      from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
+      replyTo: "info@dog-hub.shop",
+      to: customer.email,
+      subject: `【DogHub箱根】ご予約内容変更のご確認（${formatDate(reservation.date)}）`,
+      html: `<!DOCTYPE html>
+<html lang="ja">
+<body style="margin:0;padding:0;background:#F7F7F7;font-family:'Helvetica Neue',Arial,'Hiragino Sans',sans-serif;">
+<div style="max-width:480px;margin:0 auto;padding:24px 16px;">
+  <div style="text-align:center;padding:24px 0 16px;">
+    <p style="margin:0;font-size:20px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+  </div>
+  <div style="background:white;border-radius:16px;padding:28px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+    <p style="margin:0 0 20px;font-size:15px;color:#3C200F;line-height:1.8;">
+      ${escapeHtml(customer.last_name)}${escapeHtml(customer.first_name || "")} 様<br><br>
+      ${intro}
+    </p>
+    <div style="padding:16px;background:#F8F5F0;border-radius:10px;margin:0 0 20px;">
+      <p style="margin:0 0 10px;font-size:13px;color:#888;font-weight:600;">変更後のご予約</p>
+      <table style="font-size:14px;color:#3C200F;border-collapse:collapse;width:100%;">
+        <tr><td style="padding:4px 12px 4px 0;color:#888;white-space:nowrap;">プラン</td><td>${planName}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#888;white-space:nowrap;">日程</td><td>${formatDate(reservation.date)}${checkinTime ? ` ${checkinTime}` : ""}</td></tr>
+        ${reservation.checkout_date ? `<tr><td style="padding:4px 12px 4px 0;color:#888;white-space:nowrap;">チェックアウト</td><td>${formatDate(reservation.checkout_date)}</td></tr>` : ""}
+      </table>
+    </div>
+    <div style="padding:16px;background:#FFF7ED;border-radius:10px;margin:0 0 20px;">
+      <p style="margin:0 0 8px;font-size:13px;color:#9A3412;font-weight:600;">変更内容</p>
+      <ul style="margin:0;padding-left:18px;">${changesHtml}</ul>
+    </div>
+    <div style="text-align:center;">
+      <a href="https://dog-hub.shop/booking/modify/${params.reservationId}" style="display:inline-block;padding:12px 32px;border:1px solid #B87942;color:#B87942;border-radius:8px;text-decoration:none;font-size:14px;">ご予約内容を確認する</a>
+    </div>
+  </div>
+  <div style="text-align:center;padding:20px 0;">
+    <p style="margin:0 0 4px;font-size:13px;color:#3C200F;font-weight:600;">DogHub箱根仙石原</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">神奈川県足柄下郡箱根町仙石原928-15</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#888;">TEL: <a href="tel:0460800290" style="color:#B87942;">0460-80-0290</a></p>
+    <p style="margin:0;font-size:12px;color:#888;">営業時間: 金〜火 9:00〜17:00(水・木定休)</p>
+  </div>
+</div>
+</body>
+</html>`,
+    });
+    console.log(`[change-mail] OK reservation=${params.reservationId} by=${params.changedBy}`);
+    return true;
+  } catch (err) {
+    const e = err as Error;
+    console.error(`[change-mail] FAILED reservation=${params.reservationId} message=${e.message?.slice(0, 200)}`);
+    return false;
+  }
+}
+
+// ──────────────────────────────────────────
+// 「お客様に予約成立が何も届かなかった」ときのスタッフ宛アラート
+// LINE予約はメール任意のため、LINE push が失敗しメールも無いと予約が取れたことが
+// お客様に一切伝わらない（完全無音）。その1件をスタッフが電話等でフォローできるようにする。
+// （2026-08-30 総点検 #5）
+// ──────────────────────────────────────────
+export async function sendBookingNotifyFailureAlert(params: {
+  reservationId: string;
+  customerName: string;
+  phone: string;
+  plan: string;
+  date: string;
+  checkinTime: string;
+}): Promise<void> {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return;
+
+  const planName = PLAN_NAMES[params.plan] || params.plan;
+  const rows = [
+    ["お客様", params.customerName],
+    ["電話", params.phone],
+    ["プラン", planName],
+    ["日程", `${formatDate(params.date)} ${params.checkinTime}`],
+  ]
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:6px 12px 6px 0;color:#888;white-space:nowrap;">${k}</td><td style="color:#3C200F;">${escapeHtml(v)}</td></tr>`
+    )
+    .join("");
+
+  const html = `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:20px;">
+      <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
+        <p style="margin:0;color:#C2410C;font-size:15px;font-weight:700;">⚠️ お客様に予約完了の通知が届いていません</p>
+        <p style="margin:6px 0 0;color:#9A3412;font-size:13px;">LINEへの送信に失敗し、メールアドレスのご登録もないため、ご予約が取れたことがお客様に伝わっていません。お手数ですがお電話でご連絡をお願いします。</p>
+      </div>
+      <table style="font-size:14px;border-collapse:collapse;">${rows}</table>
+      <p style="margin-top:16px;"><a href="https://dog-hub.shop/admin/reservations/${params.reservationId}" style="color:#B87942;">管理画面で確認する</a></p>
+    </div>`;
+
+  const text = [
+    "お客様に予約完了の通知が届いていません（LINE送信失敗＋メール未登録）。",
+    "",
+    `お客様: ${params.customerName}`,
+    `電話: ${params.phone}`,
+    `プラン: ${planName}`,
+    `日程: ${formatDate(params.date)} ${params.checkinTime}`,
+    "",
+    `管理画面: https://dog-hub.shop/admin/reservations/${params.reservationId}`,
+  ].join("\n");
+
+  try {
+    await transporter.sendMail({
+      from: `"DogHub予約システム" <${process.env.GMAIL_USER}>`,
+      to: LINE_ALERT_RECIPIENTS.join(", "),
+      subject: `【要対応】${params.customerName}様に予約完了通知が届いていません（${formatDate(params.date)}）`,
+      html,
+      text,
+    });
+    console.log(`[notify-failure-alert] OK reservation=${params.reservationId}`);
+  } catch (err) {
+    const e = err as Error;
+    console.error(`[notify-failure-alert] FAILED reservation=${params.reservationId} message=${e.message?.slice(0, 200)}`);
+  }
+}
+
+// ──────────────────────────────────────────
 // LINE要対応アラート（人間対応が必要なLINEメッセージを検知したらスタッフへ通知）
 // 目的: 自動FAQで拾えない自由文・非テキスト・受入確認系などを「毎日見るメール」に流し、
 //       "開かれないチャット受信箱"での放置を防ぐ。LINE管理画面チャットへの導線つき。

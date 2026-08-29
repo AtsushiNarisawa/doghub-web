@@ -207,6 +207,87 @@ export function buildBookingConfirmMessage(params: {
 }
 
 // ───────────────────────────────────────────
+// ご予約内容の変更のお知らせ
+// スタッフ操作の日程変更（api/admin/reschedule）と、お客様ご自身の変更（api/booking/modify）で
+// 共用する。通数課金のため1メッセージにまとめる（無料枠200通/月）。
+// ───────────────────────────────────────────
+export function buildReservationChangeMessage(params: {
+  customerName: string;
+  plan: string;
+  date: string;
+  checkinTime: string | null;
+  checkoutDate?: string | null;
+  changes: string[];
+  reservationId: string;
+  changedBy: "customer" | "staff";
+}): LineMessage[] {
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  const fmt = (d: string) => {
+    const dt = new Date(d + "T00:00:00");
+    return `${dt.getMonth() + 1}/${dt.getDate()}（${days[dt.getDay()]}）`;
+  };
+
+  const lines = [
+    `${params.customerName}様`,
+    "",
+    params.changedBy === "staff"
+      ? "📝 ご予約の日程を変更いたしました"
+      : "📝 ご予約内容の変更を承りました",
+    "",
+    "【変更後のご予約】",
+    `📅 ${fmt(params.date)}`,
+  ];
+  const hhmm = (params.checkinTime || "").slice(0, 5);
+  if (hhmm) lines.push(`🕐 チェックイン ${hhmm}`);
+  if (params.plan === "stay" && params.checkoutDate) {
+    lines.push(`🏠 チェックアウト ${fmt(params.checkoutDate)}`);
+  }
+  lines.push(`📋 ${PLAN_LABELS[params.plan] ?? params.plan}`);
+  lines.push("", "【変更内容】", ...params.changes.map((c) => `・${c}`));
+  if (params.changedBy === "staff") {
+    lines.push("", "お心当たりがない場合は、お手数ですがご連絡ください。");
+  }
+  lines.push(
+    "",
+    "📝 ご予約内容の確認はこちら",
+    `https://dog-hub.shop/booking/modify/${params.reservationId}`
+  );
+
+  return [{ type: "text", text: lines.join("\n") }];
+}
+
+// ───────────────────────────────────────────
+// キャンセルのお知らせ
+// お客様のセルフキャンセル（api/booking/cancel）と管理画面からのキャンセル
+// （api/admin/update-status）で共用する。文面を2箇所に複製しないための共通化。
+// ───────────────────────────────────────────
+export function buildCancellationMessage(params: {
+  customerName: string;
+  plan: string;
+  date: string;
+  cancelledBy: "customer" | "staff";
+}): LineMessage[] {
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  const d = new Date(params.date + "T00:00:00");
+  const dateStr = `${d.getMonth() + 1}/${d.getDate()}（${days[d.getDay()]}）`;
+  const lines = [
+    `${params.customerName}様`,
+    "",
+    "❌ ご予約がキャンセルされました",
+    "",
+    `📅 ${dateStr}`,
+    `📋 ${PLAN_LABELS[params.plan] ?? params.plan}`,
+  ];
+  // スタッフ操作のキャンセルはお客様が操作していないため、心当たりがない場合の導線を添える
+  // （メール版 sendCancellationEmails の staffNote と同じ趣旨）。
+  if (params.cancelledBy === "staff") {
+    lines.push("", "お心当たりがない場合は、お手数ですがご連絡ください。");
+  }
+  lines.push("", "またのご利用をお待ちしております🐾");
+  return [{ type: "text", text: lines.join("\n") }];
+}
+
+// ───────────────────────────────────────────
 // ご予約日前のリマインド（前々日・cron/reminder から送る）
 // ───────────────────────────────────────────
 // メール版（api/cron/reminder の buildReminderHtml）と同じ情報を1通にまとめる。

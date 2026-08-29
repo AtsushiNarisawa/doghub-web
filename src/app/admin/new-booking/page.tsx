@@ -11,6 +11,12 @@ interface CustomerResult {
   id: string;
   last_name: string;
   first_name: string;
+  // フリガナ・郵便番号・住所はこの画面に入力欄が無いが、予約APIへ「今の値」を送り返すために保持する。
+  // 空文字を送ると顧客マスタが上書きで消える事故があったため（2026-08-30 修正・API側にもガードあり）。
+  last_name_kana: string | null;
+  first_name_kana: string | null;
+  postal_code: string | null;
+  address: string | null;
   phone: string;
   email: string;
   email_bounced: boolean;
@@ -24,6 +30,10 @@ interface SearchResult {
   id: string;
   last_name: string;
   first_name: string;
+  last_name_kana: string | null;
+  first_name_kana: string | null;
+  postal_code: string | null;
+  address: string | null;
   phone: string;
   email: string;
   email_bounced: boolean;
@@ -92,7 +102,7 @@ function NewBookingForm() {
   const loadCustomerById = async (customerId: string) => {
     const { data } = await supabase
       .from("customers")
-      .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+      .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
       .eq("id", customerId)
       .single();
     if (data) {
@@ -102,7 +112,7 @@ function NewBookingForm() {
   };
 
   // 再発防止: 新規入力中に「同姓 or 同じ犬名」の既存客を自動検出して重複を警告
-  const SEL = "id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)";
+  const SEL = "id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)";
   useEffect(() => {
     if (!isNewCustomer) { setDupCandidates([]); return; }
     const ln = newCustomer.last_name.trim();
@@ -145,7 +155,7 @@ function NewBookingForm() {
       const normalized = q.replace(/[-\s]/g, "");
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+        .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
         .ilike("phone", `%${normalized}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -153,7 +163,7 @@ function NewBookingForm() {
       // 名前・カナ検索
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+        .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
         .or(`last_name.ilike.%${q}%,first_name.ilike.%${q}%,last_name_kana.ilike.%${q}%,first_name_kana.ilike.%${q}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -170,7 +180,7 @@ function NewBookingForm() {
           if (cids.length > 0) {
             const { data: extra } = await supabase
               .from("customers")
-              .select("id, last_name, first_name, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+              .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
               .in("id", cids)
               .limit(5);
             if (extra) results = [...results, ...(extra as unknown as SearchResult[])];
@@ -265,12 +275,15 @@ function NewBookingForm() {
               id: customer.id,
               last_name: customer.last_name,
               first_name: customer.first_name,
-              last_name_kana: "",
-              first_name_kana: "",
+              // この画面にフリガナ・郵便番号・住所の入力欄は無いため、DBの「今の値」をそのまま送り返す。
+              // 以前は空文字を送っており、電話予約のたびに顧客マスタのカナ・住所が消えていた
+              // （2026-08-30 修正。API側も空値を無視するので二重ガード）。
+              last_name_kana: customer.last_name_kana || "",
+              first_name_kana: customer.first_name_kana || "",
               phone: customer.phone,
               email: customer.email,
-              postal_code: "",
-              address: "",
+              postal_code: customer.postal_code || "",
+              address: customer.address || "",
             }
           : {
               last_name: newCustomer.last_name,

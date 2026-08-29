@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { exceedsRoomLimit, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
+import { sendReservationChangeEmail } from "@/lib/email";
+import { sendLinePushMessage, buildReservationChangeMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -114,6 +117,73 @@ export async function POST(req: NextRequest) {
     // 新日程の容量を加算
     for (const date of newDates) {
       await updateCapacity(date, capacityColumn, dogCount);
+    }
+
+    // お客様への変更通知（メール + LINE）。
+    // 従来はこのAPIに通知が一切なく、スタッフが日程を動かしてもお客様は気づけなかった
+    // （2026-08-30 総点検 #2）。お客様が操作していない変更なので、確定・キャンセルと同様に
+    // メールとLINEの両方へ送る（LINE予約はメール未登録がありうるため片方だけでは届かない）。
+    // 通知の失敗で日程変更そのものを失敗扱いにはしない（変更はすでに確定済み）。
+    //
+    // 送信はレスポンス送出後に after() で行う。Gmail SMTP が詰まるとスタッフの画面が
+    // 固まり、再クリック→二重リスケ（容量の二重加減算）を招くため
+    // （予約API route.ts と同じ理由・同じ手当て）。
+    const oldCheckin = res.checkin_time?.slice(0, 5) || "";
+    const newCheckin = (new_checkin_time || res.checkin_time || "").slice(0, 5);
+    const changes: string[] = [];
+    if (new_date !== res.date) changes.push(`日付: ${res.date} → ${new_date}`);
+    if (newCheckin && newCheckin !== oldCheckin) {
+      changes.push(`チェックイン時間: ${oldCheckin} → ${newCheckin}`);
+    }
+    if (res.plan === "stay" && new_checkout_date && new_checkout_date !== res.checkout_date) {
+      changes.push(`チェックアウト日: ${res.checkout_date} → ${new_checkout_date}`);
+    }
+
+    if (changes.length > 0) {
+      after(async () => {
+        try {
+          const { data: full } = await supabase
+            .from("reservations")
+            .select("plan, date, checkin_time, checkout_date, customers(last_name, first_name, email, line_id)")
+            .eq("id", reservation_id)
+            .single();
+          const customer = full?.customers as unknown as {
+            last_name: string; first_name: string | null; email: string | null; line_id: string | null;
+          } | null;
+          if (!full || !customer) return;
+
+          await sendReservationChangeEmail({
+            reservationId: reservation_id,
+            customer,
+            reservation: {
+              plan: full.plan,
+              date: full.date,
+              checkin_time: full.checkin_time,
+              checkout_date: full.checkout_date,
+            },
+            changes,
+            changedBy: "staff",
+          });
+
+          if (customer.line_id) {
+            await sendLinePushMessage(
+              customer.line_id,
+              buildReservationChangeMessage({
+                customerName: `${customer.last_name}${customer.first_name || ""}`,
+                plan: full.plan,
+                date: full.date,
+                checkinTime: full.checkin_time,
+                checkoutDate: full.checkout_date,
+                changes,
+                reservationId: reservation_id,
+                changedBy: "staff",
+              })
+            );
+          }
+        } catch (notifyErr) {
+          console.error("Reschedule notify error:", notifyErr);
+        }
+      });
     }
 
     return NextResponse.json({ success: true });

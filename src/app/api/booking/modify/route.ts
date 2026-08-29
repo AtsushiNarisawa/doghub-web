@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT } from "@/lib/capacity";
 import { verifyPhoneLast4 } from "@/lib/booking-auth";
+import { sendReservationChangeEmail } from "@/lib/email";
+import { sendLinePushMessage, buildReservationChangeMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,7 +62,7 @@ export async function POST(req: Request) {
 
     const { data: reservation, error: fetchErr } = await supabase
       .from("reservations")
-      .select("*, customers(last_name, first_name, email, phone), reservation_dogs(dogs(name))")
+      .select("*, customers(last_name, first_name, email, phone, line_id), reservation_dogs(dogs(name))")
       .eq("id", reservationId)
       .single();
 
@@ -186,6 +189,51 @@ export async function POST(req: Request) {
       }
       // CO日のday_booked加減算は廃止
     }
+
+    // お客様への変更控え（メール）。
+    // 従来はスタッフ2名にしか送っておらず、画面に「スタッフにも変更内容を通知しました」と
+    // 出るのにお客様の手元には何も残らなかった（2026-08-30 総点検 #3）。
+    // お客様ご自身の操作＝完了画面をその場で見ているため、記録が残ればよい。
+    // 二重通知を避けるため「メールがあればメール1通、メール未登録の方だけLINE」とする
+    // （LINEはメールと違い1通ずつ無料枠200通/月を消費するため）。
+    // 送信はレスポンス後（after）。SMTPの詰まりで変更画面が固まるのを防ぐ。
+    after(async () => {
+      try {
+        const cust = reservation.customers as unknown as {
+          last_name: string; first_name: string | null; email: string | null; line_id: string | null;
+        } | null;
+        const changeParams = {
+          plan: reservation.plan,
+          date: reservation.date,
+          checkin_time: (updates.checkin_time as string) ?? reservation.checkin_time,
+          checkout_date: (updates.checkout_date as string) ?? reservation.checkout_date,
+        };
+        const mailed = await sendReservationChangeEmail({
+          reservationId,
+          customer: cust,
+          reservation: changeParams,
+          changes,
+          changedBy: "customer",
+        });
+        if (!mailed && cust?.line_id) {
+          await sendLinePushMessage(
+            cust.line_id,
+            buildReservationChangeMessage({
+              customerName: `${cust.last_name}${cust.first_name || ""}`,
+              plan: changeParams.plan,
+              date: changeParams.date,
+              checkinTime: changeParams.checkin_time,
+              checkoutDate: changeParams.checkout_date,
+              changes,
+              reservationId,
+              changedBy: "customer",
+            })
+          );
+        }
+      } catch (notifyErr) {
+        console.error("[modify] customer notify error:", notifyErr);
+      }
+    });
 
     // スタッフ通知メール
     const customer = reservation.customers;

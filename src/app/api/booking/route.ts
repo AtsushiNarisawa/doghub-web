@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
-import { sendBookingEmails } from "@/lib/email";
+import { sendBookingEmails, sendBookingNotifyFailureAlert } from "@/lib/email";
 import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 
@@ -253,21 +253,34 @@ export async function POST(req: NextRequest) {
     let customerId: string;
 
     if (existingCustomer) {
-      // 既存顧客：情報更新
+      // 既存顧客：入力があった項目だけを更新する（空値では既存値を上書きしない）。
+      //
+      // 2026-08-30 発見のデータ消失バグの本丸。従来はここで無条件UPDATEしていたため、
+      // 管理画面の電話予約（フリガナ・郵便番号・住所の入力欄を持たず空文字を送る）を入れるたびに
+      // 常連さんの last_name_kana / postal_code / address が消えていた。
+      //
+      // 「空＝消したい」ではないと言い切れる根拠（全経路を確認済み）:
+      //   - 管理画面（source:phone）: そもそも入力欄が無い＝スタッフに消す意図はない
+      //   - お客様のWebフォーム: リピーターでも個人情報をプリフィルしない
+      //     （lookup-customer は電話照合では犬情報しか返さない）＝画面に出ていない値は消せない
+      //   - LIFF（LINE）予約: 既存値をプリフィルするので理屈上は「消す」操作が可能だが、
+      //     予約フォームは登録情報の編集画面ではなく、住所を空にする導線も案内もない。
+      //     値の「変更」は非空を入力すれば従来どおり反映されるため、実害は生じない。
+      // よって全経路で「空値は無視」が正しい挙動。
       customerId = existingCustomer.id;
-      await supabase
-        .from("customers")
-        .update({
-          email: c.email,
-          last_name: c.last_name,
-          first_name: c.first_name,
-          last_name_kana: c.last_name_kana,
-          first_name_kana: c.first_name_kana,
-          postal_code: c.postal_code || null,
-          address: c.address || null,
-          ...(body.line_id ? { line_id: body.line_id } : {}),
-        })
-        .eq("id", customerId);
+      const filled = (v: unknown): v is string => typeof v === "string" && v.trim() !== "";
+      const customerUpdates: Record<string, unknown> = {};
+      if (filled(c.email)) customerUpdates.email = c.email;
+      if (filled(c.last_name)) customerUpdates.last_name = c.last_name;
+      if (filled(c.first_name)) customerUpdates.first_name = c.first_name;
+      if (filled(c.last_name_kana)) customerUpdates.last_name_kana = c.last_name_kana;
+      if (filled(c.first_name_kana)) customerUpdates.first_name_kana = c.first_name_kana;
+      if (filled(c.postal_code)) customerUpdates.postal_code = c.postal_code;
+      if (filled(c.address)) customerUpdates.address = c.address;
+      if (body.line_id) customerUpdates.line_id = body.line_id;
+      if (Object.keys(customerUpdates).length > 0) {
+        await supabase.from("customers").update(customerUpdates).eq("id", customerId);
+      }
     } else {
       // 新規顧客（UUIDを事前生成してSELECT不要にする）
       const newCustomerId = randomUUID();
@@ -549,8 +562,9 @@ export async function POST(req: NextRequest) {
         console.error("Email send error (background):", err);
       }
       if (body.line_id) {
+        let pushOk = false;
         try {
-          await sendLinePushMessage(
+          pushOk = await sendLinePushMessage(
             body.line_id,
             buildBookingConfirmMessage({
               customerName: `${c.last_name} ${c.first_name}`,
@@ -563,6 +577,24 @@ export async function POST(req: NextRequest) {
           );
         } catch (err) {
           console.error("LINE push error (background):", err);
+        }
+
+        // LINE予約はメール任意（step3-customer）。push が失敗し、かつメールも未登録だと
+        // 「予約は取れているのにお客様には何も届いていない」完全無音になる。
+        // その1件をスタッフが電話でフォローできるようアラートを飛ばす（2026-08-30 総点検 #5）。
+        if (!pushOk && !c.email?.trim()) {
+          try {
+            await sendBookingNotifyFailureAlert({
+              reservationId,
+              customerName: `${c.last_name} ${c.first_name}`.trim(),
+              phone: normalizedPhone,
+              plan: body.plan,
+              date: body.date,
+              checkinTime: body.checkin_time,
+            });
+          } catch (alertErr) {
+            console.error("Booking notify failure alert error:", alertErr);
+          }
         }
       }
     });

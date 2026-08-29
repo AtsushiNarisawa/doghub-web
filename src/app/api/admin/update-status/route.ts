@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { sendCancellationEmails } from "@/lib/email";
-import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
+import { sendLinePushMessage, buildBookingConfirmMessage, buildCancellationMessage } from "@/lib/line";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -111,11 +111,11 @@ export async function POST(req: NextRequest) {
       try {
         const { data: res } = await supabase
           .from("reservations")
-          .select("plan, date, checkin_time, checkout_date, dog_count, customers!inner(last_name, first_name, email, phone)")
+          .select("plan, date, checkin_time, checkout_date, dog_count, customers!inner(last_name, first_name, email, phone, line_id)")
           .eq("id", reservation_id)
           .single();
         if (res) {
-          const customer = res.customers as unknown as { last_name: string; first_name: string; email: string; phone: string } | null;
+          const customer = res.customers as unknown as { last_name: string; first_name: string; email: string; phone: string; line_id: string | null } | null;
           await sendCancellationEmails({
             reservationId: reservation_id,
             reservation: {
@@ -129,6 +129,26 @@ export async function POST(req: NextRequest) {
             cancelReason: null,
             cancelledBy: "staff",
           });
+
+          // LINE通知。従来この経路はメールのみで、LINE予約のお客様は
+          // メール未登録がありうる（step3-customer でメールは任意）ため、
+          // 「キャンセルされたのに何も届かない」状態になり得た（2026-08-30 総点検 #4）。
+          // お客様セルフキャンセル（api/booking/cancel）と同じ文面を共用する。
+          if (customer?.line_id) {
+            try {
+              await sendLinePushMessage(
+                customer.line_id,
+                buildCancellationMessage({
+                  customerName: `${customer.last_name}${customer.first_name || ""}`,
+                  plan: res.plan,
+                  date: res.date,
+                  cancelledBy: "staff",
+                })
+              );
+            } catch (lineErr) {
+              console.error("Staff cancellation LINE push error:", lineErr);
+            }
+          }
         }
       } catch (emailErr) {
         console.error("Staff cancellation email error:", emailErr);

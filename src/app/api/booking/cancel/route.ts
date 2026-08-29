@@ -8,10 +8,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const PLAN_NAMES_TOP: Record<string, string> = {
-  "4h": "半日お預かり", "8h": "1日お預かり", stay: "宿泊お預かり",
-};
-
 // 容量を更新する共通関数
 async function updateCapacity(date: string, column: string, delta: number) {
   const { data: existing } = await supabase
@@ -117,20 +113,21 @@ export async function POST(req: NextRequest) {
       console.error("Cancel notification email error:", emailErr);
     }
 
-    // LINE通知（line_idがある場合）
+    // LINE通知（line_idがある場合）。文面は管理画面からのキャンセルと共通化してある
+    // （lib/line.ts の buildCancellationMessage）。
     const customerData = reservation.customers as unknown as { last_name: string; first_name: string; line_id: string | null } | null;
     if (customerData?.line_id) {
       try {
-        const { sendLinePushMessage } = await import("@/lib/line");
-        const days = ["日","月","火","水","木","金","土"];
-        const d = new Date(reservation.date + "T00:00:00");
-        const dateStr = `${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）`;
-        await sendLinePushMessage(customerData.line_id, [
-          {
-            type: "text" as const,
-            text: `${customerData.last_name}${customerData.first_name || ""}様\n\n❌ ご予約がキャンセルされました\n\n📅 ${dateStr}\n📋 ${PLAN_NAMES_TOP[reservation.plan] || reservation.plan}\n\nまたのご利用をお待ちしております🐾`,
-          },
-        ]);
+        const { sendLinePushMessage, buildCancellationMessage } = await import("@/lib/line");
+        await sendLinePushMessage(
+          customerData.line_id,
+          buildCancellationMessage({
+            customerName: `${customerData.last_name}${customerData.first_name || ""}`,
+            plan: reservation.plan,
+            date: reservation.date,
+            cancelledBy: "customer",
+          })
+        );
       } catch (lineErr) {
         console.error("Cancel LINE notification error:", lineErr);
       }
