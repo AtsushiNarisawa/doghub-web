@@ -88,7 +88,16 @@ function escapeMultiline(s: string | undefined | null): string {
   return escapeHtml(s).replace(/\r?\n/g, "<br>");
 }
 
-function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, status: string): string {
+// 予約確認メール（お客様宛）。
+// lineLinkUrl は「まだLINEと紐付いていないお客様」にだけ呼び出し側から渡す
+// （紐付け済みの方には渡さない＝案内が出ない）。null/undefined なら
+// buildLineLinkSection が空文字を返すので、従来どおりの見た目のまま。
+function buildCustomerEmailHtml(
+  form: BookingFormData,
+  reservationId: string,
+  status: string,
+  lineLinkUrl?: string | null,
+): string {
   const isPending = status === "pending";
   const plan = PLANS.find((p) => p.id === form.plan);
   const stayNights =
@@ -184,6 +193,9 @@ function buildCustomerEmailHtml(form: BookingFormData, reservationId: string, st
         <a href="https://dog-hub.shop/booking/cancel/${reservationId}" style="color:#888;font-size:13px;">予約をキャンセルする</a>
       </div>
     </div>
+
+    <!-- LINE連携のご案内（まだ紐付いていないお客様のみ・紐付け済みなら空文字） -->
+    ${buildLineLinkSection(lineLinkUrl)}
 
     <!-- 箱根での過ごし方 -->
     <div style="margin-top:16px;background:#f7f5f0;border-radius:10px;padding:14px 16px;">
@@ -295,7 +307,10 @@ export async function sendBookingEmails(
   form: BookingFormData,
   reservationId: string,
   status: string,
-  duplicateWarnings?: string[]
+  duplicateWarnings?: string[],
+  // まだLINEと紐付いていないお客様にだけ渡す1タップ連携リンク
+  // （lib/link-token.ts の buildLineLinkUrl で生成）。お客様メールにのみ載る。
+  lineLinkUrl?: string | null,
 ) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn("Email not configured: GMAIL_USER or GMAIL_APP_PASSWORD missing");
@@ -326,7 +341,7 @@ export async function sendBookingEmails(
           replyTo: "info@dog-hub.shop",
           to: form.customer.email,
           subject: customerSubject,
-          html: buildCustomerEmailHtml(form, reservationId, status),
+          html: buildCustomerEmailHtml(form, reservationId, status, lineLinkUrl),
         })
       : Promise.resolve(null),
     // スタッフへの通知メール（オーナー）
@@ -517,6 +532,8 @@ export async function resendConfirmationEmail(
     email: string;
   },
   dogList: { name: string; breed: string; weight: number }[],
+  // 新規送信時と同じ扱い。まだLINEと紐付いていないお客様にだけ呼び出し側から渡す。
+  lineLinkUrl?: string | null,
 ) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return;
 
@@ -564,7 +581,7 @@ export async function resendConfirmationEmail(
     },
   };
 
-  const html = buildCustomerEmailHtml(form, reservation.id, reservation.status);
+  const html = buildCustomerEmailHtml(form, reservation.id, reservation.status, lineLinkUrl);
   const dateStr = formatDate(reservation.date);
   const subject = reservation.status === "confirmed"
     ? `【DogHub箱根】ご予約確認（${dateStr}）`

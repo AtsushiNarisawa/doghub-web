@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { resendConfirmationEmail } from "@/lib/email";
+import { buildLineLinkUrl } from "@/lib/link-token";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const { data: res } = await supabase
       .from("reservations")
-      .select("*, customers!inner(last_name, first_name, email), reservation_dogs(dogs(name, breed, weight))")
+      .select("*, customers!inner(last_name, first_name, email, line_id), reservation_dogs(dogs(name, breed, weight))")
       .eq("id", reservation_id)
       .single();
 
@@ -38,7 +39,11 @@ export async function POST(req: NextRequest) {
       .map((rd: { dogs: { name: string; breed: string; weight: number } | null }) => rd.dogs)
       .filter(Boolean);
 
-    await resendConfirmationEmail(res, customer, dogList);
+    // 再送も中身は同じ予約確認メール。まだLINEと紐付いていない方には
+    // 1タップ連携リンクを載せる（紐付け済みなら null＝案内は出ない）。
+    const lineLinkUrl = customer.line_id ? null : buildLineLinkUrl(res.customer_id);
+
+    await resendConfirmationEmail(res, customer, dogList, lineLinkUrl);
 
     return NextResponse.json({ ok: true, sent_to: customer.email });
   } catch (err) {

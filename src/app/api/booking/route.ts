@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
 import { sendBookingEmails, sendBookingNotifyFailureAlert } from "@/lib/email";
 import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
+import { buildLineLinkUrl } from "@/lib/link-token";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 
 const supabase = createClient(
@@ -244,11 +245,16 @@ export async function POST(req: NextRequest) {
     const normalizedPhone = c.phone.replace(/[-\s]/g, "");
 
     // 1. 顧客の upsert（電話番号で既存チェック）
+    // line_id も取るのは、予約確認メールにLINE連携リンクを載せるかの判定に使うため
+    // （既に紐付いている方には案内を出さない。2026-08-30 総点検 #6）。
     const { data: existingCustomer } = await supabase
       .from("customers")
-      .select("id")
+      .select("id, line_id")
       .eq("phone", normalizedPhone)
       .maybeSingle();
+
+    // 既にLINEと紐付いている（DBに line_id がある、またはこの予約自体がLIFF経由）
+    const alreadyLinkedToLine = !!(existingCustomer?.line_id || body.line_id);
 
     let customerId: string;
 
@@ -557,7 +563,17 @@ export async function POST(req: NextRequest) {
     // メール未送信、2026-03-14）を再発させない。SMTP 側にもタイムアウトを設定済み（email.ts）。
     after(async () => {
       try {
-        await sendBookingEmails(body, reservation.id, status, duplicateWarnings.length > 0 ? duplicateWarnings : undefined);
+        // 予約確認メールに「1タップでLINE連携」を同梱する（2026-08-30 総点検 #6）。
+        // 一番確実に開封されるメールなので紐付けの入口として最も効く。
+        // 既に紐付いている方には null を渡す＝案内は表示されない。
+        const lineLinkUrl = alreadyLinkedToLine ? null : buildLineLinkUrl(customerId);
+        await sendBookingEmails(
+          body,
+          reservation.id,
+          status,
+          duplicateWarnings.length > 0 ? duplicateWarnings : undefined,
+          lineLinkUrl,
+        );
       } catch (err) {
         console.error("Email send error (background):", err);
       }
