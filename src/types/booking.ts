@@ -108,6 +108,29 @@ export const PLANS: PlanInfo[] = [
 export const EXTRA_HOUR_FEE = 1100;
 export const WALK_OPTION_FEE = 550;
 
+// ワクチン接種状況の3択。入力画面（step2-dogs）と確認画面（step4-confirm）で
+// 同じ文言を出すための唯一の定義。以前は確認画面が3択を「接種済み/未接種」の2つに
+// 丸めて表示していたため、「複数年有効ワクチン」「事情により未接種（獣医師の判断）」を
+// 選んだ方に、ご自身が選んだ内容と違う表示が出ていた（総点検 #23）。
+export const VACCINE_STATUS_OPTIONS = [
+  { value: "within_1year", label: "接種済み（1年以内）" },
+  { value: "multi_year", label: "接種済み（複数年有効ワクチン）" },
+  { value: "unable", label: "事情により未接種" },
+] as const;
+
+/**
+ * ワクチン接種状況を表示用の文言にする。
+ * status が未設定（古いデータ等）のときだけ、後方互換の boolean にフォールバックする。
+ */
+export function vaccineStatusLabel(
+  status: string | null | undefined,
+  legacyHasVaccine: boolean
+): string {
+  const hit = VACCINE_STATUS_OPTIONS.find((o) => o.value === status);
+  if (hit) return hit.label;
+  return legacyHasVaccine ? "接種済み" : "未接種";
+}
+
 // 1日お預かり（8h）向け行き先
 export const DAY_DESTINATIONS = [
   "ゴルフ（大箱根CC）",

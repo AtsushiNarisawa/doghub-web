@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { BookingFormData } from "@/types/booking";
-import { PLANS, EXTRA_HOUR_FEE, WALK_OPTION_FEE } from "@/types/booking";
-import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
+import { PLANS, EXTRA_HOUR_FEE, WALK_OPTION_FEE, vaccineStatusLabel } from "@/types/booking";
+import { isLateBooking } from "@/lib/booking-rules";
+import { calculateBookingBreakdown } from "@/lib/pricing";
 
 interface Props {
   form: BookingFormData;
@@ -16,28 +17,18 @@ interface Props {
 export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
-  // 前日17時以降の翌日予約か判定。
-  // 端末ローカル時刻(new Date().getHours())だと海外端末/TZ誤設定でサーバー(route.ts)・
-  // 完了画面(page.tsx)とズレるため、JSTヘルパに統一する（feedback_timezone_bug_jst_after_9am）。
-  const isLateBooking =
-    !!form.date && form.date === addDaysJst(getJstToday(), 1) && getJstHour() >= 17;
+  // 前日17時以降の翌日予約か判定。判定式は lib/booking-rules.ts の1箇所だけに置き、
+  // step1 / この確認画面 / 完了画面 / サーバー(api/booking) が同じ関数を呼ぶ（総点検 #27）。
+  const isLateBookingNow = isLateBooking(form.date);
 
   const plan = PLANS.find((p) => p.id === form.plan);
   const dogCount = form.dogs.length;
-  const baseTotal = (plan?.basePrice ?? 0) * dogCount;
   const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) >= 15);
 
-  // 宿泊日数
-  const stayNights =
-    form.plan === "stay" && form.checkout_date && form.date
-      ? Math.max(
-          1,
-          Math.round(
-            (new Date(form.checkout_date).getTime() - new Date(form.date).getTime()) /
-              (1000 * 60 * 60 * 24)
-          )
-        )
-      : 0;
+  // 料金は lib/pricing.ts が唯一の正本。この画面で式を再実装しない（総点検 #28）。
+  // GA4 に送る booking_complete の value も同じ関数から出るため、表示金額と必ず一致する。
+  const price = calculateBookingBreakdown(form);
+  const stayNights = price.stayNights;
 
   const formatDate = (d: string) => {
     if (!d) return "";
@@ -108,8 +99,8 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
               {dog.sex === "male" ? " オス" : " メス"}
             </p>
             <p className="text-[12px] text-[#888]">
-              狂犬病ワクチン: {dog.has_rabies_vaccine ? "接種済み" : "未接種"} /
-              混合ワクチン: {dog.has_mixed_vaccine ? "接種済み" : "未接種"}
+              狂犬病ワクチン: {vaccineStatusLabel(dog.rabies_vaccine_status, dog.has_rabies_vaccine)} /
+              混合ワクチン: {vaccineStatusLabel(dog.mixed_vaccine_status, dog.has_mixed_vaccine)}
             </p>
             {dog.allergies && (
               <p className="text-sm text-[#888]">アレルギー: {dog.allergies}</p>
@@ -184,74 +175,45 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
         </div>
       </div>
 
-      {/* 料金の目安 */}
-      {(() => {
-        const baseFee = (plan?.basePrice ?? 0) * dogCount * Math.max(stayNights, 1);
-
-        // CI前早預かり延長料金
-        let ciExtFee = 0;
-        let ciExtHours = 0;
-        if (form.checkin_extension && form.checkin_extension_from) {
-          const [fh] = form.checkin_extension_from.split(":").map(Number);
-          ciExtHours = Math.max(0, 14 - fh);
-          ciExtFee = ciExtHours * EXTRA_HOUR_FEE * dogCount;
-        }
-
-        // CO後延長料金
-        let coExtFee = 0;
-        let coExtHours = 0;
-        if (form.checkout_extension && form.checkout_extension_until) {
-          const [th] = form.checkout_extension_until.split(":").map(Number);
-          coExtHours = Math.max(0, th - 11);
-          coExtFee = coExtHours * EXTRA_HOUR_FEE * dogCount;
-        }
-
-        // 散歩オプション（宿泊のお預かりのみ）
-        const walkFee = form.plan === "stay" && form.walk_option ? WALK_OPTION_FEE * dogCount : 0;
-
-        const totalEstimate = baseFee + ciExtFee + coExtFee + walkFee;
-
-        return (
-          <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-2">
-            <h3 className="font-medium text-sm text-[#888]">料金の目安</h3>
-            <div className="flex justify-between text-sm">
-              <span>
-                {plan?.name} x {dogCount}頭
-                {stayNights > 1 ? ` x ${stayNights}泊` : ""}
-              </span>
-              <span>¥{baseFee.toLocaleString()}</span>
-            </div>
-            {ciExtFee > 0 && (
-              <div className="flex justify-between text-sm text-[#B87942]">
-                <span>早預かり（{ciExtHours}時間 x {dogCount}頭）</span>
-                <span>¥{ciExtFee.toLocaleString()}</span>
-              </div>
-            )}
-            {coExtFee > 0 && (
-              <div className="flex justify-between text-sm text-[#B87942]">
-                <span>延長預かり（{coExtHours}時間 x {dogCount}頭）</span>
-                <span>¥{coExtFee.toLocaleString()}</span>
-              </div>
-            )}
-            {walkFee > 0 && (
-              <div className="flex justify-between text-sm text-[#B87942]">
-                <span>お散歩オプション（{dogCount}頭）</span>
-                <span>¥{walkFee.toLocaleString()}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-sm font-medium pt-2 border-t border-[#E5DDD8]">
-              <span>合計（税込）</span>
-              <span>¥{totalEstimate.toLocaleString()}〜</span>
-            </div>
-            <p className="text-[12px] text-[#888]">
-              ※ 引き取り時間超過の場合 ¥{EXTRA_HOUR_FEE.toLocaleString()}/時間が別途発生します
-            </p>
-            <p className="text-[12px] text-[#888]">
-              ※ お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）
-            </p>
+      {/* 料金の目安（計算は lib/pricing.ts。ここでは表示のみ） */}
+      <div className="p-4 rounded-xl bg-[#F8F5F0] space-y-2">
+        <h3 className="font-medium text-sm text-[#888]">料金の目安</h3>
+        <div className="flex justify-between text-sm">
+          <span>
+            {plan?.name} x {dogCount}頭
+            {stayNights > 1 ? ` x ${stayNights}泊` : ""}
+          </span>
+          <span>¥{price.baseFee.toLocaleString()}</span>
+        </div>
+        {price.ciExtFee > 0 && (
+          <div className="flex justify-between text-sm text-[#B87942]">
+            <span>早預かり（{price.ciExtHours}時間 x {dogCount}頭）</span>
+            <span>¥{price.ciExtFee.toLocaleString()}</span>
           </div>
-        );
-      })()}
+        )}
+        {price.coExtFee > 0 && (
+          <div className="flex justify-between text-sm text-[#B87942]">
+            <span>延長預かり（{price.coExtHours}時間 x {dogCount}頭）</span>
+            <span>¥{price.coExtFee.toLocaleString()}</span>
+          </div>
+        )}
+        {price.walkFee > 0 && (
+          <div className="flex justify-between text-sm text-[#B87942]">
+            <span>お散歩オプション（{dogCount}頭）</span>
+            <span>¥{price.walkFee.toLocaleString()}</span>
+          </div>
+        )}
+        <div className="flex justify-between text-sm font-medium pt-2 border-t border-[#E5DDD8]">
+          <span>合計（税込）</span>
+          <span>¥{price.total.toLocaleString()}〜</span>
+        </div>
+        <p className="text-[12px] text-[#888]">
+          ※ 引き取り時間超過の場合 ¥{EXTRA_HOUR_FEE.toLocaleString()}/時間が別途発生します
+        </p>
+        <p className="text-[12px] text-[#888]">
+          ※ お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）
+        </p>
+      </div>
 
       {/* 15kg以上の注意 */}
       {hasHeavyDog && (
@@ -296,7 +258,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
         </span>
       </label>
 
-      {isLateBooking && (
+      {isLateBookingNow && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[13px] text-amber-700">
           前日17時以降のため<strong>仮予約</strong>となります。翌朝9時までにメールで確定をご連絡します。
         </div>
@@ -321,7 +283,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
               : "bg-[#E5DDD8] text-[#888] cursor-not-allowed"
           }`}
         >
-          {submitting ? "送信中..." : isLateBooking ? "仮予約を送信する" : "予約を送信する"}
+          {submitting ? "送信中..." : isLateBookingNow ? "仮予約を送信する" : "予約を送信する"}
         </button>
       </div>
     </div>

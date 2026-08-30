@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { BookingFormData } from "@/types/booking";
 import {
   REFERRAL_SOURCES,
@@ -53,34 +53,74 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
 
   const [zipError, setZipError] = useState("");
 
+  // 常に「今この瞬間の」入力内容を参照するための箱。
+  // 郵便番号の検索は入力から少し待ってから走るため、関数を作った時点の古い内容を
+  // そのまま書き戻すと、待っている間に入力された文字が消えてしまう。
+  const latestRef = useRef({ form, detailAddress });
+  useEffect(() => {
+    latestRef.current = { form, detailAddress };
+  });
+
+  // 郵便番号の自動検索まわり。以前は入力のたびに検索を投げていたため、
+  // 7桁そろった状態で1文字直すたびに外部APIを叩き、さらに古い応答が後から届いて
+  // 新しい住所を上書きし得た（総点検 #30）。入力が落ち着いてから1回だけ、
+  // かつ最後に始めた検索の結果しか採用しない。
+  const zipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const zipSeqRef = useRef(0);
+  const lastLookedUpRef = useRef("");
+  useEffect(() => () => {
+    if (zipTimerRef.current) clearTimeout(zipTimerRef.current);
+  }, []);
+
+  const ZIP_DEBOUNCE_MS = 400;
+
+  /** 入力が止まってから郵便番号検索を1回だけ走らせる */
+  const scheduleFetchAddress = (postalCode: string) => {
+    if (zipTimerRef.current) clearTimeout(zipTimerRef.current);
+    const code = postalCode.replace(/-/g, "");
+    if (code.length !== 7) return;
+    if (code === lastLookedUpRef.current) return; // 同じ番号は引き直さない
+    zipTimerRef.current = setTimeout(() => {
+      void fetchAddress(postalCode);
+    }, ZIP_DEBOUNCE_MS);
+  };
+
   // 郵便番号から住所自動入力
   const fetchAddress = async (postalCode: string) => {
     const code = postalCode.replace(/-/g, "");
     if (code.length !== 7) return;
+    const seq = ++zipSeqRef.current;
     setZipError("");
     try {
       const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${code}`);
+      if (seq !== zipSeqRef.current) return; // 後から始めた検索がある＝この結果は捨てる
       if (!res.ok) {
         setZipError("住所の自動入力ができませんでした。手動で入力してください。");
         return;
       }
       const json = await res.json();
+      if (seq !== zipSeqRef.current) return;
       if (json.results?.[0]) {
+        const { form: latestForm, detailAddress: latestDetail } = latestRef.current;
+        // 待っている間に郵便番号が書き換わっていたら、その住所は当てない
+        if (latestForm.customer.postal_code.replace(/-/g, "") !== code) return;
+        lastLookedUpRef.current = code;
         const r = json.results[0];
         const base = `${r.address1}${r.address2}${r.address3}`;
         setAutoAddress(base);
         // 手入力部分が空、または前の自動入力部分だけだった場合はクリア
-        if (!detailAddress || detailAddress === form.customer.address) {
+        if (!latestDetail || latestDetail === latestForm.customer.address) {
           setDetailAddress("");
         }
         onChange({
-          ...form,
-          customer: { ...form.customer, postal_code: postalCode, address: base },
+          ...latestForm,
+          customer: { ...latestForm.customer, address: base },
         });
       } else {
         setZipError("該当する住所が見つかりませんでした。手動で入力してください。");
       }
     } catch {
+      if (seq !== zipSeqRef.current) return;
       setZipError("住所の自動入力ができませんでした。手動で入力してください。");
     }
   };
@@ -242,7 +282,7 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               onChange={(e) => {
                 const val = e.target.value;
                 onChange({ ...form, customer: { ...c, postal_code: val } });
-                fetchAddress(val);
+                scheduleFetchAddress(val);
               }}
               placeholder="250-0631"
               className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"

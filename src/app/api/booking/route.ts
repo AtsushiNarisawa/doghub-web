@@ -7,11 +7,33 @@ import { sendBookingEmails, sendBookingNotifyFailureAlert } from "@/lib/email";
 import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
+import { getJstToday, getJstHour } from "@/lib/datetime";
+import { isLateBooking } from "@/lib/booking-rules";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
+// 本番以外（プレビュー環境・ローカル開発）からの予約書き込みを止める安全弁。
+//
+// 予約データベースは本番もプレビューも同じ1つを見ているため、プレビューでの試し送信が
+// そのまま本当の予約として登録され、確認メールやLINE通知まで飛んでしまう状態だった（総点検 #26）。
+//
+// 設計方針は「本番は絶対に止めない（fail-open）」。
+// 止めるのは「ここは本番ではない」と積極的に分かったときだけで、判定材料が取れないときは通す。
+// そのため、環境変数が何かの拍子に読めなくなっても本番の予約が止まることはない。
+// ローカルで書き込みまで通して試したいときは .env.local に ALLOW_NONPROD_BOOKING_WRITE=1 を置く。
+function blockedNonProductionEnv(): string | null {
+  if (process.env.ALLOW_NONPROD_BOOKING_WRITE === "1") return null;
+  // Vercel のプレビューデプロイ（本番以外のデプロイ）
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv === "preview" || vercelEnv === "development") return vercelEnv;
+  // ローカルの開発サーバー（npm run dev）
+  const nodeEnv = process.env.NODE_ENV;
+  if (nodeEnv === "development" || nodeEnv === "test") return "development";
+  return null;
+}
 
 // 直近の送信を追跡（二重送信防止）
 const recentSubmissions = new Map<string, number>();
@@ -31,6 +53,18 @@ function isDuplicate(body: BookingFormData): boolean {
 
 export async function POST(req: NextRequest) {
   try {
+    const nonProdEnv = blockedNonProductionEnv();
+    if (nonProdEnv) {
+      console.warn(`[booking] 本番以外の環境(${nonProdEnv})からの予約送信をブロックしました`);
+      return NextResponse.json(
+        {
+          error:
+            "こちらは動作確認用の環境のため、ご予約は登録されません。お手数ですが https://dog-hub.shop/booking からご予約ください。",
+        },
+        { status: 403 }
+      );
+    }
+
     const body: BookingFormData = await req.json();
 
     // バリデーション（重複チェックの前に実行）
@@ -51,26 +85,16 @@ export async function POST(req: NextRequest) {
     // 1日ズレて「翌日予約が当日扱い」になるバグがあった（2026-05-03 修正）。
     // body.date は "YYYY-MM-DD" 文字列なので、JST 基準の今日も文字列で取得して直接比較する。
     const isStaffBooking = body.source === "phone";
-    const todayJST = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Tokyo",
-      year: "numeric", month: "2-digit", day: "2-digit",
-    }).format(new Date());
-    const jstHour = parseInt(
-      new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Tokyo", hour: "2-digit", hour12: false,
-      }).format(new Date()),
-      10
-    );
-    const tomorrowDateObj = new Date(todayJST + "T00:00:00Z");
-    tomorrowDateObj.setUTCDate(tomorrowDateObj.getUTCDate() + 1);
-    const tomorrowJST = tomorrowDateObj.toISOString().split("T")[0];
+    const todayJST = getJstToday();
+    const jstHour = getJstHour();
 
     // 当日予約: お客様はブロック、スタッフはOK
     if (!isStaffBooking && body.date <= todayJST) {
       return NextResponse.json({ error: "当日のご予約はお電話（0460-80-0290）にてお願いいたします" }, { status: 400 });
     }
-    // 前日17時以降の翌日予約: 仮予約として受付（フラグを立てる）
-    const isLateBooking = !isStaffBooking && body.date === tomorrowJST && jstHour >= 17;
+    // 前日17時以降の翌日予約: 仮予約として受付（フラグを立てる）。
+    // 判定式は lib/booking-rules.ts が正本で、お客様側の3画面もこれと同じ関数を呼ぶ（総点検 #27）。
+    const isLateBookingFlag = !isStaffBooking && isLateBooking(body.date, todayJST, jstHour);
 
     // サーバー側：定休日チェック（水=3, 木=4）
     const closedWeekdays = [3, 4];
@@ -407,7 +431,7 @@ export async function POST(req: NextRequest) {
 
     // 3. ステータス決定（15kg以上 or 前日17時以降の翌日予約 → 仮予約。スタッフ入力は常に確定）
     const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) >= 15);
-    const status = isStaffBooking ? "confirmed" : (hasHeavyDog || isLateBooking) ? "pending" : "confirmed";
+    const status = isStaffBooking ? "confirmed" : (hasHeavyDog || isLateBookingFlag) ? "pending" : "confirmed";
 
     // ワクチン未接種(事情あり)の理由を備考に取り込む。従来はフォームで収集してもサーバーで破棄され、
     // スタッフが理由を把握できなかった（データ消失）。備考に保存することで、管理画面の予約詳細と

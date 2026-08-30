@@ -7,7 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { HOLIDAYS } from "@/lib/holidays";
 import { WEB_ROOM_LIMIT, LOW_STOCK_REMAINING } from "@/lib/capacity";
-import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
+import { getJstToday, addDaysJst } from "@/lib/datetime";
+import { isLateBooking as isLateBookingDate } from "@/lib/booking-rules";
 
 interface Props {
   form: BookingFormData;
@@ -72,11 +73,9 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   // 海外端末やTZ誤設定でサーバー判定とズレ、選べた日が当日扱いで弾かれる/翌日が隠れる。
   const getMinDate = () => addDaysJst(getJstToday(), 1);
 
-  // 前日17時以降の翌日予約かどうか判定（JST基準）
-  const isLateBooking = (dateStr: string) => {
-    if (!dateStr) return false;
-    return dateStr === addDaysJst(getJstToday(), 1) && getJstHour() >= 17;
-  };
+  // 前日17時以降の翌日予約かどうか判定。判定式は lib/booking-rules.ts の1箇所だけに置く
+  // （この画面・確認画面・完了画面・サーバーが同じ関数を呼ぶ。総点検 #27）。
+  const isLateBooking = (dateStr: string) => isLateBookingDate(dateStr);
 
   // 当日かどうか判定（JST基準）
   const isToday = (dateStr: string) => dateStr === getJstToday();

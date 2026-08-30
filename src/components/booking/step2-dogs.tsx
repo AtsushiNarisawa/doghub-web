@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { BookingFormData, DogFormData } from "@/types/booking";
-import { INITIAL_DOG } from "@/types/booking";
+import { INITIAL_DOG, VACCINE_STATUS_OPTIONS } from "@/types/booking";
 // 顧客/犬の照合は anon 直読みを廃し /api/booking/lookup-customer（service_role）経由に統一。
 type DbDog = {
   id: string; name: string; breed: string; weight: number | string;
@@ -239,11 +239,7 @@ function DogForm({
         <div className="space-y-1">
           <p className="text-sm font-medium text-[#3C200F]">狂犬病ワクチン</p>
           <div className="space-y-1">
-            {([
-              { value: "within_1year", label: "接種済み（1年以内）" },
-              { value: "multi_year", label: "接種済み（複数年有効ワクチン）" },
-              { value: "unable", label: "事情により未接種" },
-            ] as const).map((opt) => (
+            {VACCINE_STATUS_OPTIONS.map((opt) => (
               <label key={opt.value} className="flex items-center gap-3 p-2.5 rounded-lg bg-[#F8F5F0] cursor-pointer">
                 <input
                   type="radio"
@@ -266,11 +262,7 @@ function DogForm({
         <div className="space-y-1">
           <p className="text-sm font-medium text-[#3C200F]">混合ワクチン</p>
           <div className="space-y-1">
-            {([
-              { value: "within_1year", label: "接種済み（1年以内）" },
-              { value: "multi_year", label: "接種済み（複数年有効ワクチン）" },
-              { value: "unable", label: "事情により未接種" },
-            ] as const).map((opt) => (
+            {VACCINE_STATUS_OPTIONS.map((opt) => (
               <label key={opt.value} className="flex items-center gap-3 p-2.5 rounded-lg bg-[#F8F5F0] cursor-pointer">
                 <input
                   type="radio"

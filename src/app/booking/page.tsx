@@ -13,7 +13,7 @@ import { Step4Confirm } from "@/components/booking/step4-confirm";
 import { LineAddFriendBanner } from "@/components/line-cta";
 import { LineLinkForm } from "@/components/line-link-form";
 import { calculateBookingTotal } from "@/lib/pricing";
-import { getJstToday, getJstHour, addDaysJst } from "@/lib/datetime";
+import { isLateBooking } from "@/lib/booking-rules";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID || "";
 
@@ -82,16 +82,30 @@ export default function BookingPage() {
     });
   }, []);
 
-  const goNext = () => {
-    const nextStep = Math.min(step + 1, 4) as BookingStep;
-    pushEvent("booking_step", { booking_step: nextStep });
-    setStep(nextStep);
+  // ステップ移動はすべてこの関数を通す。以前は「次へ」だけが booking_step を発火し、
+  // 確認画面の「修正する」/「確認画面に戻る」経由の移動が GA4 から丸ごと抜けていた（総点検 #25）。
+  // dataLayer に積む形は従来どおり { event: "booking_step", booking_step: 2|3|4 }。
+  // ステップ1は従来も発火していないため、値の範囲（2,3,4）は変えない。
+  const goToStep = (next: BookingStep) => {
+    if (next >= 2) pushEvent("booking_step", { booking_step: next });
+    setStep(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const goBack = () => {
-    setStep((s) => Math.max(s - 1, 1) as BookingStep);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const goNext = () => goToStep(Math.min(step + 1, 4) as BookingStep);
+
+  const goBack = () => goToStep(Math.max(step - 1, 1) as BookingStep);
+
+  /** 確認画面の「修正する」で各ステップへ移動する */
+  const goEditFromConfirm = (target: number) => {
+    setEditingFromConfirm(true);
+    goToStep(target as BookingStep);
+  };
+
+  /** 修正後に確認画面（ステップ4）へ戻る */
+  const backToConfirm = () => {
+    setEditingFromConfirm(false);
+    goToStep(4);
   };
 
   const [errorDetail, setErrorDetail] = useState("");
@@ -100,10 +114,11 @@ export default function BookingPage() {
     pushEvent("booking_submit", { plan: form.plan, dog_count: form.dogs.length });
     setErrorDetail("");
     try {
-      const apiUrl = typeof window !== "undefined" && window.location.hostname !== "dog-hub.shop"
-        ? "https://dog-hub.shop/api/booking"
-        : "/api/booking";
-      const res = await fetch(apiUrl, {
+      // 必ず「今表示しているデプロイ自身の」APIへ送る。
+      // 以前は hostname が dog-hub.shop でないとき本番URLへ投げていたため、
+      // プレビュー環境や localhost での試し送信が本番の予約として登録され得た（総点検 #26）。
+      // 本番環境では従来どおり同一オリジンの /api/booking を叩くため挙動は変わらない。
+      const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -156,11 +171,9 @@ export default function BookingPage() {
   // 送信完了画面
   if (result === "success" || result === "success_no_email") {
     const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) >= 15);
-    // 仮予約(前日17時以降の翌日予約)の判定は、サーバー(route.ts:44-63)と同じ JST 基準で行う。
-    // new Date().getHours()/getDate() のローカルTZ依存は端末TZ次第でサーバー判定と食い違うため、
-    // datetime.ts の JST ヘルパに統一する（feedback_timezone_bug_jst_after_9am.md）。
-    const isLate =
-      !!form.date && form.date === addDaysJst(getJstToday(), 1) && getJstHour() >= 17;
+    // 仮予約(前日17時以降の翌日予約)の判定は lib/booking-rules.ts の1箇所に集約し、
+    // step1・確認画面・サーバー(api/booking)と必ず同じ結果になるようにする（総点検 #27）。
+    const isLate = isLateBooking(form.date);
     const isPending = hasHeavyDog || isLate;
     return (
       <div className="min-h-dvh bg-[#F8F5F0] flex items-center justify-center p-4">
@@ -304,34 +317,34 @@ export default function BookingPage() {
       {/* フォーム */}
       <main className="max-w-lg mx-auto px-4 pb-8">
         {step === 1 && (<>
-          <Step1Plan form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); } else { goNext(); } }} />
+          <Step1Plan form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { backToConfirm(); } else { goNext(); } }} />
           {editingFromConfirm && (
-            <button type="button" onClick={() => { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            <button type="button" onClick={backToConfirm}
               className="w-full py-3 mt-3 rounded-xl border-2 border-[#B87942] text-[#B87942] text-sm font-medium">
               確認画面に戻る
             </button>
           )}
         </>)}
         {step === 2 && (<>
-          <Step2Dogs form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); } else { goNext(); } }} onBack={goBack} />
+          <Step2Dogs form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { backToConfirm(); } else { goNext(); } }} onBack={goBack} />
           {editingFromConfirm && (
-            <button type="button" onClick={() => { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            <button type="button" onClick={backToConfirm}
               className="w-full py-3 mt-3 rounded-xl border-2 border-[#B87942] text-[#B87942] text-sm font-medium">
               確認画面に戻る
             </button>
           )}
         </>)}
         {step === 3 && (<>
-          <Step3Customer form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); } else { goNext(); } }} onBack={goBack} />
+          <Step3Customer form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { backToConfirm(); } else { goNext(); } }} onBack={goBack} />
           {editingFromConfirm && (
-            <button type="button" onClick={() => { setEditingFromConfirm(false); setStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            <button type="button" onClick={backToConfirm}
               className="w-full py-3 mt-3 rounded-xl border-2 border-[#B87942] text-[#B87942] text-sm font-medium">
               確認画面に戻る
             </button>
           )}
         </>)}
         {step === 4 && (
-          <Step4Confirm form={form} onChange={setForm} onSubmit={handleSubmit} onBack={goBack} onGoToStep={(s) => { setEditingFromConfirm(true); setStep(s as BookingStep); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+          <Step4Confirm form={form} onChange={setForm} onSubmit={handleSubmit} onBack={goBack} onGoToStep={goEditFromConfirm} />
         )}
       </main>
     </div>
