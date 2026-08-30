@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
-import { sendCancellationEmails } from "@/lib/email";
+import { sendCancellationEmails, buildLineLinkSection } from "@/lib/email";
+import { buildLineLinkUrl } from "@/lib/link-token";
 import { sendLinePushMessage, buildBookingConfirmMessage, buildCancellationMessage } from "@/lib/line";
 
 const supabase = createClient(
@@ -182,12 +183,23 @@ export async function POST(req: NextRequest) {
           .eq("id", reservation_id)
           .single();
 
+        // 既にLINEと紐付いているお客様かどうか。確定メールのLINE案内の出し分けと、
+        // 下の確定LINE push の両方でこの1つの値を使う（判定を二重に持たない）。
+        const lineId = (res?.customers as unknown as { line_id?: string | null } | null)?.line_id;
+
         if (res?.customers?.email) {
           const PLAN_NAMES: Record<string, string> = { spot: "スポット", "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
           const dogNames = res.reservation_dogs?.map((rd: { dogs: { name: string } | null }) => rd.dogs?.name).filter(Boolean).join("、") || "";
           const d = new Date(res.date + "T00:00:00");
           const days = ["日","月","火","水","木","金","土"];
           const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${days[d.getDay()]}）`;
+
+          // 1タップLINE連携のご案内（2026-08-30 総点検 #6 の続き）。
+          // 予約確認メールと同じ作法で、まだ紐付いていないお客様にだけ載せる。
+          // ・紐付け済み → null を渡す＝buildLineLinkSection が空文字を返し案内は出ない
+          // ・署名鍵（CRON_SECRET）が読めずリンクを作れない → 同じく null＝案内が消えるだけで
+          //   メール本体は従来どおり届く（メールを止めない安全側の設計）
+          const lineLinkUrl = lineId ? null : buildLineLinkUrl(res.customer_id);
 
           const transporter = nodemailer.createTransport({
             host: "smtp.gmail.com", port: 587, secure: false,
@@ -212,6 +224,7 @@ export async function POST(req: NextRequest) {
                   <a href="https://dog-hub.shop/booking/modify/${reservation_id}" style="color:#B87942;font-size:13px;">予約内容を変更する</a>
                   <a href="https://dog-hub.shop/booking/cancel/${reservation_id}" style="color:#888;font-size:13px;">予約をキャンセルする</a>
                 </div>
+                ${buildLineLinkSection(lineLinkUrl, true)}
                 <p style="margin-top:24px;font-size:12px;color:#888;">DogHub箱根仙石原 | 0460-80-0290 | 金〜火 9:00〜17:00</p>
               </div>
             `,
@@ -221,7 +234,6 @@ export async function POST(req: NextRequest) {
         // LINE通知（line_idがある場合）。メール未入力のLINE予約客は確定メールが送られず、
         // 従来はLINE pushも無く「確定が一切通知されない」状態だった（仮予約時には
         // 「確認後に確定」とLINE案内済み）。ここで確定をLINEにも push する。
-        const lineId = (res?.customers as unknown as { line_id?: string | null } | null)?.line_id;
         if (res && lineId) {
           try {
             await sendLinePushMessage(
