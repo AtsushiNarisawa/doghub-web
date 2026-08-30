@@ -23,7 +23,7 @@ type Activity = {
   activity_at: string;
   customer_name: string;
   dog_names: string;
-  type: "new" | "cancelled" | "confirmed" | "modified";
+  type: "new" | "cancelled" | "confirmed" | "modified" | "no_show";
 };
 
 /** ISO日時から JST の「日付」と「時」を取り出す（サーバー側 lib/datetime.ts と同じ求め方） */
@@ -54,6 +54,7 @@ function jstParts(iso: string): { date: string; hour: number } {
  *
  * そこで判定を次の順序にした:
  *   1. キャンセル済み            → キャンセル
+ *   1b. 無断キャンセル            → 無断キャンセル（これが無いと「変更」と誤表示される）
  *   2. 更新されていない          → 新規予約
  *   3. お礼送信済み（cronの更新） → 新規予約（＝人の操作ではないので出来事にしない）
  *   4. まだ確認待ち              → 新規予約
@@ -73,6 +74,9 @@ function classifyActivity(r: {
   thankyou_sent: boolean | null;
 }): Activity["type"] {
   if (r.status === "cancelled") return "cancelled";
+  // 無断キャンセルの記録（総点検 #15）。これを先に返さないと、
+  // 状態を変えただけで updated_at が動くため「変更」として出てしまう。
+  if (r.status === "no_show") return "no_show";
   if (!r.updated_at || r.updated_at === r.created_at) return "new";
   if (r.thankyou_sent) return "new";
   if (r.status === "pending") return "new";
@@ -201,6 +205,7 @@ export function NotificationPanel({
     confirmed: { label: "確定", color: "bg-green-50 text-green-700", icon: "✓" },
     cancelled: { label: "キャンセル", color: "bg-red-50 text-red-700", icon: "×" },
     modified: { label: "変更", color: "bg-amber-50 text-amber-700", icon: "✎" },
+    no_show: { label: "無断キャンセル", color: "bg-gray-100 text-gray-600", icon: "−" },
   };
 
   return (

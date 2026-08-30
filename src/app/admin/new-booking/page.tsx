@@ -8,6 +8,51 @@ import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
+// 顧客＋犬の取得列。ここ1箇所だけで管理する（以前は5箇所にコピーがあった）。
+// 🔴 フリガナ・郵便番号・住所は この画面に入力欄が無いが、予約APIへ「今の値」を
+//    送り返すために必ず取得する（2026-08-30 Batch1 の顧客マスタ消失バグ対策）。列を減らさないこと。
+// dogs.updated_at は「前回の体重・年齢がいつのものか」を参考表示するために使う。
+const CUSTOMER_SELECT =
+  "id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes, updated_at)";
+
+// DBに登録済みの犬。weight/age/ワクチンは「前回の登録値」であって今の値とは限らない。
+interface DogRecord {
+  id: string;
+  name: string;
+  breed: string;
+  weight: number;
+  age: number | null;
+  sex: string;
+  has_rabies_vaccine: boolean;
+  has_mixed_vaccine: boolean;
+  allergies: string | null;
+  meal_notes: string | null;
+  medication_notes: string | null;
+  updated_at: string | null;
+}
+
+// 電話受付でその都度うかがう項目（総点検 #16）。
+// 前回の値は自動で入れず、必ず空欄から入力してもらう。
+// ワクチンは "" = 未選択（送信できない）、"unknown" = 未確認（選んで送れる）で区別する。
+type VaccineChoice = "" | "yes" | "no" | "unknown";
+interface DogFreshInput {
+  weight: string;
+  age: string;
+  rabies: VaccineChoice;
+  mixed: VaccineChoice;
+}
+const EMPTY_DOG_INPUT: DogFreshInput = { weight: "", age: "", rabies: "", mixed: "" };
+const VACCINE_OPTIONS: { v: Exclude<VaccineChoice, "">; label: string }[] = [
+  { v: "yes", label: "接種済み" },
+  { v: "no", label: "未接種" },
+  { v: "unknown", label: "未確認" },
+];
+function vaccineToBool(choice: VaccineChoice): boolean | null {
+  if (choice === "yes") return true;
+  if (choice === "no") return false;
+  return null; // 未確認・未選択は「わからない」としてDBに残す（古い値を上書きで残さない）
+}
+
 interface CustomerResult {
   id: string;
   last_name: string;
@@ -22,7 +67,7 @@ interface CustomerResult {
   email: string;
   email_bounced: boolean;
   email_opt_out: boolean;
-  dogs: { id: string; name: string; breed: string; weight: number; age: number | null; sex: string; has_rabies_vaccine: boolean; has_mixed_vaccine: boolean; allergies: string | null; meal_notes: string | null; medication_notes: string | null }[];
+  dogs: DogRecord[];
 }
 
 type Step = "search" | "form";
@@ -39,7 +84,7 @@ interface SearchResult {
   email: string;
   email_bounced: boolean;
   email_opt_out: boolean;
-  dogs: { id: string; name: string; breed: string; weight: number; age: number | null; sex: string; has_rabies_vaccine: boolean; has_mixed_vaccine: boolean; allergies: string | null; meal_notes: string | null; medication_notes: string | null }[];
+  dogs: DogRecord[];
 }
 
 interface NewDogInput {
@@ -84,6 +129,9 @@ function NewBookingForm() {
   const [checkinTime, setCheckinTime] = useState("");
   const [checkoutDate, setCheckoutDate] = useState("");
   const [selectedDogIds, setSelectedDogIds] = useState<string[]>([]);
+  // 既存の犬について、この電話でうかがった体重・年齢・ワクチン（総点検 #16）。
+  // 前回の値はここに入れない＝空欄から入力してもらう。キーは犬ID。
+  const [dogInputs, setDogInputs] = useState<Record<string, DogFreshInput>>({});
   const [walkOption, setWalkOption] = useState(false);
   const [destination, setDestination] = useState("");
   const [notes, setNotes] = useState("");
@@ -103,7 +151,7 @@ function NewBookingForm() {
   const loadCustomerById = async (customerId: string) => {
     const { data } = await supabase
       .from("customers")
-      .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+      .select(CUSTOMER_SELECT)
       .eq("id", customerId)
       .single();
     if (data) {
@@ -113,7 +161,6 @@ function NewBookingForm() {
   };
 
   // 再発防止: 新規入力中に「同姓 or 同じ犬名」の既存客を自動検出して重複を警告
-  const SEL = "id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)";
   useEffect(() => {
     if (!isNewCustomer) { setDupCandidates([]); return; }
     const ln = newCustomer.last_name.trim();
@@ -123,14 +170,14 @@ function NewBookingForm() {
     const t = setTimeout(async () => {
       const found: Record<string, SearchResult> = {};
       if (ln.length >= 1) {
-        const { data } = await supabase.from("customers").select(SEL).ilike("last_name", `%${ln}%`).limit(8);
+        const { data } = await supabase.from("customers").select(CUSTOMER_SELECT).ilike("last_name", `%${ln}%`).limit(8);
         for (const c of (data as unknown as SearchResult[]) || []) found[c.id] = c;
       }
       if (dogName.length >= 1) {
         const { data: dogHits } = await supabase.from("dogs").select("customer_id").ilike("name", `%${dogName}%`).limit(8);
         const cids = (dogHits || []).map((d) => d.customer_id).filter((id) => !(id in found));
         if (cids.length) {
-          const { data: extra } = await supabase.from("customers").select(SEL).in("id", cids).limit(8);
+          const { data: extra } = await supabase.from("customers").select(CUSTOMER_SELECT).in("id", cids).limit(8);
           for (const c of (extra as unknown as SearchResult[]) || []) found[c.id] = c;
         }
       }
@@ -156,7 +203,7 @@ function NewBookingForm() {
       const normalized = q.replace(/[-\s]/g, "");
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+        .select(CUSTOMER_SELECT)
         .ilike("phone", `%${normalized}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -164,7 +211,7 @@ function NewBookingForm() {
       // 名前・カナ検索
       const { data } = await supabase
         .from("customers")
-        .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+        .select(CUSTOMER_SELECT)
         .or(`last_name.ilike.%${q}%,first_name.ilike.%${q}%,last_name_kana.ilike.%${q}%,first_name_kana.ilike.%${q}%`)
         .limit(10);
       results = (data as unknown as SearchResult[]) || [];
@@ -181,7 +228,7 @@ function NewBookingForm() {
           if (cids.length > 0) {
             const { data: extra } = await supabase
               .from("customers")
-              .select("id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes)")
+              .select(CUSTOMER_SELECT)
               .in("id", cids)
               .limit(5);
             if (extra) results = [...results, ...(extra as unknown as SearchResult[])];
@@ -218,6 +265,28 @@ function NewBookingForm() {
     setSelectedDogIds((prev) =>
       prev.includes(dogId) ? prev.filter((id) => id !== dogId) : [...prev, dogId]
     );
+    // 選んだ時点では必ず空欄から。前回の値は参考表示するだけで、入力欄には入れない。
+    setDogInputs((prev) => (prev[dogId] ? prev : { ...prev, [dogId]: { ...EMPTY_DOG_INPUT } }));
+  };
+
+  const setDogInput = (dogId: string, patch: Partial<DogFreshInput>) => {
+    setDogInputs((prev) => ({ ...prev, [dogId]: { ...EMPTY_DOG_INPUT, ...prev[dogId], ...patch } }));
+  };
+
+  // 「前回のご登録: 8.2kg / 5歳（2026-03-12 時点）」の文言を作る。
+  // updated_at はその犬の情報を最後に保存した日＝この値がいつのものかの手掛かり。
+  const prevDogSummary = (dog: DogRecord) => {
+    const parts: string[] = [];
+    if (dog.weight != null) parts.push(`${dog.weight}kg`);
+    if (dog.age != null) parts.push(`${dog.age}歳`);
+    const vac = [
+      dog.has_rabies_vaccine ? "狂犬病あり" : null,
+      dog.has_mixed_vaccine ? "混合あり" : null,
+    ].filter(Boolean).join("・");
+    if (vac) parts.push(vac);
+    if (parts.length === 0) return "";
+    const when = dog.updated_at ? `（${dog.updated_at.slice(0, 10)} 時点）` : "";
+    return `前回のご登録: ${parts.join(" / ")}${when}`;
   };
 
   const submit = async () => {
@@ -229,25 +298,32 @@ function NewBookingForm() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      // 既存顧客の犬: DBの情報をそのまま使う（性別・アレルギー等を上書きしない）
+      // 既存顧客の犬:
+      //   名前・犬種・性別・アレルギー等は DBの情報をそのまま使う（上書きしない）。
+      //   🔴 体重・年齢・ワクチンだけは「この電話でうかがった値」を送る（総点検 #16）。
+      //      以前は前回の登録値をそのまま送り返していたため、1年前の体重・年齢が
+      //      「今日確認した値」として保存され、しかも更新日時だけ新しくなっていた。
       // 新規顧客の犬: フォーム入力値を使う
       const selectedDogs = customer && (customer.dogs || []).length > 0
         ? (customer.dogs || [])
             .filter((d) => selectedDogIds.includes(d.id))
-            .map((d) => ({
-              id: d.id,
-              name: d.name,
-              breed: d.breed || "不明",
-              weight: String(d.weight) || "5",
-              age: d.age ? String(d.age) : "",
-              age_months: "",
-              sex: (d.sex || "") as "male" | "female" | "",
-              has_rabies_vaccine: d.has_rabies_vaccine || false,
-              has_mixed_vaccine: d.has_mixed_vaccine || false,
-              allergies: d.allergies || "",
-              meal_notes: d.meal_notes || "",
-              medication_notes: d.medication_notes || "",
-            }))
+            .map((d) => {
+              const input = dogInputs[d.id] ?? EMPTY_DOG_INPUT;
+              return {
+                id: d.id,
+                name: d.name,
+                breed: d.breed || "不明",
+                weight: input.weight.trim(),
+                age: input.age.trim(),
+                age_months: "",
+                sex: (d.sex || "") as "male" | "female" | "",
+                has_rabies_vaccine: vaccineToBool(input.rabies),
+                has_mixed_vaccine: vaccineToBool(input.mixed),
+                allergies: d.allergies || "",
+                meal_notes: d.meal_notes || "",
+                medication_notes: d.medication_notes || "",
+              };
+            })
         : newDogs.filter((d) => d.name).map((d) => ({
               name: d.name,
               breed: d.breed || "不明",
@@ -422,6 +498,16 @@ function NewBookingForm() {
   }
   if (customer) {
     if (hasDogs && selectedDogIds.length === 0) missingFields.push("ワンちゃんの選択");
+    // 総点検 #16: 前回値の自動流用をやめたので、選んだ犬ごとに今日の値が必要。
+    // 空欄のまま送ると年齢が消える・体重が誤って保存されるため、ここで止める。
+    for (const dog of customer.dogs || []) {
+      if (!selectedDogIds.includes(dog.id)) continue;
+      const input = dogInputs[dog.id] ?? EMPTY_DOG_INPUT;
+      if (!input.weight.trim()) missingFields.push(`${dog.name}の体重`);
+      if (!input.age.trim()) missingFields.push(`${dog.name}の年齢`);
+      if (!input.rabies) missingFields.push(`${dog.name}の狂犬病ワクチン`);
+      if (!input.mixed) missingFields.push(`${dog.name}の混合ワクチン`);
+    }
   } else if (isNewCustomer) {
     if (!newDogs.some((d) => d.name.trim())) missingFields.push("ワンちゃんのお名前");
   }
@@ -520,33 +606,109 @@ function NewBookingForm() {
         <div className="bg-white rounded-xl p-4">
           <p className="text-sm font-medium text-gray-500 mb-3">ワンちゃん選択（複数可）</p>
           <div className="space-y-2">
-            {customer.dogs.map((dog) => (
-              <button
-                key={dog.id}
-                onClick={() => toggleDog(dog.id)}
-                className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                  selectedDogIds.includes(dog.id)
-                    ? "border-[#B87942] bg-orange-50"
-                    : "border-gray-200 bg-gray-50"
-                }`}
-              >
-                <div className="text-left">
-                  <p className="text-sm font-medium">{dog.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {dog.breed} / {dog.weight}kg{dog.age != null ? ` / ${dog.age}歳` : ""}
-                  </p>
-                </div>
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  selectedDogIds.includes(dog.id) ? "border-[#B87942] bg-[#B87942]" : "border-gray-300"
-                }`}>
-                  {selectedDogIds.includes(dog.id) && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+            {customer.dogs.map((dog) => {
+              const selected = selectedDogIds.includes(dog.id);
+              const input = dogInputs[dog.id] ?? EMPTY_DOG_INPUT;
+              const prev = prevDogSummary(dog);
+              return (
+                <div key={dog.id}>
+                  <button
+                    onClick={() => toggleDog(dog.id)}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                      selected
+                        ? "border-[#B87942] bg-orange-50"
+                        : "border-gray-200 bg-gray-50"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <p className="text-sm font-medium">{dog.name}</p>
+                      {/* 前回の登録内容。入力欄には入れず、目安として見せるだけ（総点検 #16） */}
+                      <p className="text-xs text-gray-500">
+                        {dog.breed}{prev ? ` / ${prev}` : ""}
+                      </p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                      selected ? "border-[#B87942] bg-[#B87942]" : "border-gray-300"
+                    }`}>
+                      {selected && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* 🔴 総点検 #16: 体重・年齢・ワクチンは前回値を自動で入れない。
+                      お電話でうかがった今の値を、空欄から入力してもらう。 */}
+                  {selected && (
+                    <div className="mt-2 ml-1 p-3 rounded-xl border border-[#E5DDD8] bg-[#F7F5F0] space-y-3">
+                      <div>
+                        <p className="text-xs font-medium text-gray-700">
+                          {dog.name}ちゃんの今の情報をおうかがいしてください
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                          {prev ? `${prev} … 変わっていないか必ずご確認ください` : "前回のご登録はありません"}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">体重(kg)</p>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.5"
+                            min="0"
+                            value={input.weight}
+                            onChange={(e) => { const v = e.target.value; if (v === "" || parseFloat(v) >= 0) setDogInput(dog.id, { weight: v }); }}
+                            placeholder="今の体重"
+                            className="w-full px-3 py-2 text-base bg-white border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">年齢(歳)</p>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            min="0"
+                            value={input.age}
+                            onChange={(e) => { const v = e.target.value; if (v === "" || parseInt(v) >= 0) setDogInput(dog.id, { age: v }); }}
+                            placeholder="今の年齢"
+                            className="w-full px-3 py-2 text-base bg-white border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1.5">ワクチン（当日、証明書でご確認ください）</p>
+                        {([
+                          { key: "rabies" as const, label: "狂犬病" },
+                          { key: "mixed" as const, label: "混合" },
+                        ]).map((vac) => (
+                          <div key={vac.key} className="mb-2 last:mb-0">
+                            <p className="text-xs text-gray-500 mb-1">{vac.label}ワクチン</p>
+                            <div className="grid grid-cols-3 gap-2">
+                              {VACCINE_OPTIONS.map((opt) => (
+                                <button
+                                  key={opt.v}
+                                  type="button"
+                                  onClick={() => setDogInput(dog.id, { [vac.key]: opt.v })}
+                                  className={`py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    input[vac.key] === opt.v
+                                      ? "bg-[#B87942] text-white"
+                                      : "bg-white text-gray-600 border border-gray-200 active:bg-gray-100"
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       ) : isNewCustomer && (

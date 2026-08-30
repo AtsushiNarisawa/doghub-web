@@ -36,6 +36,9 @@ const STATUS_STYLES: Record<string, { label: string; bg: string }> = {
   pending: { label: "確認待ち", bg: "bg-orange-100 text-orange-700" },
   cancelled: { label: "キャンセル", bg: "bg-gray-100 text-gray-500" },
   completed: { label: "完了", bg: "bg-blue-100 text-blue-700" },
+  // ご連絡なくお越しにならなかった予約（2026-08-30 総点検 #15）。
+  // ⚠️ ここに操作ボタンは置かない。予約詳細画面からのみ記録する。
+  no_show: { label: "無断キャンセル", bg: "bg-gray-200 text-gray-700" },
 };
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -183,7 +186,7 @@ export default function ReservationsPage() {
 
   // 日付ごとの予約数
   const countByDate = (dateStr: string) =>
-    reservations.filter((r) => r.date === dateStr && r.status !== "cancelled").length;
+    reservations.filter((r) => r.date === dateStr && r.status !== "cancelled" && r.status !== "no_show").length;
 
   // 選択日の予約
   const selectedReservations = viewMode !== "list"
@@ -408,7 +411,7 @@ export default function ReservationsPage() {
                 {formatDisplay(selectedDate)}
               </h3>
               <span className="text-sm text-gray-500">
-                {selectedReservations.filter((r) => r.status !== "cancelled").length}件
+                {selectedReservations.filter((r) => r.status !== "cancelled" && r.status !== "no_show").length}件
               </span>
             </div>
             {isTempOpen && <p className="text-sm text-green-700 font-medium mt-1">臨時営業（定休日を営業）</p>}

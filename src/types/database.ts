@@ -81,7 +81,7 @@ export type Database = {
           date: string;
           checkin_time: string;
           checkout_date: string | null;
-          status: "confirmed" | "pending" | "cancelled" | "completed";
+          status: "confirmed" | "pending" | "cancelled" | "completed" | "no_show";
           total_price: number | null;
           extra_hours_fee: number;
           walk_option: boolean;
@@ -101,7 +101,7 @@ export type Database = {
           date: string;
           checkin_time: string;
           checkout_date?: string | null;
-          status?: "confirmed" | "pending" | "cancelled" | "completed";
+          status?: "confirmed" | "pending" | "cancelled" | "completed" | "no_show";
           total_price?: number | null;
           extra_hours_fee?: number;
           walk_option?: boolean;

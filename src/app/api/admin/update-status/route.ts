@@ -65,10 +65,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "必須パラメータが不足" }, { status: 400 });
     }
 
-    const validStatuses = ["confirmed", "pending", "cancelled", "completed"];
+    // no_show =「無断キャンセル」。ご連絡なくお越しにならなかった予約を数えるための状態で、
+    // 2026-08-30 の総点検 #15 で追加した（CEO承認済み）。
+    const validStatuses = ["confirmed", "pending", "cancelled", "completed", "no_show"];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "無効なステータス" }, { status: 400 });
     }
+
+    // 🔴 お客様へ通知してよい状態変更かどうかの唯一の判定。
+    // 「無断キャンセル」は記録のためだけの状態で、メールもLINEも一切送らない。
+    // 下のキャンセル通知・確定通知は必ずこのフラグの中に入れること
+    // （新しい通知を足すときも同じ。ここを外すとお客様に「無断キャンセル」の連絡が飛ぶ）。
+    const SILENT_STATUSES = new Set(["no_show"]);
+    const notifyCustomer = !SILENT_STATUSES.has(status);
 
     // 現在のステータスを取得
     const { data: current } = await supabase
@@ -91,10 +100,19 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("Status update error:", error);
+      // 23514 = DB側のCHECK制約違反。status に許していない値を入れようとしたときに出る。
+      // 「無断キャンセル」を後から足した経緯があるため、原因が分かる文言にしておく。
+      if (error.code === "23514") {
+        return NextResponse.json(
+          { error: "この状態はデータベース側でまだ使えません（システム設定が必要です）。予約は変更されていません。" },
+          { status: 500 },
+        );
+      }
       return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
     }
 
-    // 容量調整
+    // 容量調整。no_show は「お越しにならなかった」＝在庫を占有しないので、
+    // キャンセル・完了と同じく非アクティブ扱い（過去日にしか付かないため実運用の空き表示には影響しない）。
     const wasActive = oldStatus === "confirmed" || oldStatus === "pending";
     const isActive = status === "confirmed" || status === "pending";
 
@@ -107,7 +125,7 @@ export async function POST(req: NextRequest) {
     }
 
     // active → cancelled: お客様＋スタッフにキャンセル通知メールを送信
-    if (wasActive && status === "cancelled") {
+    if (notifyCustomer && wasActive && status === "cancelled") {
       try {
         const { data: res } = await supabase
           .from("reservations")
@@ -156,7 +174,7 @@ export async function POST(req: NextRequest) {
     }
 
     // pending → confirmed: お客様に予約確定メールを送信
-    if (oldStatus === "pending" && status === "confirmed") {
+    if (notifyCustomer && oldStatus === "pending" && status === "confirmed") {
       try {
         const { data: res } = await supabase
           .from("reservations")

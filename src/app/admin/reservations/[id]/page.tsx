@@ -74,6 +74,8 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: "確認待ち", color: "bg-orange-100 text-orange-700" },
   completed: { label: "完了", color: "bg-blue-100 text-blue-700" },
   cancelled: { label: "キャンセル", color: "bg-gray-100 text-gray-500" },
+  // ご連絡なくお越しにならなかった予約。お客様への通知は一切しない（2026-08-30 総点検 #15）
+  no_show: { label: "無断キャンセル", color: "bg-gray-200 text-gray-700" },
 };
 
 export default function ReservationDetailPage() {
@@ -134,6 +136,13 @@ export default function ReservationDetailPage() {
 
   const updateStatus = async (newStatus: string) => {
     if (newStatus === "cancelled" && !confirm("この予約をキャンセルしますか？")) return;
+    // 「無断キャンセル」はお客様の履歴に残る記録なので、必ず確認してから。
+    // この操作でお客様にメール・LINEが飛ぶことはない（api/admin/update-status の notifyCustomer）。
+    if (
+      newStatus === "no_show" &&
+      !confirm("この予約を「無断キャンセル」として記録しますか？\n\nご連絡なくお越しにならなかった場合の記録です。\nお客様にはメールもLINEも送りません。")
+    )
+      return;
     setSaving(true);
     try {
       const resp = await fetch("/api/admin/update-status", {
@@ -754,6 +763,36 @@ export default function ReservationDetailPage() {
             >
               キャンセル
             </button>
+          )}
+          {/* 無断キャンセル（総点検 #15）。
+              過ぎた日の予約にだけ出す。⚠️ 一覧の1タップ操作にはしない（誤操作でお客様の履歴に付くため）。 */}
+          {isPast && res.status !== "no_show" && (
+            <div>
+              <button
+                onClick={() => updateStatus("no_show")}
+                disabled={saving}
+                className="w-full py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium active:bg-gray-200 disabled:opacity-50"
+              >
+                無断キャンセルとして記録
+              </button>
+              <p className="mt-1.5 text-xs text-gray-500 leading-relaxed">
+                ご連絡なくお越しにならなかったときの記録です。お客様にはメールもLINEも送りません。
+              </p>
+            </div>
+          )}
+          {res.status === "no_show" && (
+            <div>
+              <button
+                onClick={() => updateStatus("confirmed")}
+                disabled={saving}
+                className="w-full py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium active:bg-gray-200 disabled:opacity-50"
+              >
+                無断キャンセルの記録を取り消す
+              </button>
+              <p className="mt-1.5 text-xs text-gray-500 leading-relaxed">
+                「完了」に戻します。こちらもお客様には通知しません。
+              </p>
+            </div>
           )}
           {/* お礼メール送信ボタン */}
           {effectiveStatus === "completed" && (

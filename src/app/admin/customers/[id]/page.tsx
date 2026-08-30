@@ -77,6 +77,8 @@ const STATUS_STYLES: Record<string, { label: string; bg: string }> = {
   pending:    { label: "確認待ち",   bg: "bg-orange-100 text-orange-700" },
   cancelled:  { label: "キャンセル", bg: "bg-gray-100 text-gray-500" },
   completed:  { label: "完了",       bg: "bg-blue-100 text-blue-700" },
+  // ご連絡なくお越しにならなかった予約（2026-08-30 総点検 #15）
+  no_show:    { label: "無断キャンセル", bg: "bg-gray-200 text-gray-700" },
 };
 
 export default function CustomerDetailPage() {

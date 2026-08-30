@@ -17,6 +17,7 @@ export const LIVE_VISIT_STATUSES = ["confirmed", "completed"] as const;
 
 /** 予約ステータスがライブ来店としてカウント対象か */
 export function isLiveVisit(status: string): boolean {
+  // no_show（無断キャンセル）は来店していないので false のまま＝「◯回利用」に入らない
   return status === "confirmed" || status === "completed";
 }
 
@@ -47,7 +48,7 @@ export type VisitOrdinalRow = {
  *
  * 定義: legacy_visit_count + その顧客の予約を来店日順に並べたときの順位
  *   - 並び順は 来店日 → チェックイン時刻 → 予約作成日時（予約を取った順ではなく来店の順）
- *   - キャンセルは来店ではないので数えず、結果にも含めない（＝バッジを出さない）
+ *   - キャンセル・無断キャンセルは来店ではないので数えず、結果にも含めない（＝バッジを出さない）
  *   - 仮予約(pending)は「確定すれば何回目になるか」を示すため順番に含める
  *
  * 例: 8/10と8/11に予約があるお客様は 8/10=1（初回）・8/11=2（2回目）。
@@ -59,7 +60,9 @@ export function computeVisitOrdinals(
 ): Record<string, number> {
   const byCustomer: Record<string, VisitOrdinalRow[]> = {};
   for (const r of rows) {
-    if (r.status === "cancelled") continue;
+    // キャンセルと無断キャンセルは来店していないので数えない。
+    // 「◯回利用」（LIVE_VISIT_STATUSES = confirmed/completed）と数え方を揃えている。
+    if (r.status === "cancelled" || r.status === "no_show") continue;
     (byCustomer[r.customer_id] ??= []).push(r);
   }
 
