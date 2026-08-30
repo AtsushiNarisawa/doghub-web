@@ -36,6 +36,9 @@ interface Reservation {
     email: string;
     email_bounced: boolean;
     email_opt_out: boolean;
+    // 口コミ依頼の除外フラグ。⚠️ DBは「送らない=true」で、画面は「送る」側に反転して見せる
+    // （memory: project_review_request_opt_out_202607）
+    review_request_opt_out: boolean;
     line_id: string | null;
     postal_code: string | null;
     address: string | null;
@@ -96,6 +99,8 @@ export default function ReservationDetailPage() {
   const [msgSubject, setMsgSubject] = useState("");
   const [msgBody, setMsgBody] = useState("");
   const [sendingMsg, setSendingMsg] = useState(false);
+  const [savingOptOut, setSavingOptOut] = useState(false);
+  const [optOutSaved, setOptOutSaved] = useState(false);
 
   useEffect(() => { fetchReservation(); }, [id]);
 
@@ -145,6 +150,35 @@ export default function ReservationDetailPage() {
       alert("通信エラーが発生しました");
     }
     setSaving(false);
+  };
+
+  // 口コミ依頼のオン/オフ（総点検 #18）。
+  // 従来は顧客詳細画面まで2画面移動しないと切り替えられず、お礼を送る直前に止められなかった。
+  //
+  // 🔴 向きに注意（memory: project_review_request_opt_out_202607）:
+  //    画面のチェック    = 「口コミ依頼を送る」… 既定オン
+  //    DBの列 review_request_opt_out = 「送らない」… 画面の逆
+  //    したがって送る(send=true) のとき DB には false を書く。
+  // 判定ロジック（lib/review-opt-out.ts）は一切変更していない。書き込む列も顧客詳細と同じ。
+  const toggleReviewRequest = async (send: boolean) => {
+    if (!res) return;
+    const nextOptOut = !send;
+    setSavingOptOut(true);
+    setOptOutSaved(false);
+    const { error } = await supabase
+      .from("customers")
+      .update({ review_request_opt_out: nextOptOut })
+      .eq("id", res.customers.id);
+    setSavingOptOut(false);
+    if (error) {
+      alert(`保存に失敗しました: ${error.message}`);
+      return;
+    }
+    setRes((prev) =>
+      prev ? { ...prev, customers: { ...prev.customers, review_request_opt_out: nextOptOut } } : prev,
+    );
+    setOptOutSaved(true);
+    setTimeout(() => setOptOutSaved(false), 3000);
   };
 
   const startReschedule = () => {
@@ -763,6 +797,32 @@ export default function ReservationDetailPage() {
               </svg>
               お礼メールを送信
             </button>
+          )}
+          {/* 口コミ依頼のオン/オフ（総点検 #18）。お礼を送るボタンのすぐ隣で切り替えられるようにする。
+              ⚠️ チェックは「送る」側＝既定オン。外すとこのお客様にだけ口コミのご案内を付けない。 */}
+          {effectiveStatus === "completed" && (
+            <div className="rounded-lg border border-gray-200 p-3">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!customer.review_request_opt_out}
+                  disabled={savingOptOut}
+                  onChange={(e) => toggleReviewRequest(e.target.checked)}
+                  className="mt-0.5 w-5 h-5 shrink-0 accent-[#B87942] disabled:opacity-50"
+                />
+                <span className="text-sm text-gray-700">
+                  口コミ依頼を送る
+                  <span className="block text-xs text-gray-500 mt-1 leading-relaxed">
+                    通常は全員オンです。<strong className="font-medium">チェックを外すと</strong>、{customer.last_name}様には
+                    お礼メール・LINEの「Googleで口コミを書く」のご案内だけを送りません。
+                    お礼メッセージ本体・リマインド・予約確認メールはこれまで通りお送りします。
+                    この設定はお客様ごとで、他のご予約にも効きます。
+                  </span>
+                </span>
+              </label>
+              {savingOptOut && <p className="mt-2 text-xs text-gray-500">保存中...</p>}
+              {optOutSaved && <p className="mt-2 text-xs text-green-600">保存しました</p>}
+            </div>
           )}
         </div>
       )}

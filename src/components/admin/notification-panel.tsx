@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { isLateBooking } from "@/lib/booking-rules";
 
 const PLAN_NAMES: Record<string, string> = {
   spot: "スポット",
@@ -18,10 +19,70 @@ type Activity = {
   status: string;
   created_at: string;
   updated_at: string;
+  /** この行の「出来事が起きた時刻」。新規＝作成時刻、確定/変更/キャンセル＝更新時刻 */
+  activity_at: string;
   customer_name: string;
   dog_names: string;
   type: "new" | "cancelled" | "confirmed" | "modified";
 };
+
+/** ISO日時から JST の「日付」と「時」を取り出す（サーバー側 lib/datetime.ts と同じ求め方） */
+function jstParts(iso: string): { date: string; hour: number } {
+  const d = new Date(iso);
+  return {
+    date: new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(d),
+    hour: parseInt(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Tokyo", hour: "2-digit", hour12: false,
+      }).format(d),
+      10,
+    ),
+  };
+}
+
+/**
+ * 予約1件に「何が起きたか」を判定する（総点検 #17）。
+ *
+ * 🔴 前提: reservations.updated_at は DB トリガーで自動更新されるため、
+ *    お客様・スタッフが何もしていなくても**お礼メールの cron が thankyou_sent を立てただけ**で動く。
+ *    実測（2026-08-30・直近14日）では更新のあった行のほぼ全部がこのパターンで、
+ *    従来の「updated_at ≠ created_at かつ confirmed なら確定」という判定は、
+ *    ただの新規予約を1〜2日後に「確定」と誤表示していた。
+ *
+ * そこで判定を次の順序にした:
+ *   1. キャンセル済み            → キャンセル
+ *   2. 更新されていない          → 新規予約
+ *   3. お礼送信済み（cronの更新） → 新規予約（＝人の操作ではないので出来事にしない）
+ *   4. まだ確認待ち              → 新規予約
+ *   5. 作られた時点が「仮予約」だった → 確定（スタッフが pending→confirmed にした）
+ *   6. それ以外の更新            → 変更（日程変更・お客様のセルフ変更）
+ *
+ * 5 の判定は lib/booking-rules.ts の isLateBooking をそのまま使う。
+ * サーバーが予約作成時に仮予約とするかを決めているのと同じ関数なので、
+ * 「作られたときに仮予約だったか」を作成時刻から正確に再現できる。
+ */
+function classifyActivity(r: {
+  status: string;
+  source: string;
+  date: string;
+  created_at: string;
+  updated_at: string;
+  thankyou_sent: boolean | null;
+}): Activity["type"] {
+  if (r.status === "cancelled") return "cancelled";
+  if (!r.updated_at || r.updated_at === r.created_at) return "new";
+  if (r.thankyou_sent) return "new";
+  if (r.status === "pending") return "new";
+
+  const created = jstParts(r.created_at);
+  const wasPendingAtCreation =
+    r.source !== "phone" && isLateBooking(r.date, created.date, created.hour);
+  if (wasPendingAtCreation && r.status === "confirmed") return "confirmed";
+  return "modified";
+}
 
 function formatRelativeTime(dateStr: string) {
   const now = new Date();
@@ -58,18 +119,22 @@ export function NotificationPanel({
     setLoading(true);
 
     (async () => {
-      // 直近7日間の予約アクティビティを取得
+      // 直近7日間の予約アクティビティを取得。
+      // 「作られた予約」だけでなく「動きのあった予約」も拾う（総点検 #17）。
+      // 従来は created_at のみで絞っていたため、3週間前に入った予約の日程を
+      // スタッフが動かしてもこのお知らせには一切出てこなかった。
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const since = sevenDaysAgo.toISOString();
 
       const { data } = await supabase
         .from("reservations")
         .select(
-          "id, date, plan, status, created_at, updated_at, customers!inner(last_name, first_name), reservation_dogs(dogs(name))"
+          "id, date, plan, status, source, thankyou_sent, created_at, updated_at, customers!inner(last_name, first_name), reservation_dogs(dogs(name))"
         )
-        .gte("created_at", sevenDaysAgo.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(20);
+        .or(`created_at.gte.${since},updated_at.gte.${since}`)
+        .order("updated_at", { ascending: false })
+        .limit(60);
 
       if (!data) {
         setActivities([]);
@@ -77,38 +142,52 @@ export function NotificationPanel({
         return;
       }
 
-      const items: Activity[] = (data as unknown[]).map((r: unknown) => {
-        const row = r as {
-          id: string;
-          date: string;
-          plan: string;
-          status: string;
-          created_at: string;
-          updated_at: string;
-          customers: { last_name: string; first_name: string };
-          reservation_dogs: { dogs: { name: string } | null }[];
-        };
+      const items: Activity[] = (data as unknown[])
+        .map((r: unknown) => {
+          const row = r as {
+            id: string;
+            date: string;
+            plan: string;
+            status: string;
+            source: string;
+            thankyou_sent: boolean | null;
+            created_at: string;
+            updated_at: string;
+            customers: { last_name: string; first_name: string };
+            reservation_dogs: { dogs: { name: string } | null }[];
+          };
 
-        let type: Activity["type"] = "new";
-        if (row.status === "cancelled") type = "cancelled";
-        else if (row.updated_at !== row.created_at && row.status === "confirmed") type = "confirmed";
+          const type = classifyActivity(row);
 
-        return {
-          id: row.id,
-          date: row.date,
-          plan: row.plan,
-          status: row.status,
-          created_at: row.created_at,
-          updated_at: row.updated_at,
-          customer_name: `${row.customers.last_name}${row.customers.first_name || ""}`,
-          dog_names:
-            row.reservation_dogs
-              ?.map((rd) => rd.dogs?.name)
-              .filter(Boolean)
-              .join("、") || "",
-          type,
-        };
-      });
+          return {
+            id: row.id,
+            date: row.date,
+            plan: row.plan,
+            status: row.status,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            // 新規は「入った時刻」、確定/変更/キャンセルは「動いた時刻」を出来事の時刻とする
+            activity_at: type === "new" ? row.created_at : row.updated_at || row.created_at,
+            customer_name: `${row.customers.last_name}${row.customers.first_name || ""}`,
+            dog_names:
+              row.reservation_dogs
+                ?.map((rd) => rd.dogs?.name)
+                .filter(Boolean)
+                .join("、") || "",
+            type,
+          };
+        })
+        // 「新規」なのに7日より前に入った予約は出さない（お礼cronの更新で拾われただけの行）
+        .filter(
+          (a) =>
+            a.type !== "new" ||
+            new Date(a.created_at).getTime() >= sevenDaysAgo.getTime(),
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.activity_at).getTime() - new Date(a.activity_at).getTime(),
+        )
+        .slice(0, 20);
 
       setActivities(items);
       setLoading(false);
@@ -159,7 +238,13 @@ export function NotificationPanel({
                       isNew ? "border-blue-200 bg-blue-50/30" : "border-gray-100"
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2">
+                      {/* 未読の青ドット。以前は absolute だったが親に relative が無く、
+                          カードの外（パネル左上）にずれて表示されていた（総点検 #17）。
+                          位置がずれない行内配置にし、未読でないときも幅を確保して列を揃える。 */}
+                      <span className="mt-1.5 w-2 shrink-0" aria-hidden="true">
+                        {isNew && <span className="block w-2 h-2 rounded-full bg-blue-500" />}
+                      </span>
                       <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${config.color}`}>
                         {config.label}
                       </span>
@@ -173,12 +258,9 @@ export function NotificationPanel({
                         </p>
                       </div>
                       <span className="text-[11px] text-gray-400 whitespace-nowrap">
-                        {formatRelativeTime(a.created_at)}
+                        {formatRelativeTime(a.activity_at)}
                       </span>
                     </div>
-                    {isNew && (
-                      <div className="w-2 h-2 rounded-full bg-blue-500 absolute top-3 left-1" />
-                    )}
                   </Link>
                 );
               })}

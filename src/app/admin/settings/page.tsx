@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -48,7 +49,8 @@ interface DayOverride {
 
 const DEFAULT_SETTINGS: Settings = {
   booking_window_days: 180,
-  closed_weekdays: [3, 4],
+  // 定休日（水・木）の正本は lib/business-days.ts（総点検 #29）
+  closed_weekdays: DEFAULT_CLOSED_WEEKDAYS,
 };
 
 function fmtDate(d: Date) {
@@ -126,8 +128,8 @@ export default function SettingsPage() {
 
     if (capData && settingsData) {
       const cw = settingsData
-        ? ((() => { const m: Record<string, string> = {}; for (const row of settingsData) m[row.key] = row.value; return m.closed_weekdays ? m.closed_weekdays.split(",").map(Number).filter((n: number) => !isNaN(n)) : [3, 4]; })())
-        : [3, 4];
+        ? ((() => { const m: Record<string, string> = {}; for (const row of settingsData) m[row.key] = row.value; return m.closed_weekdays ? m.closed_weekdays.split(",").map(Number).filter((n: number) => !isNaN(n)) : DEFAULT_CLOSED_WEEKDAYS; })())
+        : DEFAULT_CLOSED_WEEKDAYS;
 
       // 臨時休業（通常営業日なのにclosed=true）または臨時営業（定休日なのにclosed=false）のみ抽出
       const overrideList = capData.filter((r) => {

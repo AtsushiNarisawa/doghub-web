@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { exceedsRoomLimit, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
+import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { sendReservationChangeEmail } from "@/lib/email";
 import { sendLinePushMessage, buildReservationChangeMessage } from "@/lib/line";
 
@@ -78,11 +79,10 @@ export async function POST(req: NextRequest) {
     // daily_capacity 行が無い将来の水木には行が無いのが常態のため、cap=null のときは
     // 曜日で定休(水=3/木=4)を判定する。これを怠ると、新規予約では弾かれる「定休日をまたぐ/
     // 定休日に在室する連泊」をリスケで成立させられてしまう。
-    const closedWeekdays = [3, 4];
+    // 曜日の値と JST 曜日の求め方は lib/business-days.ts が正本（総点検 #29）。
     const isClosedDate = (date: string, cap: { closed: boolean } | null): boolean => {
       if (cap) return cap.closed;
-      const dow = new Date(date + "T12:00:00+09:00").getUTCDay();
-      return closedWeekdays.includes(dow);
+      return isDefaultClosedWeekday(date);
     };
 
     // 純粋な追加日のみ容量チェック（重複日は元々 dogCount 含まれているのでスキップ）

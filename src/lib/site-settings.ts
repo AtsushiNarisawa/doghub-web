@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 
 export interface SiteSettings {
   bookingWindowDays: number;
@@ -7,7 +8,7 @@ export interface SiteSettings {
 
 const DEFAULTS: SiteSettings = {
   bookingWindowDays: 180,
-  closedWeekdays: [3, 4],
+  closedWeekdays: DEFAULT_CLOSED_WEEKDAYS,
 };
 
 export async function fetchSiteSettings(): Promise<SiteSettings> {

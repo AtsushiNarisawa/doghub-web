@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
+import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
 
 interface ReservationRow {
@@ -65,6 +66,8 @@ export default function ReservationsPage() {
   const [capacityMap, setCapacityMap] = useState<Record<string, { day_booked: number; day_limit: number; stay_booked: number; stay_limit: number; closed: boolean }>>({});
   // 予約ID → その予約が何回目のご利用か（顧客の通算回数ではない）
   const [visitOrdinals, setVisitOrdinals] = useState<Record<string, number>>({});
+  // 「予約を確定する」を送信中の予約ID（連打で確定メールが二重に飛ぶのを防ぐ）
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   // カレンダーの表示範囲を計算
   const getDateRange = useCallback(() => {
@@ -194,16 +197,42 @@ export default function ReservationsPage() {
         })
       : reservations;
 
-  const confirmReservation = async (id: string, e: React.MouseEvent) => {
+  // 予約の確定。押した瞬間にお客様へ確定のご連絡（メール／LINE）が飛ぶ一方通行の操作なので、
+  // ①実行前に必ず確認を取る ②失敗したら画面にも失敗と出す（成功時だけ表示を「確定」に変える）。
+  // 予約詳細画面（reservations/[id] の updateStatus）と同じ作法に揃えている（総点検 #11）。
+  const confirmReservation = async (r: ReservationRow, e: React.MouseEvent) => {
     e.preventDefault();
-    await fetch("/api/admin/update-status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reservation_id: id, status: "confirmed" }),
-    });
-    setReservations((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: "confirmed" } : r))
-    );
+    e.stopPropagation();
+    if (confirmingId) return; // 二度押し防止
+    const name = `${r.customers.last_name} ${r.customers.first_name}`.trim();
+    if (
+      !confirm(
+        `${name}様の予約（${formatDisplay(r.date)} ${r.checkin_time.slice(0, 5)}）を確定しますか？\n\n` +
+          `確定のご連絡がお客様に届きます（メール／LINE連携があればLINE）。`,
+      )
+    ) {
+      return;
+    }
+    setConfirmingId(r.id);
+    try {
+      const resp = await fetch("/api/admin/update-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservation_id: r.id, status: "confirmed" }),
+      });
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        alert(data.error || "更新に失敗しました");
+        return;
+      }
+      setReservations((prev) =>
+        prev.map((x) => (x.id === r.id ? { ...x, status: "confirmed" } : x)),
+      );
+    } catch {
+      alert("通信エラーが発生しました");
+    } finally {
+      setConfirmingId(null);
+    }
   };
 
   const todayStr = formatDateKey(new Date());
@@ -280,7 +309,7 @@ export default function ReservationsPage() {
               const count = countByDate(dateStr);
               const isCurrentMonth = date.getMonth() === baseDate.getMonth();
               const cap = capacityMap[dateStr];
-              const regularClosed = [3, 4].includes(date.getDay());
+              const regularClosed = DEFAULT_CLOSED_WEEKDAYS.includes(date.getDay());
               // daily_capacity の上書きを正とする（臨時営業/臨時休業を反映）
               const isClosed = cap ? cap.closed : regularClosed;
               const isTempOpen = regularClosed && !isClosed; // 臨時営業（定休日を営業）
@@ -368,7 +397,7 @@ export default function ReservationsPage() {
         const stayB = cap?.stay_booked ?? 0;
         const total = dayB + stayB;
         const isFull = total >= ROOM_LIMIT;
-        const regularClosed = [3, 4].includes(new Date(selectedDate + "T00:00:00").getDay());
+        const regularClosed = DEFAULT_CLOSED_WEEKDAYS.includes(new Date(selectedDate + "T00:00:00").getDay());
         const isClosed = cap ? cap.closed : regularClosed;
         const isTempOpen = regularClosed && !isClosed;
         const isTempClosed = !regularClosed && isClosed;
@@ -498,10 +527,11 @@ export default function ReservationsPage() {
                 </p>
                 {r.status === "pending" && (
                   <button
-                    onClick={(e) => confirmReservation(r.id, e)}
-                    className="mt-2 text-sm bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-200 active:bg-green-100"
+                    onClick={(e) => confirmReservation(r, e)}
+                    disabled={confirmingId === r.id}
+                    className="mt-2 text-sm bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-200 active:bg-green-100 disabled:opacity-50"
                   >
-                    予約を確定する
+                    {confirmingId === r.id ? "確定中..." : "予約を確定する"}
                   </button>
                 )}
               </Link>

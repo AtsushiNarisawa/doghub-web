@@ -1,7 +1,10 @@
 import Image from "next/image";
+import { PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
+
 const stats = [
   { num: "4.8", label: "Googleレビュー評価" },
-  { num: "19", label: "最大お部屋数" },
+  // 部屋数は lib/capacity.ts の PHYSICAL_ROOM_LIMIT が正本（総点検 #29）
+  { num: String(PHYSICAL_ROOM_LIMIT), label: "最大お部屋数" },
   { num: "7:00", label: "早朝受付開始" },
 ];
 

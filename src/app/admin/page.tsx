@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
+import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
 
 interface DogInfo {
@@ -26,7 +27,11 @@ interface ReservationRow {
   status: string;
   source: string;
   walk_option: boolean;
+  // notes = お客様が書いた備考（予約確認メールに載る）
+  // admin_notes = スタッフメモ（お客様には見えない）。取り違え厳禁
+  // （memory: reference_reservation_memo_fields）
   notes: string | null;
+  admin_notes: string | null;
   dog_count: number;
   customers: {
     id: string;
@@ -57,7 +62,7 @@ const PLAN_COLORS: Record<string, string> = {
   stay: "bg-purple-100 text-purple-700",
   spot: "bg-gray-100 text-gray-600",
 };
-const CLOSED_WEEKDAYS = [3, 4]; // 水・木
+const CLOSED_WEEKDAYS = DEFAULT_CLOSED_WEEKDAYS; // 水・木（正本は lib/business-days.ts）
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 export default function AdminDashboard() {
@@ -194,7 +199,7 @@ export default function AdminDashboard() {
     setLoading(true);
 
     const selectFields = `
-      id, plan, date, checkin_time, checkout_date, status, source, walk_option, notes, dog_count,
+      id, plan, date, checkin_time, checkout_date, status, source, walk_option, notes, admin_notes, dog_count,
       customers!inner(id, last_name, first_name, phone, total_visits, first_visit_date, last_visit_date),
       reservation_dogs(dogs(name, breed, weight, age, sex, allergies, meal_notes, medication_notes))
     `;
@@ -229,6 +234,11 @@ export default function AdminDashboard() {
     }
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   };
+
+  // 確認待ちは「これからの分」と「日付が過ぎた分」に分ける（総点検 #12）。
+  // 判定は他のカレンダー表示と同じ realToday（スタッフ端末＝JST）を使い、基準をそろえる。
+  const upcomingPending = pendingRes.filter((r) => (r.checkout_date || r.date) >= realToday);
+  const pastPending = pendingRes.filter((r) => (r.checkout_date || r.date) < realToday);
 
   const allReservations = [...stayingOver, ...todayRes];
   const totalDogs = allReservations.reduce((sum, r) => sum + (r.dog_count || r.reservation_dogs.length), 0);
@@ -405,42 +415,35 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <>
-          {/* 確認待ち予約 */}
-          {pendingRes.length > 0 && (
+          {/* 確認待ち予約（これからの分） */}
+          {upcomingPending.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-orange-600">確認待ち（{pendingRes.length}件）</h3>
-              {pendingRes.map((r) => {
-                const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
-                const formatD = (dd: string) => {
-                  const dt = new Date(dd + "T00:00:00");
-                  return `${dt.getMonth() + 1}/${dt.getDate()}（${DAYS[dt.getDay()]}）`;
-                };
-                return (
-                  <Link key={r.id} href={`/admin/reservations/${r.id}`} className="block bg-orange-50 border border-orange-200 rounded-xl p-4 active:bg-orange-100">
-                    <div className="flex items-start justify-between mb-1">
-                      <div>
-                        <p className="text-base font-medium text-gray-800">
-                          {r.customers.last_name} {r.customers.first_name} 様
-                        </p>
-                        <p className="text-sm text-gray-500 mt-0.5">
-                          {formatD(r.date)} {r.checkin_time.slice(0, 5)} / {PLAN_LABELS[r.plan]}
-                        </p>
-                      </div>
-                      <span className="text-sm text-orange-600 font-medium">確認待ち</span>
-                    </div>
-                    {dogs.map((dog, i) => (
-                      <DogLine key={i} dog={dog} />
-                    ))}
-                    <p className="text-xs text-orange-500 mt-2 flex items-center gap-1">
-                      タップして確認・確定
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </p>
-                  </Link>
-                );
-              })}
+              <h3 className="text-sm font-medium text-orange-600">確認待ち（{upcomingPending.length}件）</h3>
+              {upcomingPending.map((r) => (
+                <PendingCard key={r.id} r={r} />
+              ))}
             </div>
+          )}
+
+          {/* 過ぎた確認待ち（総点検 #12）。
+              確認待ちは日付で絞られていないため、確定もキャンセルもされないまま
+              日付が過ぎた予約が「これからの確認待ち」に混ざって永久に積み上がる。
+              ⚠️ 隠すのではなく別枠に分ける。既定は開いた状態で、件数は常に見える。
+              スタッフが「見えなくなった」と取りこぼす方が事故が大きいため。 */}
+          {pastPending.length > 0 && (
+            <details open className="bg-white rounded-xl p-3">
+              <summary className="text-sm font-medium text-gray-600 cursor-pointer active:opacity-70">
+                過ぎた確認待ち（{pastPending.length}件）
+              </summary>
+              <p className="text-xs text-gray-500 mt-1.5">
+                お預かり日が過ぎたまま、確定もキャンセルもされていない予約です。確定またはキャンセルの処理をお願いします。
+              </p>
+              <div className="space-y-2 mt-2">
+                {pastPending.map((r) => (
+                  <PendingCard key={r.id} r={r} past />
+                ))}
+              </div>
+            </details>
           )}
 
           {(() => {
@@ -557,12 +560,57 @@ function DogLine({ dog }: { dog: DogInfo }) {
   );
 }
 
+/** 確認待ち1件のカード。past=true は日付が過ぎたまま処理されていない分（総点検 #12） */
+function PendingCard({ r, past }: { r: ReservationRow; past?: boolean }) {
+  const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
+  const formatD = (dd: string) => {
+    const dt = new Date(dd + "T00:00:00");
+    return `${dt.getMonth() + 1}/${dt.getDate()}（${DAYS[dt.getDay()]}）`;
+  };
+  return (
+    <Link
+      href={`/admin/reservations/${r.id}`}
+      className={`block border rounded-xl p-4 ${
+        past
+          ? "bg-gray-50 border-gray-200 active:bg-gray-100"
+          : "bg-orange-50 border-orange-200 active:bg-orange-100"
+      }`}
+    >
+      <div className="flex items-start justify-between mb-1">
+        <div>
+          <p className="text-base font-medium text-gray-800">
+            {r.customers.last_name} {r.customers.first_name} 様
+          </p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {formatD(r.date)} {r.checkin_time.slice(0, 5)} / {PLAN_LABELS[r.plan]}
+          </p>
+        </div>
+        <span className={`text-sm font-medium ${past ? "text-gray-500" : "text-orange-600"}`}>
+          確認待ち
+        </span>
+      </div>
+      {dogs.map((dog, i) => (
+        <DogLine key={i} dog={dog} />
+      ))}
+      <p className={`text-xs mt-2 flex items-center gap-1 ${past ? "text-gray-500" : "text-orange-500"}`}>
+        タップして確認・確定
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </p>
+    </Link>
+  );
+}
+
 /** 1予約=1カード（複数頭は縦並びで表示） */
 function ReservationCards({ r, isStayOver, visitOrdinal }: { r: ReservationRow; isStayOver?: boolean; visitOrdinal?: number }) {
   const dogs = r.reservation_dogs.map((rd) => rd.dogs).filter(Boolean) as DogInfo[];
   const totalDogs = dogs.length || r.dog_count || 1;
   const hasDogAlert = dogs.some((d) => d.allergies || d.meal_notes || d.medication_notes);
   const hasNotes = r.notes;
+  // スタッフメモ（admin_notes）はお客様の備考（notes）とは別物。
+  // 従来は詳細画面を開かないと存在すら分からなかった（総点検 #13）。
+  const hasAdminNotes = r.admin_notes;
   const planColor = PLAN_COLORS[r.plan] || PLAN_COLORS.spot;
   // 「◯回目」はこの予約が何回目か（来店日順）。初回はバッジを出さない（従来どおり）
   const isRepeater = !!visitOrdinal && visitOrdinal >= 2;
@@ -608,9 +656,10 @@ function ReservationCards({ r, isStayOver, visitOrdinal }: { r: ReservationRow; 
             <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">確認待ち</span>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-end gap-1.5 flex-wrap">
           {hasDogAlert && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">⚠ 注意事項</span>}
           {hasNotes && <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">📝 備考</span>}
+          {hasAdminNotes && <span className="text-xs px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-200">📌 スタッフメモ</span>}
         </div>
       </div>
 

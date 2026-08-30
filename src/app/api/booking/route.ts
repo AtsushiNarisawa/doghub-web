@@ -9,6 +9,7 @@ import { buildLineLinkUrl } from "@/lib/link-token";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 import { getJstToday, getJstHour } from "@/lib/datetime";
 import { isLateBooking } from "@/lib/booking-rules";
+import { isDefaultClosedWeekday } from "@/lib/business-days";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -96,13 +97,10 @@ export async function POST(req: NextRequest) {
     // 判定式は lib/booking-rules.ts が正本で、お客様側の3画面もこれと同じ関数を呼ぶ（総点検 #27）。
     const isLateBookingFlag = !isStaffBooking && isLateBooking(body.date, todayJST, jstHour);
 
-    // サーバー側：定休日チェック（水=3, 木=4）
-    const closedWeekdays = [3, 4];
+    // サーバー側：定休日チェック（水=3, 木=4）。曜日の値と JST 曜日の求め方は
+    // lib/business-days.ts が正本（総点検 #29 で8箇所のハードコードを集約）。
     // CI日の営業日チェック（定休日 + 臨時休業/臨時営業をdaily_capacityで判定）
-    // Note: new Date("YYYY-MM-DDT00:00:00+09:00").getDay()はUTC環境で前日の曜日を返すバグがあるため
-    // 日付文字列から直接曜日を計算する
-    const checkinDay = new Date(body.date + "T12:00:00+09:00").getUTCDay();
-    const isRegularClosed = closedWeekdays.includes(checkinDay);
+    const isRegularClosed = isDefaultClosedWeekday(body.date);
     const { data: ciCap } = await supabase
       .from("daily_capacity")
       .select("closed, web_closed")
@@ -144,10 +142,8 @@ export async function POST(req: NextRequest) {
 
         const closedDates = datesToCheck.filter((date) => {
           const cap = capData?.find((r) => r.date === date);
-          const dayOfWeek = new Date(date + "T12:00:00+09:00").getUTCDay();
-          const regularClosed = closedWeekdays.includes(dayOfWeek);
           // daily_capacityにレコードがあればそのclosed値を使う、なければ曜日で判定
-          return cap ? cap.closed : regularClosed;
+          return cap ? cap.closed : isDefaultClosedWeekday(date);
         });
 
         if (closedDates.length > 0) {

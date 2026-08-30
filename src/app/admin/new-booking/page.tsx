@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { PLANS } from "@/types/booking";
+import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
@@ -696,7 +697,7 @@ function NewBookingForm() {
             onChange={(e) => setDate(e.target.value)}
             className="w-full mt-1 px-3 py-2.5 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
           />
-          {date && [3,4].includes(new Date(date + "T00:00:00+09:00").getDay()) && (
+          {date && isDefaultClosedWeekday(date) && (
             <p className="text-xs text-orange-600 mt-1">⚠ この日は定休日（水・木）です</p>
           )}
         </div>
