@@ -582,55 +582,68 @@ export async function POST(req: NextRequest) {
     // after はレスポンス後も関数を生かし続けるので、過去の fire-and-forget（関数終了で
     // メール未送信、2026-03-14）を再発させない。SMTP 側にもタイムアウトを設定済み（email.ts）。
     after(async () => {
+      // このお客様にLINEで送れるか。
+      // ⚠️ 判定は「この予約がLINE（LIFF）経由か」ではなく「このお客様がLINEと紐付いているか」。
+      // 前者だけを見ていたため、LINE連携済みの方がWebから予約するとLINEに何も届かなかった
+      // （2026-08-30 総点検 #10 の是正）。
+      const lineUserId = body.line_id || existingCustomer?.line_id || null;
+
+      // LINE友だち登録済みのお客様はLINEを優先し、同じ内容のメールは送らない
+      // （開封率が高く、二重連絡を避けるため）。お礼・リマインドの自動送信と同じ方針。
+      // 送れたかどうかを先に確かめてからメールの要否を決めるので、push を先に実行する。
+      let lineDelivered = false;
+      if (lineUserId) {
+        lineDelivered = await sendLinePushMessage(
+          lineUserId,
+          buildBookingConfirmMessage({
+            customerName: `${c.last_name} ${c.first_name}`,
+            plan: body.plan,
+            date: body.date,
+            checkinTime: body.checkin_time,
+            reservationId: reservationId,
+            status,
+          })
+        ).catch((err) => {
+          console.error("LINE push error (background):", err);
+          return false;
+        });
+      }
+
       try {
         // 予約確認メールに「1タップでLINE連携」を同梱する（2026-08-30 総点検 #6）。
         // 一番確実に開封されるメールなので紐付けの入口として最も効く。
         // 既に紐付いている方には null を渡す＝案内は表示されない。
         const lineLinkUrl = alreadyLinkedToLine ? null : buildLineLinkUrl(customerId);
+        // 友だち解除・ブロック後は push が失敗する。そのときはメールに切り替える
+        // （LINE優先のまま黙ると予約の控えが丸ごと消えるため）。
+        // スタッフ宛2通は skipCustomerEmail に関係なく必ず送られる。
         await sendBookingEmails(
           body,
           reservation.id,
           status,
           duplicateWarnings.length > 0 ? duplicateWarnings : undefined,
           lineLinkUrl,
+          lineDelivered,
         );
       } catch (err) {
         console.error("Email send error (background):", err);
       }
-      if (body.line_id) {
-        let pushOk = false;
-        try {
-          pushOk = await sendLinePushMessage(
-            body.line_id,
-            buildBookingConfirmMessage({
-              customerName: `${c.last_name} ${c.first_name}`,
-              plan: body.plan,
-              date: body.date,
-              checkinTime: body.checkin_time,
-              reservationId: reservationId,
-              status,
-            })
-          );
-        } catch (err) {
-          console.error("LINE push error (background):", err);
-        }
 
-        // LINE予約はメール任意（step3-customer）。push が失敗し、かつメールも未登録だと
-        // 「予約は取れているのにお客様には何も届いていない」完全無音になる。
-        // その1件をスタッフが電話でフォローできるようアラートを飛ばす（2026-08-30 総点検 #5）。
-        if (!pushOk && !c.email?.trim()) {
-          try {
-            await sendBookingNotifyFailureAlert({
-              reservationId,
-              customerName: `${c.last_name} ${c.first_name}`.trim(),
-              phone: normalizedPhone,
-              plan: body.plan,
-              date: body.date,
-              checkinTime: body.checkin_time,
-            });
-          } catch (alertErr) {
-            console.error("Booking notify failure alert error:", alertErr);
-          }
+      // LINE予約はメール任意（step3-customer）。push が失敗し、かつメールも未登録だと
+      // 「予約は取れているのにお客様には何も届いていない」完全無音になる。
+      // その1件をスタッフが電話でフォローできるようアラートを飛ばす（2026-08-30 総点検 #5）。
+      if (lineUserId && !lineDelivered && !c.email?.trim()) {
+        try {
+          await sendBookingNotifyFailureAlert({
+            reservationId,
+            customerName: `${c.last_name} ${c.first_name}`.trim(),
+            phone: normalizedPhone,
+            plan: body.plan,
+            date: body.date,
+            checkinTime: body.checkin_time,
+          });
+        } catch (alertErr) {
+          console.error("Booking notify failure alert error:", alertErr);
         }
       }
     });

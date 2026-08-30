@@ -135,6 +135,34 @@ export async function POST(req: NextRequest) {
           .single();
         if (res) {
           const customer = res.customers as unknown as { last_name: string; first_name: string; email: string; phone: string; line_id: string | null } | null;
+
+          // LINE通知。従来この経路はメールのみで、LINE予約のお客様は
+          // メール未登録がありうる（step3-customer でメールは任意）ため、
+          // 「キャンセルされたのに何も届かない」状態になり得た（2026-08-30 総点検 #4）。
+          // お客様セルフキャンセル（api/booking/cancel）と同じ文面を共用する。
+          //
+          // LINE友だち登録済みのお客様はLINEを優先し、同じ内容のメールは送らない
+          // （2026-08-30 総点検 #10）。送れたかを確かめてからメールの要否を決めるため、
+          // メールより先に push する。
+          let lineDelivered = false;
+          if (customer?.line_id) {
+            lineDelivered = await sendLinePushMessage(
+              customer.line_id,
+              buildCancellationMessage({
+                customerName: `${customer.last_name}${customer.first_name || ""}`,
+                plan: res.plan,
+                date: res.date,
+                cancelledBy: "staff",
+              })
+            ).catch((lineErr) => {
+              console.error("Staff cancellation LINE push error:", lineErr);
+              return false;
+            });
+          }
+
+          // 友だち解除・ブロック後は push が失敗する。そのときはメールに戻す
+          // （LINE優先のまま黙ると、キャンセルの控えが丸ごと消えるため）。
+          // スタッフ宛2通は skipCustomerEmail に関係なく必ず送られる。
           await sendCancellationEmails({
             reservationId: reservation_id,
             reservation: {
@@ -147,27 +175,8 @@ export async function POST(req: NextRequest) {
             dogCount: res.dog_count || 1,
             cancelReason: null,
             cancelledBy: "staff",
+            skipCustomerEmail: lineDelivered,
           });
-
-          // LINE通知。従来この経路はメールのみで、LINE予約のお客様は
-          // メール未登録がありうる（step3-customer でメールは任意）ため、
-          // 「キャンセルされたのに何も届かない」状態になり得た（2026-08-30 総点検 #4）。
-          // お客様セルフキャンセル（api/booking/cancel）と同じ文面を共用する。
-          if (customer?.line_id) {
-            try {
-              await sendLinePushMessage(
-                customer.line_id,
-                buildCancellationMessage({
-                  customerName: `${customer.last_name}${customer.first_name || ""}`,
-                  plan: res.plan,
-                  date: res.date,
-                  cancelledBy: "staff",
-                })
-              );
-            } catch (lineErr) {
-              console.error("Staff cancellation LINE push error:", lineErr);
-            }
-          }
         }
       } catch (emailErr) {
         console.error("Staff cancellation email error:", emailErr);
@@ -187,7 +196,34 @@ export async function POST(req: NextRequest) {
         // 下の確定LINE push の両方でこの1つの値を使う（判定を二重に持たない）。
         const lineId = (res?.customers as unknown as { line_id?: string | null } | null)?.line_id;
 
-        if (res?.customers?.email) {
+        // LINE通知（line_idがある場合）。メール未入力のLINE予約客は確定メールが送られず、
+        // 従来はLINE pushも無く「確定が一切通知されない」状態だった（仮予約時には
+        // 「確認後に確定」とLINE案内済み）。ここで確定をLINEにも push する。
+        //
+        // LINE友だち登録済みのお客様はLINEを優先し、同じ内容のメールは送らない
+        // （2026-08-30 総点検 #10）。送れたかを確かめてからメールの要否を決めるため、
+        // メールより先に push する。
+        let lineDelivered = false;
+        if (res && lineId) {
+          lineDelivered = await sendLinePushMessage(
+            lineId,
+            buildBookingConfirmMessage({
+              customerName: `${res.customers.last_name} ${res.customers.first_name || ""}`.trim(),
+              plan: res.plan,
+              date: res.date,
+              checkinTime: res.checkin_time,
+              reservationId: reservation_id,
+              status: "confirmed",
+            })
+          ).catch((lineErr) => {
+            console.error("Confirmation LINE push error:", lineErr);
+            return false;
+          });
+        }
+
+        // 友だち解除・ブロック後は push が失敗する。そのときはメールに戻す
+        // （LINE優先のまま黙ると、確定のお知らせが丸ごと消えるため）。
+        if (!lineDelivered && res?.customers?.email) {
           const PLAN_NAMES: Record<string, string> = { spot: "スポット", "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
           const dogNames = res.reservation_dogs?.map((rd: { dogs: { name: string } | null }) => rd.dogs?.name).filter(Boolean).join("、") || "";
           const d = new Date(res.date + "T00:00:00");
@@ -231,26 +267,6 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // LINE通知（line_idがある場合）。メール未入力のLINE予約客は確定メールが送られず、
-        // 従来はLINE pushも無く「確定が一切通知されない」状態だった（仮予約時には
-        // 「確認後に確定」とLINE案内済み）。ここで確定をLINEにも push する。
-        if (res && lineId) {
-          try {
-            await sendLinePushMessage(
-              lineId,
-              buildBookingConfirmMessage({
-                customerName: `${res.customers.last_name} ${res.customers.first_name || ""}`.trim(),
-                plan: res.plan,
-                date: res.date,
-                checkinTime: res.checkin_time,
-                reservationId: reservation_id,
-                status: "confirmed",
-              })
-            );
-          } catch (lineErr) {
-            console.error("Confirmation LINE push error:", lineErr);
-          }
-        }
       } catch (emailErr) {
         console.error("Confirmation notify error:", emailErr);
       }

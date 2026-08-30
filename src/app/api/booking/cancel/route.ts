@@ -93,9 +93,37 @@ export async function POST(req: NextRequest) {
     }
     // CO日のday_booked戻しは廃止（CO日加算自体を停止したため）
 
-    // キャンセル通知メール（お客様 + スタッフ）
+    const customer = reservation.customers as unknown as { last_name: string; first_name: string; phone: string; email: string; line_id: string | null } | null;
+
+    // LINE通知（line_idがある場合）。文面は管理画面からのキャンセルと共通化してある
+    // （lib/line.ts の buildCancellationMessage）。
+    //
+    // LINE友だち登録済みのお客様はLINEを優先し、同じ内容のメールは送らない
+    // （2026-08-30 総点検 #10）。送れたかを確かめてからメールの要否を決めるため、
+    // メールより先に push する。
+    let lineDelivered = false;
+    if (customer?.line_id) {
+      try {
+        const { sendLinePushMessage, buildCancellationMessage } = await import("@/lib/line");
+        lineDelivered = await sendLinePushMessage(
+          customer.line_id,
+          buildCancellationMessage({
+            customerName: `${customer.last_name}${customer.first_name || ""}`,
+            plan: reservation.plan,
+            date: reservation.date,
+            cancelledBy: "customer",
+          })
+        );
+      } catch (lineErr) {
+        console.error("Cancel LINE notification error:", lineErr);
+      }
+    }
+
+    // キャンセル通知メール（お客様 + スタッフ）。
+    // 友だち解除・ブロック後は push が失敗する。そのときはメールに戻す
+    // （LINE優先のまま黙ると、キャンセルの控えが丸ごと消えるため）。
+    // スタッフ宛2通は skipCustomerEmail に関係なく必ず送られる。
     try {
-      const customer = reservation.customers as unknown as { last_name: string; first_name: string; phone: string; email: string } | null;
       await sendCancellationEmails({
         reservationId: reservation_id,
         reservation: {
@@ -108,29 +136,10 @@ export async function POST(req: NextRequest) {
         dogCount,
         cancelReason: cancel_reason || null,
         cancelledBy: "customer",
+        skipCustomerEmail: lineDelivered,
       });
     } catch (emailErr) {
       console.error("Cancel notification email error:", emailErr);
-    }
-
-    // LINE通知（line_idがある場合）。文面は管理画面からのキャンセルと共通化してある
-    // （lib/line.ts の buildCancellationMessage）。
-    const customerData = reservation.customers as unknown as { last_name: string; first_name: string; line_id: string | null } | null;
-    if (customerData?.line_id) {
-      try {
-        const { sendLinePushMessage, buildCancellationMessage } = await import("@/lib/line");
-        await sendLinePushMessage(
-          customerData.line_id,
-          buildCancellationMessage({
-            customerName: `${customerData.last_name}${customerData.first_name || ""}`,
-            plan: reservation.plan,
-            date: reservation.date,
-            cancelledBy: "customer",
-          })
-        );
-      } catch (lineErr) {
-        console.error("Cancel LINE notification error:", lineErr);
-      }
     }
 
     return NextResponse.json({ success: true });

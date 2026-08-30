@@ -7,6 +7,13 @@ const CHANNEL_ID = (process.env.LINE_CHANNEL_ID ?? "").replace(/[^0-9]/g, "");
 // 固定トークン（フォールバック）。基本は client_credentials で都度発行する
 const STATIC_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
+// LINE API 呼び出しの上限時間。
+// 2026-08-30 に取引通知を「LINE連携済みならLINEのみ」に変えた（総点検 #10）ことで、
+// 予約確定・キャンセルの処理は「LINEに送る → 結果を見てメールを送るか決める」順番になった。
+// ここが応答なしで固まると、その後ろにあるスタッフ宛の通知メールまで道連れになるため、
+// 必ず有限時間で失敗させてメールへのフォールバックに落とす。
+const LINE_API_TIMEOUT_MS = 8000;
+
 // ───────────────────────────────────────────
 // Channel Access Token の自動発行＋メモリキャッシュ
 // LINEの長期トークンは失効・再発行で無効化されることがある（2026-06に本番が401で
@@ -28,6 +35,7 @@ async function getAccessToken(): Promise<string | null> {
           client_id: CHANNEL_ID,
           client_secret: CHANNEL_SECRET,
         }),
+        signal: AbortSignal.timeout(LINE_API_TIMEOUT_MS),
       });
       if (res.ok) {
         const data = (await res.json()) as { access_token: string; expires_in: number };
@@ -61,6 +69,7 @@ async function postToLine(url: string, payload: object): Promise<boolean> {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(LINE_API_TIMEOUT_MS),
     });
 
   let res = await send(token);

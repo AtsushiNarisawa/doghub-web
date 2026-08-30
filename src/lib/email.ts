@@ -306,6 +306,11 @@ export async function sendBookingEmails(
   // まだLINEと紐付いていないお客様にだけ渡す1タップ連携リンク
   // （lib/link-token.ts の buildLineLinkUrl で生成）。お客様メールにのみ載る。
   lineLinkUrl?: string | null,
+  // 同じ内容を既にLINEで送り届けたので、お客様宛のメールは送らないでほしい、という指示。
+  // 2026-08-30 総点検 #10「LINE連携済みならLINEのみ」の受け口。
+  // ⚠️ 止まるのはお客様宛の1通だけで、スタッフ宛2通は必ず送る（新規予約に気づけなくなるため）。
+  // ⚠️ 呼び出し側は「LINE push が成功した」ことを確かめてから true にすること。
+  skipCustomerEmail = false,
 ) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn("Email not configured: GMAIL_USER or GMAIL_APP_PASSWORD missing");
@@ -327,10 +332,12 @@ export async function sendBookingEmails(
   // 送ると nodemailer が「No recipients defined」で失敗し、誤って「メール送信に失敗」
   // 警告が表示される（実際にはLINEで確定通知済み）。スタッフ通知は常に送る。
   const hasCustomerEmail = !!(form.customer.email && form.customer.email.trim());
+  // お客様宛のメールを実際に送るか。宛先が無いとき、またはLINEで送り届け済みのときは送らない。
+  const sendToCustomer = hasCustomerEmail && !skipCustomerEmail;
 
   const results = await Promise.allSettled([
-    // お客様への確認メール（メール未入力のLINE予約客にはスキップ）
-    hasCustomerEmail
+    // お客様への確認メール（メール未入力のLINE予約客・LINEで通知済みの方にはスキップ）
+    sendToCustomer
       ? transporter.sendMail({
           from: `"DogHub箱根仙石原" <narisawa@dog-hub.shop>`,
           replyTo: "info@dog-hub.shop",
@@ -359,6 +366,14 @@ export async function sendBookingEmails(
   const labels = ["customer", "staff-owner", "staff-member"];
   results.forEach((result, i) => {
     const label = labels[i] || `mail-${i}`;
+    // お客様宛を送らなかったときに「OK」と記録すると、後からログを見た人が
+    // 「メールは届いたはず」と誤解する。理由が分かる形で残す。
+    if (i === 0 && !sendToCustomer) {
+      console.log(
+        `[email] SKIP [customer] reservation=${reservationId} reason=${skipCustomerEmail ? "LINEで送信済み" : "メールアドレス未登録"}`,
+      );
+      return;
+    }
     if (result.status === "rejected") {
       const err = result.reason as Error & { code?: string; responseCode?: number; response?: string };
       console.error(`[email] FAILED [${label}] to=${destinations[i]} reservation=${reservationId} code=${err.code} message=${err.message?.slice(0, 300)}`);
@@ -741,6 +756,10 @@ export async function sendCancellationEmails(params: {
   dogCount: number;
   cancelReason: string | null;
   cancelledBy: "customer" | "staff";
+  // 同じ内容を既にLINEで送り届けたので、お客様宛のメールは送らないでほしい、という指示。
+  // 2026-08-30 総点検 #10「LINE連携済みならLINEのみ」の受け口。
+  // ⚠️ 止まるのはお客様宛の1通だけで、スタッフ宛2通は必ず送る。
+  skipCustomerEmail?: boolean;
 }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return;
 
@@ -756,8 +775,8 @@ export async function sendCancellationEmails(params: {
 
   const emails: Promise<unknown>[] = [];
 
-  // お客様へのキャンセル完了メール
-  if (customer?.email) {
+  // お客様へのキャンセル完了メール（LINEで送り届け済みのときは送らない）
+  if (customer?.email && !params.skipCustomerEmail) {
     const staffNote = params.cancelledBy === "staff"
       ? `<p style="margin:0 0 16px;font-size:14px;color:#3C200F;line-height:1.7;">
            本予約はDogHub箱根仙石原のスタッフ操作によりキャンセルとなりました。<br>
