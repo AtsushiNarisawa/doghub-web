@@ -177,36 +177,58 @@ export function buildBookingConfirmMessage(params: {
   checkinTime: string;
   reservationId: string;
   status: "confirmed" | "pending";
+  // 宿泊のチェックアウト日とワンちゃんのお名前。
+  // 確認メールには元々入っていたが、LINE側に無かった。
+  // 2026-08-30 に取引通知を「LINE連携済みならLINEのみ」にした（総点検 #10）ことで、
+  // 宿泊のお客様がチェックアウト日をどこでも受け取れなくなるためここへ移した。
+  // ※ メールに既にある事実だけを移す（料金などをここで新しく増やさない）。
+  checkoutDate?: string | null;
+  dogs?: string[];
 }): LineMessage[] {
   const { customerName, plan, date, checkinTime, reservationId, status } = params;
-  const dateLabel = new Date(date).toLocaleDateString("ja-JP", {
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
+  // 日付の書式は従来の確定メッセージと同じまま（チェックイン行の見た目を変えない）。
+  // チェックアウト日も同じ書式で揃えるため関数にしている。
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString("ja-JP", {
+      month: "long",
+      day: "numeric",
+      weekday: "short",
+    });
 
   const statusText =
     status === "confirmed"
       ? "✅ ご予約が確定しました"
       : "⏳ ご予約を受け付けました（スタッフ確認後に確定）";
 
+  const lines = [
+    `${customerName}様`,
+    "",
+    statusText,
+    "",
+    `📅 ${fmt(date)}`,
+    `🕐 チェックイン ${toHHMM(checkinTime)}`,
+  ];
+  // チェックアウトは宿泊のときだけ。時間帯も含めてリマインドLINEと同じ行に揃える。
+  if (plan === "stay" && params.checkoutDate) {
+    lines.push(`🏠 チェックアウト ${fmt(params.checkoutDate)} 9:00〜11:00`);
+  }
+  lines.push(`📋 ${PLAN_LABELS[plan] ?? plan}`);
+  // 多頭は「ポロちゃん、ぱんちちゃん」（リマインドLINEと同じ作法）。
+  if (params.dogs && params.dogs.length > 0) {
+    lines.push(`🐕 ${params.dogs.map((d) => `${d}ちゃん`).join("、")}`);
+  }
+  lines.push(
+    "",
+    `予約番号: ${reservationId.slice(0, 8).toUpperCase()}`,
+    "",
+    "ご不明な点はこちらのLINEにご返信ください。",
+    "当日お待ちしております🐾"
+  );
+
   return [
     {
       type: "text",
-      text: [
-        `${customerName}様`,
-        "",
-        statusText,
-        "",
-        `📅 ${dateLabel}`,
-        `🕐 チェックイン ${toHHMM(checkinTime)}`,
-        `📋 ${PLAN_LABELS[plan] ?? plan}`,
-        "",
-        `予約番号: ${reservationId.slice(0, 8).toUpperCase()}`,
-        "",
-        "ご不明な点はこちらのLINEにご返信ください。",
-        "当日お待ちしております🐾",
-      ].join("\n"),
+      text: lines.join("\n"),
     },
     {
       type: "text",

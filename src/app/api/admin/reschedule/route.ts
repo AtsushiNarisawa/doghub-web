@@ -152,21 +152,13 @@ export async function POST(req: NextRequest) {
           } | null;
           if (!full || !customer) return;
 
-          await sendReservationChangeEmail({
-            reservationId: reservation_id,
-            customer,
-            reservation: {
-              plan: full.plan,
-              date: full.date,
-              checkin_time: full.checkin_time,
-              checkout_date: full.checkout_date,
-            },
-            changes,
-            changedBy: "staff",
-          });
-
+          // LINE友だち登録済みのお客様はLINEを優先し、同じ内容のメールは送らない
+          // （2026-08-30 総点検 #10・CEO決定）。従来この経路はメールとLINEの両方を
+          // 送っており、お客様には同じ変更内容が2通届いていた。
+          // 送れたかを確かめてからメールの要否を決めるため、メールより先に push する。
+          let lineDelivered = false;
           if (customer.line_id) {
-            await sendLinePushMessage(
+            lineDelivered = await sendLinePushMessage(
               customer.line_id,
               buildReservationChangeMessage({
                 customerName: `${customer.last_name}${customer.first_name || ""}`,
@@ -178,7 +170,27 @@ export async function POST(req: NextRequest) {
                 reservationId: reservation_id,
                 changedBy: "staff",
               })
-            );
+            ).catch((lineErr) => {
+              console.error("Reschedule LINE push error:", lineErr);
+              return false;
+            });
+          }
+
+          // 友だち解除・ブロック後は push が失敗する。そのときはメールに戻す
+          // （LINE優先のまま黙ると、日程が変わったことがお客様に一切伝わらないため）。
+          if (!lineDelivered) {
+            await sendReservationChangeEmail({
+              reservationId: reservation_id,
+              customer,
+              reservation: {
+                plan: full.plan,
+                date: full.date,
+                checkin_time: full.checkin_time,
+                checkout_date: full.checkout_date,
+              },
+              changes,
+              changedBy: "staff",
+            });
           }
         } catch (notifyErr) {
           console.error("Reschedule notify error:", notifyErr);

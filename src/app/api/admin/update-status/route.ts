@@ -196,6 +196,11 @@ export async function POST(req: NextRequest) {
         // 下の確定LINE push の両方でこの1つの値を使う（判定を二重に持たない）。
         const lineId = (res?.customers as unknown as { line_id?: string | null } | null)?.line_id;
 
+        // ワンちゃんのお名前。確定メールとLINEの両方で使うため、どちらより先に取り出す。
+        const dogNameList: string[] = (res?.reservation_dogs || [])
+          .map((rd: { dogs: { name: string } | null }) => rd.dogs?.name)
+          .filter(Boolean) as string[];
+
         // LINE通知（line_idがある場合）。メール未入力のLINE予約客は確定メールが送られず、
         // 従来はLINE pushも無く「確定が一切通知されない」状態だった（仮予約時には
         // 「確認後に確定」とLINE案内済み）。ここで確定をLINEにも push する。
@@ -214,6 +219,9 @@ export async function POST(req: NextRequest) {
               checkinTime: res.checkin_time,
               reservationId: reservation_id,
               status: "confirmed",
+              // 確定メールに載っている事実をLINEにも載せる（メールを送らなくなったため）
+              checkoutDate: res.checkout_date,
+              dogs: dogNameList,
             })
           ).catch((lineErr) => {
             console.error("Confirmation LINE push error:", lineErr);
@@ -225,7 +233,7 @@ export async function POST(req: NextRequest) {
         // （LINE優先のまま黙ると、確定のお知らせが丸ごと消えるため）。
         if (!lineDelivered && res?.customers?.email) {
           const PLAN_NAMES: Record<string, string> = { spot: "スポット", "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
-          const dogNames = res.reservation_dogs?.map((rd: { dogs: { name: string } | null }) => rd.dogs?.name).filter(Boolean).join("、") || "";
+          const dogNames = dogNameList.join("、");
           const d = new Date(res.date + "T00:00:00");
           const days = ["日","月","火","水","木","金","土"];
           const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${days[d.getDay()]}）`;

@@ -602,6 +602,9 @@ export async function POST(req: NextRequest) {
             checkinTime: body.checkin_time,
             reservationId: reservationId,
             status,
+            // 確認メールに載っている事実をLINEにも載せる（メールを送らなくなったため）
+            checkoutDate: body.checkout_date,
+            dogs: (body.dogs || []).map((d) => d.name).filter(Boolean),
           })
         ).catch((err) => {
           console.error("LINE push error (background):", err);

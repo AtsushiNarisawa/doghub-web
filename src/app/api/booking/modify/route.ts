@@ -190,13 +190,15 @@ export async function POST(req: Request) {
       // CO日のday_booked加減算は廃止
     }
 
-    // お客様への変更控え（メール）。
+    // お客様への変更控え。
     // 従来はスタッフ2名にしか送っておらず、画面に「スタッフにも変更内容を通知しました」と
     // 出るのにお客様の手元には何も残らなかった（2026-08-30 総点検 #3）。
     // お客様ご自身の操作＝完了画面をその場で見ているため、記録が残ればよい。
-    // 二重通知を避けるため「メールがあればメール1通、メール未登録の方だけLINE」とする
-    // （LINEはメールと違い1通ずつ無料枠200通/月を消費するため）。
+    // 二重通知を避けるのは従来どおりだが、優先順位を「LINE連携済みならLINEのみ・
+    // 失敗時だけメール」に揃えた（2026-08-30 総点検 #10・CEO決定）。
+    // 以前はここだけ「メール優先・メール未登録の方だけLINE」と他の経路と逆向きだった。
     // 送信はレスポンス後（after）。SMTPの詰まりで変更画面が固まるのを防ぐ。
+    // ⚠️ スタッフ2名への通知は下の別ブロックで従来どおり必ず送る（ここでは止めない）。
     after(async () => {
       try {
         const cust = reservation.customers as unknown as {
@@ -208,15 +210,10 @@ export async function POST(req: Request) {
           checkin_time: (updates.checkin_time as string) ?? reservation.checkin_time,
           checkout_date: (updates.checkout_date as string) ?? reservation.checkout_date,
         };
-        const mailed = await sendReservationChangeEmail({
-          reservationId,
-          customer: cust,
-          reservation: changeParams,
-          changes,
-          changedBy: "customer",
-        });
-        if (!mailed && cust?.line_id) {
-          await sendLinePushMessage(
+        // 送れたかを確かめてからメールの要否を決めるため、メールより先に push する。
+        let lineDelivered = false;
+        if (cust?.line_id) {
+          lineDelivered = await sendLinePushMessage(
             cust.line_id,
             buildReservationChangeMessage({
               customerName: `${cust.last_name}${cust.first_name || ""}`,
@@ -228,7 +225,22 @@ export async function POST(req: Request) {
               reservationId,
               changedBy: "customer",
             })
-          );
+          ).catch((lineErr) => {
+            console.error("[modify] LINE push error:", lineErr);
+            return false;
+          });
+        }
+
+        // 友だち解除・ブロック後は push が失敗する。そのときはメールに戻す
+        // （LINE優先のまま黙ると、変更の控えがお客様の手元に一切残らないため）。
+        if (!lineDelivered) {
+          await sendReservationChangeEmail({
+            reservationId,
+            customer: cust,
+            reservation: changeParams,
+            changes,
+            changedBy: "customer",
+          });
         }
       } catch (notifyErr) {
         console.error("[modify] customer notify error:", notifyErr);
