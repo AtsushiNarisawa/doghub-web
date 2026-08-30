@@ -60,18 +60,25 @@ function CancellationFeeNotice({ date }: { date: string }) {
     );
   }
 
+  // 言い切らない書き方にしている理由（2026-08-30 CEO明言・memory: reference_cancellation_fee_practice）:
+  // この規定は「自分都合のキャンセルを防ぐための抑止」であって、実際にはほとんど徴収していない。
+  // キャンセルされる方のほとんどは、ペットの体調不良・ケガなど事情があってのキャンセル。
+  // よって「発生いたします」と言い切らず「申し受けております」とし、例外は脚注ではなく本文に置く。
+  // 「基本的に」は必ず残すこと（言い切ると抑止力が消え、規定の意味がなくなる）。
   return (
     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-4">
       <h3 className="text-sm font-medium text-amber-900 mb-1">キャンセル料について</h3>
       <p className="text-sm text-amber-900">
-        {timing === "same_day"
-          ? "本日がご予約日のため、"
-          : "ご予約日の前日のため、"}
-        キャンセル料として<span className="font-medium">ご予約日数の{percent}%</span>が発生いたします。
+        ご予約日の前日以降のキャンセルには、キャンセル料（
+        <span className="font-medium">前日はご予約日数の50%、当日は100%</span>
+        ）を申し受けております。
       </p>
-      <p className="text-[12px] text-amber-800 mt-2">{exception}</p>
-      <p className="text-[12px] text-amber-800 mt-1">
-        ※ご事情がある場合は、お手続きの前にお電話（0460-80-0290）でご相談ください。
+      <p className="text-sm text-amber-900 mt-2">
+        ただし、ペットの体調不良・ケガ・病気、飼い主様の病気、台風や大雪など、やむを得ないご事情の場合は、
+        <span className="font-medium">基本的にいただいておりません</span>。
+      </p>
+      <p className="text-[12px] text-amber-800 mt-2">
+        ご事情がある場合は、お手続きの前にお電話（0460-80-0290）でお聞かせください。
       </p>
     </div>
   );
