@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { getJstToday } from "@/lib/datetime";
+import { getJstWeekday } from "@/lib/business-days";
+import { getCancellationTiming, CANCELLATION_FEE_PERCENT } from "@/lib/booking-rules";
 
 const PLAN_NAMES: Record<string, string> = {
   spot: "スポットお預かり",
@@ -12,9 +15,9 @@ const PLAN_NAMES: Record<string, string> = {
 
 function formatDate(d: string) {
   if (!d) return "";
-  const date = new Date(d);
+  const [y, m, day] = d.split("-").map(Number);
   const days = ["日", "月", "火", "水", "木", "金", "土"];
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日（${days[date.getDay()]}）`;
+  return `${y}年${m}月${day}日（${days[getJstWeekday(d)]}）`;
 }
 
 type Reservation = {
@@ -27,6 +30,52 @@ type Reservation = {
   customers: { last_name: string; first_name: string } | null;
   reservation_dogs: { dogs: { name: string } | null }[];
 };
+
+/**
+ * キャンセル料のご案内。
+ *
+ * 規定（前日50%・当日100%）は FAQ・予約確認画面と同じもので、ここで新設していない。
+ * 金額（円）は出さない。予約システムは合計金額を保存しておらず
+ * （memory: reference_booking_revenue_estimation）、体調不良・悪天候などの
+ * 例外規定もあるため、店として請求額を確約できないため。
+ */
+function CancellationFeeNotice({ date }: { date: string }) {
+  const timing = getCancellationTiming(date);
+  const percent = CANCELLATION_FEE_PERCENT[timing];
+  const exception =
+    "※ペットの体調不良・ケガ・病気、飼い主様の病気、台風や大雪などの場合はキャンセル料をいただかない場合もございます。";
+
+  if (percent === 0) {
+    return (
+      <div className="rounded-xl border border-[#E5DDD8] bg-[#F8F5F0] p-4 mb-4">
+        <h3 className="text-sm font-medium text-[#3C200F] mb-1">キャンセル料について</h3>
+        <p className="text-sm text-[#3C200F]">
+          いまキャンセルされる場合、キャンセル料はかかりません。無料でキャンセルいただけます。
+        </p>
+        <p className="text-[12px] text-[#888] mt-2">
+          ご予約日の前日は予約日数の50%、当日は予約日数の100%のキャンセル料が発生いたします。
+        </p>
+        <p className="text-[12px] text-[#888] mt-1">{exception}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-4">
+      <h3 className="text-sm font-medium text-amber-900 mb-1">キャンセル料について</h3>
+      <p className="text-sm text-amber-900">
+        {timing === "same_day"
+          ? "本日がご予約日のため、"
+          : "ご予約日の前日のため、"}
+        キャンセル料として<span className="font-medium">ご予約日数の{percent}%</span>が発生いたします。
+      </p>
+      <p className="text-[12px] text-amber-800 mt-2">{exception}</p>
+      <p className="text-[12px] text-amber-800 mt-1">
+        ※ご事情がある場合は、お手続きの前にお電話（0460-80-0290）でご相談ください。
+      </p>
+    </div>
+  );
+}
 
 export default function CancelPage() {
   const params = useParams();
@@ -65,7 +114,7 @@ export default function CancelPage() {
       }
       const { reservation: data } = await res.json();
       const r = data as Reservation;
-      const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
+      const today = getJstToday();
       if (r.status === "cancelled") setError("この予約は既にキャンセルされています");
       else if (r.date < today) setError("過去の予約はキャンセルできません");
       setReservation(r);
@@ -183,60 +232,63 @@ export default function CancelPage() {
               </div>
             )}
 
-            {reservation.status !== "cancelled" && reservation.date >= (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })() ? (
-              !confirming ? (
-                <button
-                  onClick={() => setConfirming(true)}
-                  className="w-full py-4 rounded-xl text-base font-medium bg-red-500 text-white active:bg-red-600 transition-colors"
-                >
-                  この予約をキャンセルする
-                </button>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-[#3C200F] font-medium mb-2">キャンセルの理由を教えてください（任意）</p>
-                    <div className="space-y-2">
-                      {[
-                        "予定が変更になったため",
-                        "宿泊先が見つかったため",
-                        "体調不良のため",
-                        "天候の影響",
-                        "その他",
-                      ].map((reason) => (
-                        <button
-                          key={reason}
-                          type="button"
-                          onClick={() => setCancelReason(cancelReason === reason ? "" : reason)}
-                          className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors ${
-                            cancelReason === reason
-                              ? "bg-[#B87942] text-white"
-                              : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
-                          }`}
-                        >
-                          {reason}
-                        </button>
-                      ))}
+            {reservation.status !== "cancelled" && reservation.date >= getJstToday() ? (
+              <>
+                <CancellationFeeNotice date={reservation.date} />
+                {!confirming ? (
+                  <button
+                    onClick={() => setConfirming(true)}
+                    className="w-full py-4 rounded-xl text-base font-medium bg-red-500 text-white active:bg-red-600 transition-colors"
+                  >
+                    この予約をキャンセルする
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-[#3C200F] font-medium mb-2">キャンセルの理由を教えてください（任意）</p>
+                      <div className="space-y-2">
+                        {[
+                          "予定が変更になったため",
+                          "宿泊先が見つかったため",
+                          "体調不良のため",
+                          "天候の影響",
+                          "その他",
+                        ].map((reason) => (
+                          <button
+                            key={reason}
+                            type="button"
+                            onClick={() => setCancelReason(cancelReason === reason ? "" : reason)}
+                            className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors ${
+                              cancelReason === reason
+                                ? "bg-[#B87942] text-white"
+                                : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                            }`}
+                          >
+                            {reason}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-center text-red-600 font-medium">この操作は取り消せません。</p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => { setConfirming(false); setCancelReason(""); }}
+                        className="flex-1 py-3 rounded-xl border border-[#E5DDD8] text-sm font-medium"
+                        disabled={cancelling}
+                      >
+                        戻る
+                      </button>
+                      <button
+                        onClick={handleCancel}
+                        disabled={cancelling}
+                        className="flex-1 py-3 rounded-xl bg-red-500 text-white text-sm font-medium disabled:opacity-50"
+                      >
+                        {cancelling ? "処理中..." : "キャンセル確定"}
+                      </button>
                     </div>
                   </div>
-                  <p className="text-sm text-center text-red-600 font-medium">この操作は取り消せません。</p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => { setConfirming(false); setCancelReason(""); }}
-                      className="flex-1 py-3 rounded-xl border border-[#E5DDD8] text-sm font-medium"
-                      disabled={cancelling}
-                    >
-                      戻る
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      disabled={cancelling}
-                      className="flex-1 py-3 rounded-xl bg-red-500 text-white text-sm font-medium disabled:opacity-50"
-                    >
-                      {cancelling ? "処理中..." : "キャンセル確定"}
-                    </button>
-                  </div>
-                </div>
-              )
+                )}
+              </>
             ) : (
               <p className="text-center text-sm text-[#888]">
                 {reservation.status === "cancelled" ? "この予約は既にキャンセルされています" : "過去の予約はキャンセルできません"}

@@ -159,11 +159,6 @@ function buildCustomerEmailHtml(
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックアウト</td>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(form.checkout_date)}（${stayNights}泊） / 9:00〜11:00</td>
       </tr>` : ""}
-      ${form.early_morning ? `
-      <tr>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;"></td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:13px;color:#B87942;">早朝プラン（7:00〜）</td>
-      </tr>` : ""}
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">基本料金</td>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">¥${((plan?.basePrice ?? 0) * form.dogs.length * Math.max(stayNights || 1, 1)).toLocaleString()}〜</td>

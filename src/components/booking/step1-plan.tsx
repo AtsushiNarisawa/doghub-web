@@ -5,10 +5,11 @@ import type { BookingFormData } from "@/types/booking";
 import { PLANS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
-import { HOLIDAYS } from "@/lib/holidays";
 import { WEB_ROOM_LIMIT, LOW_STOCK_REMAINING } from "@/lib/capacity";
 import { getJstToday, addDaysJst } from "@/lib/datetime";
-import { isLateBooking as isLateBookingDate } from "@/lib/booking-rules";
+import { isLateBooking as isLateBookingDate, lastCheckoutDate } from "@/lib/booking-rules";
+import { DEFAULT_CLOSED_WEEKDAYS, getJstWeekday } from "@/lib/business-days";
+import { BookingCalendar, type CalendarDayState } from "./booking-calendar";
 
 interface Props {
   form: BookingFormData;
@@ -25,12 +26,8 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   const [capacity, setCapacity] = useState<CapacityInfo | null>(null);
   const [loadingCapacity, setLoadingCapacity] = useState(false);
   const [bookingWindowDays, setBookingWindowDays] = useState(180);
-  const [closedWeekdays, setClosedWeekdays] = useState<number[]>([3, 4]);
+  const [closedWeekdays, setClosedWeekdays] = useState<number[]>(DEFAULT_CLOSED_WEEKDAYS);
   const [showOtherInput, setShowOtherInput] = useState(false);
-  const [calMonth, setCalMonth] = useState(() => {
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth() };
-  });
 
   // 設定を取得
   useEffect(() => {
@@ -77,9 +74,6 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   // （この画面・確認画面・完了画面・サーバーが同じ関数を呼ぶ。総点検 #27）。
   const isLateBooking = (dateStr: string) => isLateBookingDate(dateStr);
 
-  // 当日かどうか判定（JST基準）
-  const isToday = (dateStr: string) => dateStr === getJstToday();
-
   // 受付上限日（JST基準）
   const getMaxDate = () => addDaysJst(getJstToday(), bookingWindowDays);
 
@@ -96,14 +90,60 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   const isClosedDay = (dateStr: string) => {
     // daily_capacityにオーバーライドがあればそちらを優先
     if (dateStr in closedOverrides) return closedOverrides[dateStr];
-    const d = new Date(dateStr + "T00:00:00");
-    return closedWeekdays.includes(d.getDay());
+    return closedWeekdays.includes(getJstWeekday(dateStr));
   };
 
   // 定休日の曜日名を表示用に変換
   const closedWeekdayNames = () => {
     const labels = ["日", "月", "火", "水", "木", "金", "土"];
     return closedWeekdays.map((d) => labels[d]).join("・");
+  };
+
+  // ── カレンダー各マスの状態（チェックイン日／チェックアウト日で共通の部品を使う）──
+  // 「選べるか」「○△×のどれか」の判断はこの2つの関数だけが持つ。
+
+  /** チェックイン日：定休日・受付範囲外・満室は選べない */
+  const getCheckinDayState = (dateStr: string): CalendarDayState => {
+    const closed = isClosedDay(dateStr);
+    const outOfRange = dateStr < getMinDate() || dateStr > getMaxDate();
+    if (closed || outOfRange) return { disabled: true, mark: null, closed };
+    const remaining = getDayRemaining(dateStr);
+    if (remaining <= 0) return { disabled: true, mark: "full", closed: false };
+    return {
+      disabled: false,
+      mark: remaining <= LOW_STOCK_REMAINING ? "low" : "ok",
+      closed: false,
+    };
+  };
+
+  /** その晩が泊まれない（定休日 or 満室）か */
+  const isNightUnavailable = (dateStr: string) =>
+    isClosedDay(dateStr) || getDayRemaining(dateStr) <= 0;
+
+  /**
+   * チェックアウト日として選べる最終日。判定式は lib/booking-rules.ts に置いてある
+   * （ここで選べる日は「いま赤字エラーにならない日」とちょうど同じ範囲）。
+   */
+  const lastCheckoutFor = (checkin: string): string =>
+    lastCheckoutDate(checkin, isNightUnavailable);
+
+  /** チェックアウト日：チェックイン翌日〜上限日のみ。定休日でもお引き取りは承れる */
+  const getCheckoutDayState = (dateStr: string): CalendarDayState => {
+    if (!form.date) return { disabled: true, mark: null, closed: false };
+    const min = addDaysJst(form.date, 1);
+    const max = lastCheckoutFor(form.date);
+    return { disabled: dateStr < min || dateStr > max, mark: null, closed: false };
+  };
+
+  /** チェックイン日を選んだとき。新しい日程でありえないチェックアウト日は外す */
+  const handleSelectCheckinDate = (dateStr: string) => {
+    let checkout = form.checkout_date;
+    if (form.plan === "stay" && checkout) {
+      const min = addDaysJst(dateStr, 1);
+      const max = lastCheckoutFor(dateStr);
+      if (checkout < min || checkout > max) checkout = "";
+    }
+    onChange({ ...form, date: dateStr, checkout_date: checkout });
   };
 
   // 宿泊期間中に定休日が含まれるかチェック
@@ -136,8 +176,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
       const actualClosed = allDates.filter((date) => {
         const cap = data?.find((r) => r.date === date);
-        const dayOfWeek = new Date(date + "T00:00:00").getDay();
-        const regularClosed = closedWeekdays.includes(dayOfWeek);
+        const regularClosed = closedWeekdays.includes(getJstWeekday(date));
         // daily_capacityにレコードがあればそのclosed値、なければ曜日で判定
         return cap ? cap.closed : regularClosed;
       });
@@ -146,10 +185,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     } catch (e) {
       // フェイルセーフ: 曜日ベースの判定にフォールバック
       console.error("[booking] checkClosedDaysInStay fetch error:", e);
-      const fallback = allDates.filter((date) => {
-        const dayOfWeek = new Date(date + "T00:00:00").getDay();
-        return closedWeekdays.includes(dayOfWeek);
-      });
+      const fallback = allDates.filter((date) => closedWeekdays.includes(getJstWeekday(date)));
       setStayClosedDates(fallback);
     }
   }, [closedWeekdays]);
@@ -234,8 +270,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   // チェックイン時間の選択肢を生成
   const getTimeOptions = () => {
     if (!selectedPlan) return [];
-    const isEarly = form.early_morning && selectedPlan.earlyMorning;
-    const startHour = isEarly ? 7 : parseInt(selectedPlan.checkinRange.start);
+    const startHour = parseInt(selectedPlan.checkinRange.start);
     const endHour = parseInt(selectedPlan.checkinRange.end);
     // 8hプランの通常 start=09, end=09 → 1枠のみ
     const actualEnd = endHour < startHour ? startHour : endHour;
@@ -356,155 +391,48 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       </div>
 
       {/* 日付選択（カレンダー） */}
-      {form.plan && (() => {
-        const WDAYS = ["日","月","火","水","木","金","土"];
-        const minDate = getMinDate();
-        const maxDate = getMaxDate();
-        const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
-
-        // カレンダー日付生成
-        const first = new Date(calMonth.year, calMonth.month, 1);
-        const startDay = new Date(first); startDay.setDate(1 - first.getDay());
-        const last = new Date(calMonth.year, calMonth.month + 1, 0);
-        const endDay = new Date(last); endDay.setDate(last.getDate() + (6 - last.getDay()));
-        const days: Date[] = [];
-        const d = new Date(startDay);
-        while (d <= endDay) { days.push(new Date(d)); d.setDate(d.getDate() + 1); }
-
-        const fmtD = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
-
-        return (
-          <div>
-            <h2 className="text-lg font-medium mb-3">日程を選択</h2>
-            <div className="bg-white rounded-xl border-2 border-[#E5DDD8] p-3">
-              {/* 月ナビ */}
-              <div className="flex items-center justify-between mb-2">
-                <button type="button" onClick={() => setCalMonth((p) => { let m = p.month - 1, y = p.year; if (m < 0) { m = 11; y--; } return { year: y, month: m }; })} className="p-1.5 text-[#888] active:text-[#3C200F]">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                <span className="text-sm font-medium">{calMonth.year}年{calMonth.month + 1}月</span>
-                <button type="button" onClick={() => setCalMonth((p) => { let m = p.month + 1, y = p.year; if (m > 11) { m = 0; y++; } return { year: y, month: m }; })} className="p-1.5 text-[#888] active:text-[#3C200F]">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                </button>
-              </div>
-              {/* 曜日ヘッダー */}
-              <div className="grid grid-cols-7 gap-0.5 mb-1">
-                {WDAYS.map((w, i) => (
-                  <div key={i} className={`text-center text-[11px] font-medium py-1 ${i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-[#888]"}`}>{w}</div>
-                ))}
-              </div>
-              {/* 日付グリッド */}
-              <div className="grid grid-cols-7 gap-0.5">
-                {days.map((date) => {
-                  const dateStr = fmtD(date);
-                  const isThisMonth = date.getMonth() === calMonth.month;
-                  const isClosed = isClosedDay(dateStr);
-                  const holiday = HOLIDAYS[dateStr];
-                  const isOutOfRange = dateStr < minDate || dateStr > maxDate;
-                  // 営業日 かつ 受付範囲内 の日だけ空き状況（○/△/×）を判定する
-                  const isBookable = isThisMonth && !isClosed && !isOutOfRange;
-                  const remaining = isBookable ? getDayRemaining(dateStr) : null;
-                  const isFull = remaining !== null && remaining <= 0;
-                  // 満室日は選択不可（選べてから「満室」と出る不整合を防ぐ）
-                  const isDisabled = !isThisMonth || isClosed || isOutOfRange || isFull;
-                  const isSelected = dateStr === form.date;
-                  const isToday = dateStr === todayStr;
-
-                  return (
-                    <button
-                      key={dateStr}
-                      type="button"
-                      disabled={isDisabled}
-                      onClick={() => onChange({ ...form, date: dateStr })}
-                      className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-all ${
-                        isSelected
-                          ? "bg-[#B87942] text-white font-medium"
-                          : !isThisMonth
-                            ? "text-[#ccc]"
-                            : isClosed || isOutOfRange || isFull
-                              ? "text-[#ccc] bg-gray-50"
-                              : isToday
-                                ? "bg-[#B87942]/10 text-[#B87942] font-bold"
-                                : holiday
-                                  ? "text-orange-500 active:bg-orange-50"
-                                  : date.getDay() === 0
-                                    ? "text-red-400 active:bg-red-50"
-                                    : date.getDay() === 6
-                                      ? "text-blue-400 active:bg-blue-50"
-                                      : "text-[#3C200F] active:bg-[#F8F5F0]"
-                      }`}
-                    >
-                      <span className="leading-none">{date.getDate()}</span>
-                      {/* 空き状況マーク（営業日・範囲内のみ。選択中マスは非表示） */}
-                      {remaining !== null && !isSelected && (
-                        <span
-                          className={`text-[9px] leading-none mt-0.5 ${
-                            remaining <= 0
-                              ? "text-red-500"
-                              : remaining <= LOW_STOCK_REMAINING
-                                ? "text-orange-500"
-                                : "text-green-600"
-                          }`}
-                        >
-                          {remaining <= 0 ? "×" : remaining <= LOW_STOCK_REMAINING ? "△" : "○"}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              {/* 凡例 */}
-              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-[#888]">
+      {form.plan && (
+        <div>
+          <h2 className="text-lg font-medium mb-3">日程を選択</h2>
+          <BookingCalendar
+            value={form.date}
+            onSelect={handleSelectCheckinDate}
+            getDayState={getCheckinDayState}
+            todayStr={getJstToday()}
+            legend={
+              <>
                 <span className="text-green-600">○ 空きあり</span>
                 <span className="text-orange-500">△ 混み合っています</span>
                 <span className="text-red-500">× 満席（お問い合わせ）</span>
                 <span>グレー: 定休日</span>
                 <span className="text-orange-400">数字オレンジ: 祝日</span>
-              </div>
-            </div>
-
-            {/* 選択日の情報 */}
-            {form.date && !isClosedDay(form.date) && (
-              <div className="mt-2">
-                {loadingCapacity ? (
-                  <p className="text-[#888] text-sm">空き状況を確認中...</p>
-                ) : capacity && !capacity.closed ? (
-                  <div className="flex gap-3">
-                    {capacity.total_remaining <= 0
-                      ? <span className="text-red-500 text-sm font-medium">× 満席です。お問い合わせください（TEL 0460-80-0290）</span>
-                      : capacity.total_remaining <= LOW_STOCK_REMAINING
-                        ? <span className="text-orange-500 text-sm">△ 混み合っています</span>
-                        : <span className="text-green-600 text-sm">○ 空きあり</span>
-                    }
-                  </div>
-                ) : capacity?.closed ? (
-                  <p className="text-red-500 text-sm">この日は臨時休業です。別の日程をお選びください。</p>
-                ) : null}
-              </div>
-            )}
-            {form.date && isClosedDay(form.date) && (
-              <p className="text-red-500 text-sm mt-2">{closedWeekdayNames()}曜日は定休日です。別の日程をお選びください。</p>
-            )}
-          </div>
-        );
-      })()}
-
-      {/* 早朝プラン（日帰りプランのみ、当日予約では非表示） */}
-      {selectedPlan?.earlyMorning && form.date && !isClosedDay(form.date) && !isToday(form.date) && capacity && !capacity.closed && (
-        <label className="flex items-center gap-3 p-4 rounded-xl bg-[#F8F5F0]">
-          <input
-            type="checkbox"
-            checked={form.early_morning}
-            onChange={(e) => onChange({ ...form, early_morning: e.target.checked, checkin_time: "" })}
-            className="w-5 h-5 rounded accent-[#B87942]"
+              </>
+            }
           />
-          <div>
-            <span className="text-sm font-medium">早朝プラン（7:00〜）</span>
-            <p className="text-[12px] text-[#888] mt-0.5">
-              ゴルフの朝など、7:00からお預かりします
-            </p>
-          </div>
-        </label>
+
+          {/* 選択日の情報 */}
+          {form.date && !isClosedDay(form.date) && (
+            <div className="mt-2">
+              {loadingCapacity ? (
+                <p className="text-[#888] text-sm">空き状況を確認中...</p>
+              ) : capacity && !capacity.closed ? (
+                <div className="flex gap-3">
+                  {capacity.total_remaining <= 0
+                    ? <span className="text-red-500 text-sm font-medium">× 満席です。お問い合わせください（TEL 0460-80-0290）</span>
+                    : capacity.total_remaining <= LOW_STOCK_REMAINING
+                      ? <span className="text-orange-500 text-sm">△ 混み合っています</span>
+                      : <span className="text-green-600 text-sm">○ 空きあり</span>
+                  }
+                </div>
+              ) : capacity?.closed ? (
+                <p className="text-red-500 text-sm">この日は臨時休業です。別の日程をお選びください。</p>
+              ) : null}
+            </div>
+          )}
+          {form.date && isClosedDay(form.date) && (
+            <p className="text-red-500 text-sm mt-2">{closedWeekdayNames()}曜日は定休日です。別の日程をお選びください。</p>
+          )}
+        </div>
       )}
 
       {/* チェックイン時間 */}
@@ -519,11 +447,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             </p>
           ) : (
             <p className="text-[13px] text-[#888] mb-2">
-              {form.early_morning && selectedPlan?.earlyMorning
-                ? "7:00"
-                : selectedPlan?.checkinRange.start
-              }
-              〜{selectedPlan?.checkinRange.end}の間でお選びください
+              {selectedPlan?.checkinRange.start}〜{selectedPlan?.checkinRange.end}の間でお選びください
             </p>
           )}
           {getTimeOptions().length > 0 ? (
@@ -557,17 +481,23 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           <p className="text-[13px] text-[#888] mb-2">
             チェックアウト時間: 9:00〜11:00
           </p>
-          <input
-            type="date"
+          <BookingCalendar
+            key={form.date}
             value={form.checkout_date}
-            min={(() => {
-              const d = new Date(form.date);
-              d.setDate(d.getDate() + 1);
-              return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-            })()}
-            onChange={(e) => onChange({ ...form, checkout_date: e.target.value })}
-            className="w-full px-4 py-5 rounded-xl border-2 border-[#E5DDD8] text-lg bg-white focus:border-[#B87942] focus:outline-none"
+            onSelect={(dateStr) => onChange({ ...form, checkout_date: dateStr })}
+            getDayState={getCheckoutDayState}
+            todayStr={getJstToday()}
+            initialMonthDate={form.date}
+            legend={
+              <>
+                <span>お帰りの日をお選びください</span>
+                <span>グレー: お選びいただけない日</span>
+              </>
+            }
           />
+          <p className="text-[12px] text-[#888] mt-2">
+            チェックアウト日は{closedWeekdayNames()}曜日（定休日）でもお引き取りいただけます。
+          </p>
           {form.checkout_date && stayClosedDates.length > 0 && (
             <p className="text-red-500 text-sm mt-2">
               お預かり期間中に定休日が含まれています（チェックアウト日は定休日でもOKです）。日程をご確認ください。

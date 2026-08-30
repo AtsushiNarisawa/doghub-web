@@ -16,9 +16,8 @@
 // ⚠️ 休業まわりの「運用ルール」は実装からは導けない（memory: feedback_closed_day_diagnostic）。
 //    ここは値の置き場所を1つにまとめただけで、判定の仕様は一切変えていない。
 //
-// 📌 未集約が1箇所だけ残っている: components/booking/step1-plan.tsx の useState 初期値。
-//    直前の Batch 5 で触ったばかりのファイルのため、今回はあえて手を付けていない。
-//    次に同ファイルを触るときに DEFAULT_CLOSED_WEEKDAYS へ差し替えること。
+// ✅ 2026-08-30 Batch 8: 残っていた components/booking/step1-plan.tsx の
+//    定休日ベタ書き（useState 初期値・曜日の取り出し）もここへ差し替え済み。
 
 /** 定休日の曜日番号（0=日 … 6=土）。3=水・4=木。 */
 export const DEFAULT_CLOSED_WEEKDAYS: number[] = [3, 4];

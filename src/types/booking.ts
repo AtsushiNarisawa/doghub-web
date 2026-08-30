@@ -11,7 +11,6 @@ export interface PlanInfo {
   checkinRange: { start: string; end: string };
   checkoutInfo?: string;
   maxHours: number | null;
-  earlyMorning?: boolean; // 早朝プラン対応（7:00〜、要事前連絡）
 }
 
 export interface DogFormData {

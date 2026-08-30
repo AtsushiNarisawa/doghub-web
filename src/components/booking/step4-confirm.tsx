@@ -57,9 +57,6 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
         <p className="font-medium">{plan?.name}</p>
         <p className="text-sm">{formatDate(form.date)}</p>
         <p className="text-sm">チェックイン: {form.checkin_time}</p>
-        {form.early_morning && (
-          <p className="text-[12px] text-[#B87942]">早朝プラン</p>
-        )}
         {form.plan === "stay" && form.checkout_date && (
           <>
             <p className="text-sm">
