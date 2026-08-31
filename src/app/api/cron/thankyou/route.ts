@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendThankYouEmail } from "@/lib/email";
-import { sendLinePushMessage, buildThankYouLineMessage } from "@/lib/line";
+import { buildThankYouLineMessage } from "@/lib/line";
+import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { isReviewRequestOptedOut } from "@/lib/review-opt-out";
 
@@ -129,9 +130,10 @@ export async function GET(req: NextRequest) {
       // メールがあれば切り替える（cron/reminder と同じ考え方）。
       let lineFailed = false;
       if (useLine) {
-        const ok = await sendLinePushMessage(
+        const ok = await sendLinePushAndRecord(
           customer.line_id!,
-          buildThankYouLineMessage(customerName, isFirstVisit)
+          buildThankYouLineMessage(customerName, isFirstVisit),
+          "thankyou"
         ).catch(() => false);
         if (ok) {
           sentLine++;

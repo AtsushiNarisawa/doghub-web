@@ -3,7 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { sendCancellationEmails, buildLineLinkSection } from "@/lib/email";
 import { buildLineLinkUrl } from "@/lib/link-token";
-import { sendLinePushMessage, buildBookingConfirmMessage, buildCancellationMessage } from "@/lib/line";
+import { buildBookingConfirmMessage, buildCancellationMessage } from "@/lib/line";
+import { sendLinePushAndRecord } from "@/lib/line-store";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -146,14 +147,15 @@ export async function POST(req: NextRequest) {
           // メールより先に push する。
           let lineDelivered = false;
           if (customer?.line_id) {
-            lineDelivered = await sendLinePushMessage(
+            lineDelivered = await sendLinePushAndRecord(
               customer.line_id,
               buildCancellationMessage({
                 customerName: `${customer.last_name}${customer.first_name || ""}`,
                 plan: res.plan,
                 date: res.date,
                 cancelledBy: "staff",
-              })
+              }),
+              "cancel"
             ).catch((lineErr) => {
               console.error("Staff cancellation LINE push error:", lineErr);
               return false;
@@ -210,7 +212,7 @@ export async function POST(req: NextRequest) {
         // メールより先に push する。
         let lineDelivered = false;
         if (res && lineId) {
-          lineDelivered = await sendLinePushMessage(
+          lineDelivered = await sendLinePushAndRecord(
             lineId,
             buildBookingConfirmMessage({
               customerName: `${res.customers.last_name} ${res.customers.first_name || ""}`.trim(),
@@ -222,7 +224,8 @@ export async function POST(req: NextRequest) {
               // 確定メールに載っている事実をLINEにも載せる（メールを送らなくなったため）
               checkoutDate: res.checkout_date,
               dogs: dogNameList,
-            })
+            }),
+            "booking_confirmed"
           ).catch((lineErr) => {
             console.error("Confirmation LINE push error:", lineErr);
             return false;

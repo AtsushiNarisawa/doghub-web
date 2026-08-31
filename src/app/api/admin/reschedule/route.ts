@@ -4,7 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { exceedsRoomLimit, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { sendReservationChangeEmail } from "@/lib/email";
-import { sendLinePushMessage, buildReservationChangeMessage } from "@/lib/line";
+import { buildReservationChangeMessage } from "@/lib/line";
+import { sendLinePushAndRecord } from "@/lib/line-store";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -158,7 +159,7 @@ export async function POST(req: NextRequest) {
           // 送れたかを確かめてからメールの要否を決めるため、メールより先に push する。
           let lineDelivered = false;
           if (customer.line_id) {
-            lineDelivered = await sendLinePushMessage(
+            lineDelivered = await sendLinePushAndRecord(
               customer.line_id,
               buildReservationChangeMessage({
                 customerName: `${customer.last_name}${customer.first_name || ""}`,
@@ -169,7 +170,8 @@ export async function POST(req: NextRequest) {
                 changes,
                 reservationId: reservation_id,
                 changedBy: "staff",
-              })
+              }),
+              "reschedule"
             ).catch((lineErr) => {
               console.error("Reschedule LINE push error:", lineErr);
               return false;

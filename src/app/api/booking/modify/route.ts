@@ -5,7 +5,8 @@ import nodemailer from "nodemailer";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT } from "@/lib/capacity";
 import { verifyPhoneLast4 } from "@/lib/booking-auth";
 import { sendReservationChangeEmail } from "@/lib/email";
-import { sendLinePushMessage, buildReservationChangeMessage } from "@/lib/line";
+import { buildReservationChangeMessage } from "@/lib/line";
+import { sendLinePushAndRecord } from "@/lib/line-store";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -213,7 +214,7 @@ export async function POST(req: Request) {
         // 送れたかを確かめてからメールの要否を決めるため、メールより先に push する。
         let lineDelivered = false;
         if (cust?.line_id) {
-          lineDelivered = await sendLinePushMessage(
+          lineDelivered = await sendLinePushAndRecord(
             cust.line_id,
             buildReservationChangeMessage({
               customerName: `${cust.last_name}${cust.first_name || ""}`,
@@ -224,7 +225,8 @@ export async function POST(req: Request) {
               changes,
               reservationId,
               changedBy: "customer",
-            })
+            }),
+            "reschedule"
           ).catch((lineErr) => {
             console.error("[modify] LINE push error:", lineErr);
             return false;

@@ -104,15 +104,17 @@ export async function POST(req: NextRequest) {
     let lineDelivered = false;
     if (customer?.line_id) {
       try {
-        const { sendLinePushMessage, buildCancellationMessage } = await import("@/lib/line");
-        lineDelivered = await sendLinePushMessage(
+        const { buildCancellationMessage } = await import("@/lib/line");
+        const { sendLinePushAndRecord } = await import("@/lib/line-store");
+        lineDelivered = await sendLinePushAndRecord(
           customer.line_id,
           buildCancellationMessage({
             customerName: `${customer.last_name}${customer.first_name || ""}`,
             plan: reservation.plan,
             date: reservation.date,
             cancelledBy: "customer",
-          })
+          }),
+          "cancel"
         );
       } catch (lineErr) {
         console.error("Cancel LINE notification error:", lineErr);

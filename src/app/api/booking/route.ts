@@ -4,7 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
 import { sendBookingEmails, sendBookingNotifyFailureAlert } from "@/lib/email";
-import { sendLinePushMessage, buildBookingConfirmMessage } from "@/lib/line";
+import { buildBookingConfirmMessage } from "@/lib/line";
+import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 import { getJstToday, getJstHour } from "@/lib/datetime";
@@ -593,7 +594,7 @@ export async function POST(req: NextRequest) {
       // 送れたかどうかを先に確かめてからメールの要否を決めるので、push を先に実行する。
       let lineDelivered = false;
       if (lineUserId) {
-        lineDelivered = await sendLinePushMessage(
+        lineDelivered = await sendLinePushAndRecord(
           lineUserId,
           buildBookingConfirmMessage({
             customerName: `${c.last_name} ${c.first_name}`,
@@ -605,7 +606,8 @@ export async function POST(req: NextRequest) {
             // 確認メールに載っている事実をLINEにも載せる（メールを送らなくなったため）
             checkoutDate: body.checkout_date,
             dogs: (body.dogs || []).map((d) => d.name).filter(Boolean),
-          })
+          }),
+          "booking_confirm"
         ).catch((err) => {
           console.error("LINE push error (background):", err);
           return false;

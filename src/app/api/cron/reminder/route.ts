@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
-import { sendLinePushMessage, buildReminderLineMessage } from "@/lib/line";
+import { buildReminderLineMessage } from "@/lib/line";
+import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { buildLineLinkSection } from "@/lib/email";
 
@@ -222,7 +223,7 @@ export async function GET(req: NextRequest) {
       if (customer.line_id) {
         // postToLine は API エラーなら false を返すが、fetch 自体が落ちると throw する。
         // どちらもメールへのフォールバック対象にしたいので、ここで false に寄せる。
-        const ok = await sendLinePushMessage(
+        const ok = await sendLinePushAndRecord(
           customer.line_id,
           buildReminderLineMessage({
             customerName,
@@ -232,7 +233,8 @@ export async function GET(req: NextRequest) {
             checkoutDate: r.checkout_date,
             dogs,
             reservationId: r.id,
-          })
+          }),
+          "reminder"
         ).catch((e) => {
           console.error(`Reminder LINE threw for ${r.id}:`, e);
           return false;

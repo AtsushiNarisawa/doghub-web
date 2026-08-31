@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendThankYouEmail } from "@/lib/email";
-import { sendLinePushMessage, buildThankYouLineMessage } from "@/lib/line";
+import { buildThankYouLineMessage } from "@/lib/line";
+import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { isReviewRequestOptedOut } from "@/lib/review-opt-out";
 
@@ -79,9 +80,10 @@ export async function POST(req: NextRequest) {
     const useLine = !!customer.line_id;
 
     if (useLine) {
-      const ok = await sendLinePushMessage(
+      const ok = await sendLinePushAndRecord(
         customer.line_id!,
-        buildThankYouLineMessage(customerName, isFirstVisit)
+        buildThankYouLineMessage(customerName, isFirstVisit),
+        "thankyou"
       );
       if (!ok) {
         return NextResponse.json({ error: "LINE送信に失敗しました" }, { status: 500 });

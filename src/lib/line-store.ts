@@ -7,7 +7,12 @@
 // 重要: すべての export 関数は内部で try/catch し、失敗しても例外を投げない。
 // DB 障害で Webhook の 200 応答・LINE への返信を壊さないため（呼び出し側の握りつぶしと二重防御）。
 import { createClient } from "@supabase/supabase-js";
-import { fetchLineProfile, type LineMessage } from "./line";
+import { fetchLineProfile, sendLinePushMessage, type LineMessage } from "./line";
+import {
+  isNotificationType,
+  notificationMessageType,
+  type LineNotificationKind,
+} from "./line-notification";
 
 // 本番は service_role（RLS バイパス＋RPC 実行権限あり）。RPC は service_role 限定に
 // revoke 済みのため anon では 403。ローカルは anon フォールバックだが Webhook は
@@ -16,6 +21,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
+// 記録用DB呼び出しの上限時間。
+// 記録は「おまけ」で、通知の送信が本体。DBが応答しないときに呼び出し元（予約API・
+// キャンセルAPI・cron）を待たせ続けると、その後ろにあるスタッフ宛メールまで遅れるため、
+// 必ず有限時間で打ち切る。打ち切っても例外は投げず、記録を諦めるだけ。
+const RECORD_TIMEOUT_MS = 3000;
 
 // 非テキストメッセージの一覧プレビュー用ラベル（実体はDLせず種別だけ示す）
 const NON_TEXT_LABELS: Record<string, string> = {
@@ -28,9 +39,31 @@ const NON_TEXT_LABELS: Record<string, string> = {
 };
 
 // 一覧プレビュー文字列（テキストは先頭100字、非テキストはラベル）
+// 当店からの通知（message_type = "notification:*"）も中身はテキストなので同じ扱い。
 function buildPreview(messageType: string, text: string | null): string {
-  if (messageType === "text") return (text ?? "").slice(0, 100);
+  if (messageType === "text" || isNotificationType(messageType)) {
+    return (text ?? "").slice(0, 100);
+  }
   return NON_TEXT_LABELS[messageType] ?? "[その他]";
+}
+
+// LINEに送った内容を、記録用の1本のテキストに畳む。
+// テキストはそのまま、ボタン付きメッセージ（template）は見出し・本文・ボタン名を残す
+// （「何を送ったか」が管理画面で読めるように）。
+function flattenLineMessages(messages: LineMessage[]): string {
+  return messages
+    .map((m) => {
+      if (m.type === "text") return m.text;
+      return [
+        m.template.title,
+        m.template.text,
+        m.template.actions.map((a) => `［${a.label}］`).join(" "),
+      ]
+        .filter(Boolean)
+        .join("\n");
+    })
+    .filter(Boolean)
+    .join("\n");
 }
 
 interface RecordParams {
@@ -45,15 +78,17 @@ interface RecordParams {
 // 1メッセージを記録。会話の get_or_create・unread++・再送防止は DB 関数側に集約。
 async function recordLineMessage(p: RecordParams): Promise<void> {
   try {
-    const { error } = await supabase.rpc("record_line_message", {
-      p_line_user_id: p.lineUserId,
-      p_direction: p.direction,
-      p_sender: p.sender,
-      p_message_type: p.messageType,
-      p_text: p.text,
-      p_line_message_id: p.lineMessageId,
-      p_preview: buildPreview(p.messageType, p.text),
-    });
+    const { error } = await supabase
+      .rpc("record_line_message", {
+        p_line_user_id: p.lineUserId,
+        p_direction: p.direction,
+        p_sender: p.sender,
+        p_message_type: p.messageType,
+        p_text: p.text,
+        p_line_message_id: p.lineMessageId,
+        p_preview: buildPreview(p.messageType, p.text),
+      })
+      .abortSignal(AbortSignal.timeout(RECORD_TIMEOUT_MS));
     if (error) console.error("recordLineMessage rpc error:", error);
   } catch (e) {
     console.error("recordLineMessage failed:", e);
@@ -148,10 +183,7 @@ export async function recordInboundWithBotReply(params: {
   });
 
   // 2) Bot の自動返信（複数テキストは結合して1行に。テンプレ・FAQ・フォールバック共通）
-  const botText = params.botReply
-    .map((m) => (m.type === "text" ? m.text : ""))
-    .filter(Boolean)
-    .join("\n");
+  const botText = flattenLineMessages(params.botReply);
   if (botText) {
     await recordLineMessage({
       lineUserId: params.lineUserId,
@@ -162,4 +194,48 @@ export async function recordInboundWithBotReply(params: {
       lineMessageId: null,
     });
   }
+}
+
+// ───── 当店から送る通知（push）を送信し、会話にも記録する ─────
+//
+// これまで会話に残っていたのは「お客様の受信」と「Botの自動応答」だけで、
+// 当店が送った予約確認・確定・キャンセル・変更・リマインド・お礼は
+// どこにも残っていなかった（＝管理画面で会話を見ても片側しか読めない）。
+//
+// 記録の処理を1か所に集めるため、送信そのものをここで包む。
+// 呼び出し側（予約API・キャンセルAPI・管理画面API・cron）は
+// sendLinePushMessage を sendLinePushAndRecord に置き換えるだけでよく、
+// 記録のコードを9か所に書き散らさずに済む。
+//
+// 🔴 通知が本体・記録はおまけ。次の3点でそれを保証している:
+//   ① 送信の成否（戻り値）は sendLinePushMessage の結果で確定しており、
+//      記録がどうなろうと変化しない＝メールへのフォールバック判定を壊さない。
+//   ② 記録は recordLineMessage 経由。中で try/catch しており例外を投げない。
+//   ③ 記録のDB呼び出しには上限時間（RECORD_TIMEOUT_MS）を設けてあり、
+//      DBが応答しなくても呼び出し元を待たせ続けない。
+//      LINE送信側の8秒上限（lib/line.ts）とは別枠で、そこには一切足さない
+//      （記録はLINE APIを呼び終えた後にしか動かない）。
+//
+// 送信できなかったときは記録しない（届いていないものを「送った」と残さないため）。
+export async function sendLinePushAndRecord(
+  lineUserId: string,
+  messages: LineMessage[],
+  kind: LineNotificationKind
+): Promise<boolean> {
+  const delivered = await sendLinePushMessage(lineUserId, messages);
+  if (!delivered) return false;
+
+  const text = flattenLineMessages(messages);
+  if (text) {
+    await recordLineMessage({
+      lineUserId,
+      direction: "outbound",
+      sender: "bot",
+      messageType: notificationMessageType(kind),
+      text,
+      lineMessageId: null,
+    });
+  }
+
+  return delivered;
 }
