@@ -4,7 +4,14 @@ import {
   sendLineReplyMessage,
   buildWelcomeMessage,
 } from "@/lib/line";
-import { matchFaqReply, matchExactButtonReply, nonTextReply, fallbackReply } from "@/lib/line-faq";
+import { matchFaqReply, matchExactButtonReply } from "@/lib/line-faq";
+import {
+  buildAckMessages,
+  classifyAckKind,
+  getJstMoment,
+  isWithinBusinessHours,
+  nonTextReply,
+} from "@/lib/line-ack";
 import { sendLineStaffAlert } from "@/lib/email";
 import {
   recordInboundWithBotReply,
@@ -81,7 +88,13 @@ async function handleEvent(event: LineEvent) {
           break;
         }
         const { category } = matchFaqReply(text);
-        const reply = fallbackReply();
+        // 受付返信の作り分け（2026-08-31）。到着・遅刻／予約変更・空き確認／お礼／その他 に
+        // 振り分け、営業時間外は別文面、LINE連携済みならお名前でお呼びする。
+        // 判定材料（お客様の姓・今日の臨時休業/臨時営業）は DB から取るが、reply token は
+        // 受信から約1分・1回限り＝ここで待たされて返信を落とすのが最悪なので、必ず有限時間で
+        // 打ち切り、取れなければ「名前なし・曜日ベースの営業時間判定」で必ず送る。
+        const ackContext = await loadAckContext(userId);
+        const reply = buildAckMessages(classifyAckKind(text, category), ackContext);
         // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
         await sendLineReplyMessage(replyToken, reply);
         // 自由文は内容を問わず必ずスタッフへメールでエスカレーション
@@ -132,6 +145,71 @@ async function handleEvent(event: LineEvent) {
   if (userId && (event.type === "follow" || event.type === "message")) {
     await enrichConversation(userId);
   }
+}
+
+// ───── 受付返信の判定材料をそろえる ─────
+// お客様の姓（LINE連携済みのみ）と、今日が営業日かを1往復で取る。
+// 🔴 返信を遅らせない・失敗させないことが最優先。この読み取りが遅い/落ちたときは
+//    fallback（名前なし・曜日ベース判定）で必ず返信する。
+const ACK_CONTEXT_TIMEOUT_MS = 1500;
+
+interface AckContext {
+  lastName: string | null;
+  outsideBusinessHours: boolean;
+}
+
+async function loadAckContext(lineUserId?: string): Promise<AckContext> {
+  const moment = getJstMoment();
+  // DBが読めないときの既定値：曜日だけで営業日を判定（臨時営業/臨時休業は反映されない）。
+  const fallback: AckContext = {
+    lastName: null,
+    outsideBusinessHours: !isWithinBusinessHours(moment),
+  };
+
+  const load = async (): Promise<AckContext> => {
+    const [nameRes, capRes] = await Promise.all([
+      lineUserId
+        ? supabase
+            .from("customers")
+            .select("last_name")
+            .eq("line_id", lineUserId)
+            .limit(1)
+            .returns<{ last_name: string | null }[]>()
+        : Promise.resolve({ data: null }),
+      // 予約APIと同じ作法：daily_capacity に行があればその closed を使い、無ければ曜日で判定。
+      // 🔴 web_closed（Web受付停止）は休業ではないので見ない。
+      supabase
+        .from("daily_capacity")
+        .select("closed")
+        .eq("date", moment.date)
+        .limit(1)
+        .returns<{ closed: boolean | null }[]>(),
+    ]);
+    const closedOverride = capRes.data?.[0]?.closed ?? null;
+    return {
+      lastName: nameRes.data?.[0]?.last_name ?? null,
+      outsideBusinessHours: !isWithinBusinessHours(moment, { closedOverride }),
+    };
+  };
+
+  try {
+    const pending = load();
+    // タイムアウト後に遅れて失敗しても未処理の例外にしない（Webhookのプロセスを守る）
+    pending.catch(() => {});
+    return await withTimeout(pending, ACK_CONTEXT_TIMEOUT_MS, fallback);
+  } catch (e) {
+    console.error("loadAckContext failed:", e);
+    return fallback;
+  }
+}
+
+// 指定時間内に終わらなければ fallback を返す（元の Promise は放置＝返信を待たせない）
+function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([p, timeout]).finally(() => clearTimeout(timer));
 }
 
 const STICKER_ECHO_WINDOW_MS = 5 * 60 * 1000;

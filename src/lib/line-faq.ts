@@ -14,8 +14,8 @@
 // リッチメニュー掲載の6カテゴリ（buttonExact）の見出し・キーワードに完全一致するときだけ
 // 「ボタンを押したのと同じ」とみなして自動返信・アラートなしにする（matchExactButtonReply）。
 // それ以外の自由文（部分一致だけの場合や、受入確認・キャンセル/変更など個別判断が必要な
-// カテゴリ）は常に fallbackReply＋スタッフへエスカレーション。matchFaqReply はアラート
-// メールのラベル表示用にカテゴリだけを返す（部分一致・reply送信には使わない）。
+// カテゴリ）は常に受付メッセージ（lib/line-ack.ts）＋スタッフへエスカレーション。matchFaqReply は
+// 受付メッセージの振り分けと、アラートメールのラベル表示にカテゴリだけを返す（部分一致・reply送信には使わない）。
 import type { LineMessage } from "./line";
 
 export const BOOKING_URL = "https://liff.line.me/2009688745-qZi2jM4g";
@@ -302,7 +302,7 @@ export const FAQ_RULES: FaqRule[] = [
 ];
 
 // 自由文のカテゴリ判定のみに使う（スタッフ向けアラートメールのラベル表示用）。部分一致なので
-// 誤爆しうる＝reply の自動送信には使わない（webhook/route.ts は常に fallbackReply を送る）。
+// 誤爆しうる＝FAQ本文の自動送信には使わない（webhook/route.ts は常に受付メッセージを送る）。
 export function matchFaqReply(text: string): { category: string } {
   const t = text.trim();
   for (const rule of FAQ_RULES) {
@@ -321,21 +321,8 @@ export function matchExactButtonReply(text: string): FaqRule | undefined {
   return FAQ_RULES.find((r) => r.buttonExact && (t === r.category || r.keywords.includes(t)));
 }
 
-// 自由文・非テキストへの受付メッセージ（共通）。2026-07〜: 内容を問わず（質問・キャンセル
-// 報告・お礼・雑談など）同じ文面を使うため、「スタッフが必ず返信します」のように過度に
-// 約束する表現は避ける（実際には内容によりスタッフが返信要否を判断するため）。
-// 「内容を確認した」ことだけを伝え、必要な場合のみ連絡が来る、という誠実な言い方にする。
-const ACK_TEXT =
-  "メッセージありがとうございます🐾\n" +
-  "内容を確認いたしました。必要に応じて、担当より改めてご連絡いたします。\n" +
-  `お急ぎの場合はお電話（${TEL}）へどうぞ。`;
-
-// 自由文（ボタンと完全一致しないテキスト）への受付メッセージ。
-export function fallbackReply(): LineMessage[] {
-  return [{ type: "text", text: ACK_TEXT }];
-}
-
-// 非テキスト（画像・スタンプ・位置情報など）への受領メッセージ。「無音」を避けるために送る。
-export function nonTextReply(): LineMessage[] {
-  return [{ type: "text", text: ACK_TEXT }];
-}
+// 自由文・非テキストへの受付メッセージは lib/line-ack.ts に移設（2026-08-31）。
+// それまでは全ての自由文にひとつの定型文（「必要に応じて、担当より改めてご連絡いたします」）を
+// 返していたが、実データでは自由文の29%が当日の到着・遅刻連絡だった。到着／予約変更／お礼／
+// その他で受け方を分け、営業時間外は別文面にするため、文面と振り分けを line-ack.ts に集約した。
+// このファイルはキーワード表とカテゴリ判定だけを持つ（表そのものは変更していない）。
