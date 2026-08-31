@@ -28,7 +28,7 @@ export function MobileCta() {
       <div className="bg-[#3C200F] px-4 py-3 flex items-center justify-between gap-2">
         <div className="text-white flex-shrink-0">
           <p style={{ fontSize: "11px", fontWeight: 400, lineHeight: "1.4" }}>
-            Google ★4.9（55件）
+            Google ★4.8（56件）
           </p>
           <p style={{ fontSize: "13px", fontWeight: 400, lineHeight: "1.4" }}>
             DogHub箱根仙石原
