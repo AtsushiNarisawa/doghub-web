@@ -26,8 +26,19 @@ export async function POST(req: NextRequest) {
 
     const clip = (v: unknown) => (typeof v === "string" && v ? v.slice(0, 200) : null);
 
+    // kind で登録の種類を分ける（EC 構築で追加）。
+    //   launch      … 発売前の「できたら教えてください」
+    //   tester      … 店頭で試香された方（スタッフが管理画面から登録）
+    //   buyer_store … 店頭で購入された方
+    // 🔴 buyer_store が無いと、店頭で買ってくださった方が
+    //    フォローメール・再入荷のご案内・一斉配信の除外判定のすべてから漏れる。
+    const kind = ["launch", "tester", "buyer_store"].includes(body.kind) ? body.kind : "launch";
+
     const { error } = await supabase.from("fragrance_waitlist").insert({
       email,
+      kind,
+      name: typeof body.name === "string" ? body.name.slice(0, 60) : null,
+      source: clip(body.source),
       utm_source: clip(body.utm_source),
       utm_medium: clip(body.utm_medium),
       utm_campaign: clip(body.utm_campaign),

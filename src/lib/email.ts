@@ -48,6 +48,17 @@ export function createBulkTransport(): MailTransport {
   return buildTransport();
 }
 
+/**
+ * 単発送信で共有するトランスポート（予約確認メールなどが使っているもの）。
+ *
+ * Fragrance EC の取引メール（注文確認・発送のご案内）も、予約確認メールと同じ経路で送るため
+ * ここから取り出す。一括配信では使わないこと（必ず createBulkTransport() を使う。理由は上のコメント）。
+ * ※ このファイルに Fragrance 用の文面は置かない（src/lib/fragrance-email.ts に分けてある）。
+ */
+export function getSharedTransport(): MailTransport {
+  return transporter;
+}
+
 /** 一括送信の最後にプール接続を解放する（サーバレス関数が開いた接続を抱えて残らないように）。 */
 export function closeEmailPool(): void {
   try {

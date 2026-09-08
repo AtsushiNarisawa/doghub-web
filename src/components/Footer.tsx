@@ -69,6 +69,8 @@ export function Footer() {
                   <Link href="/stay" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>宿泊プラン</Link>
                   <Link href="/cafe" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>カフェ・グッズ販売</Link>
                   <Link href="/dogrun" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>ドッグラン</Link>
+                  {/* ハンドクリーム。ここに載せるまで、このページはサイトのどこからも辿り着けなかった */}
+                  <Link href="/fragrance" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>ハンドクリーム</Link>
                 </nav>
               </div>
               <div>
