@@ -417,6 +417,14 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                 onChange({
                   ...form,
                   plan: plan.id,
+                  // 午後から営業の日は、プランによって選べる日が変わる（日帰り＝その日／宿泊＝その前日が不可）。
+                  // 選べない日付を持ち越すと「○ 空きあり」と並んで表示され紛らわしいので外す
+                  date:
+                    form.date &&
+                    ((plan.id !== "stay" && isAfternoonOnly(form.date)) ||
+                      (plan.id === "stay" && isAfternoonOnly(addDaysJst(form.date, 1))))
+                      ? ""
+                      : form.date,
                   checkin_time: "",
                   checkout_date: "",
                   checkin_extension: false,
