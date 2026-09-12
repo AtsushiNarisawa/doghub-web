@@ -4,6 +4,11 @@ import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT } from "@/lib/capacity";
 import { verifyPhoneLast4 } from "@/lib/booking-auth";
+import {
+  afternoonOnlyDatesToCheck,
+  findAfternoonOnlyViolation,
+  afternoonOnlyCustomerMessage,
+} from "@/lib/booking-rules";
 import { sendReservationChangeEmail } from "@/lib/email";
 import { buildReservationChangeMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
@@ -152,6 +157,35 @@ export async function POST(req: Request) {
             );
           }
         }
+      }
+    }
+
+    // 午後から営業（宿泊のみ）の日: お客様ご自身の変更で、新たにルールに触れる日程にはさせない。
+    // 判定式は lib/booking-rules.ts が正本。すでに入っている予約（スタッフが警告を見て入れた分など）を
+    // 理由に到着時刻や備考の変更まで止めないよう、「今回の変更で新しく触れたもの」だけを止める。
+    if (reservation.plan === "stay" && (coChanged || updates.checkin_time)) {
+      const before = {
+        plan: reservation.plan,
+        date: reservation.date,
+        checkoutDate: reservation.checkout_date,
+        checkinTime: reservation.checkin_time,
+      };
+      const next = {
+        ...before,
+        checkoutDate: coChanged ? checkout_date : reservation.checkout_date,
+        checkinTime: (updates.checkin_time as string | undefined) ?? reservation.checkin_time,
+      };
+      const { data: aoRows } = await supabase
+        .from("daily_capacity")
+        .select("date")
+        .in("date", [...new Set([...afternoonOnlyDatesToCheck(before), ...afternoonOnlyDatesToCheck(next)])])
+        .eq("afternoon_only", true);
+      const aoDates = new Set((aoRows || []).map((r) => r.date));
+      const isAo = (d: string) => aoDates.has(d);
+      const vNext = findAfternoonOnlyViolation(next, isAo);
+      const vBefore = findAfternoonOnlyViolation(before, isAo);
+      if (vNext && !(vBefore && vBefore.kind === vNext.kind && vBefore.date === vNext.date)) {
+        return NextResponse.json({ error: afternoonOnlyCustomerMessage(vNext) }, { status: 400 });
       }
     }
 

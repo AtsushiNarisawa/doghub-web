@@ -5,6 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
+import {
+  afternoonOnlyDatesToCheck,
+  findAfternoonOnlyViolation,
+  afternoonOnlyStaffWarning,
+} from "@/lib/booking-rules";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
@@ -199,7 +204,30 @@ export default function ReservationDetailPage() {
   };
 
   const saveReschedule = async () => {
-    if (!newDate) return;
+    if (!newDate || !res) return;
+
+    // 午後から営業（宿泊のみ）の日のルールに触れる変更先なら、確認のうえで変更できる
+    // （お客様のWeb予約では止めている日程。判定式は lib/booking-rules.ts が正本）。
+    const nextBooking = {
+      plan: res.plan,
+      date: newDate,
+      checkoutDate: res.plan === "stay" ? newCheckoutDate || res.checkout_date : null,
+      checkinTime: newCheckinTime || res.checkin_time,
+    };
+    const aoCheckDates = afternoonOnlyDatesToCheck(nextBooking);
+    if (aoCheckDates.length > 0) {
+      const { data: aoRows } = await supabase
+        .from("daily_capacity")
+        .select("date")
+        .in("date", aoCheckDates)
+        .eq("afternoon_only", true);
+      const aoDates = new Set((aoRows || []).map((r) => r.date));
+      const violation = findAfternoonOnlyViolation(nextBooking, (d) => aoDates.has(d));
+      if (violation && !confirm(`${afternoonOnlyStaffWarning(violation)}\n\nこのまま日程を変更しますか？`)) {
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const resp = await fetch("/api/admin/reschedule", {

@@ -137,6 +137,8 @@ export type Database = {
           closed: boolean;
           /** true=Web予約のみ停止（お客様は×満席＋お問い合わせ導線／スタッフの管理画面入力は可）。店を閉めるのは closed */
           web_closed: boolean;
+          /** true=午後から営業（宿泊のみ）。お客様の日帰り・14時前のお預け・前夜からの宿泊を止める（判定は lib/booking-rules.ts） */
+          afternoon_only: boolean;
           note: string | null;
           updated_at: string;
         };
@@ -148,6 +150,7 @@ export type Database = {
           day_booked?: number;
           closed?: boolean;
           web_closed?: boolean;
+          afternoon_only?: boolean;
           note?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["daily_capacity"]["Insert"]>;

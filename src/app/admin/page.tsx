@@ -73,6 +73,8 @@ export default function AdminDashboard() {
   const [visitOrdinals, setVisitOrdinals] = useState<Record<string, number>>({});
   const [calSummaries, setCalSummaries] = useState<DaySummary[]>([]);
   const [closedMap, setClosedMap] = useState<Record<string, boolean>>({});
+  // 午後から営業（宿泊のみ）の日（daily_capacity.afternoon_only）。カレンダーに「午」の目印を出す
+  const [afternoonOnlySet, setAfternoonOnlySet] = useState<Set<string>>(new Set());
   const [calView, setCalView] = useState<"week" | "month">("week");
   const [loading, setLoading] = useState(true);
 
@@ -180,6 +182,13 @@ export default function AdminDashboard() {
     const cmap: Record<string, boolean> = {};
     for (const row of capRows || []) cmap[row.date] = row.closed;
     setClosedMap(cmap);
+
+    // 午後から営業の日（上と別の問い合わせ＝この列が読めなくても休業表示は巻き込まれない）
+    const { data: aoRows } = await supabase.from("daily_capacity")
+      .select("date")
+      .eq("afternoon_only", true)
+      .gte("date", firstDate).lte("date", lastDate);
+    setAfternoonOnlySet(new Set((aoRows || []).map((r) => r.date)));
 
     const summaries: DaySummary[] = dates.map((date) => {
       // カレンダー数字は「その日のチェックイン作業量」を表す。
@@ -323,6 +332,9 @@ export default function AdminDashboard() {
                     {(isTempOpen || isTempClosed) && (
                       <span className={`absolute top-0 right-0 text-[8px] leading-none px-0.5 rounded ${isTempOpen ? "bg-green-600 text-white" : "bg-gray-400 text-white"}`}>{isTempOpen ? "営" : "休"}</span>
                     )}
+                    {afternoonOnlySet.has(dateStr) && !isClosed && (
+                      <span className="absolute top-0 left-0 text-[8px] leading-none px-0.5 rounded bg-sky-600 text-white">午</span>
+                    )}
                     <span className={`text-xs font-dm ${isTodayDate && !isSelected ? "text-[#B87942] font-bold" : ""}`}>
                       {d.getDate()}
                     </span>
@@ -356,6 +368,9 @@ export default function AdminDashboard() {
                 >
                   {(isTempOpen || isTempClosed) && (
                     <span className={`absolute top-0 right-0 text-[8px] leading-none px-0.5 rounded ${isTempOpen ? "bg-green-600 text-white" : "bg-gray-400 text-white"}`}>{isTempOpen ? "営" : "休"}</span>
+                  )}
+                  {afternoonOnlySet.has(s.date) && !isClosed && (
+                    <span className="absolute top-0 left-0 text-[8px] leading-none px-0.5 rounded bg-sky-600 text-white">午</span>
                   )}
                   <span className={`text-[10px] ${isSelected ? "text-white/80" : isClosed ? "text-gray-300" : "text-gray-400"}`}>
                     {DAYS[d.getDay()]}

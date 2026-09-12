@@ -7,7 +7,14 @@ import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { WEB_ROOM_LIMIT, LOW_STOCK_REMAINING } from "@/lib/capacity";
 import { getJstToday, addDaysJst } from "@/lib/datetime";
-import { isLateBooking as isLateBookingDate, lastCheckoutDate } from "@/lib/booking-rules";
+import {
+  isLateBooking as isLateBookingDate,
+  lastCheckoutDate,
+  findAfternoonOnlyViolation,
+  afternoonOnlyCustomerMessage,
+  formatDateJaWithWeekday,
+  AFTERNOON_OPEN_TIME,
+} from "@/lib/booking-rules";
 import { DEFAULT_CLOSED_WEEKDAYS, getJstWeekday } from "@/lib/business-days";
 import { BookingCalendar, type CalendarDayState } from "./booking-calendar";
 
@@ -63,6 +70,20 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           setRemainingMap(remMap);
         }
       });
+    // 午後から営業（宿泊のみ）の日。上の問い合わせと分けている＝この列が読めなくても
+    // 休業・空き表示は巻き込まれない。読めなければ通常営業として扱う（予約APIと同じフェイルセーフ）。
+    supabase
+      .from("daily_capacity")
+      .select("date")
+      .eq("afternoon_only", true)
+      .gte("date", getJstToday())
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[booking] afternoon_only fetch error:", error);
+          return;
+        }
+        setAfternoonOnlyDates(new Set((data || []).map((r) => r.date)));
+      });
   }, []);
 
   // 受付期限: 当日予約不可（翌日以降）。17時以降の翌日予約は仮予約として受付。
@@ -87,6 +108,10 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
   const getDayRemaining = (dateStr: string): number =>
     dateStr in remainingMap ? remainingMap[dateStr] : WEB_ROOM_LIMIT;
 
+  // 午後から営業（宿泊のみ）の日。ルールの判定式は lib/booking-rules.ts が正本。
+  const [afternoonOnlyDates, setAfternoonOnlyDates] = useState<Set<string>>(new Set());
+  const isAfternoonOnly = (dateStr: string) => afternoonOnlyDates.has(dateStr);
+
   const isClosedDay = (dateStr: string) => {
     // daily_capacityにオーバーライドがあればそちらを優先
     if (dateStr in closedOverrides) return closedOverrides[dateStr];
@@ -107,6 +132,14 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     const closed = isClosedDay(dateStr);
     const outOfRange = dateStr < getMinDate() || dateStr > getMaxDate();
     if (closed || outOfRange) return { disabled: true, mark: null, closed };
+    // 午後から営業の日: 日帰りはその日を選べない。
+    // 宿泊は「翌朝が午後から営業」になる日（＝その前日）にチェックインできない（朝は無人のため）。
+    if (form.plan && form.plan !== "stay" && isAfternoonOnly(dateStr)) {
+      return { disabled: true, mark: null, closed: false };
+    }
+    if (form.plan === "stay" && isAfternoonOnly(addDaysJst(dateStr, 1))) {
+      return { disabled: true, mark: null, closed: false };
+    }
     const remaining = getDayRemaining(dateStr);
     if (remaining <= 0) return { disabled: true, mark: "full", closed: false };
     return {
@@ -116,9 +149,9 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     };
   };
 
-  /** その晩が泊まれない（定休日 or 満室）か */
+  /** その晩が泊まれない（定休日 or 満室 or 翌朝が午後から営業）か */
   const isNightUnavailable = (dateStr: string) =>
-    isClosedDay(dateStr) || getDayRemaining(dateStr) <= 0;
+    isClosedDay(dateStr) || getDayRemaining(dateStr) <= 0 || isAfternoonOnly(addDaysJst(dateStr, 1));
 
   /**
    * チェックアウト日として選べる最終日。判定式は lib/booking-rules.ts に置いてある
@@ -143,7 +176,14 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       const max = lastCheckoutFor(dateStr);
       if (checkout < min || checkout > max) checkout = "";
     }
-    onChange({ ...form, date: dateStr, checkout_date: checkout });
+    // 午後から営業の日は早預かりを受けない（選択肢も出さない）ので、選択済みなら外す
+    const clearExtension = form.plan === "stay" && isAfternoonOnly(dateStr);
+    onChange({
+      ...form,
+      date: dateStr,
+      checkout_date: checkout,
+      ...(clearExtension ? { checkin_extension: false, checkin_extension_from: "" } : {}),
+    });
   };
 
   // 宿泊期間中に定休日が含まれるかチェック
@@ -291,11 +331,32 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     return { hours, fee };
   };
 
+  // 午後から営業の日のルールに触れているか（予約APIと同じ関数・同じ文言）
+  const afternoonOnlyViolation = findAfternoonOnlyViolation(
+    {
+      plan: form.plan,
+      date: form.date,
+      checkoutDate: form.checkout_date,
+      checkinTime: form.checkin_time,
+      checkinExtensionFrom: form.checkin_extension ? form.checkin_extension_from : null,
+    },
+    isAfternoonOnly
+  );
+
+  // 受付期間内にある「午後から営業」の日（カレンダー下の案内に使う）。
+  // 宿泊では「前日からのお泊まり」が実際に止まる日だけ出す（前日が休業なら元々泊まれないので案内不要）。
+  const upcomingAfternoonOnlyLabels = [...afternoonOnlyDates]
+    .filter((d) => d >= getMinDate() && d <= getMaxDate())
+    .filter((d) => form.plan !== "stay" || !isClosedDay(addDaysJst(d, -1)))
+    .sort()
+    .map(formatDateJaWithWeekday);
+
   const canProceed =
     form.plan &&
     form.date &&
     form.checkin_time &&
     !isClosedDay(form.date) &&
+    !afternoonOnlyViolation &&
     capacity &&
     !capacity.closed &&
     capacity.total_remaining > 0 &&
@@ -315,6 +376,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     if (isClosedDay(form.date)) return "選んだ日は定休日です。別の日をお選びください";
     if (capacity?.closed) return "選んだ日は臨時休業です。別の日をお選びください";
     if (capacity && capacity.total_remaining <= 0) return "選んだ日は満席です。お問い合わせください（TEL 0460-80-0290）";
+    if (afternoonOnlyViolation) return afternoonOnlyCustomerMessage(afternoonOnlyViolation);
     if (form.plan === "stay" && form.checkout_date && stayClosedDates.length > 0)
       return "お預かり期間に休業日が含まれています。日程をご確認ください";
     const need: string[] = [];
@@ -432,6 +494,14 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           {form.date && isClosedDay(form.date) && (
             <p className="text-red-500 text-sm mt-2">{closedWeekdayNames()}曜日は定休日です。別の日程をお選びください。</p>
           )}
+          {/* 午後から営業の日の案内（選べない理由をカレンダーの下で先に伝える） */}
+          {upcomingAfternoonOnlyLabels.length > 0 && (
+            <p className="text-[12px] text-[#888] mt-2 leading-relaxed">
+              {form.plan === "stay"
+                ? `${upcomingAfternoonOnlyLabels.join("・")}は午後（${AFTERNOON_OPEN_TIME}）からの営業のため、前日からのお泊まりはお受けしておりません（当日${AFTERNOON_OPEN_TIME}からのチェックインは承ります）。`
+                : `${upcomingAfternoonOnlyLabels.join("・")}は午後（${AFTERNOON_OPEN_TIME}）からの営業のため、日帰りのお預かりはお受けしておりません（宿泊のお預かりは承ります）。`}
+            </p>
+          )}
         </div>
       )}
 
@@ -506,8 +576,18 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
         </div>
       )}
 
+      {/* 午後から営業の日は早預かりをWebで受けない（お電話でご相談・スタッフが個別に判断） */}
+      {form.plan === "stay" && form.checkout_date && isAfternoonOnly(form.date) && (
+        <div className="p-4 rounded-xl bg-[#F8F5F0]">
+          <p className="text-sm font-medium">チェックイン（{AFTERNOON_OPEN_TIME}）前のお預けについて</p>
+          <p className="text-[12px] text-[#888] mt-0.5 leading-relaxed">
+            {formatDateJaWithWeekday(form.date)}は午後（{AFTERNOON_OPEN_TIME}）からの営業のため、{AFTERNOON_OPEN_TIME}より前のお預けはWebでは承っておりません。ご希望の方はお電話（0460-80-0290）でご相談ください。
+          </p>
+        </div>
+      )}
+
       {/* チェックイン前の早預かり（宿泊のみ） */}
-      {form.plan === "stay" && form.checkout_date && (
+      {form.plan === "stay" && form.checkout_date && !isAfternoonOnly(form.date) && (
         <div className="space-y-3">
           <label className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
             <input

@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { PLANS } from "@/types/booking";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
+import {
+  afternoonOnlyDatesToCheck,
+  findAfternoonOnlyViolation,
+  afternoonOnlyStaffWarning,
+} from "@/lib/booking-rules";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
@@ -140,6 +145,33 @@ function NewBookingForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  // 午後から営業（宿泊のみ）の日。お客様のWeb予約では止めているルールに触れていないかを、
+  // スタッフ入力では止めずに警告として出す（判定式は lib/booking-rules.ts が正本）。
+  const [afternoonOnlyDates, setAfternoonOnlyDates] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const dates = afternoonOnlyDatesToCheck({ plan, date, checkoutDate });
+    if (dates.length === 0) {
+      setAfternoonOnlyDates(new Set());
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("daily_capacity")
+      .select("date")
+      .in("date", dates)
+      .eq("afternoon_only", true)
+      .then(({ data }) => {
+        if (!cancelled) setAfternoonOnlyDates(new Set((data || []).map((r) => r.date)));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [plan, date, checkoutDate]);
+  const afternoonOnlyViolation = findAfternoonOnlyViolation(
+    { plan, date, checkoutDate, checkinTime },
+    (d) => afternoonOnlyDates.has(d)
+  );
 
   // 既存顧客IDで直接開いた場合
   useEffect(() => {
@@ -294,6 +326,13 @@ function NewBookingForm() {
     if (!customer && !isNewCustomer) return;
     if (isNewCustomer && (!newCustomer.last_name || !newCustomer.phone)) return;
     if (isNewCustomer && !newDogs.some((d) => d.name)) return;
+    // 午後から営業の日のルールに触れる予約は、確認のうえで登録できる（例外対応の余地を残す）
+    if (
+      afternoonOnlyViolation &&
+      !confirm(`${afternoonOnlyStaffWarning(afternoonOnlyViolation)}\n\nこのまま予約を登録しますか？`)
+    ) {
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError("");
@@ -862,6 +901,9 @@ function NewBookingForm() {
           {date && isDefaultClosedWeekday(date) && (
             <p className="text-xs text-orange-600 mt-1">⚠ この日は定休日（水・木）です</p>
           )}
+          {date && afternoonOnlyDates.has(date) && (
+            <p className="text-xs text-orange-600 mt-1">⚠ この日は「午後から営業（宿泊のみ）」の日です（午前は無人）</p>
+          )}
         </div>
         {plan && (
           <div>
@@ -894,6 +936,12 @@ function NewBookingForm() {
               className="w-full mt-1 px-3 py-2.5 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
             />
           </div>
+        )}
+        {afternoonOnlyViolation && (
+          <p className="text-xs text-orange-700 bg-orange-50 rounded-lg px-3 py-2 whitespace-pre-line leading-relaxed">
+            ⚠ {afternoonOnlyStaffWarning(afternoonOnlyViolation)}
+            {"\n"}登録ボタンを押すと確認が出ます（登録はできます）。
+          </p>
         )}
       </div>
 

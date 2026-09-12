@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
+import { findAfternoonOnlyViolation, AFTERNOON_OPEN_TIME } from "@/lib/booking-rules";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -70,8 +71,10 @@ export default function SettingsPage() {
   const [calendarSaved, setCalendarSaved] = useState<string | null>(null);
   // Web受付停止日（web_closed=true）。臨時休業（closed）とは別軸で持つ
   const [webClosedDates, setWebClosedDates] = useState<string[]>([]);
+  // 午後から営業（宿泊のみ）の日（afternoon_only=true）。closed・web_closed とも別軸
+  const [afternoonOnlyDates, setAfternoonOnlyDates] = useState<string[]>([]);
   // カレンダーをタップしたときに何を切り替えるか
-  const [calMode, setCalMode] = useState<"closed" | "web">("closed");
+  const [calMode, setCalMode] = useState<"closed" | "web" | "afternoon">("closed");
   const [calMonth, setCalMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -125,6 +128,15 @@ export default function SettingsPage() {
     setWebClosedDates(
       capData ? capData.filter((r) => r.web_closed).map((r) => r.date) : [],
     );
+
+    // 午後から営業の日（上と別の問い合わせ＝この列が読めなくても休業の表示は巻き込まれない）
+    const { data: aoData } = await supabase
+      .from("daily_capacity")
+      .select("date")
+      .eq("afternoon_only", true)
+      .gte("date", fmtDate(rangeStart))
+      .lte("date", fmtDate(rangeEnd));
+    setAfternoonOnlyDates((aoData || []).map((r) => r.date));
 
     if (capData && settingsData) {
       const cw = settingsData
@@ -198,6 +210,77 @@ export default function SettingsPage() {
     );
     setSavingDate(null);
     setCalendarSaved(next ? "Web受付を停止しました" : "Web受付を再開しました");
+  };
+
+  const isAfternoonOnly = (date: Date) => afternoonOnlyDates.includes(fmtDate(date));
+
+  /**
+   * 午後から営業（宿泊のみ）の ON/OFF。
+   * お客様の日帰り・14時前のお預け・前の晩からの宿泊を止める（判定は lib/booking-rules.ts）。
+   * スタッフは管理画面から警告を見たうえで入力できる。
+   */
+  const toggleAfternoonOnly = async (date: Date) => {
+    const dateStr = fmtDate(date);
+    const todayStr = fmtDate(new Date());
+    if (dateStr < todayStr) return;
+
+    const DAYS_JP = ["日", "月", "火", "水", "木", "金", "土"];
+    const dateLabel = `${date.getMonth() + 1}/${date.getDate()}（${DAYS_JP[date.getDay()]}）`;
+    const next = !isAfternoonOnly(date);
+
+    let message: string;
+    if (next) {
+      // すでに入っている予約のうち、この日のルールに触れるものを数えて先に見せる
+      // （切り替えても既存の予約は自動ではキャンセル・変更されないため）
+      const { data: rows } = await supabase
+        .from("reservations")
+        .select("plan, date, checkout_date, checkin_time, checkin_extension_from")
+        .in("status", ["confirmed", "pending"])
+        .or(`date.eq.${dateStr},and(plan.eq.stay,date.lt.${dateStr},checkout_date.gte.${dateStr})`);
+      const counts = { day_plan: 0, early_checkin: 0, overnight_before: 0 };
+      for (const r of rows || []) {
+        const v = findAfternoonOnlyViolation(
+          {
+            plan: r.plan,
+            date: r.date,
+            checkoutDate: r.checkout_date,
+            checkinTime: r.checkin_time,
+            checkinExtensionFrom: r.checkin_extension_from,
+          },
+          (d) => d === dateStr,
+        );
+        if (v) counts[v.kind]++;
+      }
+      const total = counts.day_plan + counts.early_checkin + counts.overnight_before;
+      const conflictText =
+        total > 0
+          ? `\n\n⚠ この日にかかる予約のうち、ルールに合わないものが${total}件あります（自動ではキャンセル・変更されません。お客様へのご連絡が必要です）\n・日帰り: ${counts.day_plan}件\n・${AFTERNOON_OPEN_TIME}より前のお預け: ${counts.early_checkin}件\n・前の晩からの宿泊: ${counts.overnight_before}件`
+          : "\n\nこの日にかかる予約で、ルールに合わないものはありません。";
+      message = `${dateLabel} を「午後から営業（宿泊のみ）」にしますか？\n\n・お客様は、この日の日帰りのお預かりを予約できなくなります\n・宿泊は${AFTERNOON_OPEN_TIME}からのチェックインのみ受け付けます（早預かりは「お電話でご相談ください」と案内）\n・前の晩からの宿泊（この日の朝のお迎え・連泊）も受け付けません\n・スタッフはこの管理画面から、警告を確認のうえ入力できます${conflictText}`;
+    } else {
+      message = `${dateLabel} の「午後から営業」を解除しますか？\n\n通常どおり、日帰りも早預かりも受け付けるようになります。`;
+    }
+    if (!confirm(message)) return;
+
+    setSavingDate(dateStr);
+
+    const { data: existing } = await supabase
+      .from("daily_capacity")
+      .select("date")
+      .eq("date", dateStr)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from("daily_capacity").update({ afternoon_only: next }).eq("date", dateStr);
+    } else {
+      await supabase.from("daily_capacity").insert({ date: dateStr, afternoon_only: next });
+    }
+
+    setAfternoonOnlyDates((prev) =>
+      next ? [...prev.filter((d) => d !== dateStr), dateStr] : prev.filter((d) => d !== dateStr),
+    );
+    setSavingDate(null);
+    setCalendarSaved(next ? "午後から営業（宿泊のみ）にしました" : "午後から営業を解除しました");
   };
 
   const isOverridden = (date: Date) => {
@@ -365,10 +448,20 @@ export default function SettingsPage() {
             >
               Web受付の停止
             </button>
+            <button
+              onClick={() => setCalMode("afternoon")}
+              className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+                calMode === "afternoon" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500"
+              }`}
+            >
+              午後から営業
+            </button>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
             {calMode === "closed" ? (
               <>日付をタップすると<strong>お店の営業日そのもの</strong>を切り替えます。臨時休業にすると、お客様も<strong>スタッフも</strong>その日の予約を入れられなくなります。</>
+            ) : calMode === "afternoon" ? (
+              <>日付をタップすると、その日を<strong>午後から営業（宿泊のみ）</strong>にします。午前は無人の日です。お客様は<strong>日帰り・{AFTERNOON_OPEN_TIME}前のお預け・前の晩からの宿泊</strong>を予約できず、{AFTERNOON_OPEN_TIME}からの宿泊だけ受け付けます。<strong>スタッフはこの管理画面から、警告を確認のうえ入力できます</strong>。</>
             ) : (
               <>日付をタップすると<strong>お客様のWeb予約だけ</strong>止めます。お客様には「<strong>× 満席です。お問い合わせください</strong>」と表示され、お店は通常どおり営業。<strong>スタッフはこの管理画面から引き続き予約を入れられます</strong>（お電話で受けた分など）。</>
             )}
@@ -384,6 +477,10 @@ export default function SettingsPage() {
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded bg-white border-2 border-purple-400 inline-block" />
             Web受付停止
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2.5 h-2.5 rounded bg-white border-2 border-sky-500 inline-block" />
+            午後から営業
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded bg-gray-300 inline-block" />
@@ -427,6 +524,7 @@ export default function SettingsPage() {
             const isThisMonth = date.getMonth() === calMonth.month;
             const holiday = HOLIDAYS[dateStr];
             const webClosed = isWebClosed(date);
+            const afternoonOnly = isAfternoonOnly(date);
 
             let bgClass = "bg-white border border-gray-100";
             if (!isThisMonth) {
@@ -442,7 +540,11 @@ export default function SettingsPage() {
             } else if (holiday) {
               bgClass = "bg-orange-50 border border-orange-200";
             }
-            // Web受付停止は営業日そのものの状態とは別軸なので、枠線で重ねて示す
+            // 午後から営業・Web受付停止は営業日そのものの状態とは別軸なので、枠線で重ねて示す
+            // （両方ONなら Web受付停止の方が強い＝Web予約は全部止まるので紫を優先）
+            if (isThisMonth && !isPast && afternoonOnly && !closed) {
+              bgClass = "bg-sky-50 border-2 border-sky-500";
+            }
             if (isThisMonth && !isPast && webClosed && !closed) {
               bgClass = "bg-purple-50 border-2 border-purple-400";
             }
@@ -451,7 +553,13 @@ export default function SettingsPage() {
               <button
                 key={dateStr}
                 onClick={() =>
-                  isThisMonth && !isPast && (calMode === "web" ? toggleWebClosed(date) : toggleDay(date))
+                  isThisMonth &&
+                  !isPast &&
+                  (calMode === "web"
+                    ? toggleWebClosed(date)
+                    : calMode === "afternoon"
+                      ? toggleAfternoonOnly(date)
+                      : toggleDay(date))
                 }
                 disabled={!isThisMonth || isPast || isSaving}
                 className={`aspect-square rounded-lg flex flex-col items-center justify-center transition-all ${bgClass} ${
@@ -481,7 +589,10 @@ export default function SettingsPage() {
                 {webClosed && isThisMonth && !isPast && (
                   <span className="text-xs text-purple-600 font-medium leading-none mt-0.5">Web停止</span>
                 )}
-                {holiday && isThisMonth && !isToday && !webClosed && (
+                {afternoonOnly && !webClosed && !closed && isThisMonth && !isPast && (
+                  <span className="text-xs text-sky-700 font-medium leading-none mt-0.5">午後〜</span>
+                )}
+                {holiday && isThisMonth && !isToday && !webClosed && !afternoonOnly && (
                   <span className="text-xs text-orange-500 leading-none mt-0.5 truncate w-full text-center px-0.5">
                     {holiday.length > 3 ? holiday.slice(0, 3) : holiday}
                   </span>

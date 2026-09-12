@@ -9,7 +9,12 @@ import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { exceedsRoomLimit, WEB_ROOM_LIMIT, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 import { getJstToday, getJstHour } from "@/lib/datetime";
-import { isLateBooking } from "@/lib/booking-rules";
+import {
+  isLateBooking,
+  afternoonOnlyDatesToCheck,
+  findAfternoonOnlyViolation,
+  afternoonOnlyCustomerMessage,
+} from "@/lib/booking-rules";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
 
 const supabase = createClient(
@@ -166,6 +171,32 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    // 午後から営業（宿泊のみ）の日: お客様の日帰り・14時前のお預け・前夜からの宿泊を止める。
+    // 判定式は lib/booking-rules.ts が正本（予約フォームも同じ関数を呼ぶ）。
+    // スタッフ入力(source=phone)は管理画面で警告を見たうえで入れるので、ここでは止めない。
+    // afternoon_only は他の列と別の問い合わせにしている＝この列が読めなくても
+    // 上の休業判定は巻き込まれない。読めなければ止めない（web_closed と同じフェイルセーフ）。
+    if (!isStaffBooking) {
+      const aoInput = {
+        plan: body.plan,
+        date: body.date,
+        checkoutDate: body.checkout_date,
+        checkinTime: body.checkin_time,
+        checkinExtensionFrom: body.checkin_extension ? body.checkin_extension_from : null,
+      };
+      const { data: aoRows } = await supabase
+        .from("daily_capacity")
+        .select("date")
+        .in("date", afternoonOnlyDatesToCheck(aoInput))
+        .eq("afternoon_only", true);
+      const aoDates = new Set((aoRows || []).map((r) => r.date));
+      const aoViolation = findAfternoonOnlyViolation(aoInput, (d) => aoDates.has(d));
+      if (aoViolation) {
+        return NextResponse.json({ error: afternoonOnlyCustomerMessage(aoViolation) }, { status: 400 });
+      }
+    }
+
     // sex はお客様フォームでは必須、スタッフ入力（source: phone）では任意（既存犬の上書き防止）
     const sexRequired = !isStaffBooking;
     if (!body.dogs.length || body.dogs.some((d) => !d.name?.trim() || !d.breed?.trim() || !d.weight?.trim() || (sexRequired && !d.sex))) {
