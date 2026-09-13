@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { BreadcrumbJsonLd } from "@/components/breadcrumb-jsonld";
 import Image from "next/image";
 import { InstagramFollowLight } from "@/components/instagram-follow";
+import { CafeClosureNotice } from "@/components/cafe-closure-notice";
 
 export const metadata: Metadata = {
   openGraph: {
@@ -74,6 +75,9 @@ export default function CafePage() {
             <span>カフェ・グッズ販売</span>
           </p>
         </div>
+
+        {/* 期間限定のお知らせ（2026-10-17〜10-31 だけ表示） */}
+        <CafeClosureNotice />
 
         {/* CAFE section */}
         <section className="py-16 px-6 bg-white">
