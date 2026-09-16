@@ -168,6 +168,35 @@ function NewBookingForm() {
       cancelled = true;
     };
   }, [plan, date, checkoutDate]);
+  // チェックイン日の営業状態（daily_capacity の臨時休業／臨時営業を反映する）。
+  // 以前は曜日だけで判定しており、臨時営業日（例: 2026-09-23 秋分の日）でも
+  // 「⚠ この日は定休日です」と出て、電話を受けたスタッフが休みの日だと誤解しかねなかった。
+  // 予約APIと同じ作法＝行があればその closed 値、無ければ（または読めなければ）曜日で判定。
+  const [dateCap, setDateCap] = useState<{ date: string; closed: boolean | null } | null>(null);
+  useEffect(() => {
+    if (!date) return;
+    let cancelled = false;
+    supabase
+      .from("daily_capacity")
+      .select("closed")
+      .eq("date", date)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!cancelled) setDateCap({ date, closed: error || !data ? null : data.closed });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [date]);
+  const dateBusinessStatus: "unknown" | "open" | "regular_closed" | "temp_open" | "temp_closed" = (() => {
+    if (!date || dateCap?.date !== date) return "unknown"; // 読み込み中は何も出さない（誤った警告を一瞬でも出さない）
+    const regularClosed = isDefaultClosedWeekday(date);
+    if (dateCap.closed === null) return regularClosed ? "regular_closed" : "open";
+    if (regularClosed && !dateCap.closed) return "temp_open";
+    if (!regularClosed && dateCap.closed) return "temp_closed";
+    return regularClosed ? "regular_closed" : "open";
+  })();
+
   const afternoonOnlyViolation = findAfternoonOnlyViolation(
     { plan, date, checkoutDate, checkinTime },
     (d) => afternoonOnlyDates.has(d)
@@ -898,8 +927,14 @@ function NewBookingForm() {
             onChange={(e) => setDate(e.target.value)}
             className="w-full mt-1 px-3 py-2.5 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
           />
-          {date && isDefaultClosedWeekday(date) && (
+          {dateBusinessStatus === "regular_closed" && (
             <p className="text-xs text-orange-600 mt-1">⚠ この日は定休日（水・木）です</p>
+          )}
+          {dateBusinessStatus === "temp_closed" && (
+            <p className="text-xs text-red-600 mt-1">⚠ この日は臨時休業です（予約は登録できません）</p>
+          )}
+          {dateBusinessStatus === "temp_open" && (
+            <p className="text-xs text-green-700 mt-1">この日は臨時営業日です（通常は定休日の曜日です）</p>
           )}
           {date && afternoonOnlyDates.has(date) && (
             <p className="text-xs text-orange-600 mt-1">⚠ この日は「午後から営業（宿泊のみ）」の日です（午前は無人）</p>

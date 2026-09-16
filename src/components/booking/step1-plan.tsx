@@ -351,6 +351,22 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     .sort()
     .map(formatDateJaWithWeekday);
 
+  // 受付期間内の「臨時営業日」（通常は定休の曜日だが daily_capacity で営業に上書きされている日）。
+  // 案内が「定休: 水・木」だけだと、その日に来たい方が予約カレンダーを開く前にあきらめてしまう
+  // （2026-09-23 秋分の日を臨時営業にしたのに、サイト上のどこにも出ていなかった）。近い順に最大3日。
+  const upcomingTempOpenLabels = Object.entries(closedOverrides)
+    .filter(
+      ([d, closed]) =>
+        !closed &&
+        closedWeekdays.includes(getJstWeekday(d)) &&
+        d >= getMinDate() &&
+        d <= getMaxDate()
+    )
+    .map(([d]) => d)
+    .sort()
+    .slice(0, 3)
+    .map(formatDateJaWithWeekday);
+
   const canProceed =
     form.plan &&
     form.date &&
@@ -399,7 +415,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           <p>箱根・仙石原にある犬のお預かり専門施設です。ドッグラン併設・完全個室・スタッフ常駐で安心してお預けいただけます。</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[12px]">
             <span>営業: 金〜火 9:00-17:00</span>
-            <span>定休: {closedWeekdayNames()}曜日</span>
+            <span>
+              定休: {closedWeekdayNames()}曜日
+              {upcomingTempOpenLabels.length > 0 && (
+                <span className="text-[#B87942]">（{upcomingTempOpenLabels.join("・")}は営業）</span>
+              )}
+            </span>
             <span>体重: 15kgまで（超える場合は要相談）</span>
           </div>
         </div>
