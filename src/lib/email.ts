@@ -1356,7 +1356,7 @@ export async function sendLineLinkNoticeEmail(params: {
 
 ────────────────
 DogHub箱根仙石原
-神奈川県足柄下郡箱根町仙石原1246-4
+神奈川県足柄下郡箱根町仙石原928-15
 TEL: 0460-80-0290
 ${SITE_URL}
 ────────────────`;
@@ -1373,7 +1373,7 @@ ${SITE_URL}
   <hr style="border:none;border-top:1px solid #e5ddd8;margin:24px 0;">
   <p style="font-size:12px;color:#97826f;margin:0;">
     DogHub箱根仙石原<br>
-    神奈川県足柄下郡箱根町仙石原1246-4<br>
+    神奈川県足柄下郡箱根町仙石原928-15<br>
     TEL: 0460-80-0290<br>
     <a href="${SITE_URL}" style="color:#8a5426;">${SITE_URL}</a>
   </p>
