@@ -9,8 +9,10 @@
  * 🔴 2 は法令上の義務。1つでも欠けると違反になるため、人の目視ではなく機械で確かめる。
  *
  * 使い方: node scripts/check_fragrance_copy.mjs
- * 対象は src/lib/fragrance-email.ts と src/lib/fragrance/config.ts、および
- * src/app/fragrance 配下の .tsx（存在するものだけ）。
+ * 対象は src/lib/fragrance-email.ts と src/lib/fragrance/config.ts、
+ * src/app/fragrance 配下の .tsx、一斉配信の文面（src/app/api/admin/fragrance-send）と
+ * src/app/api/fragrance 配下の .ts（存在するものだけ）。
+ * ⚠️ 2026-09-18 まで一斉配信の文面が対象外で、ページで直した一文がメールに残っていた。
  */
 
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
@@ -36,6 +38,9 @@ const FORBIDDEN = [
   ["今だけ", "同上"],
   ["入荷次第", "引渡時期の表示として不十分（消費者庁 通信販売広告Q&A）。期限の形で書く"],
   ["準備でき次第", "同上"],
+  ["有害とされる", "処方に柑橘・レモングラス等が入るため「有害とされる精油は入れていない」は反証されうる（景表法・優良誤認）。「犬のそばで毎日使うことを前提に選んでいる」という過程の事実で書く（2026-09-18）"],
+  ["有害な精油", "同上"],
+  ["犬の宿でつく", "製造地の主張に読める（製造は OEM）。出自は「箱根仙石原の、犬の宿から。」の形だけで言う（世界観設計：箱根\"から\"であって\"の\"ではない）"],
 ];
 
 // ── 2. 注文確認メールに必ず要る6項目（特商法13条・施行規則37条）──
@@ -67,19 +72,19 @@ function collectTargets() {
   const files = [
     "src/lib/fragrance-email.ts",
     "src/lib/fragrance/config.ts",
+    "src/app/api/admin/fragrance-send/route.ts",
   ].filter((f) => existsSync(join(ROOT, f)));
 
-  const pageDir = join(ROOT, "src/app/fragrance");
-  if (existsSync(pageDir)) {
-    const walk = (dir) => {
-      for (const entry of readdirSync(dir)) {
-        const full = join(dir, entry);
-        if (statSync(full).isDirectory()) walk(full);
-        else if (entry.endsWith(".tsx")) files.push(full.slice(ROOT.length));
-      }
-    };
-    walk(pageDir);
-  }
+  const walk = (dir, exts) => {
+    if (!existsSync(dir)) return;
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) walk(full, exts);
+      else if (exts.some((x) => entry.endsWith(x))) files.push(full.slice(ROOT.length));
+    }
+  };
+  walk(join(ROOT, "src/app/fragrance"), [".tsx"]);
+  walk(join(ROOT, "src/app/api/fragrance"), [".ts"]);
   return files;
 }
 

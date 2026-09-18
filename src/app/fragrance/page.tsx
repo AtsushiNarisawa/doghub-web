@@ -18,8 +18,10 @@ import { SALES_OPEN_KEY } from "@/lib/fragrance/config";
 
 export const metadata: Metadata = {
   title: "犬と暮らす手のためのハンドクリーム｜DogHub箱根仙石原",
+  // 🔴 「有害とされる精油は入れていない」とは書かない（処方に柑橘・レモングラス等が入るため反証されうる）。
+  // 🔴 「犬の宿で"つくっています"」は製造地の主張に読める（製造は OEM）。出自は「犬の宿から」の形だけで言う。
   description:
-    "犬に有害とされる精油を使わずに香りを立てるハンドクリームを、箱根仙石原の犬の宿でつくっています。",
+    "犬のそばで毎日使うことを前提に精油を選んだハンドクリーム。箱根仙石原の、犬の宿から。",
   alternates: { canonical: "/fragrance" },
 };
 
@@ -104,7 +106,7 @@ export default async function FragrancePage() {
               <p>
                 その手は、いつも犬にふれています。
                 <br className="hidden sm:block" />
-                だから、犬に有害とされる精油は、はじめから候補に入れていません。
+                犬のそばで毎日使うことを前提に、精油の種類と量を選んでいます。
                 <br className="hidden sm:block" />
                 入れられるものだけで、香りを立てました。
               </p>

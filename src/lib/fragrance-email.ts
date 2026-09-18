@@ -28,8 +28,10 @@ export const SELLER = {
   displayName: "DogHub Fragrance",
   /** 法人名（登記後に設定）。未設定の間は屋号のみで出す。 */
   legalName: process.env.FRAGRANCE_SELLER_LEGAL_NAME || "",
-  address: "神奈川県足柄下郡箱根町仙石原1246-2",
-  tel: "0460-83-8730",
+  // 🔴 住所・電話は店舗（/access・/privacy と同じ）。2026-09-18 CEO確認。
+  //    commit fe89020 で入った別の番地・電話は誤りだった。/fragrance/legal も同じ値にそろえること。
+  address: "神奈川県足柄下郡箱根町仙石原928-15",
+  tel: "0460-80-0290",
   email: "info@dog-hub.shop",
   from: "narisawa@dog-hub.shop",
 } as const;

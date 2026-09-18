@@ -71,12 +71,23 @@ export async function POST(req: NextRequest) {
   const soldOut = await isSoldOut();
   const template = pickTemplate(segment, soldOut);
 
+  // 配信停止・不達のアドレス（どの表で止めたかを問わない）。読めなければ1通も送らない
+  let suppressed: Set<string>;
+  try {
+    suppressed = await loadSuppressedEmails();
+  } catch (e) {
+    console.error("fragrance-send: suppression list failed", e);
+    return NextResponse.json({ error: "suppression_failed", detail: String(e) }, { status: 500 });
+  }
+
   // 宛先を取る（このキャンペーンで送信済みの人は関数側で除外される）
+  // 停止済みの人を後から外すぶん多めに取り、外したあとで limit に切りそろえる
+  // （外した人が毎回の先頭に居座って、便が進まなくなるのを防ぐ）
   const excludeParam = sp.get("exclude");
   const { data: recipients, error } = await fdb.rpc("get_fragrance_recipients", {
     p_segment: segment,
     p_campaign_key: campaign,
-    p_limit: limit,
+    p_limit: limit + suppressed.size,
     p_exclude_campaigns: excludeParam ? excludeParam.split(",").map((s) => s.trim()) : null,
   });
 
@@ -85,7 +96,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "recipients_failed", detail: error.message }, { status: 500 });
   }
 
-  const list = (recipients || []) as Recipient[];
+  const fetched = (recipients || []) as Recipient[];
+  const list = fetched.filter((r) => !suppressed.has(normEmail(r.email))).slice(0, limit);
+  const suppressedHit = fetched.filter((r) => suppressed.has(normEmail(r.email))).length;
 
   if (dryRun) {
     return NextResponse.json({
@@ -96,6 +109,7 @@ export async function POST(req: NextRequest) {
       template: template.name,
       sold_out: soldOut,
       count: list.length,
+      suppressed: suppressedHit,
       sample: list.slice(0, 5).map((r) => maskEmail(r.email)),
     });
   }
@@ -175,6 +189,39 @@ async function sendOne(transport: MailTransport, to: string, subject: string, te
   });
 }
 
+function normEmail(email: string | null | undefined): string {
+  return String(email || "").trim().toLowerCase();
+}
+
+/**
+ * 送ってはいけないアドレスの一覧（小文字）。
+ *
+ * 🔴 配信停止は「押した本人への以後の配信を止める」ものなので、アドレス単位で効かせる。
+ *    RPC get_fragrance_recipients はセグメントごとに自分の表の停止しか見ないため、
+ *    たとえば「通知希望のメールで停止した人」が顧客として発売前の告知に載ってしまう。ここで塞ぐ。
+ *      ・customers.email_opt_out   … 顧客の配信停止（リピートエンジンと同じフラグ）
+ *      ・customers.email_bounced   … 不達
+ *      ・fragrance_waitlist / fragrance_restock_requests の opted_out_at … Fragrance の配信停止
+ */
+async function loadSuppressedEmails(): Promise<Set<string>> {
+  const [cust, wait, rest] = await Promise.all([
+    fdb.from("customers").select("email").or("email_opt_out.eq.true,email_bounced.eq.true"),
+    fdb.from("fragrance_waitlist").select("email").not("opted_out_at", "is", null),
+    fdb.from("fragrance_restock_requests").select("email").not("opted_out_at", "is", null),
+  ]);
+  const err = cust.error || wait.error || rest.error;
+  if (err) throw new Error(err.message);
+
+  const set = new Set<string>();
+  for (const row of [...(cust.data || []), ...(wait.data || []), ...(rest.data || [])] as {
+    email: string | null;
+  }[]) {
+    const e = normEmail(row.email);
+    if (e) set.add(e);
+  }
+  return set;
+}
+
 /** オンライン分が売り切れているか（発売案内の文面を切り替えるため）。 */
 async function isSoldOut(): Promise<boolean> {
   const { data } = await fdb
@@ -192,6 +239,11 @@ async function isSoldOut(): Promise<boolean> {
 
 const SITE = "https://dog-hub.shop/fragrance";
 
+// 停止リンクのトークンは宛先の出どころで変わる（RPC がそのまま返す）：
+//   pre_all / all_launch … 顧客の customers.unsubscribe_token
+//   priority             … fragrance_waitlist.unsub_token
+//   restock / interim    … fragrance_restock_requests.unsub_token
+// /api/fragrance/unsubscribe は3種類すべてを受け、顧客のものは既存の停止ページ（email_opt_out）へ回す。
 function footer(r: { unsub_token: string | null }): string {
   const stop = r.unsub_token
     ? `${SITE.replace("/fragrance", "")}/api/fragrance/unsubscribe?token=${r.unsub_token}`
@@ -238,7 +290,7 @@ const TEMPLATES: Record<string, Template> = {
         greet(r.name) +
         `DogHub が、ハンドクリームをつくっています。\n\n` +
         `その手は、いつも犬にふれています。\n` +
-        `だから、犬に有害とされる精油は、はじめから候補に入れていません。\n` +
+        `犬のそばで毎日使うことを前提に、精油の種類と量を選んでいます。\n` +
         `入れられるものだけで、香りを立てました。\n\n` +
         `朝、犬と歩く道の木漏れ日のような香りです。\n` +
         `散歩のあと、手を洗ったら、どうぞ。\n\n` +
@@ -258,7 +310,7 @@ const TEMPLATES: Record<string, Template> = {
         greet(r.name) +
         `お待たせしました。ハンドクリームができあがりました。\n\n` +
         `その手は、いつも犬にふれています。\n` +
-        `だから、犬に有害とされる精油は、はじめから候補に入れていません。\n` +
+        `犬のそばで毎日使うことを前提に、精油の種類と量を選んでいます。\n` +
         `入れられるものだけで、香りを立てました。\n\n` +
         `散歩のあと、手を洗ったら。\n\n` +
         `ご購入はこちらから：\n${SITE}\n\n` +

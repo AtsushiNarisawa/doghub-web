@@ -48,9 +48,9 @@ export default function FragranceLegalPage() {
                 )}
               </Item>
               <Item label="運営責任者">{SELLER_REPRESENTATIVE}</Item>
-              <Item label="所在地">神奈川県足柄下郡箱根町仙石原1246-2</Item>
+              <Item label="所在地">神奈川県足柄下郡箱根町仙石原928-15</Item>
               <Item label="電話番号">
-                0460-83-8730
+                0460-80-0290
                 <span className="block text-[#3C200F]/60">
                   受付時間 9:00〜17:00（水曜・木曜は定休）
                 </span>
@@ -106,7 +106,7 @@ export default function FragranceLegalPage() {
               </Item>
 
               <Item label="お問い合わせ">
-                info@dog-hub.shop または 0460-83-8730
+                info@dog-hub.shop または 0460-80-0290
               </Item>
             </dl>
 
