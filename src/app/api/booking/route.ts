@@ -16,6 +16,7 @@ import {
   afternoonOnlyCustomerMessage,
 } from "@/lib/booking-rules";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
+import { ageFromBirthDate } from "@/lib/dog-age";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,6 +41,24 @@ function blockedNonProductionEnv(): string | null {
   const nodeEnv = process.env.NODE_ENV;
   if (nodeEnv === "development" || nodeEnv === "test") return "development";
   return null;
+}
+
+// ワンちゃんの生年月（"YYYY-MM"）から、DBに書く値を作る。
+// 🔴 年齢を数値で持つと時間が経っても増えない（2026-09-21 CEO指摘）。生年月があれば
+//    それを正本にし、age/age_months は「いま何歳か」を計算して入れる（既存の画面・
+//    15kg判定などが age を読むため、空にはしない）。判定式は lib/dog-age.ts が正本。
+//    生年月が分からない方（保護犬など）は従来どおり申告された年齢をそのまま保存する。
+function dogAgeFields(dog: { birth_month?: string; birth_unknown?: boolean; age?: string; age_months?: string }) {
+  const birth = !dog.birth_unknown && dog.birth_month ? `${dog.birth_month}-01` : null;
+  const computed = ageFromBirthDate(birth);
+  if (birth && computed) {
+    return { birth_date: birth, age: computed.years, age_months: computed.years === 0 ? computed.months : null };
+  }
+  return {
+    birth_date: null,
+    age: dog.age ? parseInt(dog.age) : null,
+    age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
+  };
 }
 
 // 直近の送信を追跡（二重送信防止）
@@ -386,8 +405,7 @@ export async function POST(req: NextRequest) {
             breed: dog.breed,
             ...(dog.sex ? { sex: dog.sex as "male" | "female" } : {}),
             weight: parseFloat(dog.weight),
-            age: dog.age ? parseInt(dog.age) : null,
-            age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
+            ...dogAgeFields(dog),
             has_rabies_vaccine: dog.has_rabies_vaccine,
             has_mixed_vaccine: dog.has_mixed_vaccine,
             allergies: dog.allergies || null,
@@ -413,8 +431,7 @@ export async function POST(req: NextRequest) {
               breed: dog.breed,
               ...(dog.sex ? { sex: dog.sex as "male" | "female" } : {}),
               weight: inputWeight,
-              age: dog.age ? parseInt(dog.age) : null,
-              age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
+              ...dogAgeFields(dog),
               has_rabies_vaccine: dog.has_rabies_vaccine,
               has_mixed_vaccine: dog.has_mixed_vaccine,
               allergies: dog.allergies || null,
@@ -437,8 +454,7 @@ export async function POST(req: NextRequest) {
               name: inputName,
               breed: dog.breed,
               weight: inputWeight,
-              age: dog.age ? parseInt(dog.age) : null,
-              age_months: dog.age === "0" && dog.age_months ? parseInt(dog.age_months) : null,
+              ...dogAgeFields(dog),
               sex: dog.sex ? (dog.sex as "male" | "female") : null,
               has_rabies_vaccine: dog.has_rabies_vaccine,
               has_mixed_vaccine: dog.has_mixed_vaccine,

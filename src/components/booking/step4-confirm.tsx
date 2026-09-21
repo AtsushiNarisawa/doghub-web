@@ -5,6 +5,7 @@ import type { BookingFormData } from "@/types/booking";
 import { PLANS, EXTRA_HOUR_FEE, WALK_OPTION_FEE, vaccineStatusLabel } from "@/types/booking";
 import { isLateBooking } from "@/lib/booking-rules";
 import { calculateBookingBreakdown } from "@/lib/pricing";
+import { currentAgeLabel } from "@/lib/dog-age";
 
 interface Props {
   form: BookingFormData;
@@ -92,7 +93,12 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
             </p>
             <p className="text-sm text-[#888]">
               {dog.weight}kg /
-              {dog.age === "0" && dog.age_months ? ` ${dog.age_months}ヶ月` : ` ${dog.age}歳`} /
+              {/* 生まれた年月をうかがえた場合は、そこから計算した「いまの年齢」を出す（lib/dog-age.ts） */}
+              {dog.birth_month && currentAgeLabel(dog.birth_month)
+                ? ` ${currentAgeLabel(dog.birth_month)}`
+                : dog.age === "0" && dog.age_months
+                  ? ` ${dog.age_months}ヶ月`
+                  : ` ${dog.age}歳`} /
               {dog.sex === "male" ? " オス" : " メス"}
             </p>
             <p className="text-[12px] text-[#888]">

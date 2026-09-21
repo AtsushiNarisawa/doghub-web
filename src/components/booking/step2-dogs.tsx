@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import type { BookingFormData, DogFormData } from "@/types/booking";
 import { INITIAL_DOG, VACCINE_STATUS_OPTIONS } from "@/types/booking";
+import { currentAgeLabel } from "@/lib/dog-age";
+import { getJstToday } from "@/lib/datetime";
 // 顧客/犬の照合は anon 直読みを廃し /api/booking/lookup-customer（service_role）経由に統一。
 type DbDog = {
   id: string; name: string; breed: string; weight: number | string;
-  age: number | null; age_months: number | null; sex: string;
+  age: number | null; age_months: number | null; birth_date: string | null; sex: string;
   has_rabies_vaccine: boolean | null; has_mixed_vaccine: boolean | null;
   rabies_vaccine_status: "" | "within_1year" | "multi_year" | "unable" | null;
   mixed_vaccine_status: "" | "within_1year" | "multi_year" | "unable" | null;
@@ -27,8 +29,11 @@ type PrevDog = {
 };
 
 // DbDog → 「鮮度依存項目を空欄化した」フォーム初期値。
-// 引き継ぐ: 名前/犬種/性別/注意事項。毎回入力: 年齢/月齢/体重/ワクチン状況
-// （古い値を無編集のまま再保存して年齢・体重・ワクチンが固定化するのを防ぐ）。
+// 引き継ぐ: 名前/犬種/性別/注意事項/**生まれた年月**。毎回入力: 体重/ワクチン状況
+// （古い値を無編集のまま再保存して体重・ワクチンが固定化するのを防ぐ）。
+// 🔴 生まれた年月は時間が経っても変わらない事実なので、引き継いで聞き直さない
+//    （年齢は生年月から毎回計算される＝古くならない。2026-09-21）。
+//    生年月が無い子は従来どおり年齢を空欄にして毎回入力してもらう。
 function blankFormFromDbDog(d: DbDog): DogFormData {
   return {
     id: d.id,
@@ -36,6 +41,8 @@ function blankFormFromDbDog(d: DbDog): DogFormData {
     breed: d.breed,
     sex: d.sex === "male" || d.sex === "female" ? d.sex : "",
     weight: "",
+    birth_month: d.birth_date ? d.birth_date.slice(0, 7) : "",
+    birth_unknown: false,
     age: "",
     age_months: "",
     has_rabies_vaccine: false,
@@ -108,7 +115,7 @@ function DogForm({
           {prevDog.weight}kg{" ／ "}狂犬病 {prevDog.has_rabies_vaccine ? "接種済" : "なし"}・混合{" "}
           {prevDog.has_mixed_vaccine ? "接種済" : "なし"}
           <br />
-          <span className="text-[#B87942]">最新の年齢・体重・ワクチン状況をご入力ください。</span>
+          <span className="text-[#B87942]">最新の体重・ワクチン状況をご入力ください。</span>
         </p>
       )}
 
@@ -163,39 +170,75 @@ function DogForm({
         </p>
       )}
 
-      {/* 年齢・性別 */}
+      {/* 生まれた年月・性別 */}
+      {/* 🔴 年齢そのものではなく「生まれた年月」を聞く（2026-09-21）。
+          年齢は時間とともに変わるため、数値で持つと次のご予約のときに古いままになる。
+          生年月なら一度うかがえば、以後はこちらで自動計算できる。
+          分からない方（保護犬など）は「わからない」を選び、従来どおり年齢を入力していただく。 */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-sm text-[#888] block mb-1">
-            年齢 <span className="text-red-400">*</span>
+            {dog.birth_unknown ? "年齢" : "生まれた年月"} <span className="text-red-400">*</span>
           </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              inputMode="numeric"
-              min="0"
-              value={dog.age}
-              onChange={(e) => onUpdate({ ...dog, age: e.target.value, age_months: "" })}
-              placeholder="3"
-              className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
-            />
-            <span className="text-sm text-[#888] whitespace-nowrap">歳</span>
-          </div>
-          {dog.age === "0" && (
-            <div className="mt-2 flex items-center gap-2">
+          {!dog.birth_unknown ? (
+            <>
               <input
-                type="number"
-                inputMode="numeric"
-                min="0"
-                max="11"
-                value={dog.age_months}
-                onChange={(e) => onUpdate({ ...dog, age_months: e.target.value })}
-                placeholder="6"
+                type="month"
+                value={dog.birth_month}
+                max={getJstToday().slice(0, 7)}
+                onChange={(e) => onUpdate({ ...dog, birth_month: e.target.value })}
                 className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
               />
-              <span className="text-sm text-[#888] whitespace-nowrap">ヶ月</span>
-            </div>
+              {currentAgeLabel(dog.birth_month) && (
+                <p className="text-[12px] text-[#888] mt-1">いまの年齢: {currentAgeLabel(dog.birth_month)}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={dog.age}
+                  onChange={(e) => onUpdate({ ...dog, age: e.target.value, age_months: "" })}
+                  placeholder="3"
+                  className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+                />
+                <span className="text-sm text-[#888] whitespace-nowrap">歳</span>
+              </div>
+              {dog.age === "0" && (
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    max="11"
+                    value={dog.age_months}
+                    onChange={(e) => onUpdate({ ...dog, age_months: e.target.value })}
+                    placeholder="6"
+                    className="w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+                  />
+                  <span className="text-sm text-[#888] whitespace-nowrap">ヶ月</span>
+                </div>
+              )}
+            </>
           )}
+          <label className="flex items-center gap-2 mt-2">
+            <input
+              type="checkbox"
+              checked={dog.birth_unknown}
+              onChange={(e) =>
+                onUpdate(
+                  e.target.checked
+                    ? { ...dog, birth_unknown: true, birth_month: "" }
+                    : { ...dog, birth_unknown: false, age: "", age_months: "" },
+                )
+              }
+              className="w-4 h-4 rounded accent-[#B87942]"
+            />
+            <span className="text-[12px] text-[#888]">生まれた年月がわからない</span>
+          </label>
         </div>
         <div>
           <label className="text-sm text-[#888] block mb-1">
@@ -452,7 +495,9 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
 
   const isValid = form.dogs.every(
     (d) =>
-      d.name && d.breed && d.weight && d.age && d.sex &&
+      d.name && d.breed && d.weight && d.sex &&
+      // 年齢は「生まれた年月」か、分からない場合の「年齢」のどちらかが必要（2026-09-21）
+      (d.birth_unknown ? !!d.age : !!d.birth_month) &&
       // ワクチン状況は「未選択(空欄)」を不可にする（空欄送信で has_*=false=未接種に化けるのを防ぐ）。
       // 「事情により未接種」は理由を書けば従来どおり受け付ける。
       d.rabies_vaccine_status && d.mixed_vaccine_status &&
@@ -471,7 +516,7 @@ export function Step2Dogs({ form, onChange, onNext, onBack }: Props) {
       if (!d.name) need.push("お名前");
       if (!d.breed) need.push("犬種");
       if (!d.weight) need.push("体重");
-      if (!d.age) need.push("年齢");
+      if (d.birth_unknown ? !d.age : !d.birth_month) need.push(d.birth_unknown ? "年齢" : "生まれた年月");
       if (!d.sex) need.push("性別");
       if (!d.rabies_vaccine_status || !d.mixed_vaccine_status) need.push("ワクチン接種状況");
       if ((d.rabies_vaccine_status === "unable" || d.mixed_vaccine_status === "unable") && !d.vaccine_unable_reason.trim())

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
+import { dogAgeDisplay, dogWeightDisplay } from "@/lib/dog-age";
 import {
   afternoonOnlyDatesToCheck,
   findAfternoonOnlyViolation,
@@ -56,6 +57,10 @@ interface Reservation {
       breed: string;
       weight: number;
       age: number | null;
+      // 年齢は生年月から自動計算し、無ければ申告日を添えて表示する（lib/dog-age.ts が正本）
+      age_months?: number | null;
+      birth_date?: string | null;
+      updated_at?: string | null;
       sex: string;
       neutered: boolean;
       rabies_vaccine_expires_at: string | null;
@@ -518,7 +523,8 @@ export default function ReservationDetailPage() {
           <div className="space-y-3">
             {dogs.map((dog, i) => {
               const sexLabel = dog.sex === "male" ? "オス" : dog.sex === "female" ? "メス" : "";
-              const details = [dog.breed, sexLabel, dog.age != null ? `${dog.age}歳` : "", `${dog.weight}kg`, dog.neutered ? "去勢済" : ""].filter(Boolean).join(" / ");
+              // 年齢は生年月があれば自動計算、無ければ「◯月◯日 申告」を添える（lib/dog-age.ts）
+              const details = [dog.breed, sexLabel, dogAgeDisplay(dog), dogWeightDisplay(dog.weight, dog.updated_at), dog.neutered ? "去勢済" : ""].filter(Boolean).join(" / ");
               const hasAlert = dog.allergies || dog.meal_notes || dog.medication_notes;
               return (
                 <div key={i}>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { PLANS } from "@/types/booking";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
+import { dogAgeDisplay } from "@/lib/dog-age";
 import {
   afternoonOnlyDatesToCheck,
   findAfternoonOnlyViolation,
@@ -18,7 +19,7 @@ import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 //    送り返すために必ず取得する（2026-08-30 Batch1 の顧客マスタ消失バグ対策）。列を減らさないこと。
 // dogs.updated_at は「前回の体重・年齢がいつのものか」を参考表示するために使う。
 const CUSTOMER_SELECT =
-  "id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes, updated_at)";
+  "id, last_name, first_name, last_name_kana, first_name_kana, postal_code, address, phone, email, email_bounced, email_opt_out, dogs(id, name, breed, weight, age, age_months, birth_date, sex, has_rabies_vaccine, has_mixed_vaccine, allergies, meal_notes, medication_notes, updated_at)";
 
 // DBに登録済みの犬。weight/age/ワクチンは「前回の登録値」であって今の値とは限らない。
 interface DogRecord {
@@ -27,6 +28,9 @@ interface DogRecord {
   breed: string;
   weight: number;
   age: number | null;
+  // 生まれた年月があれば年齢はそこから計算する（申告値は時間が経つと古くなる・lib/dog-age.ts）
+  age_months?: number | null;
+  birth_date?: string | null;
   sex: string;
   has_rabies_vaccine: boolean;
   has_mixed_vaccine: boolean;
@@ -339,7 +343,9 @@ function NewBookingForm() {
   const prevDogSummary = (dog: DogRecord) => {
     const parts: string[] = [];
     if (dog.weight != null) parts.push(`${dog.weight}kg`);
-    if (dog.age != null) parts.push(`${dog.age}歳`);
+    // 生まれた年月がある子は、そこから計算した「いまの年齢」を出す（申告値は古くなるため）
+    const ageLabel = dogAgeDisplay(dog);
+    if (ageLabel) parts.push(ageLabel);
     const vac = [
       dog.has_rabies_vaccine ? "狂犬病あり" : null,
       dog.has_mixed_vaccine ? "混合あり" : null,

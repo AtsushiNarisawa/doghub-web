@@ -18,6 +18,12 @@ export interface DogFormData {
   name: string;
   breed: string;
   weight: string;
+  // 🔴 年齢の持ち方（2026-09-21 CEO指摘「犬はずっと年齢が固定ではない」）:
+  //   birth_month（生まれた年月 "YYYY-MM"）を聞ければ、以後は時間が経っても自動で正しい年齢になる。
+  //   分からない方（保護犬など）は birth_unknown を立て、従来どおり age/age_months を入力する。
+  //   計算・表示は lib/dog-age.ts が正本。
+  birth_month: string;      // "YYYY-MM"（わからない場合は空）
+  birth_unknown: boolean;   // true = 生まれた年月がわからない → age/age_months を使う
   age: string;        // 年齢（0歳の場合はage_monthsを使用）
   age_months: string; // 月齢（age="0"の時のみ使用）
   sex: "male" | "female" | "";
@@ -211,6 +217,8 @@ export const INITIAL_DOG: DogFormData = {
   name: "",
   breed: "",
   weight: "",
+  birth_month: "",
+  birth_unknown: false,
   age: "",
   age_months: "",
   sex: "",

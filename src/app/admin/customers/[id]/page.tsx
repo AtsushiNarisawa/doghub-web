@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { fetchVisitCounts } from "@/lib/visit-count";
+import { dogAgeDisplay, dogWeightDisplay } from "@/lib/dog-age";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
 interface Customer {
@@ -33,6 +34,10 @@ interface Dog {
   breed: string;
   weight: number;
   age: number | null;
+  // 年齢は生年月から自動計算し、無ければ申告日を添えて表示する（lib/dog-age.ts が正本）
+  age_months?: number | null;
+  birth_date?: string | null;
+  updated_at?: string | null;
   sex: string;
   allergies: string | null;
   meal_notes: string | null;
@@ -499,8 +504,8 @@ export default function CustomerDetailPage() {
                       <span className="text-xs text-[#B87942]">編集</span>
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">
-                      {dog.weight}kg
-                      {dog.age != null && ` / ${dog.age}歳`}
+                      {dogWeightDisplay(dog.weight, dog.updated_at)}
+                      {dogAgeDisplay(dog) && ` / ${dogAgeDisplay(dog)}`}
                       {dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
                     </p>
                     {(dog.allergies || dog.meal_notes || dog.medication_notes) && (

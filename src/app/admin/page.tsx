@@ -6,12 +6,18 @@ import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
 import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
+import { dogAgeDisplay, dogWeightDisplay } from "@/lib/dog-age";
 
 interface DogInfo {
   name: string;
   breed: string;
   weight: number;
   age: number | null;
+  // 年齢・体重は「いつ申告された値か」で読む（2026-09-21 CEO指摘）。
+  // 生年月があれば年齢は自動計算、無ければ申告日を添える（lib/dog-age.ts が正本）。
+  age_months?: number | null;
+  birth_date?: string | null;
+  updated_at?: string | null;
   sex: string | null;
   allergies: string | null;
   meal_notes: string | null;
@@ -210,7 +216,7 @@ export default function AdminDashboard() {
     const selectFields = `
       id, plan, date, checkin_time, checkout_date, status, source, walk_option, notes, admin_notes, dog_count,
       customers!inner(id, last_name, first_name, phone, total_visits, first_visit_date, last_visit_date),
-      reservation_dogs(dogs(name, breed, weight, age, sex, allergies, meal_notes, medication_notes))
+      reservation_dogs(dogs(name, breed, weight, age, age_months, birth_date, updated_at, sex, allergies, meal_notes, medication_notes))
     `;
 
     const [{ data: todayData }, { data: stayData }, { data: pendingData }] = await Promise.all([
@@ -566,7 +572,7 @@ export default function AdminDashboard() {
 /** 犬情報1行表示（統一フォーマット） */
 function DogLine({ dog }: { dog: DogInfo }) {
   const sexLabel = dog.sex === "male" ? "オス" : dog.sex === "female" ? "メス" : "";
-  const details = [dog.breed, sexLabel, dog.age != null ? `${dog.age}歳` : "", `${dog.weight}kg`].filter(Boolean).join(" / ");
+  const details = [dog.breed, sexLabel, dogAgeDisplay(dog), dogWeightDisplay(dog.weight, dog.updated_at)].filter(Boolean).join(" / ");
   return (
     <p className="text-sm">
       <span className="font-medium text-gray-700">{dog.name}</span>
