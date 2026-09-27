@@ -103,6 +103,10 @@ export default function ReservationDetailPage() {
   const [saving, setSaving] = useState(false);
   const [memoSaved, setMemoSaved] = useState(false);
   const [memoEditing, setMemoEditing] = useState(false);
+  // 備考（notes）はお客様の確認メール・予約変更画面に載る欄。スタッフメモ（admin_notes）とは別
+  const [notes, setNotes] = useState("");
+  const [notesEditing, setNotesEditing] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [newCheckinTime, setNewCheckinTime] = useState("");
@@ -126,6 +130,7 @@ export default function ReservationDetailPage() {
     if (data) {
       setRes(data as unknown as Reservation);
       setAdminNotes(data.admin_notes || "");
+      setNotes(data.notes || "");
       setDestination(data.destination || "");
       const customerId = (data as unknown as Reservation).customers.id;
       const { data: history } = await supabase
@@ -272,6 +277,28 @@ export default function ReservationDetailPage() {
       setMemoEditing(false);
       setMemoSaved(true);
       setTimeout(() => setMemoSaved(false), 3000);
+    }
+  };
+
+  // 備考の修正。保存してもお客様にメールは送らない（送り済みの確認メールは古い内容のまま）
+  const saveNotes = async () => {
+    if (!res) return;
+    setSaving(true);
+    setNotesSaved(false);
+    const value = notes.trim() || null;
+    const { error } = await supabase
+      .from("reservations")
+      .update({ notes: value })
+      .eq("id", id);
+    setSaving(false);
+    if (error) {
+      alert("備考の保存に失敗しました");
+    } else {
+      setRes({ ...res, notes: value });
+      setNotes(value || "");
+      setNotesEditing(false);
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 3000);
     }
   };
 
@@ -501,19 +528,69 @@ export default function ReservationDetailPage() {
           </div>
         )}
 
-        {/* 備考 */}
-        {res.notes && (
+        {/* 備考（お客様の確認メールに載る欄。スタッフも修正できる） */}
+        {notesEditing ? (
+          <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
+            <p className="text-xs text-gray-500 mb-1">📝 備考</p>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              autoFocus
+              maxLength={2000}
+              className="w-full p-3 rounded-lg border border-gray-200 bg-white text-sm focus:border-[#B87942] focus:outline-none resize-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              ※備考はお客様の予約確認メール・予約変更画面に表示される欄です。お客様に見せない内容はスタッフメモへ。<br />
+              ※保存してもお客様にメールは送られません（送信済みのメールは修正前の内容のままです）。
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={saveNotes}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830] disabled:opacity-50"
+              >
+                {saving ? "保存中..." : "保存"}
+              </button>
+              <button
+                onClick={() => { setNotesEditing(false); setNotes(res.notes || ""); }}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-sm text-gray-500 active:bg-gray-200"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        ) : res.notes ? (
           <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
             <p className="text-xs text-gray-500 mb-0.5">📝 備考</p>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{res.notes}</p>
-            {customer.email && !composing && (
+            <div className="flex items-center gap-4 mt-2">
               <button
-                onClick={openCompose}
-                className="mt-2 text-xs text-[#B87942] font-medium active:text-[#A06830]"
+                onClick={() => setNotesEditing(true)}
+                className="text-xs text-[#B87942] font-medium active:text-[#A06830]"
               >
-                ✉ この内容に返信する
+                備考を修正
               </button>
-            )}
+              {customer.email && !composing && (
+                <button
+                  onClick={openCompose}
+                  className="text-xs text-[#B87942] font-medium active:text-[#A06830]"
+                >
+                  ✉ この内容に返信する
+                </button>
+              )}
+              {notesSaved && <span className="text-xs text-green-600">保存しました</span>}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => setNotesEditing(true)}
+              className="text-xs text-[#B87942] font-medium active:text-[#A06830]"
+            >
+              + 備考を入力
+            </button>
+            {notesSaved && <span className="text-xs text-green-600">保存しました</span>}
           </div>
         )}
 
