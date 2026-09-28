@@ -70,6 +70,8 @@ const PLAN_COLORS: Record<string, string> = {
 };
 const CLOSED_WEEKDAYS = DEFAULT_CLOSED_WEEKDAYS; // 水・木（正本は lib/business-days.ts）
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"];
+// 管理画面トップのカレンダーの表示状態（タブを閉じるまで保持）
+const CAL_STATE_KEY = "admin-calendar-state";
 
 export default function AdminDashboard() {
   const [todayRes, setTodayRes] = useState<ReservationRow[]>([]);
@@ -81,13 +83,18 @@ export default function AdminDashboard() {
   const [closedMap, setClosedMap] = useState<Record<string, boolean>>({});
   // 午後から営業（宿泊のみ）の日（daily_capacity.afternoon_only）。カレンダーに「午」の目印を出す
   const [afternoonOnlySet, setAfternoonOnlySet] = useState<Set<string>>(new Set());
-  const [calView, setCalView] = useState<"week" | "month">("week");
+  // 既定は月表示（週より予定の見通しが立てやすい・2026-09-28 CEO要望）
+  const [calView, setCalView] = useState<"week" | "month">("month");
   const [loading, setLoading] = useState(true);
 
   const fmtDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const realToday = fmtDate(new Date());
   const [selectedDate, setSelectedDate] = useState(realToday);
   const [calOffset, setCalOffset] = useState(0);
+  // 予約詳細を開いて戻ってきたとき、見ていた月・週と選んだ日を復元する。
+  // ページが作り直されると state が初期値に戻り、いつも今月（今日）に戻ってしまっていたため。
+  // 復元が済むまでは取得を始めない（初期値での取得と復元後の取得が競合しないように）。
+  const [calReady, setCalReady] = useState(false);
 
   // 週の開始日（日曜）
   const getWeekStart = (offset: number) => {
@@ -163,12 +170,43 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchCalSummaries();
-  }, [calOffset, calView]);
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(CAL_STATE_KEY) || "null");
+      // calOffset は「今日から何か月（週）ずれているか」なので、別の日に保存した値は使わない
+      if (saved && saved.savedOn === realToday) {
+        if (saved.view === "week" || saved.view === "month") setCalView(saved.view);
+        if (Number.isInteger(saved.offset)) setCalOffset(saved.offset);
+        if (typeof saved.selectedDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(saved.selectedDate)) {
+          setSelectedDate(saved.selectedDate);
+        }
+      }
+    } catch {
+      // 読めなければ既定（今月・今日）のまま
+    }
+    setCalReady(true);
+  }, []);
 
   useEffect(() => {
+    if (!calReady) return;
+    try {
+      sessionStorage.setItem(
+        CAL_STATE_KEY,
+        JSON.stringify({ view: calView, offset: calOffset, selectedDate, savedOn: realToday }),
+      );
+    } catch {
+      // 保存できなくても表示には影響しない
+    }
+  }, [calReady, calView, calOffset, selectedDate]);
+
+  useEffect(() => {
+    if (!calReady) return;
+    fetchCalSummaries();
+  }, [calReady, calOffset, calView]);
+
+  useEffect(() => {
+    if (!calReady) return;
     fetchDayData();
-  }, [selectedDate]);
+  }, [calReady, selectedDate]);
 
   const fetchCalSummaries = async () => {
     const dates = getCalDates();
