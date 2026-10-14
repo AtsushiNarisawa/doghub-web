@@ -23,6 +23,21 @@ export const PARTNERS: Record<string, Partner> = {
     destination: "エクシブ箱根離宮",
     referralSource: "ホテル・ゴルフ場で紹介された",
   },
+  "sengokuhara-prince": {
+    slug: "sengokuhara-prince",
+    destination: "仙石原プリンスホテル",
+    referralSource: "ホテル・ゴルフ場で紹介された",
+  },
+  "yunohana-prince": {
+    slug: "yunohana-prince",
+    destination: "箱根湯の花プリンスホテル",
+    referralSource: "ホテル・ゴルフ場で紹介された",
+  },
+  "daihakone-cc": {
+    slug: "daihakone-cc",
+    destination: "大箱根カントリークラブ",
+    referralSource: "ホテル・ゴルフ場で紹介された",
+  },
 };
 
 /** 専用ページを開いたタブで、どの提携先から来たかを覚えておく sessionStorage のキー */

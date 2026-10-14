@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { PartnerStayGuide, type PartnerGuide } from "@/components/partner/stay-guide";
+import { PartnerGuidePage, EARLY_DROP_NOTE, type PartnerGuide } from "@/components/partner/guide";
 
 // エクシブ箱根離宮様のお客様専用のご案内ページ（先方公式サイト「周辺ペットホテルのご案内」からのリンク先）。
 // 検索には出さない（noindex）。先方に確認いただく前提で公開（10-14 CEO判断）。サイト内からのリンクは先方の了解後。
@@ -17,14 +17,20 @@ const GUIDE: PartnerGuide = {
     "宮城野を過ぎて、そのまま国道138号で仙石原へ",
     "仙石原に入ったら、当店の案内看板を目印に到着",
   ],
+  kind: "stay",
   flow: [
     { day: "1日目", time: "14:00〜17:00", place: "DogHub", text: "ワンちゃんをお預け（受付・持ち物の確認で10分ほど）" },
     { day: "", time: "15:00〜", place: "ホテル", text: "お車で約13分。そのままチェックイン" },
     { day: "2日目", time: "〜11:00", place: "ホテル", text: "ご朝食のあと、チェックアウト" },
     { day: "", time: "〜12:00", place: "DogHub", text: "お迎え。ここから愛犬と仙石原の散策へ" },
   ],
-  pickupNote:
-    "ホテルのチェックアウト（11:00）ちょうどにご出発の場合は、ご予約フォームの「お迎えの延長」で 12:00 をお選びください。10:40ごろにご出発なら、延長なしで間に合います",
+  notes: [
+    {
+      title: "お迎えの時刻について",
+      body: "当店の通常のお迎えは 9:00〜11:00 です。ホテルのチェックアウト（11:00）ちょうどにご出発の場合は、ご予約フォームの「お迎えの延長」で 12:00 をお選びください。10:40ごろにご出発なら、延長なしで間に合います。延長は{fee}／1時間・ワンちゃん1頭あたりです。",
+    },
+    EARLY_DROP_NOTE,
+  ],
 };
 
 export const metadata: Metadata = {
@@ -34,5 +40,5 @@ export const metadata: Metadata = {
 };
 
 export default function ExivHakonePartnerPage() {
-  return <PartnerStayGuide guide={GUIDE} />;
+  return <PartnerGuidePage guide={GUIDE} />;
 }

@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { PLANS, EXTRA_HOUR_FEE } from "@/types/booking";
 import { PartnerMemory } from "@/components/partner-memory";
 
-// 提携先（宿）のお客様専用ご案内ページの共通の型（ペット不可の宿＝泊まる間に預ける型）。
+// 提携先のお客様専用ご案内ページの共通の型。kind で「宿（泊まる間に預ける）」と「ゴルフ場（ラウンドの間に預ける）」を切り替える。
 // 各ページは /partner/<slug>/page.tsx で設定（PartnerGuide）を渡すだけ。
 // 方針＝marketing/reports/partner_network_strategy_2026-10-14.md
 
@@ -19,18 +19,50 @@ export type PartnerGuide = {
   /** Googleマップのルート検索の出発地 */
   routeOrigin: string;
   routeSteps: string[];
+  /** stay＝ペット不可の宿（泊まる間に預ける）／golf＝ゴルフ場（ラウンドの間に預ける） */
+  kind: "stay" | "golf";
   flow: { day: string; time: string; place: string; text: string }[];
-  /** 「当店の通常のお迎えは 9:00〜11:00 です。」に続く、ホテルのチェックアウトとの合わせ方 */
-  pickupNote: string;
+  /** 流れの下の補足（お迎えの時刻・延長など）。料金の数字は EXTRA_HOUR_FEE から差し込む */
+  notes: { title: string; body: string }[];
 };
 
+
+/** 宿の型で共通の補足：チェックイン前に先に預ける */
+export const EARLY_DROP_NOTE = {
+  title: "お昼前に箱根へ着かれる場合",
+  body: "9:00 から先にお預けいただくこともできます（{fee}／1時間・ワンちゃん1頭あたり）。身軽に観光されてから、ホテルへ向かわれる方もいらっしゃいます。",
+};
+
+const LABELS = {
+  stay: {
+    lead: "にご宿泊のお客様へ",
+    hero: "ご滞在のあいだ、",
+    purpose: "ホテルでのご滞在に合わせた預け方・お迎えの流れ",
+    flowTitle: "1泊2日のご滞在の流れ（例）",
+    footnote: "※ ホテルのチェックイン・チェックアウトの時刻は、ご予約時のホテルのご案内をご確認ください。",
+    facility: "ホテル",
+    weekLead: "ホテルは毎日営業していますが、当店は",
+  },
+  golf: {
+    lead: "でプレーされるお客様へ",
+    hero: "ラウンドのあいだ、",
+    purpose: "ラウンドに合わせた預け方・お迎えの流れ",
+    flowTitle: "ゴルフの日の流れ（例）",
+    footnote: "※ お預けは朝7:00から承っております。",
+    facility: "ゴルフ場",
+    weekLead: "当店は",
+  },
+} as const;
+
 const yen = (n: number) => `¥${n.toLocaleString()}`;
+// 文言の中の {fee} を延長料金（¥1,100）に置き換える
+const fill = (t: string) => t.replaceAll("{fee}", yen(EXTRA_HOUR_FEE));
 const stay = PLANS.find((p) => p.id === "stay")!;
 const day = PLANS.find((p) => p.id === "8h")!;
 const half = PLANS.find((p) => p.id === "4h")!;
 
 
-const WEEK = [
+const STAY_WEEK = [
   { d: "金", start: true, pick: true },
   { d: "土", start: true, pick: true },
   { d: "日", start: true, pick: true },
@@ -43,8 +75,11 @@ const WEEK = [
 const sectionTitle = "text-[#3C200F] mb-6";
 const body = "text-[#3C200F]";
 
-export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
+export function PartnerGuidePage({ guide }: { guide: PartnerGuide }) {
   const HOTEL = guide.hotel;
+  const L = LABELS[guide.kind];
+  // 水曜のお迎えは「火曜からのご宿泊」のときだけ＝日帰り（ゴルフ）では水曜も ×
+  const WEEK = guide.kind === "stay" ? STAY_WEEK : STAY_WEEK.map((w) => (w.d === "水" ? { ...w, pick: false } : w));
   const BOOKING_HREF = `/booking?partner=${guide.slug}`;
   const ROUTE_URL =
     "https://www.google.com/maps/dir/?api=1&origin=" +
@@ -70,10 +105,10 @@ export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
             <p className="mb-3" style={{ fontSize: "clamp(12px, 1.6vw, 15px)", letterSpacing: "2px" }}>
               {HOTEL}
               <br className="sm:hidden" />
-              <span className="hidden sm:inline"> </span>にご宿泊のお客様へ
+              <span className="hidden sm:inline"> </span>{L.lead}
             </p>
             <h1 style={{ fontSize: "clamp(22px, 4.2vw, 38px)", fontWeight: 400, lineHeight: 1.5 }}>
-              ご滞在のあいだ、
+              {L.hero}
               <br className="sm:hidden" />
               愛犬は私たちがお預かりします
             </h1>
@@ -86,10 +121,10 @@ export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
             <p className={body} style={{ fontSize: "16px", lineHeight: 2 }}>
               DogHub箱根仙石原は、{HOTEL} からお車で{guide.drive}の仙石原にある犬のホテルです。
               ケージではなくお部屋でのお預かりで、ドッグランもございます。
-              このページでは、ホテルでのご滞在に合わせた預け方・お迎えの流れをご案内します。
+              このページでは、{L.purpose}をご案内します。
             </p>
             <p className="text-[#888] mt-4" style={{ fontSize: "14px", lineHeight: 1.8 }}>
-              ご予約・ワンちゃんについてのご相談は、ホテルではなく当店が直接承ります。
+              ご予約・ワンちゃんについてのご相談は、{L.facility}ではなく当店が直接承ります。
             </p>
           </div>
         </section>
@@ -99,7 +134,7 @@ export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
           <div className="max-w-3xl mx-auto">
             <p className="text-[#B87942] mb-2" style={{ fontSize: "13px", letterSpacing: "2px" }}>01</p>
             <h2 className={sectionTitle} style={{ fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 400 }}>
-              1泊2日のご滞在の流れ（例）
+              {L.flowTitle}
             </h2>
             <ol className="space-y-0 border-l-2 border-[#B87942] ml-2">
               {guide.flow.map((f, i) => (
@@ -117,22 +152,16 @@ export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
               ))}
             </ol>
             <div className="bg-white border border-[#E5DDD8] rounded-lg p-5 mt-2 space-y-3" style={{ fontSize: "14px", lineHeight: 1.9 }}>
-              <p className={body}>
-                <span className="font-medium">お迎えの時刻について</span>
-                <br />
-                当店の通常のお迎えは <span className="font-medium">9:00〜11:00</span> です。
-                {guide.pickupNote}。
-                延長は{yen(EXTRA_HOUR_FEE)}／1時間・ワンちゃん1頭あたりです。
-              </p>
-              <p className={body}>
-                <span className="font-medium">お昼前に箱根へ着かれる場合</span>
-                <br />
-                9:00 から先にお預けいただくこともできます（同じく{yen(EXTRA_HOUR_FEE)}／1時間・1頭あたり）。
-                身軽に観光されてから、ホテルへ向かわれる方もいらっしゃいます。
-              </p>
+              {guide.notes.map((n) => (
+                <p key={n.title} className={body}>
+                  <span className="font-medium">{n.title}</span>
+                  <br />
+                  {fill(n.body)}
+                </p>
+              ))}
             </div>
             <p className="text-[#888] mt-3" style={{ fontSize: "12px" }}>
-              ※ ホテルのチェックイン・チェックアウトの時刻は、ご予約時のホテルのご案内をご確認ください。
+              {L.footnote}
             </p>
           </div>
         </section>
@@ -142,7 +171,7 @@ export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
           <div className="max-w-3xl mx-auto">
             <p className="text-[#B87942] mb-2" style={{ fontSize: "13px", letterSpacing: "2px" }}>02</p>
             <h2 className={sectionTitle} style={{ fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 400 }}>
-              ホテルから当店までの行き方
+              {L.facility}から当店までの行き方
             </h2>
             <div className={`grid gap-3 mb-6 ${guide.distance ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
               {[
@@ -194,7 +223,7 @@ export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
               ご予約の前に、曜日のご確認を
             </h2>
             <p className={`${body} mb-6`} style={{ fontSize: "15px", lineHeight: 1.9 }}>
-              ホテルは毎日営業していますが、当店は<span className="font-medium">水曜・木曜が定休日</span>です。
+              {L.weekLead}<span className="font-medium">水曜・木曜が定休日</span>です。
               ご旅行の日程を決める前に、下の表でご確認ください。
             </p>
             <div className="overflow-x-auto">
@@ -220,7 +249,7 @@ export function PartnerStayGuide({ guide }: { guide: PartnerGuide }) {
               </table>
             </div>
             <ul className="mt-4 space-y-1 text-[#3C200F]" style={{ fontSize: "13px", lineHeight: 1.9 }}>
-              <li>・火曜日にご宿泊の場合に限り、水曜日の朝のお迎えを承ります。</li>
+              {guide.kind === "stay" && <li>・火曜日にご宿泊の場合に限り、水曜日の朝のお迎えを承ります。</li>}
               <li>・祝日・年末年始・臨時の休業は、ご予約フォームのカレンダーでご確認いただけます。</li>
               <li>・Webでのご予約は翌日以降です。当日のご相談はお電話（0460-80-0290）でどうぞ。</li>
             </ul>

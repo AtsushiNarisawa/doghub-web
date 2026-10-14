@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { PartnerStayGuide, type PartnerGuide } from "@/components/partner/stay-guide";
+import { PartnerGuidePage, EARLY_DROP_NOTE, type PartnerGuide } from "@/components/partner/guide";
 
 // HOTEL THE MITSUI HAKONE 様のお客様専用のご案内ページ（先方LP・よくあるご質問からのリンク先）。
 // 検索には出さない（noindex）。サイト内からのリンクは先方の了解後（memory project_partner_lead_hotel_the_mitsui_hakone）。
@@ -16,14 +16,20 @@ const GUIDE: PartnerGuide = {
     "宮ノ下の交差点から国道138号に入り、仙石原方面へ",
     "仙石原に入ったら、当店の案内看板を目印に到着",
   ],
+  kind: "stay",
   flow: [
     { day: "1日目", time: "14:00〜17:00", place: "DogHub", text: "ワンちゃんをお預け（受付・持ち物の確認で10分ほど）" },
     { day: "", time: "15:00〜", place: "ホテル", text: "お車で約15分。そのままチェックイン" },
     { day: "2日目", time: "〜12:00", place: "ホテル", text: "ゆっくりご朝食・ご出発" },
     { day: "", time: "〜13:00", place: "DogHub", text: "お迎え。ここから愛犬と仙石原の散策へ" },
   ],
-  pickupNote:
-    "ホテルのチェックアウト（12:00）までゆっくり過ごされる場合は、ご予約フォームの「お迎えの延長」で 12:00〜17:00 の間からお選びいただけます",
+  notes: [
+    {
+      title: "お迎えの時刻について",
+      body: "当店の通常のお迎えは 9:00〜11:00 です。ホテルのチェックアウト（12:00）までゆっくり過ごされる場合は、ご予約フォームの「お迎えの延長」で 12:00〜17:00 の間からお選びいただけます。延長は{fee}／1時間・ワンちゃん1頭あたりです。",
+    },
+    EARLY_DROP_NOTE,
+  ],
 };
 
 export const metadata: Metadata = {
@@ -33,5 +39,5 @@ export const metadata: Metadata = {
 };
 
 export default function MitsuiHakonePartnerPage() {
-  return <PartnerStayGuide guide={GUIDE} />;
+  return <PartnerGuidePage guide={GUIDE} />;
 }
