@@ -18,6 +18,11 @@ export const PARTNERS: Record<string, Partner> = {
     destination: "HOTEL THE MITSUI HAKONE",
     referralSource: "ホテル・ゴルフ場で紹介された",
   },
+  "exiv-hakone": {
+    slug: "exiv-hakone",
+    destination: "エクシブ箱根離宮",
+    referralSource: "ホテル・ゴルフ場で紹介された",
+  },
 };
 
 /** 専用ページを開いたタブで、どの提携先から来たかを覚えておく sessionStorage のキー */
