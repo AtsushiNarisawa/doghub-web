@@ -14,6 +14,7 @@ import { LineAddFriendBanner } from "@/components/line-cta";
 import { LineLinkForm } from "@/components/line-link-form";
 import { calculateBookingTotal } from "@/lib/pricing";
 import { isLateBooking } from "@/lib/booking-rules";
+import { getPartner, PARTNER_STORAGE_KEY } from "@/lib/partners";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID || "";
 
@@ -51,6 +52,23 @@ export default function BookingPage() {
         setLinkMode(true);
         const t = params.get("t");
         if (t) setLinkToken(t);
+      }
+      // 提携先専用ページ（/partner/<slug>）から来たときは、行き先ときっかけを先に埋める。
+      // どちらもお客様が後から変えられる（強制はしない）。
+      // ?partner= が無くても、同じタブで専用ページを見ていれば sessionStorage から拾う。
+      let storedPartner: string | null = null;
+      try {
+        storedPartner = sessionStorage.getItem(PARTNER_STORAGE_KEY);
+      } catch {
+        /* sessionStorage 利用不可時は ?partner= だけで判定 */
+      }
+      const partner = getPartner(params.get("partner") ?? storedPartner);
+      if (partner) {
+        setForm((prev) => ({
+          ...prev,
+          destination: prev.destination || partner.destination,
+          referral_source: prev.referral_source || partner.referralSource,
+        }));
       }
     }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { getPartner } from "@/lib/partners";
 
 const LINE_ADD_URL = "https://line.me/R/ti/p/@794wdxyu";
 
@@ -16,6 +17,10 @@ export function MobileCta() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // 提携先専用ページ（/partner/<slug>）では、提携先の印を付けたまま予約フォームへ渡す
+  const partner = getPartner(pathname.match(/^\/partner\/([^/]+)/)?.[1]);
+  const bookingHref = partner ? `/booking?partner=${partner.slug}` : "/booking";
 
   if (pathname === "/booking" || pathname.startsWith("/admin") || pathname.startsWith("/news/")) return null;
 
@@ -48,7 +53,7 @@ export function MobileCta() {
             </svg>
           </a>
           <a
-            href="/booking"
+            href={bookingHref}
             className="bg-white text-[#3C200F] px-5 py-2.5 flex items-center gap-2 hover:bg-[#F7F7F7] transition-colors rounded-lg"
             style={{ fontSize: "14px", fontWeight: 400 }}
           >
