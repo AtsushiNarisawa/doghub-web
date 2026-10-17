@@ -278,7 +278,7 @@ export function PartnerGuidePage({ guide }: { guide: PartnerGuide }) {
               ))}
             </div>
             <p className="text-[#888] mt-3" style={{ fontSize: "13px", lineHeight: 1.8 }}>
-              当日は、1年以内の混合ワクチンと狂犬病予防接種の証明書、普段のご飯、リード・首輪をお持ちください。
+              当日は、1年以内の混合ワクチンと狂犬病予防接種の証明書、普段のご飯、リード・首輪、マナーパッド（わんちゃんによってサイズが異なるため）をお持ちください。
               くわしくは <Link href="/faq" className="underline">よくあるご質問</Link> をご覧ください。
             </p>
           </div>
