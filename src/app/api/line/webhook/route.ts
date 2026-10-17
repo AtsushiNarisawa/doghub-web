@@ -8,6 +8,8 @@ import { matchFaqReply, matchExactButtonReply } from "@/lib/line-faq";
 import {
   buildAckMessages,
   classifyAckKind,
+  detectInfoTopics,
+  impliesBooking,
   getJstMoment,
   isWithinBusinessHours,
   nonTextReply,
@@ -94,7 +96,11 @@ async function handleEvent(event: LineEvent) {
         // 受信から約1分・1回限り＝ここで待たされて返信を落とすのが最悪なので、必ず有限時間で
         // 打ち切り、取れなければ「名前なし・曜日ベースの営業時間判定」で必ず送る。
         const ackContext = await loadAckContext(userId);
-        const reply = buildAckMessages(classifyAckKind(text, category), ackContext);
+        const reply = buildAckMessages(classifyAckKind(text, category), {
+          ...ackContext,
+          infoTopics: detectInfoTopics(text),
+          textImpliesBooking: impliesBooking(text),
+        });
         // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
         await sendLineReplyMessage(replyToken, reply);
         // 自由文は内容を問わず必ずスタッフへメールでエスカレーション
@@ -113,7 +119,8 @@ async function handleEvent(event: LineEvent) {
         // 相槌とみなしアラートを省略する（そのテキスト自体は既にアラート済みのため二重通知
         // になっていた・2026-07実例で確認）。画像・動画・音声・位置情報などは、内容そのものが
         // 情報を持ちうる（例: ワクチン証明書の写真）ため、常にアラートし「無音」を避ける。
-        const reply = nonTextReply();
+        const { outsideBusinessHours } = await loadAckContext(userId);
+        const reply = nonTextReply({ outsideBusinessHours });
         await sendLineReplyMessage(replyToken, reply);
 
         let shouldAlert = true;
@@ -156,6 +163,8 @@ const ACK_CONTEXT_TIMEOUT_MS = 1500;
 interface AckContext {
   lastName: string | null;
   outsideBusinessHours: boolean;
+  /** 今後のご予約（confirmed・今日以降）があるか。取れなければ false＝「ご予約なし」の文面に倒す */
+  hasUpcomingBooking: boolean;
 }
 
 async function loadAckContext(lineUserId?: string): Promise<AckContext> {
@@ -164,6 +173,7 @@ async function loadAckContext(lineUserId?: string): Promise<AckContext> {
   const fallback: AckContext = {
     lastName: null,
     outsideBusinessHours: !isWithinBusinessHours(moment),
+    hasUpcomingBooking: false,
   };
 
   const load = async (): Promise<AckContext> => {
@@ -171,10 +181,10 @@ async function loadAckContext(lineUserId?: string): Promise<AckContext> {
       lineUserId
         ? supabase
             .from("customers")
-            .select("last_name")
+            .select("id, last_name")
             .eq("line_id", lineUserId)
-            .limit(1)
-            .returns<{ last_name: string | null }[]>()
+            .limit(5)
+            .returns<{ id: string; last_name: string | null }[]>()
         : Promise.resolve({ data: null }),
       // 予約APIと同じ作法：daily_capacity に行があればその closed を使い、無ければ曜日で判定。
       // 🔴 web_closed（Web受付停止）は休業ではないので見ない。
@@ -186,9 +196,25 @@ async function loadAckContext(lineUserId?: string): Promise<AckContext> {
         .returns<{ closed: boolean | null }[]>(),
     ]);
     const closedOverride = capRes.data?.[0]?.closed ?? null;
+    // 今後のご予約の有無（2026-10-17）。③お礼で「当日お待ちしております」と言ってよいかの判定だけに使う。
+    // 宿泊中（チェックアウトが今日以降）も「ご予約あり」に含める。
+    const customerIds = (nameRes.data ?? []).map((c) => c.id);
+    let hasUpcomingBooking = false;
+    if (customerIds.length > 0) {
+      const { data: upcoming } = await supabase
+        .from("reservations")
+        .select("id")
+        .in("customer_id", customerIds)
+        .eq("status", "confirmed")
+        .or(`date.gte.${moment.date},checkout_date.gte.${moment.date}`)
+        .limit(1)
+        .returns<{ id: string }[]>();
+      hasUpcomingBooking = (upcoming?.length ?? 0) > 0;
+    }
     return {
       lastName: nameRes.data?.[0]?.last_name ?? null,
       outsideBusinessHours: !isWithinBusinessHours(moment, { closedOverride }),
+      hasUpcomingBooking,
     };
   };
 

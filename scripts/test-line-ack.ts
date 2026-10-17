@@ -13,6 +13,9 @@ import { matchFaqReply } from "../src/lib/line-faq.ts";
 import {
   classifyAckKind,
   buildAckMessages,
+  detectInfoTopics,
+  impliesBooking,
+  nonTextReply,
   getJstMoment,
   isWithinBusinessHours,
   type AckKind,
@@ -66,6 +69,27 @@ const CASES: Case[] = [
   { text: "本日ピックアップが難しそうなので、引き続きお散歩よろしくお願いいたします", expect: "general", note: "送迎語に誤爆させない" },
   { text: "ノコとモカです。", expect: "general" },
   { text: "", expect: "general" },
+  // ───── 2026-10-17 追加（実データで場面に合わない返事が出ていた型）─────
+  // ⑤ 予約を入れた直後のご挨拶
+  { text: "先ほど12月3日一泊で予約を入れた山田です。よろしくお願いいたします。", expect: "booked", note: "挨拶に「次の営業日に返信」を返していた" },
+  { text: "本日予約させていただきました田中です。よろしくお願いします", expect: "booked" },
+  { text: "予約いれましたが、2匹とも入っているか、ご確認お願いします。", expect: "general", note: "確認の依頼は人が答える" },
+  { text: "予約しましたが、日程を変更したいです", expect: "booking", note: "変更の意思があれば②" },
+  // ⑥ 押し間違い
+  { text: "すみません、間違いです", expect: "mistake" },
+  { text: "誤送信しました🙇", expect: "mistake" },
+  // ③ 「確認できました」はお礼
+  { text: "ありがとうございます！！確認でしました✨よろしくお願いします", expect: "thanks", note: "「確認」が用件語に当たっていた" },
+  { text: "はい！合ってます！ご確認ありがとうございます", expect: "thanks" },
+  // ① 「伺えるのが◯時」は到着連絡。ただし質問なら①にしない
+  { text: "本日お世話になる佐藤です。伺えるのが10:00-11:00の間になると思います。", expect: "arrival" },
+  { text: "何時に伺えばよいですか？", expect: "general" },
+  // 名乗りの「予約している」は②の根拠にしない
+  { text: "11/7に予約をしている鈴木です。お部屋にトイレトレーはありますか？", expect: "general" },
+  { text: "宿泊予約をしました。予約完了のメールが届いていないのですが予約はできていますでしょうか？確認をお願いします", expect: "general" },
+  // 「利用したい」だけでは②にしない
+  { text: "おにぎりカフェだけ利用したい", expect: "general" },
+
 ];
 
 for (const c of CASES) {
@@ -128,6 +152,31 @@ check(
     !(buildAckMessages("thanks")[0] as { text: string }).text.includes("担当より"),
   "③で「担当より連絡します」と言わない"
 );
+
+// ───── D. 決まっている内容の案内・お礼の出し分け（2026-10-17）─────
+const t = (m: unknown) => (m as { text: string }).text;
+check(JSON.stringify(detectInfoTopics("おにぎりカフェだけ利用したい")) === '["cafe"]', "カフェの話題を拾う");
+check(detectInfoTopics("お部屋にトイレトレーはありますか？お水は飲めますか").includes("room_supplies"), "お部屋の備品の話題を拾う");
+check(detectInfoTopics("ワクチンの証明書は写真でなく原本が必要でしょうか？").includes("vaccine_photo"), "証明書は写真でよいかを拾う");
+check(!detectInfoTopics("混合ワクチンは打っていません。昨年の証明書の写真をお送りします").includes("vaccine_photo"), "未接種の相談には「写真でも大丈夫」を出さない");
+check(detectInfoTopics("15歳ですが宿泊は可能でしょうか").length === 0, "関係のない質問には案内を付けない");
+
+const cafeDay = t(buildAckMessages("general", { infoTopics: ["cafe"] })[0]);
+const cafeNight = t(buildAckMessages("general", { infoTopics: ["cafe"], outsideBusinessHours: true })[0]);
+check(cafeDay.includes("土日祝 11:00〜17:00") && cafeDay.includes("テイクアウト販売のみ") && cafeDay.includes("ドッグラン"), "カフェは曜日ごとに店内・ドッグランの可否をセットで書く");
+check(cafeDay.includes("スタッフが確認してご返信"), "案内を付けても受付文（スタッフが見ている）は外さない");
+check(cafeNight.includes("次の営業日にご返信") && !cafeNight.includes("お急ぎの場合はお電話"), "案内付きでも営業時間外は時間外の受付文");
+const supplies = t(buildAckMessages("general", { infoTopics: ["room_supplies"] })[0]);
+check(supplies.includes("トイレトレー") && supplies.includes("マナーパッド") && supplies.includes("お持ちください"), "備品はトレー・シート用意／マナーパッド持参");
+check(t(buildAckMessages("booking", { infoTopics: ["cafe"] })[0]).includes("カフェ") === false, "④以外には案内を付けない");
+
+check(t(buildAckMessages("thanks", { hasUpcomingBooking: true })[0]).includes("当日お待ちしております"), "③ 予約ありなら「当日お待ちしております」");
+check(t(buildAckMessages("thanks", { textImpliesBooking: impliesBooking("当日はよろしくお願いします") })[0]).includes("当日お待ちしております"), "③ 本文に「当日」があれば未連携でも「当日お待ちしております」");
+check(!t(buildAckMessages("thanks", {})[0]).includes("当日"), "③ 予約が確かめられなければ「当日」と言わない");
+check(t(buildAckMessages("booked", { outsideBusinessHours: true })[0]).startsWith("ご予約ありがとうございます"), "⑤は営業時間外でも差し替えない");
+check(t(buildAckMessages("mistake", { outsideBusinessHours: true })[0]).includes("お気になさらない"), "⑥は営業時間外でも差し替えない");
+check(t(nonTextReply({ outsideBusinessHours: true })[0]).includes("次の営業日") && !t(nonTextReply({ outsideBusinessHours: true })[0]).includes("お急ぎの場合はお電話"), "画像・スタンプも営業時間外は時間外の文面");
+check(t(nonTextReply()[0]).includes("スタッフよりご返信"), "画像・スタンプは営業時間内は従来どおり");
 
 // ───── 結果 ─────
 const total = pass + fails.length;

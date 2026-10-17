@@ -92,6 +92,8 @@ export type AckKind =
   | "arrival" // ① 当日の到着・遅刻・お迎え
   | "booking" // ② 予約の変更・空き確認
   | "thanks" //  ③ お礼・ご挨拶
+  | "booked" //  ⑤ 予約を入れた直後のご挨拶（2026-10-17）
+  | "mistake" // ⑥ 押し間違い・誤送信のお知らせ（2026-10-17）
   | "general"; // ④ それ以外すべて（既定）
 
 /**
@@ -114,7 +116,7 @@ const ERRAND_WORDS = [
   // 予約まわり
   "変更", "キャンセル", "取り消し", "取消", "空き", "空いて", "空室", "予約", "延泊", "日程",
   // 当日の動き
-  "到着", "着きま", "着きそう", "遅れ", "遅刻", "間に合", "向かって", "渋滞", "迎え", "延長",
+  "到着", "着きま", "着きそう", "遅れ", "遅刻", "間に合", "向かって", "渋滞", "迎え", "延長", "伺え", "伺いま",
   // 条件・料金・持ち物など個別回答が要るもの
   "何時", "時間", "料金", "いくら", "値段", "支払", "ワクチン", "証明書", "写真", "動画",
   // 質問・依頼の形
@@ -135,8 +137,19 @@ const THANKS_MAX_LENGTH = 80;
 const BOOKING_WORDS = [
   "空き", "空いて", "空室", "キャンセル", "取り消し", "取消", "リスケ", "日程", "変更", "延泊",
   "予約したい", "予約でき", "予約を", "予約は", "ご予約の", "予約可能", "予約取れ",
-  "利用したい", "泊まりたい",
+  // ⚠️ 「利用したい」は外した（2026-10-17）。実例「おにぎりカフェだけ利用したい」が
+  //    ②（ご予約の変更・空き状況をお調べします）に落ちていた。宿泊の意思は「泊まりたい」で拾える。
+  "泊まりたい",
   "行けなく", "行けません", "伺えなく", "行けそうにな",
+];
+
+/** 名乗りの言い回し（②の判定前に取り除く）。2026-10-17 */
+const BOOKING_INTRO_PHRASES =
+  /(宿泊|ホテルの?|お預かりの?|半日の?|1日の?)?予約を?(して(い|お)る|してます|しており|している|させて(いただ|頂)いて(い|お)る|させて(いただ|頂)きました|しました|完了しました|が完了しました|確定ありがとう)/g;
+/** 予約を動かす意思がはっきりしている語（「確認」と混ざっていても②にする） */
+const BOOKING_STRONG_WORDS = [
+  "空き", "空いて", "空室", "キャンセル", "取り消し", "取消", "リスケ", "日程", "変更", "延泊",
+  "泊まりたい", "行けなく", "行けません", "伺えなく", "行けそうにな",
 ];
 
 /**
@@ -149,6 +162,42 @@ const ARRIVAL_WORDS = [
   "到着", "着きま", "着きそう", "着く予定", "つきます", "つきそう",
   "向かって", "向かいま", "遅れ", "遅刻", "遅くなり", "間に合", "渋滞", "後ろ倒し",
 ];
+
+/**
+ * ① の弱い手がかり（2026-10-17 追加）。実例「伺えるのが10:00-11:00の間になると思います」が
+ * ③（当日お待ちしております）に落ちていた。ただし「何時に伺えばいいですか」のような
+ * 質問にも現れるため、質問の形を含まないときだけ①とみなす。
+ */
+const ARRIVAL_SOFT_WORDS = ["伺え", "伺いま", "お伺い"];
+const QUESTION_FORMS = ["ですか", "ますか", "でしょうか", "ください", "教えて", "？", "?"];
+
+/**
+ * ⑤ 予約を入れた直後のご挨拶（2026-10-17 追加）。
+ * 実例「先ほど11月21日一泊で予約を入れた高橋です。よろしくお願いいたします。」が
+ * ②（変更・空き状況をお調べします）／営業時間外文面に落ちていた。挨拶に「返事を待って」と返すのは不自然。
+ * 🔴 確認・質問・変更の依頼が混ざっていたら⑤にしない（実例「予約いれましたが、3匹とも入っているか、
+ *    ご確認お願いします」「予約完了のメールが届いていない」は人が答える）。
+ */
+const BOOKED_WORDS = [
+  "予約を入れ", "予約をいれ", "予約入れ", "予約いれ", "予約しました", "予約をしました", "予約した",
+  "予約をした", "予約させて", "予約を取らせ", "予約完了しました", "予約が完了しました", "予約をさせて",
+];
+const BOOKED_BLOCK_WORDS = [
+  ...QUESTION_FORMS, "確認", "変更", "キャンセル", "取り消", "取消", "届い", "できて", "入って",
+  "大丈夫", "可能", "相談", "追加", "間違", "ワクチン", "料金", "持病", "伺え", "到着",
+];
+const BOOKED_MAX_LENGTH = 120;
+
+/** ⑥ 押し間違い・誤送信（2026-10-17 追加）。短文のみ。実例「すみません、間違いです」 */
+const MISTAKE_WORDS = ["間違い", "間違え", "まちがい", "まちがえ", "誤送信", "押し間違", "誤って", "ミスです"];
+const MISTAKE_MAX_LENGTH = 30;
+
+/**
+ * 「確認できました」は用件ではなくお礼（2026-10-17）。実例「ありがとうございます！！確認でしました✨」
+ * （「確認」が用件語に当たり、お礼なのに「次の営業日にご返信します」を返していた）。
+ * 判定の前にこの言い回しだけ取り除く。
+ */
+const CONFIRMED_PHRASES = /ご?確認(でき|でし|し|いたし|させていただき)ました|ご確認(いただき)?(ありがとう)/g;
 
 /**
  * 人が個別に判断するしかないカテゴリ（line-faq.ts のカテゴリ名）。
@@ -168,7 +217,7 @@ const HUMAN_JUDGEMENT_CATEGORIES = [
 ];
 
 function isThanksOnly(text: string): boolean {
-  const compact = text.replace(/\s+/g, "");
+  const compact = text.replace(/\s+/g, "").replace(CONFIRMED_PHRASES, "$3");
   if (!compact || compact.length > THANKS_MAX_LENGTH) return false;
   if (!THANKS_WORDS.some((w) => compact.includes(w))) return false;
   if (ERRAND_WORDS.some((w) => compact.includes(w))) return false;
@@ -188,11 +237,35 @@ export function classifyAckKind(text: string, faqCategory: string): AckKind {
   if (HUMAN_JUDGEMENT_CATEGORIES.includes(faqCategory)) return "general";
   // ③ お礼・相槌（用件語をひとつでも含めば下へ落ちる）
   if (isThanksOnly(t)) return "thanks";
+
+  // ⑥ 押し間違い（短文だけ）
+  const compact = t.replace(/\s+/g, "");
+  if (compact.length <= MISTAKE_MAX_LENGTH && MISTAKE_WORDS.some((w) => compact.includes(w))) {
+    return "mistake";
+  }
+
+  // ⑤ 予約を入れた直後のご挨拶（②より先。BOOKING_WORDS の「予約を」に当たってしまうため）
+  if (
+    compact.length <= BOOKED_MAX_LENGTH &&
+    BOOKED_WORDS.some((w) => compact.includes(w)) &&
+    !BOOKED_BLOCK_WORDS.some((w) => compact.includes(w))
+  ) {
+    return "booked";
+  }
   // ② 予約を動かしたい／空きを知りたい（①より先。「空きがあれば当日でも…」のような
   //    到着と予約が混ざった文は、予約側で受けたほうが噛み合うため）
-  if (BOOKING_WORDS.some((w) => t.includes(w))) return "booking";
+  // 名乗りの「◯日に予約している△△です」は②の根拠にしない（2026-10-17）。実例: 星野様
+  // 「11/7にペットホテルを予約をしている星野と申します…トイレトレーはありますか」が②に落ちていた。
+  const forBooking = t.replace(BOOKING_INTRO_PHRASES, "");
+  const strongBooking = BOOKING_STRONG_WORDS.some((w) => forBooking.includes(w));
+  // 「予約できているか確認してほしい」は空き・変更ではない＝④で人が答える（実例 10/5）
+  const confirmOnly = forBooking.includes("確認") && !strongBooking;
+  if (!confirmOnly && BOOKING_WORDS.some((w) => forBooking.includes(w))) return "booking";
   // ① 当日の到着・遅刻
   if (faqCategory === "到着時間の変更・遅刻" || ARRIVAL_WORDS.some((w) => t.includes(w))) {
+    return "arrival";
+  }
+  if (ARRIVAL_SOFT_WORDS.some((w) => t.includes(w)) && !QUESTION_FORMS.some((w) => t.includes(w))) {
     return "arrival";
   }
   return "general";
@@ -217,6 +290,16 @@ const BOOKING_TEXT =
 
 // ③ お礼・ご挨拶。🔴 ここで「担当より連絡します」と言わない（事務的な印象の元凶だったため）。
 const THANKS_TEXT = "ありがとうございます🐾 当日お待ちしております。";
+// ③ のうち、ご予約が確かめられない方（予約前のお問い合わせへのお礼・LINE未連携の方など）。2026-10-17 追加。
+// 実例: 予約前の質問に答えたお礼に「当日お待ちしております」と返していた。
+// ⚠️ 未連携の方は予約があっても照合できない＝予約の有無どちらに当たっても不自然にならない言い方にする。
+const THANKS_NO_BOOKING_TEXT = "ありがとうございます🐾 お会いできるのを楽しみにしております。";
+
+// ⑤ 予約を入れた直後のご挨拶。返信は約束しない（挨拶に「お返事をお待ちください」は不自然）。
+const BOOKED_TEXT = "ご予約ありがとうございます🐾 当日お待ちしております。";
+
+// ⑥ 押し間違い・誤送信。
+const MISTAKE_TEXT = "承知いたしました。どうぞお気になさらないでください🐾";
 
 // ④ 既定。🔴 旧文面の「必要に応じて」を削る（返事が来ないかもしれない、と読まれていた）。
 const GENERAL_TEXT =
@@ -234,8 +317,75 @@ const TEXT_BY_KIND: Record<AckKind, string> = {
   arrival: ARRIVAL_TEXT,
   booking: BOOKING_TEXT,
   thanks: THANKS_TEXT,
+  booked: BOOKED_TEXT,
+  mistake: MISTAKE_TEXT,
   general: GENERAL_TEXT,
 };
+
+// ───── 4. 決まっている内容の案内（2026-10-17 追加）─────────────────────
+//
+// 自由文の中に「答えが決まっている話題」があれば、受付文の前にその案内を添える。
+// 🔴 案内を添えても受付文（スタッフより返信します／次の営業日に返信します）は外さない。
+//    スタッフ宛アラートも従来どおり飛ぶ＝誤爆しても「余計な案内が1つ付いた」で済む。
+// 🔴 ここに書く内容は CEO 確認済みの事実だけ。
+//    - カフェ: CLAUDE.md §2・memory reference_cafe_dogrun_access_conditions（曜日で全部変わる）
+//    - お部屋の備品: 2026-10-17 CEO 回答（トレー・シート・水皿は用意／マナーパッドは持参）
+//    - ワクチン証明書の写真: /guide の持ち物「ワクチン証明書を撮影した写真でも可」
+export type InfoTopic = "cafe" | "room_supplies" | "vaccine_photo";
+
+const CAFE_WORDS = ["カフェ", "おむすび", "おにぎり", "スープ", "ランチ", "イートイン", "テイクアウト"];
+const ROOM_SUPPLY_WORDS = [
+  "トイレ", "トレー", "トレイ", "ペットシーツ", "シーツ", "食器", "お皿", "給水", "お水", "水飲", "水を飲",
+  "マナーパッド", "マナーベルト",
+];
+const VACCINE_WORDS = ["ワクチン", "証明書", "接種"];
+// 「写真で良いか」を尋ねる形だけ拾う。「昨年のワクチンの写真をお送りします」（未接種の相談）には
+// 出さない＝「写真でも大丈夫」が受け入れの返事に読めてしまうため（実データで確認・2026-10-17）。
+const PHOTO_WORDS = ["原本", "写真で", "写真でも", "画像で", "画像でも", "コピーで", "コピーでも", "スクショで", "データで"];
+
+/** 本文に含まれる「答えが決まっている話題」を返す（該当なしなら空配列）。 */
+export function detectInfoTopics(text: string): InfoTopic[] {
+  const t = (text ?? "").replace(/\s+/g, "");
+  const topics: InfoTopic[] = [];
+  if (CAFE_WORDS.some((w) => t.includes(w))) topics.push("cafe");
+  if (ROOM_SUPPLY_WORDS.some((w) => t.includes(w))) topics.push("room_supplies");
+  if (VACCINE_WORDS.some((w) => t.includes(w)) && PHOTO_WORDS.some((w) => t.includes(w))) {
+    topics.push("vaccine_photo");
+  }
+  return topics;
+}
+
+// 🔴 カフェは「平日は飲み物のみ」とだけ書かない（2026-08-06 に GBP へ事実と逆の一文が出た）。
+//    店内飲食・ドッグランの可否を曜日ごとにセットで書く。
+const INFO_TEXT: Record<InfoTopic, string> = {
+  cafe:
+    "カフェ（OMUSUBI & SOUP CAFE）のご案内です☕\n" +
+    "・土日祝 11:00〜17:00：おむすび＆スープをご提供しています。わんちゃんとご一緒に店内でお食事いただけ、カフェをご利用のお客様は併設のドッグランもお使いいただけます\n" +
+    "・平日（金・月・火）9:00〜17:00：お飲み物のテイクアウト販売のみです（店内でのご飲食・ドッグランのご利用はできません）\n" +
+    "・水・木は定休日です。ご予約は不要です",
+  room_supplies:
+    "お部屋の備品のご案内です🐾\n" +
+    "・トイレトレー・トイレシート、食器・給水器はご用意しております（お水はいつでも飲めるようにしています）\n" +
+    "・マナーパッドは、わんちゃんによってサイズが異なるため、お持ちください",
+  vaccine_photo:
+    "ワクチン証明書は、撮影したお写真でも大丈夫です📄",
+};
+
+// 案内を添えたときの受付文（営業時間内）。④と同じ約束を、案内の後ろに置ける言い方にしたもの。
+const INFO_FOLLOW_TEXT =
+  "そのほかの内容は、スタッフが確認してご返信いたします。お返事までお時間をいただくことがありますので、" +
+  `お急ぎの場合はお電話（${TEL}）へお願いいたします。`;
+
+/** 案内文（複数あれば空行区切り）。該当なしなら空文字。 */
+export function buildInfoText(topics: InfoTopic[]): string {
+  return topics.map((k) => INFO_TEXT[k]).join("\n\n");
+}
+
+/** 本文から「これからお預かりがある」と読めるか。③お礼の文面選びにだけ使う。 */
+const BOOKING_IMPLIED_WORDS = ["当日", "本日", "明日", "明後日", "お預か", "預かって", "お預け", "お世話になります"];
+export function impliesBooking(text: string): boolean {
+  return BOOKING_IMPLIED_WORDS.some((w) => (text ?? "").includes(w));
+}
 
 /** 姓が取れていれば「◯◯様、」を頭に付ける。空・異常に長い値は名前なしに倒す。 */
 export function nameGreeting(lastName?: string | null): string {
@@ -249,6 +399,19 @@ export interface AckOptions {
   lastName?: string | null;
   /** いま営業時間外か。true なら①以外は営業時間外の文面に差し替える。 */
   outsideBusinessHours?: boolean;
+  /**
+   * 今後のご予約（confirmed・今日以降）があるか。③お礼の文面を分けるのに使う（2026-10-17）。
+   * 取れなかった（未連携・DB遅延）ときは undefined ＝「ご予約なし」の文面に倒す
+   * （予約の無い方に「当日お待ちしております」と言うほうが不自然なため）。
+   */
+  hasUpcomingBooking?: boolean;
+  /**
+   * 本文が「これからお預かりがある」ことを示しているか（「当日はよろしく」「本日お世話になります」等）。
+   * LINE未連携の方は予約を照合できないため、本文から補う（2026-10-17）。impliesBooking() で作る。
+   */
+  textImpliesBooking?: boolean;
+  /** 本文から見つかった「答えが決まっている話題」。④（既定）のときだけ受付文の前に添える。 */
+  infoTopics?: InfoTopic[];
 }
 
 /**
@@ -265,11 +428,23 @@ export interface AckOptions {
  *       朝8:49のお礼が該当した）。
  *    ②④ は人の返信を待つ用件なので、営業時間外は必ずBに差し替える。
  */
-const AFTER_HOURS_EXEMPT: AckKind[] = ["arrival", "thanks"];
+// ⑤⑥（2026-10-17 追加）も返信を約束しない文面なので、営業時間外でも差し替えない。
+const AFTER_HOURS_EXEMPT: AckKind[] = ["arrival", "thanks", "booked", "mistake"];
 
 export function buildAckMessages(kind: AckKind, opts: AckOptions = {}): LineMessage[] {
   const useAfterHours = opts.outsideBusinessHours === true && !AFTER_HOURS_EXEMPT.includes(kind);
-  const body = useAfterHours ? AFTER_HOURS_TEXT : TEXT_BY_KIND[kind];
+  let body = useAfterHours ? AFTER_HOURS_TEXT : TEXT_BY_KIND[kind];
+  if (kind === "thanks" && opts.hasUpcomingBooking !== true && !opts.textImpliesBooking) {
+    body = THANKS_NO_BOOKING_TEXT;
+  }
+  const info = kind === "general" ? buildInfoText(opts.infoTopics ?? []) : "";
+  if (info) {
+    // 挨拶 → 案内 → 受付文（スタッフも見ている旨）の順。受付文は外さない。
+    const follow = useAfterHours ? AFTER_HOURS_TEXT : INFO_FOLLOW_TEXT;
+    const text =
+      nameGreeting(opts.lastName) + "メッセージありがとうございます🐾\n\n" + info + "\n\n" + follow;
+    return [{ type: "text", text }];
+  }
   return [{ type: "text", text: nameGreeting(opts.lastName) + body }];
 }
 
@@ -278,6 +453,7 @@ export function buildAckMessages(kind: AckKind, opts: AckOptions = {}): LineMess
  * ⚠️ 扱いは従来どおり（常に同じ1文・スタンプの二重通知抑制は webhook 側で不変）。
  *    文面だけ、④と同じ新しい既定文に揃えた（「必要に応じて」を削るため）。
  */
-export function nonTextReply(): LineMessage[] {
-  return [{ type: "text", text: GENERAL_TEXT }];
+export function nonTextReply(opts: { outsideBusinessHours?: boolean } = {}): LineMessage[] {
+  // 2026-10-17: 営業時間外は時間外の文面に（夜20時の画像に「お急ぎはお電話へ」と返していた）。
+  return [{ type: "text", text: opts.outsideBusinessHours === true ? AFTER_HOURS_TEXT : GENERAL_TEXT }];
 }
