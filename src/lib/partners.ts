@@ -16,27 +16,27 @@ export const PARTNERS: Record<string, Partner> = {
   "mitsui-hakone": {
     slug: "mitsui-hakone",
     destination: "HOTEL THE MITSUI HAKONE",
-    referralSource: "ホテル・ゴルフ場で紹介された",
+    referralSource: "宿泊先・ゴルフ場で知った",
   },
   "exiv-hakone": {
     slug: "exiv-hakone",
     destination: "エクシブ箱根離宮",
-    referralSource: "ホテル・ゴルフ場で紹介された",
+    referralSource: "宿泊先・ゴルフ場で知った",
   },
   "sengokuhara-prince": {
     slug: "sengokuhara-prince",
     destination: "仙石原プリンスホテル",
-    referralSource: "ホテル・ゴルフ場で紹介された",
+    referralSource: "宿泊先・ゴルフ場で知った",
   },
   "yunohana-prince": {
     slug: "yunohana-prince",
     destination: "箱根湯の花プリンスホテル",
-    referralSource: "ホテル・ゴルフ場で紹介された",
+    referralSource: "宿泊先・ゴルフ場で知った",
   },
   "daihakone-cc": {
     slug: "daihakone-cc",
     destination: "大箱根カントリークラブ",
-    referralSource: "ホテル・ゴルフ場で紹介された",
+    referralSource: "宿泊先・ゴルフ場で知った",
   },
 };
 

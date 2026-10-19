@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { BookingFormData } from "@/types/booking";
 import {
   REFERRAL_SOURCES,
+  REFERRAL_OTHER,
   DAY_DESTINATIONS,
   DAY_DESTINATIONS_4H,
   STAY_DESTINATIONS,
@@ -40,6 +41,12 @@ function isValidEmail(raw: string): boolean {
 export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
   // リピーター判定：犬情報がDBから読み込まれている（idがある）場合
   const isReturning = form.dogs.some((d) => !!d.id);
+
+  // 「その他」は自由記入を「その他：…」の形で referral_source に入れる（DB列は増やさない）
+  const isReferralOther = form.referral_source.startsWith(REFERRAL_OTHER);
+  const referralOtherText = isReferralOther
+    ? form.referral_source.slice(REFERRAL_OTHER.length).replace(/^：/, "")
+    : "";
 
   // 住所を自動入力部分と手入力部分に分離して管理
   const [autoAddress, setAutoAddress] = useState(() => {
@@ -329,9 +336,14 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               <button
                 key={src}
                 type="button"
-                onClick={() => onChange({ ...form, referral_source: src })}
+                onClick={() =>
+                  onChange({
+                    ...form,
+                    referral_source: src === REFERRAL_OTHER && isReferralOther ? form.referral_source : src,
+                  })
+                }
                 className={`py-2.5 px-3 rounded-lg text-[13px] transition-all text-left ${
-                  form.referral_source === src
+                  (src === REFERRAL_OTHER ? isReferralOther : form.referral_source === src)
                     ? "bg-[#B87942] text-white"
                     : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
                 }`}
@@ -340,6 +352,19 @@ export function Step3Customer({ form, onChange, onNext, onBack }: Props) {
               </button>
             ))}
           </div>
+          {isReferralOther && (
+            <input
+              type="text"
+              value={referralOtherText}
+              maxLength={100}
+              onChange={(e) => {
+                const t = e.target.value.replace(/^\s+/, "");
+                onChange({ ...form, referral_source: t ? `${REFERRAL_OTHER}：${t}` : REFERRAL_OTHER });
+              }}
+              placeholder="よろしければ、どちらでお知りになったか教えてください（任意）"
+              className="mt-2 w-full p-3 rounded-lg border border-[#E5DDD8] text-base bg-white focus:border-[#B87942] focus:outline-none"
+            />
+          )}
         </div>
       )}
 

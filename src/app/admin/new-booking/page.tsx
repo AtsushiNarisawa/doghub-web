@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { PLANS } from "@/types/booking";
+import { PLANS, REFERRAL_SOURCES, REFERRAL_OTHER, REFERRAL_PHONE_UNKNOWN } from "@/types/booking";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { dogAgeDisplay } from "@/lib/dog-age";
 import {
@@ -146,6 +146,9 @@ function NewBookingForm() {
   const [notes, setNotes] = useState("");
   // スタッフ専用メモ（reservations.admin_notes）。notes（備考）はお客様の確認メールに載るため別枠にする
   const [adminNotes, setAdminNotes] = useState("");
+  // 新規のお客様のご利用のきっかけ（電話口で「どちらでお知りになりましたか」と伺う）。
+  // 以前は一律「電話受付」＝きっかけが空白と同じだった（2026-10-20 改定）。既存のお客様には聞かない＝保存しない。
+  const [phoneReferral, setPhoneReferral] = useState<string>(REFERRAL_PHONE_UNKNOWN);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -446,7 +449,7 @@ function NewBookingForm() {
               postal_code: "",
               address: "",
             },
-        referral_source: "電話受付",
+        referral_source: isNewCustomer ? phoneReferral : null,
         source: "phone",
       };
 
@@ -1005,6 +1008,44 @@ function NewBookingForm() {
             />
             <span className="text-sm text-gray-700">お散歩オプション（¥550/回・1頭）</span>
           </label>
+        </div>
+      )}
+
+      {/* ご利用のきっかけ（新規のお客様のみ） */}
+      {isNewCustomer && (
+        <div className="bg-white rounded-xl p-4 space-y-3">
+          <div>
+            <p className="text-sm font-medium text-gray-500">ご利用のきっかけ</p>
+            <p className="text-xs text-gray-400 mt-0.5">「どちらでお知りになりましたか」と伺ってください。聞けなかったときは「未確認」のままで大丈夫です</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[...REFERRAL_SOURCES, REFERRAL_PHONE_UNKNOWN].map((src) => {
+              const active = src === REFERRAL_OTHER ? phoneReferral.startsWith(REFERRAL_OTHER) : phoneReferral === src;
+              return (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => setPhoneReferral(src === REFERRAL_OTHER && active ? phoneReferral : src)}
+                  className={`py-2 px-3 rounded-lg text-xs text-left ${active ? "bg-[#B87942] text-white" : "bg-gray-50 text-gray-700 border border-gray-200"}`}
+                >
+                  {src}
+                </button>
+              );
+            })}
+          </div>
+          {phoneReferral.startsWith(REFERRAL_OTHER) && (
+            <input
+              type="text"
+              maxLength={100}
+              value={phoneReferral.slice(REFERRAL_OTHER.length).replace(/^：/, "")}
+              onChange={(e) => {
+                const t = e.target.value.replace(/^\s+/, "");
+                setPhoneReferral(t ? `${REFERRAL_OTHER}：${t}` : REFERRAL_OTHER);
+              }}
+              placeholder="伺った内容（任意）"
+              className="w-full px-3 py-2 text-base bg-gray-50 border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
+            />
+          )}
         </div>
       )}
 

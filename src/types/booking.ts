@@ -203,15 +203,25 @@ export const STAY_DESTINATIONS = [
   "その他（自由記入）",
 ] as const;
 
+// ご利用のきっかけ（初回のWeb予約のみ必須・2回目以降は聞かない）。
+// 2026-10-20 改定: 検索の中身（名前検索か・記事経由か）はお客様に聞かず GSC/GA4 で見る。
+// 聞くのは他のデータで見えない経路（AI・宿泊先・お店とチラシ）だけ。並びは多そうな順。
+// 旧値（〜10-20）: Googleで検索した／ホテル・ゴルフ場で紹介された／知人・友人の紹介／福利厚生（リロクラブ等）
+// ＝集計は改定日の前後で分けること。「その他」は自由記入を「その他：…」の形で保存する。
 export const REFERRAL_SOURCES = [
-  "Googleで検索した",
+  "Google・Yahoo!などで検索",
   "Googleマップで見つけた",
   "Instagramで見つけた",
-  "ホテル・ゴルフ場で紹介された",
-  "知人・友人の紹介",
-  "福利厚生（リロクラブ等）",
+  "ChatGPTなどのAIに聞いた",
+  "宿泊先・ゴルフ場で知った",
+  "知人・ご家族の紹介",
+  "お店・チラシで知った",
   "その他",
 ] as const;
+
+export const REFERRAL_OTHER = "その他";
+// 電話予約でスタッフがきっかけを聞けなかったとき
+export const REFERRAL_PHONE_UNKNOWN = "電話（きっかけ未確認）";
 
 export const INITIAL_DOG: DogFormData = {
   name: "",
