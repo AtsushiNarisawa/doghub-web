@@ -112,6 +112,7 @@ export default function CafePage() {
                 </div>
                 <a
                   href="/booking"
+                  data-cta-id="cafe_booking"
                   className="inline-flex items-center gap-2 border border-[#3C200F] text-[#3C200F] px-6 py-3 hover:bg-[#3C200F] hover:text-white transition-colors"
                   style={{ fontSize: "14px", fontWeight: 400 }}
                 >

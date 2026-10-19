@@ -359,6 +359,9 @@ function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string):
   // HTMLエンティティの矢印を統一
   html = html.replace(/&rarr;/g, "→");
 
+  // 本文Docに残った見出し1は見出し2へ降格（ページの h1 は記事タイトルの1つだけにする）
+  html = html.replace(/<h1(\s[^>]*)?>/gi, "<h2>").replace(/<\/h1>/gi, "</h2>");
+
   // h2にidを付与（目次リンク用）
   let headingIndex = 0;
   const headings: { id: string; text: string }[] = [];
@@ -431,9 +434,11 @@ function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string):
       }
       if (afterTag === -1) continue;
 
+      // 挿入位置のキーワードを画像の説明文にする（空の alt をなくす）
+      const imgAlt = mapping.keyword.replace(/[<>"&]/g, "");
       const imgsHtml = mapping.images.length === 1
-        ? `<img src="${mapping.images[0]}" alt="" class="article-single-img" />`
-        : `<div class="article-images">${mapping.images.map(src => `<img src="${src}" alt="" />`).join("")}</div>`;
+        ? `<img src="${mapping.images[0]}" alt="${imgAlt}" class="article-single-img" />`
+        : `<div class="article-images">${mapping.images.map(src => `<img src="${src}" alt="${imgAlt}" />`).join("")}</div>`;
 
       html = html.slice(0, afterTag) + imgsHtml + html.slice(afterTag);
     }
@@ -583,7 +588,7 @@ export async function getArticles(): Promise<Article[]> {
 
 export async function getArticle(
   slug: string
-): Promise<{ article: Article; html: string } | null> {
+): Promise<{ article: Article; html: string; modified: string | null } | null> {
   const articles = await getArticles();
   const article = articles.find((a) => a.slug === slug);
   if (!article) return null;
@@ -607,5 +612,16 @@ export async function getArticle(
   // 記事HTMLを読みやすく後処理（サムネURLも渡してクレジット生成に含める）
   html = enhanceArticleHtml(html, slug, article.thumbnail);
 
-  return { article, html };
+  // 最終更新日＝本文Docの更新日（JST・YYYY-MM-DD）。取れなければ null（表示・構造化データとも出さない）
+  let modified: string | null = null;
+  try {
+    const meta = await drive.files.get({ fileId: article.docId, fields: "modifiedTime" });
+    if (meta.data.modifiedTime) {
+      modified = new Date(new Date(meta.data.modifiedTime).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    }
+  } catch (e) {
+    console.error("[cms] modifiedTime error:", (e as Error).message?.slice(0, 200));
+  }
+
+  return { article, html, modified };
 }

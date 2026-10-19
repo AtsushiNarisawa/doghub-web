@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
     ],
   },
   // 旧URLリダイレクトは middleware.ts で一元管理
+  // /images は毎回の再検証をやめて1日キャッシュ（同名で差し替えることがあるため immutable にはしない）。
+  async headers() {
+    return [
+      {
+        source: "/images/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

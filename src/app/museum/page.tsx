@@ -112,22 +112,22 @@ export default function MuseumPage() {
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   DogHub箱根仙石原はこれらの美術館から車でわずか2〜4分。
                   愛犬をお預けして美術館を楽しんだ後、すぐにお迎えに来られます。
-                  スポット利用（1時間 ¥1,100）から対応しているので、
-                  「美術館1つだけ見たい」という短時間のご利用にも最適です。
+                  半日お預かり（4時間 ¥3,300）なら、美術館1〜2館とランチまでゆっくり楽しめます。
+                  「美術館1つだけ、2時間ほど」という短時間のご利用は、お電話でご相談ください。
                 </p>
 
                 <div className="bg-[#F7F7F7] p-8 mb-8">
                   <h4 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>おすすめプラン</h4>
                   <div className="space-y-4 text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                     <div className="pb-3 border-b border-[#E5DDD8]">
-                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>スポット利用（1時間〜）</p>
-                      <p style={{ fontSize: "24px" }}>¥1,100〜</p>
-                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>美術館1つだけなら2〜3時間でOK</p>
-                    </div>
-                    <div>
                       <p className="text-[#B87942]" style={{ fontSize: "14px" }}>半日お預かり（4時間）</p>
                       <p style={{ fontSize: "24px" }}>¥3,300</p>
-                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>2つの美術館をゆっくり巡るなら半日プラン</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>美術館1〜2館とランチまで。Webで予約できます</p>
+                    </div>
+                    <div>
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>スポット利用（1時間〜）</p>
+                      <p style={{ fontSize: "24px" }}>¥1,100〜</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>美術館1つだけなら2〜3時間。ご予約はお電話で（0460-80-0290）</p>
                     </div>
                   </div>
                   <p className="text-[#8F7B65] mt-3" style={{ fontSize: "13px" }}>※表示料金はすべて税込です。</p>
@@ -135,6 +135,7 @@ export default function MuseumPage() {
 
                 <a
                   href="/booking"
+                  data-cta-id="museum_booking"
                   className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                   style={{ fontSize: "18px", fontWeight: 400 }}
                 >
@@ -174,7 +175,7 @@ export default function MuseumPage() {
             <div className="grid md:grid-cols-2 gap-8">
               <div className="border border-[#E5DDD8] p-8">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>サクッと美術館1つプラン</h3>
-                <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>スポット利用 ¥2,200（2時間）</p>
+                <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>スポット利用 ¥2,200（2時間・お電話でのご予約）</p>
                 <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                   <p>10:00 DogHubにお預け</p>
                   <p>10:05 ポーラ美術館到着（車4分）</p>

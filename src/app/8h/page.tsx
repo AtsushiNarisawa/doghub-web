@@ -131,6 +131,7 @@ export default function EightHourPage() {
                 <div className="mt-8">
                   <a
                     href="/booking"
+                    data-cta-id="8h_booking"
                     className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                     style={{ fontSize: "18px", fontWeight: 400 }}
                   >

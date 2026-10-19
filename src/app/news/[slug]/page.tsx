@@ -281,19 +281,19 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-ashinoko-dog-guide": [
     { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "桃源台から車10分。半日¥3,300〜" },
     { label: "芦ノ湖エリアの温泉", href: "/onsen", description: "龍宮殿本館まで車約20分" },
-    { label: "海賊船＋遊覧の間に預ける", href: "/4h", description: "半日プランで芦ノ湖をたっぷり満喫" },
+    { label: "美術館にも寄るなら", href: "/museum", description: "犬NGの館内は半日¥3,300でお預かり" },
     { label: "カフェでランチ", href: "/cafe", description: "お迎え前後におむすび＆スープ（土日祝）" },
   ],
   "hakone-owakudani-dog-guide": [
     { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
     { label: "観光の後に温泉へ", href: "/onsen", description: "仙石原・小涌谷の温泉施設" },
     { label: "ロープウェイ＋芦ノ湖も行くなら", href: "/service", description: "1日プラン¥5,500〜で大涌谷→芦ノ湖コース" },
-    { label: "カフェで一休み", href: "/cafe", description: "お迎え前に仙石原でおむすびランチ（土日祝）" },
+    { label: "大涌谷のあとユネッサンへ", href: "/yunessun", description: "車で約15分。1日¥5,500で丸一日" },
   ],
   "hakone-dog-lunch-guide": [
-    { label: "カフェのメニューを見る", href: "/cafe", description: "室内犬連れOK。おむすび＆スープ（土日祝）" },
-    { label: "ランチ後に観光するなら", href: "/service", description: "食後にお預けして温泉・美術館へ" },
-    { label: "ランチのあと観光するなら", href: "/4h", description: "その間だけお預かり。半日¥3,300〜" },
+    { label: "店内NGのお店で食べる日は", href: "/4h", description: "ランチと観光のあいだだけお預かり。半日¥3,300〜" },
+    { label: "カフェのメニューを見る", href: "/cafe", description: "土日祝は愛犬と店内OK。おむすび＆スープ" },
+    { label: "ユネッサンで1日遊ぶなら", href: "/yunessun", description: "車で約15分。1日¥5,500でたっぷり" },
   ],
   "hakone-dog-cafe-guide": [
     { label: "カフェの詳細", href: "/cafe", description: "メニュー・営業時間・アクセス" },
@@ -343,7 +343,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "hakone-en-dog-guide": [
     { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "半日¥3,300〜" },
-    { label: "箱根神社もセットで", href: "/service", description: "芦ノ湖エリアを満喫" },
+    { label: "美術館にも寄るなら", href: "/museum", description: "犬NGの館内は半日¥3,300でお預かり" },
     { label: "カフェで休憩", href: "/cafe", description: "仙石原でおむすび＆スープ（土日祝）" },
   ],
   "hakone-gora-park-dog-guide": [
@@ -370,7 +370,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "spring-walk-guide": [
     { label: "カフェで休憩", href: "/cafe", description: "お散歩後におむすび＆スープ" },
-    { label: "お散歩後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
+    { label: "お散歩のあと美術館へ", href: "/4h", description: "その間だけお預かり。半日¥3,300〜" },
     { label: "ドッグランで遊ぶ", href: "/dogrun", description: "お散歩のあとに自由に走り回れる" },
   ],
   "pet-hotel-first-time-tips": [
@@ -556,7 +556,7 @@ export default async function NewsDetailPage({ params }: Props) {
   const result = await getArticle(slug);
   if (!result) notFound();
 
-  const { article, html } = result;
+  const { article, html, modified } = result;
   const cta = ARTICLE_CTA[slug] ?? DEFAULT_CTA;
   const sceneBridges = ARTICLE_SCENE_BRIDGES[slug] || [];
 
@@ -608,6 +608,7 @@ export default async function NewsDetailPage({ params }: Props) {
               ? article.thumbnail
               : `https://dog-hub.shop${article.thumbnail}`,
             datePublished: article.date,
+            ...(modified ? { dateModified: modified } : {}),
             author: {
               "@type": "Organization",
               name: "DogHub箱根仙石原",
@@ -617,6 +618,7 @@ export default async function NewsDetailPage({ params }: Props) {
               "@type": "Organization",
               name: "DogHub箱根仙石原",
               url: "https://dog-hub.shop",
+              logo: { "@type": "ImageObject", url: "https://dog-hub.shop/apple-touch-icon.png" },
             },
             mainEntityOfPage: `https://dog-hub.shop/news/${slug}`,
           }) }}
@@ -646,7 +648,7 @@ export default async function NewsDetailPage({ params }: Props) {
         <section className="py-12 px-6 bg-white">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
-              <span className="text-[#8F7B65]" style={{ fontSize: "14px" }}>公開: {article.date}　|　最終更新: 2026-05-01</span>
+              <span className="text-[#8F7B65]" style={{ fontSize: "14px" }}>公開: {article.date}{modified && modified > article.date ? `　|　最終更新: ${modified}` : ""}</span>
               <span className="text-[#B87942] border border-[#B87942] px-2 py-0.5" style={{ fontSize: "12px" }}>
                 {article.category}
               </span>
