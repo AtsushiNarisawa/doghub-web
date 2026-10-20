@@ -45,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/yunessun`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/onsen`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/museum`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/hotels`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/ryokan`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/pethotel`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/8h`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
