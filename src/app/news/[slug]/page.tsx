@@ -14,6 +14,11 @@ import Image from "next/image";
 
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: string }> = {
+  "hakone-dog-map-zenzan": {
+    subtext: "愛犬と一緒に歩く日は施設マップで、美術館や温泉の日はDogHubで。紅葉の11月と年始の箱根駅伝（1/2・3）はご予約が早く埋まります。宿泊1泊¥7,700〜、日帰りは半日¥3,300〜。",
+    href: "/booking",
+    btnLabel: "お預かり・宿泊を予約する",
+  },
   "hakone-autumn-dog-guide": {
     subtext: "ケージが苦手な子、ゴルフでコースに出る日に。完全個室で過ごしながら、スタッフがドッグランに出します。半日¥3,300、1日（8時間）¥5,500。1日は早朝7時から。",
     href: "/service",
@@ -433,6 +438,12 @@ const DEFAULT_CTA = {
 // 表示カテゴリが異なり自動relatedで連結されず、個別3館がサイト内で孤立していた。
 // ハブ↔個別3館をフルメッシュで結び、孤立解消＋同KWのカニバリ（ハブが個別の影で低順位表示）を整理する。
 const ARTICLE_RELATED: Record<string, string[]> = {
+  // 施設マップのお知らせ（2026-10-20・PR TIMES 配信と同日）: 紅葉・旅行ガイド・仙石原スポットへ橋渡し
+  "hakone-dog-map-zenzan": [
+    "hakone-autumn-dog-guide",
+    "hakone-dog-trip-guide",
+    "hakone-dog-spot-sengokuhara",
+  ],
   // 秋クラスタ（2026-08-23 新設）
   // 新記事が内部リンクゼロにならないよう、記事本文が言及する乗り物・ゴルフ・夏の各記事から
   // 相互に張る。KPIは流入と日帰りお預かり・カフェ（宿泊の梃子としては起案しない）。
