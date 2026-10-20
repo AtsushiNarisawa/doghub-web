@@ -293,12 +293,12 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
     { label: "観光の後に温泉へ", href: "/onsen", description: "仙石原・小涌谷の温泉施設" },
     { label: "ロープウェイ＋芦ノ湖も行くなら", href: "/service", description: "1日プラン¥5,500〜で大涌谷→芦ノ湖コース" },
-    { label: "大涌谷のあとユネッサンへ", href: "/yunessun", description: "車で約15分。1日¥5,500で丸一日" },
+    { label: "帰りに仙石原の美術館へ", href: "/museum", description: "ポーラ・ガラスの森の館内は犬NG。半日¥3,300でお預かり" },
   ],
   "hakone-dog-lunch-guide": [
     { label: "店内NGのお店で食べる日は", href: "/4h", description: "ランチと観光のあいだだけお預かり。半日¥3,300〜" },
     { label: "カフェのメニューを見る", href: "/cafe", description: "土日祝は愛犬と店内OK。おむすび＆スープ" },
-    { label: "ユネッサンで1日遊ぶなら", href: "/yunessun", description: "車で約15分。1日¥5,500でたっぷり" },
+    { label: "午前は美術館、ランチは愛犬と", href: "/museum", description: "ポーラ・ガラスの森は当店から車3〜4分。半日¥3,300" },
   ],
   "hakone-dog-cafe-guide": [
     { label: "カフェの詳細", href: "/cafe", description: "メニュー・営業時間・アクセス" },
