@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { BookingFormData } from "@/types/booking";
 import { PLANS } from "@/types/booking";
 import { supabase } from "@/lib/supabase";
@@ -22,19 +22,66 @@ interface Props {
   form: BookingFormData;
   onChange: (form: BookingFormData) => void;
   onNext: () => void;
+  /** 料金ページの「◯◯プランを予約する」から ?plan= 付きで来た（プランは選択済みの状態で開く） */
+  prefilledPlan?: boolean;
+  /** 選んだら次の入力欄まで自動で送るか（確認画面から「修正する」で戻ったときは送らない） */
+  autoAdvance?: boolean;
 }
+
+/**
+ * ステップ①の中の操作を GA4 に送る（2026-10-21 設計書 docs/specs/booking_step1_dropoff_design_2026-10-21.md）。
+ * booking_step（2/3/4）とは別のイベントにして、既存のファネルの数字・形は変えない。
+ */
+function pushStep1Event(event: string, params: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event, ...params });
+}
+
+/** 今日（JST）から何日先か。YYYY-MM-DD 文字列どうしで計算（端末のタイムゾーンに依存しない） */
+function daysAhead(dateStr: string, todayStr: string): number {
+  const toUtc = (s: string) => {
+    const [y, m, d] = s.split("-").map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((toUtc(dateStr) - toUtc(todayStr)) / 86400000);
+}
+
+type ScrollTarget = "date" | "time" | "checkout" | "next";
 
 interface CapacityInfo {
   total_remaining: number;
   closed: boolean;
 }
 
-export function Step1Plan({ form, onChange, onNext }: Props) {
+export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoAdvance = true }: Props) {
   const [capacity, setCapacity] = useState<CapacityInfo | null>(null);
   const [loadingCapacity, setLoadingCapacity] = useState(false);
   const [bookingWindowDays, setBookingWindowDays] = useState(180);
   const [closedWeekdays, setClosedWeekdays] = useState<number[]>(DEFAULT_CLOSED_WEEKDAYS);
   const [showOtherInput, setShowOtherInput] = useState(false);
+
+  // ── 選んだら次の入力欄が見えるように自動で送る ──
+  // スマホでは、プランを押してもカレンダーが画面の外に出るだけで「押したのに何も起きない」に
+  // 見えていた（2026-10-21 実測・375×812 で「日程を選択」が上から約900px）。
+  // 送り先の欄は選んだ直後にはまだ描画されていないことがあるので、目標だけ覚えておき、
+  // 描画されたら送る。判定（選べる日・押せない理由）には一切関わらない＝見た目の移動だけ。
+  const dateSectionRef = useRef<HTMLDivElement>(null);
+  const timeSectionRef = useRef<HTMLDivElement>(null);
+  const checkoutSectionRef = useRef<HTMLDivElement>(null);
+  const nextAreaRef = useRef<HTMLDivElement>(null);
+  const [scrollTarget, setScrollTarget] = useState<ScrollTarget | null>(null);
+  const requestScroll = (target: ScrollTarget) => {
+    if (autoAdvance) setScrollTarget(target);
+  };
+  // 料金ページから ?plan= で来た方は、プランの一覧を畳んで「選択中のプラン」1行にする（変更は可能）
+  const [planLocked, setPlanLocked] = useState<boolean>(prefilledPlan && !!form.plan);
+  // ?plan= の読み取りは親の初回描画のあと（URL を読む useEffect）なので、届いた時点で畳む
+  useEffect(() => {
+    if (prefilledPlan && form.plan) setPlanLocked(true);
+    // form.plan を依存に入れない＝「変更する」で開いたあとにプランを選び直しても再び畳まない
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefilledPlan]);
 
   // 設定を取得
   useEffect(() => {
@@ -184,6 +231,11 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       checkout_date: checkout,
       ...(clearExtension ? { checkin_extension: false, checkin_extension_from: "" } : {}),
     });
+    pushStep1Event("booking_date_select", {
+      plan: form.plan,
+      days_ahead: daysAhead(dateStr, getJstToday()),
+    });
+    requestScroll("time");
   };
 
   // 宿泊期間中に定休日が含まれるかチェック
@@ -305,6 +357,25 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
     fetchCapacity();
   }, [form.date, form.plan, form.checkout_date]);
 
+  useEffect(() => {
+    if (!scrollTarget) return;
+    const ref =
+      scrollTarget === "date" ? dateSectionRef
+      : scrollTarget === "time" ? timeSectionRef
+      : scrollTarget === "checkout" ? checkoutSectionRef
+      : nextAreaRef;
+    const el = ref.current;
+    if (!el) {
+      // 時間欄は「空き状況の確認」が終わるまで出ない。確認が終わっても出ない日（休業など）は
+      // 送らずに諦める（押せない理由の案内がその場に出る）
+      if (scrollTarget === "time" && !loadingCapacity && capacity) setScrollTarget(null);
+      return;
+    }
+    // 次へボタンは「見える位置まで最小限」、それ以外は欄の頭を画面の上に合わせる
+    el.scrollIntoView({ behavior: "smooth", block: scrollTarget === "next" ? "nearest" : "start" });
+    setScrollTarget(null);
+  }, [scrollTarget, form.plan, form.date, form.checkin_time, form.checkout_date, capacity, loadingCapacity]);
+
   const selectedPlan = PLANS.find((p) => p.id === form.plan);
 
   // チェックイン時間の選択肢を生成
@@ -408,25 +479,51 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* 施設情報（HPを見ずに来た方向け） */}
-      <div className="p-4 rounded-xl bg-white border border-[#E5DDD8] space-y-2">
-        <p className="text-sm font-medium text-[#3C200F]">DogHub箱根仙石原</p>
-        <div className="text-[13px] text-[#666] space-y-1">
+      {/* 施設情報（HPを見ずに来た方向け）。
+          スマホの最初の画面にプラン3つが収まるよう、要点（営業・定休・体重）だけを常に見せ、
+          紹介文は「詳しく」に畳む（2026-10-21・以前は箱だけで画面の半分近くを使っていた） */}
+      <details className="group px-4 py-3 rounded-xl bg-white border border-[#E5DDD8]">
+        <summary className="list-none cursor-pointer flex items-start justify-between gap-3">
+          <span className="text-[12px] text-[#666] leading-relaxed">
+            <span className="text-sm font-medium text-[#3C200F] mr-2">DogHub箱根仙石原</span>
+            営業 金〜火 9:00-17:00・定休 {closedWeekdayNames()}
+            {upcomingTempOpenLabels.length > 0 && (
+              <span className="text-[#B87942]">（{upcomingTempOpenLabels.join("・")}は営業）</span>
+            )}
+            ・体重15kgまで
+          </span>
+          <span className="text-[12px] text-[#B87942] whitespace-nowrap mt-0.5">
+            <span className="group-open:hidden">詳しく</span>
+            <span className="hidden group-open:inline">閉じる</span>
+          </span>
+        </summary>
+        <div className="text-[13px] text-[#666] space-y-1 mt-2">
           <p>箱根・仙石原にある犬のお預かり専門施設です。ドッグラン併設・完全個室・スタッフ常駐で安心してお預けいただけます。</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[12px]">
-            <span>営業: 金〜火 9:00-17:00</span>
-            <span>
-              定休: {closedWeekdayNames()}曜日
-              {upcomingTempOpenLabels.length > 0 && (
-                <span className="text-[#B87942]">（{upcomingTempOpenLabels.join("・")}は営業）</span>
-              )}
-            </span>
-            <span>体重: 15kgまで（超える場合は要相談）</span>
-          </div>
+          <p className="text-[12px]">体重15kgを超える場合はご相談ください。</p>
         </div>
-      </div>
+      </details>
 
       {/* プラン選択 */}
+      {planLocked && selectedPlan ? (
+        <div>
+          <h2 className="text-lg font-medium mb-3">プラン</h2>
+          <div className="p-4 rounded-xl border-2 border-[#B87942] bg-[#B87942]/5 flex justify-between items-center gap-3">
+            <div>
+              <p className="font-medium text-[15px]">{selectedPlan.name}</p>
+              <p className="text-[#B87942] text-sm mt-0.5">
+                ¥{selectedPlan.basePrice.toLocaleString()}{selectedPlan.priceUnit || ""}〜
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPlanLocked(false)}
+              className="text-[13px] text-[#B87942] underline underline-offset-2 whitespace-nowrap py-2"
+            >
+              プランを変更する
+            </button>
+          </div>
+        </div>
+      ) : (
       <div>
         <h2 className="text-lg font-medium mb-3">プランを選択</h2>
         <div className="space-y-3">
@@ -434,7 +531,9 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
             <button
               key={plan.id}
               type="button"
-              onClick={() =>
+              onClick={() => {
+                pushStep1Event("booking_plan_select", { plan: plan.id, prefilled: false });
+                requestScroll("date");
                 onChange({
                   ...form,
                   plan: plan.id,
@@ -456,8 +555,8 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                   // お散歩オプションは宿泊のみ。プランを切り替えたら選択を外す
                   // （宿泊で選択→日帰りに戻した時の取りこぼし防止）
                   walk_option: false,
-                })
-              }
+                });
+              }}
               className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                 form.plan === plan.id
                   ? "border-[#B87942] bg-[#B87942]/5"
@@ -480,10 +579,11 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           ))}
         </div>
       </div>
+      )}
 
       {/* 日付選択（カレンダー） */}
       {form.plan && (
-        <div>
+        <div ref={dateSectionRef} className="scroll-mt-16">
           <h2 className="text-lg font-medium mb-3">日程を選択</h2>
           <BookingCalendar
             value={form.date}
@@ -536,7 +636,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
       {/* チェックイン時間 */}
       {form.plan && form.date && !isClosedDay(form.date) && capacity && !capacity.closed && (
-        <div>
+        <div ref={timeSectionRef} className="scroll-mt-16">
           <h2 className="text-lg font-medium mb-3">
             {form.plan === "stay" ? "到着予定時間（目安）" : "チェックイン時間"}
           </h2>
@@ -555,7 +655,12 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
                 <button
                   key={time}
                   type="button"
-                  onClick={() => onChange({ ...form, checkin_time: time })}
+                  onClick={() => {
+                    onChange({ ...form, checkin_time: time });
+                    pushStep1Event("booking_time_select", { plan: form.plan });
+                    // 宿泊は次にチェックアウト日、日帰りはこれで「次へ」が押せる
+                    requestScroll(form.plan === "stay" ? "checkout" : "next");
+                  }}
                   className={`py-3 rounded-lg text-sm font-medium transition-all ${
                     form.checkin_time === time
                       ? "bg-[#B87942] text-white"
@@ -575,7 +680,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
 
       {/* チェックアウト日（宿泊のみ） */}
       {form.plan === "stay" && form.date && form.checkin_time && (
-        <div>
+        <div ref={checkoutSectionRef} className="scroll-mt-16">
           <h2 className="text-lg font-medium mb-3">チェックアウト日</h2>
           <p className="text-[13px] text-[#888] mb-2">
             チェックアウト時間: 9:00〜11:00
@@ -583,7 +688,11 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
           <BookingCalendar
             key={form.date}
             value={form.checkout_date}
-            onSelect={(dateStr) => onChange({ ...form, checkout_date: dateStr })}
+            onSelect={(dateStr) => {
+              onChange({ ...form, checkout_date: dateStr });
+              // 下に早預かり・延長の選択（任意）が出る。次へボタンが見えるところまで最小限送る
+              requestScroll("next");
+            }}
             getDayState={getCheckoutDayState}
             todayStr={getJstToday()}
             initialMonthDate={form.date}
@@ -741,6 +850,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       )}
 
       {/* 「次へ」が押せない理由の案内（離脱が最も多いステップのため明示する） */}
+      <div ref={nextAreaRef} className="space-y-6">
       {proceedHint && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <p className="text-sm text-amber-800">{proceedHint}</p>
@@ -760,6 +870,7 @@ export function Step1Plan({ form, onChange, onNext }: Props) {
       >
         次へ：ワンちゃん情報
       </button>
+      </div>
     </div>
   );
 }

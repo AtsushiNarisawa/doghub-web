@@ -134,7 +134,7 @@ export default function MuseumPage() {
                 </div>
 
                 <a
-                  href="/booking"
+                  href="/booking?plan=4h"
                   data-cta-id="museum_booking"
                   className="inline-flex items-center gap-2 bg-[#3C200F] text-white px-10 py-4 hover:opacity-90 transition-opacity"
                   style={{ fontSize: "18px", fontWeight: 400 }}

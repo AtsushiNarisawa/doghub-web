@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import liff from "@line/liff";
-import type { BookingStep, BookingFormData } from "@/types/booking";
-import { INITIAL_FORM } from "@/types/booking";
+import type { BookingStep, BookingFormData, Plan } from "@/types/booking";
+import { INITIAL_FORM, PLANS } from "@/types/booking";
 import { StepIndicator } from "@/components/booking/step-indicator";
 import { Step1Plan } from "@/components/booking/step1-plan";
 import { Step2Dogs } from "@/components/booking/step2-dogs";
@@ -17,6 +17,16 @@ import { isLateBooking } from "@/lib/booking-rules";
 import { getPartner, PARTNER_STORAGE_KEY } from "@/lib/partners";
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID || "";
+
+/**
+ * 料金ページの「◯◯プランを予約する」から渡されるプラン（?plan=4h|8h|stay）。
+ * Webで選べるプランだけを受け付ける＝スポット（電話・現地枠・意図的にWeb不可）や不正値は無視して、
+ * いつもどおりプラン未選択の画面を出す。URLにはプラン名以外を載せない。
+ */
+const WEB_PLAN_IDS: Plan[] = PLANS.filter((p) => p.id !== "spot").map((p) => p.id);
+function parsePlanParam(value: string | null): Plan | null {
+  return value && (WEB_PLAN_IDS as string[]).includes(value) ? (value as Plan) : null;
+}
 
 function pushEvent(event: string, params?: Record<string, unknown>) {
   window.dataLayer = window.dataLayer || [];
@@ -40,10 +50,13 @@ export default function BookingPage() {
   // 連携だけ済んで通知が届かない状態になるため、連携完了画面で友だち追加を促す。
   // null = 未判定（判定できないときは促さない＝余計な案内を出さない）
   const [isLineFriend, setIsLineFriend] = useState<boolean | null>(null);
+  // ?plan= でプランを受け取って開いたか（ステップ①でプラン一覧を畳む・計測の prefilled に使う）
+  const [planPrefilled, setPlanPrefilled] = useState(false);
 
   // LIFF初期化 + LINE ID取得
   useEffect(() => {
     let isLinkMode = false;
+    let prefilledPlan: Plan | null = null;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const mode = params.get("mode");
@@ -62,6 +75,14 @@ export default function BookingPage() {
       } catch {
         /* sessionStorage 利用不可時は ?partner= だけで判定 */
       }
+      // 料金ページからのプラン引き継ぎ。INITIAL_FORM は日付・時間・延長が空なので、
+      // ステップ①でプランを押したときと同じ状態（プランだけ選ばれている）になる。
+      prefilledPlan = isLinkMode ? null : parsePlanParam(params.get("plan"));
+      if (prefilledPlan) {
+        const plan = prefilledPlan;
+        setForm((prev) => (prev.plan ? prev : { ...prev, plan }));
+        setPlanPrefilled(true);
+      }
       const partner = getPartner(params.get("partner") ?? storedPartner);
       if (partner) {
         setForm((prev) => ({
@@ -73,7 +94,8 @@ export default function BookingPage() {
     }
 
     // 紐付け画面は「予約の開始」ではないので begin_booking を発火させない（CV計測を汚さない）
-    if (!isLinkMode) pushEvent("begin_booking");
+    // plan_prefilled: 料金ページからプランを持って来たか（ステップ①の通過率を分けて見るため）
+    if (!isLinkMode) pushEvent("begin_booking", { plan_prefilled: !!prefilledPlan });
 
     if (!LIFF_ID) return;
 
@@ -229,6 +251,7 @@ export default function BookingPage() {
               onClick={() => {
                 setResult(null);
                 setStep(1);
+                setPlanPrefilled(false);
                 // 顧客情報・犬情報は保持し、予約内容のみリセット。
                 // LINE連携(line_id/source)も引き継ぐ（INITIAL_FORMには無いため明示しないと
                 // 2件目以降がweb扱いになりLINE確定通知が飛ばなくなる）。
@@ -335,7 +358,13 @@ export default function BookingPage() {
       {/* フォーム */}
       <main className="max-w-lg mx-auto px-4 pb-8">
         {step === 1 && (<>
-          <Step1Plan form={form} onChange={setForm} onNext={() => { if (editingFromConfirm) { backToConfirm(); } else { goNext(); } }} />
+          <Step1Plan
+            form={form}
+            onChange={setForm}
+            onNext={() => { if (editingFromConfirm) { backToConfirm(); } else { goNext(); } }}
+            prefilledPlan={planPrefilled}
+            autoAdvance={!editingFromConfirm}
+          />
           {editingFromConfirm && (
             <button type="button" onClick={backToConfirm}
               className="w-full py-3 mt-3 rounded-xl border-2 border-[#B87942] text-[#B87942] text-sm font-medium">
