@@ -10,12 +10,14 @@ import { PLANS, EXTRA_HOUR_FEE } from "@/types/booking";
 
 // 「箱根の宿 × DogHub」まとめページ（親ページ）。
 // 設計の正本＝marketing/reports/hotel_pet_ng_pages_design_2026-10-20.md
-// 柱は2つ＝「犬と泊まれない宿」（宿泊プラン）／「犬と泊まれる宿」（半日・1日）。
+// 区分は検索の問い「そのホテルは犬と泊まれる？」の答えに合わせて3つ（10-20 CEO・カスタマージャーニー）＝
+//   「泊まれない」（宿泊プラン）／「一部のお部屋なら泊まれる」（取れなければ宿泊・取れたら日中）／「泊まれる」（半日・1日）。
+// 1つのホテルは1つの区分にだけ載せる（同じ中身の節を並べない）。
 // DogHub の説明・料金・預け方の流れはこのページに1回だけ書き、ホテル別ページは固有の事実だけにする。
 
-const title = "箱根の宿 × 愛犬の預け方｜犬と泊まれない宿・泊まれる宿｜DogHub箱根仙石原";
+const title = "箱根の宿は犬と泊まれる？答えごとの愛犬の預け方｜DogHub箱根仙石原";
 const description =
-  "箱根で泊まる宿が犬と泊まれない宿なら、愛犬は夜DogHubへ（1泊¥7,700〜）。犬と泊まれる宿なら、温泉や観光の間だけ半日¥3,300〜。宿のタイプ別の預け方をまとめました。";
+  "箱根の宿は犬と泊まれる？答えが「泊まれない」なら愛犬は夜DogHubへ（1泊¥7,700〜）。「一部のお部屋だけ」「泊まれる」宿の預け方も。半日¥3,300〜。";
 
 const plan = (id: string) => PLANS.find((p) => p.id === id)!;
 const stay = plan("stay");
@@ -29,10 +31,11 @@ const yen = (n: number) => `¥${n.toLocaleString()}`;
 // ホテル自体に犬の預かりがある宿（天成園・ハイアット等）はここに入れない。
 type HotelEntry = {
   name: string;
-  group: "pet-ng" | "pet-ok";
+  group: "pet-ng" | "pet-partial" | "pet-ok";
   area: string;
   drive: string; // 例「車で約15分」（実測してから書く）
   petPolicy: string; // ホテル公式の記載どおり
+  dogRooms?: string; // pet-partial のみ。例「全◯室のうち◯室」（公式に数がなければ「一部の客室のみ」）。「少ない」等の評価は書かない
   sourceUrl: string;
   checkedAt: string; // YYYY-MM-DD
   note?: string;
@@ -50,6 +53,10 @@ const petNgLinks: ArticleLink[] = [
   { href: "/news/hakone-pet-not-allowed-stay-guide", label: "保養所や会員制リゾートに泊まる日の愛犬" },
   { href: "/news/hakone-miyanoshita-xiv-dog-guide", label: "エクシブ箱根離宮に泊まる日の愛犬" },
   { href: "/news/hakone-sengokuhara-prince-dog-guide", label: "仙石原プリンスホテルに泊まる日の愛犬" },
+];
+const petPartialLinks: ArticleLink[] = [
+  { href: "/stay", label: "宿泊お預かりプランの詳細" },
+  { href: "/pethotel", label: "ペット可の宿 × 日中だけ預ける" },
 ];
 const petOkLinks: ArticleLink[] = [
   { href: "/news/hakone-dog-friendly-hotels", label: "箱根で犬と泊まれる宿｜犬を預けて泊まる、という選び方も" },
@@ -75,6 +82,10 @@ const faqs = [
     a: `犬が入れない日帰り温泉・美術館・ゴルフなどの間や、宿のチェックイン前・チェックアウト後の数時間に、半日（4時間・${yen(half.basePrice)}）や1日（8時間・${yen(day.basePrice)}）でお預かりしています。`,
   },
   {
+    q: "「犬と泊まれる」宿なのに、予約したお部屋は犬と泊まれませんでした。",
+    a: `犬と泊まれるのは一部のお部屋だけ、という宿は少なくありません。そのお部屋が取れなかったときは、一般のお部屋にお泊まりいただき、ワンちゃんはDogHubの宿泊お預かり（1泊${yen(stay.basePrice)}〜）でお預かりします。`,
+  },
+  {
     q: "どんな犬を預けられますか？",
     a: "体重15kgまでのワンちゃんをお預かりしています。ワクチンなど、ご予約前にご確認いただきたいことはご利用ガイドにまとめています。",
   },
@@ -86,6 +97,7 @@ const faqs = [
 
 export default function HotelsPage() {
   const ngHotels = hotels.filter((h) => h.group === "pet-ng");
+  const partialHotels = hotels.filter((h) => h.group === "pet-partial");
   const okHotels = hotels.filter((h) => h.group === "pet-ok");
 
   return (
@@ -110,7 +122,7 @@ export default function HotelsPage() {
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-4">
             <h1 style={{ fontSize: "clamp(22px, 4.5vw, 40px)", fontWeight: 400, lineHeight: 1.4 }}>箱根の宿に泊まる日の、<br />愛犬の預け方</h1>
             <p className="mt-3 opacity-90" style={{ fontSize: "clamp(13px, 2vw, 16px)", fontWeight: 400, lineHeight: 1.7 }}>
-              犬と泊まれない宿でも、泊まれる宿でも。
+              「その宿は犬と泊まれる？」の答えごとに。
             </p>
           </div>
         </div>
@@ -124,19 +136,24 @@ export default function HotelsPage() {
           </p>
         </div>
 
-        {/* Intro + 2つの柱への目次 */}
+        {/* Intro + 3つの区分への目次 */}
         <section className="py-12 md:py-16 px-6 bg-white">
           <div className="max-w-4xl mx-auto">
             <p className="text-[#3C200F] mb-8" style={{ fontSize: "16px", lineHeight: "2" }}>
-              箱根で泊まる宿が決まったら、まず「その宿に愛犬と泊まれるか」を確かめてください。
-              泊まれない宿なら、夜はワンちゃんだけDogHubに泊まります。泊まれる宿なら、一緒に泊まって、犬が入れない場所に行く間だけ預けます。
-              DogHub箱根仙石原は、そのどちらにも使えるお預かりの施設です。
+              箱根で泊まる宿が決まったら、まず「その宿は犬と泊まれるか」を確かめてください。
+              答えは「泊まれない」「一部のお部屋なら泊まれる」「泊まれる」の3つに分かれます。
+              DogHub箱根仙石原は、そのどれにも使えるお預かりの施設です。答えごとに、使い方をまとめました。
             </p>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <a href="#pet-ng" data-cta-id="hotels_toc_petng" className="block border border-[#3C200F] p-5 hover:bg-[#F7F7F7] transition-colors">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>宿泊プラン {yen(stay.basePrice)}〜/泊</p>
                 <p className="text-[#3C200F]" style={{ fontSize: "18px" }}>犬と泊まれない宿に泊まる ↓</p>
                 <p className="text-[#8F7B65] mt-1" style={{ fontSize: "14px", lineHeight: "1.7" }}>ワンちゃんは夜DogHubに泊まり、飼い主様はお好きな宿へ</p>
+              </a>
+              <a href="#pet-partial" data-cta-id="hotels_toc_petpartial" className="block border border-[#3C200F] p-5 hover:bg-[#F7F7F7] transition-colors">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>宿泊プラン／半日・1日</p>
+                <p className="text-[#3C200F]" style={{ fontSize: "18px" }}>一部のお部屋だけ犬と泊まれる宿 ↓</p>
+                <p className="text-[#8F7B65] mt-1" style={{ fontSize: "14px", lineHeight: "1.7" }}>そのお部屋が取れなかったときも、取れたときも</p>
               </a>
               <a href="#pet-ok" data-cta-id="hotels_toc_petok" className="block border border-[#3C200F] p-5 hover:bg-[#F7F7F7] transition-colors">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>半日 {yen(half.basePrice)}・1日 {yen(day.basePrice)}</p>
@@ -147,7 +164,7 @@ export default function HotelsPage() {
           </div>
         </section>
 
-        {/* 柱1: 犬と泊まれない宿 */}
+        {/* 区分1: 犬と泊まれない宿 */}
         <section id="pet-ng" className="py-12 md:py-16 px-6 bg-[#F7F7F7] scroll-mt-20">
           <div className="max-w-4xl mx-auto">
             <p className="text-[#B87942] mb-2" style={{ fontSize: "14px" }}>宿泊プラン</p>
@@ -179,8 +196,44 @@ export default function HotelsPage() {
           </div>
         </section>
 
-        {/* 柱2: 犬と泊まれる宿 */}
-        <section id="pet-ok" className="py-12 md:py-16 px-6 bg-white scroll-mt-20">
+        {/* 区分2: 一部のお部屋だけ犬と泊まれる宿 */}
+        <section id="pet-partial" className="py-12 md:py-16 px-6 bg-white scroll-mt-20">
+          <div className="max-w-4xl mx-auto">
+            <p className="text-[#B87942] mb-2" style={{ fontSize: "14px" }}>宿泊プラン／半日・1日お預かり</p>
+            <h2 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(22px, 3vw, 26px)", fontWeight: 400, lineHeight: 1.5 }}>一部のお部屋だけ犬と泊まれる宿に泊まる日</h2>
+            <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", lineHeight: "2" }}>
+              「犬と泊まれる」宿でも、ワンちゃんと一緒に泊まれるのは一部のお部屋だけ、ということがよくあります。
+              そのお部屋が埋まっていたり、ワンちゃんの大きさや頭数の条件が合わなかったりしても、その宿をあきらめる必要はありません。
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4 mb-8">
+              <div className="border border-[#E5DDD8] p-5">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>宿泊プラン {yen(stay.basePrice)}〜/泊</p>
+                <p className="text-[#3C200F] mb-2" style={{ fontSize: "16px" }}>犬と泊まれるお部屋が取れなかったとき</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", lineHeight: "1.8" }}>
+                  一般のお部屋にお泊まりいただき、ワンちゃんはDogHubに泊まります。お預けは{stay.checkinRange.start}〜{stay.checkinRange.end}、お迎えは翌9:00〜11:00です。
+                </p>
+              </div>
+              <div className="border border-[#E5DDD8] p-5">
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>半日 {yen(half.basePrice)}・1日 {yen(day.basePrice)}</p>
+                <p className="text-[#3C200F] mb-2" style={{ fontSize: "16px" }}>犬と泊まれるお部屋に泊まるとき</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", lineHeight: "1.8" }}>
+                  宿の温泉やレストラン、犬が入れない観光の間だけ、DogHubでお預かりします。
+                </p>
+              </div>
+            </div>
+
+            {partialHotels.length > 0 ? (
+              <div className="space-y-4 mb-8">{partialHotels.map((h) => <HotelSection key={h.name} h={h} />)}</div>
+            ) : (
+              SHOW_UNAPPROVED && <DevPlaceholder text="（プレビューのみ表示）ここに、掲載の許可をいただいたホテルの節が入ります" />
+            )}
+
+            <ArticleList title="一部のお部屋だけ犬と泊まれる宿に泊まる日に" links={petPartialLinks} />
+          </div>
+        </section>
+
+        {/* 区分3: 犬と泊まれる宿 */}
+        <section id="pet-ok" className="py-12 md:py-16 px-6 bg-[#F7F7F7] scroll-mt-20">
           <div className="max-w-4xl mx-auto">
             <p className="text-[#B87942] mb-2" style={{ fontSize: "14px" }}>半日・1日お預かり</p>
             <h2 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(22px, 3vw, 26px)", fontWeight: 400, lineHeight: 1.5 }}>犬と泊まれる宿に泊まる日</h2>
@@ -217,7 +270,7 @@ export default function HotelsPage() {
         </section>
 
         {/* 共通: DogHubとは・料金・預け方の流れ（このページに1回だけ） */}
-        <section className="py-12 md:py-16 px-6 bg-[#F7F7F7]">
+        <section className="py-12 md:py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(22px, 3vw, 26px)", fontWeight: 400 }}>DogHub箱根仙石原について</h2>
             <ul className="space-y-3 text-[#3C200F] mb-8" style={{ fontSize: "15px", lineHeight: "1.9" }}>
@@ -266,7 +319,7 @@ export default function HotelsPage() {
         </section>
 
         {/* FAQ */}
-        <section className="py-12 md:py-16 px-6 bg-white">
+        <section className="py-12 md:py-16 px-6 bg-[#F7F7F7]">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-[#3C200F] mb-6" style={{ fontSize: "clamp(22px, 3vw, 26px)", fontWeight: 400 }}>よくある質問</h2>
             <div className="space-y-6">
@@ -302,6 +355,7 @@ function HotelSection({ h }: { h: HotelEntry }) {
       <h3 className="text-[#3C200F] mb-1" style={{ fontSize: "18px", fontWeight: 400 }}>{h.name}</h3>
       <p className="text-[#8F7B65] mb-3" style={{ fontSize: "13px" }}>{h.area}・DogHubまで{h.drive}</p>
       <p className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.8" }}>{h.petPolicy}</p>
+      {h.dogRooms && <p className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.8" }}>犬と泊まれるお部屋：{h.dogRooms}</p>}
       <p className="text-[#8F7B65] mt-1" style={{ fontSize: "12px" }}>
         出典：<a href={h.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">ホテル公式サイト</a>（{h.checkedAt} 確認）
       </p>
