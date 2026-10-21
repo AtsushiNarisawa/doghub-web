@@ -19,13 +19,16 @@ const hotelNavItems = [
   },
   {
     label: "シーン別ガイド",
-    href: "/golf",
+    href: "/#scenes",
     children: [
+      { label: "箱根の宿 × 愛犬の預け方", href: "/hotels" },
+      { label: "高級旅館 × ペットホテル", href: "/ryokan" },
+      { label: "ペット可の宿 × 日中預かり", href: "/pethotel" },
       { label: "ゴルフ × ペットホテル", href: "/golf" },
       { label: "ユネッサン × ペット預かり", href: "/yunessun" },
       { label: "温泉 × ペット預かり", href: "/onsen" },
       { label: "美術館 × ペット預かり", href: "/museum" },
-      { label: "高級旅館 × ペットホテル", href: "/ryokan" },
+      { label: "箱根湯本から", href: "/yumoto" },
       { label: "ドッグラン", href: "/dogrun" },
     ],
   },
@@ -33,7 +36,7 @@ const hotelNavItems = [
   { label: "カフェ・グッズ販売", href: "/cafe" },
   { label: "店舗情報", href: "/access" },
   { label: "よくある質問", href: "/faq" },
-  { label: "お知らせ", href: "/news" },
+  { label: "読みもの", href: "/news" },
 ];
 
 

@@ -357,7 +357,7 @@ export default function OnsenPage() {
             <Link href="/news/hakone-dog-heatstroke-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
               犬の熱中症対策｜夏のお出かけ前に →
             </Link>
-            <Link href="/hakone" className="block text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+            <Link href="/news/hakone-dog-trip-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
               箱根 犬連れ旅行ガイド トップへ →
             </Link>
           </div>

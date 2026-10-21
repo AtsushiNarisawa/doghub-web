@@ -8,13 +8,13 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   openGraph: {
-    title: "お知らせ | DogHub箱根仙石原",
-    description: "DogHub箱根仙石原からのお知らせ・ブログ記事一覧。",
+    title: "読みもの｜箱根の犬連れ旅行と愛犬の預け方｜DogHub箱根仙石原",
+    description: "箱根の観光スポットの犬連れルール、宿・ゴルフ場と愛犬の預け方、旅のコラム、DogHub箱根仙石原からのお知らせをまとめています。",
     url: "https://dog-hub.shop/news",
     type: "website",
   },
-  title: "お知らせ | DogHub箱根仙石原",
-  description: "DogHub箱根仙石原からのお知らせ・ブログ記事一覧。",
+  title: "読みもの｜箱根の犬連れ旅行と愛犬の預け方｜DogHub箱根仙石原",
+  description: "箱根の観光スポットの犬連れルール、宿・ゴルフ場と愛犬の預け方、旅のコラム、DogHub箱根仙石原からのお知らせをまとめています。",
   alternates: { canonical: "/news" },
 };
 
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 const CATEGORY_ORDER: { key: string; label: string }[] = [
   { key: "箱根観光", label: "箱根観光スポット × 犬連れガイド" },
   { key: "コラム", label: "旅行・お預かりのお役立ちコラム" },
-  { key: "宿泊施設", label: "宿泊施設 × 愛犬お預かり" },
+  { key: "宿泊施設", label: "宿・ゴルフ場 × 愛犬お預かり" },
   { key: "お知らせ", label: "DogHubからのお知らせ" },
 ];
 
@@ -42,12 +42,12 @@ export default async function NewsPage() {
     <>
       <Header />
       <main className="pt-15 lg:pt-20">
-        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"お知らせ",href:"/news"}]} />
+        <BreadcrumbJsonLd items={[{name:"ホーム",href:"/"},{name:"読みもの",href:"/news"}]} />
         {/* Hero */}
         <div className="relative">
-          <Image src="/images/img-056.jpg" alt="お知らせ" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
+          <Image src="/images/img-056.jpg" alt="読みもの" className="w-full object-cover" width={700} height={400} priority style={{ height: "clamp(140px, 18vw, 249px)" }} />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-            <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>お知らせ</h1>
+            <h1 style={{ fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 400 }}>読みもの</h1>
           </div>
         </div>
 

@@ -2,6 +2,11 @@ import Link from "next/link";
 
 const scenes = [
   {
+    href: "/hotels",
+    title: "箱根の宿 × お預かり",
+    desc: "犬と泊まれない宿でも、泊まれる宿でも",
+  },
+  {
     href: "/onsen",
     title: "温泉 × お預かり",
     desc: "日帰り温泉の間、愛犬をDogHubへ",
@@ -31,11 +36,16 @@ const scenes = [
     title: "高級旅館 × ペットホテル",
     desc: "憧れの旅館に泊まりながら愛犬は安心",
   },
+  {
+    href: "/yumoto",
+    title: "箱根湯本から × お預かり",
+    desc: "湯本の観光・食べ歩きの前後に",
+  },
 ];
 
 export function SceneGrid() {
   return (
-    <section className="py-12 lg:py-16 px-6 bg-[#F7F5F0] border-t border-border">
+    <section id="scenes" className="py-12 lg:py-16 px-6 bg-[#F7F5F0] border-t border-border scroll-mt-20">
       <div className="max-w-5xl mx-auto">
         <h2 className="text-text text-center mb-2" style={{ fontSize: "clamp(22px, 4vw, 28px)", fontWeight: 400 }}>
           箱根旅行のシーン別 × 愛犬お預かり
@@ -44,7 +54,7 @@ export function SceneGrid() {
           犬と入れない場所こそ、DogHubの出番。<br className="sm:hidden" />
           行きたい場所から選べます。
         </p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {scenes.map((s) => (
             <Link
               key={s.href}

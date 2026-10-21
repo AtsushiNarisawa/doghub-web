@@ -47,7 +47,7 @@ export default function YumotoPage() {
           <p className="text-black max-w-7xl mx-auto" style={{ fontSize: "16px" }}>
             <Link href="/" className="hover:text-[#3C200F]">/</Link>
             <span className="mx-2"></span>
-            <Link href="/hakone" className="hover:text-[#3C200F]">箱根 犬連れガイド</Link>
+            <Link href="/news/hakone-dog-trip-guide" className="hover:text-[#3C200F]">箱根 犬連れガイド</Link>
             <span className="mx-2"></span>
             <span>箱根湯本エリア</span>
           </p>
@@ -243,8 +243,8 @@ export default function YumotoPage() {
                 <Link href="/news/hakone-dog-trip-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
                   → 箱根 犬連れ旅行ガイド｜犬と行けるスポットまとめ
                 </Link>
-                <Link href="/hakone" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
-                  → 箱根 犬連れ旅行ガイド｜犬と箱根を楽しむすべてがここに
+                <Link href="/news/hakone-dog-trip-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 箱根 犬連れ旅行ガイド｜地元スタッフおすすめの1泊2日プラン
                 </Link>
               </div>
             </div>

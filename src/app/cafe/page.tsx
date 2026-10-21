@@ -189,7 +189,7 @@ export default function CafePage() {
         {/* RECOMMEND MENU */}
         <section className="py-16 px-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>RECCOMMEND MENU</h2>
+            <h2 className="text-[#3C200F] mb-10" style={{ fontSize: "clamp(24px, 5vw, 32px)", fontWeight: 400 }}>RECOMMEND MENU</h2>
             <div className="grid md:grid-cols-2 gap-10">
               <div>
                 <Image src="/images/img-045.jpg" alt="箱根ドッグカフェ DogHub箱根仙石原の人気メニュー しらすヤンギンおむすびセット" className="w-full h-auto object-cover" width={700} height={400} style={{ maxWidth: "524px", aspectRatio: "524/270" }} />
@@ -308,7 +308,7 @@ export default function CafePage() {
 
         <section className="px-6 py-6 bg-white border-t border-[#E5DDD8]">
           <div className="max-w-7xl mx-auto text-center">
-            <Link href="/hakone" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
+            <Link href="/news/hakone-dog-trip-guide" className="text-[#B87942] hover:underline" style={{ fontSize: "15px" }}>
               箱根 犬連れ旅行ガイド トップへ →
             </Link>
           </div>

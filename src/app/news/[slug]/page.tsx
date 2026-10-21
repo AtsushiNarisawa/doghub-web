@@ -605,7 +605,7 @@ export default async function NewsDetailPage({ params }: Props) {
       <main className="pt-15 lg:pt-20">
         <BreadcrumbJsonLd items={[
           { name: "ホーム", href: "/" },
-          { name: "お知らせ", href: "/news" },
+          { name: "読みもの", href: "/news" },
           { name: article.title, href: `/news/${slug}` },
         ]} />
         <script
@@ -649,7 +649,7 @@ export default async function NewsDetailPage({ params }: Props) {
           <p className="text-black max-w-4xl mx-auto" style={{ fontSize: "16px" }}>
             <Link href="/" className="hover:text-[#3C200F]">/</Link>
             <span className="mx-2"></span>
-            <Link href="/news" className="hover:text-[#3C200F]">お知らせ</Link>
+            <Link href="/news" className="hover:text-[#3C200F]">読みもの</Link>
             <span className="mx-2"></span>
             <span>{article.title}</span>
           </p>
@@ -827,7 +827,7 @@ export default async function NewsDetailPage({ params }: Props) {
               className="inline-flex items-center gap-2 text-[#3C200F] hover:text-[#B87942] transition-colors"
               style={{ fontSize: "16px", fontWeight: 400 }}
             >
-              ← お知らせ一覧に戻る
+              ← 読みもの一覧に戻る
             </Link>
           </div>
         </section>

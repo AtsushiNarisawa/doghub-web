@@ -12,5 +12,10 @@ export default function BookingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <h1 className="sr-only">オンライン予約</h1>
+      {children}
+    </>
+  );
 }

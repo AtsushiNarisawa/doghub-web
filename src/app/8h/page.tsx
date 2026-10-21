@@ -123,7 +123,7 @@ export default function EightHourPage() {
                   <div className="mt-4 pt-4 border-t border-[#E5DDD8] text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                     <p>通常プラン：9時〜17時</p>
                     <p>早朝プラン：7時〜15時</p>
-                    <p>お預かり最終受付：15時 ／ お引き取り最終：17時</p>
+                    <p>お引き取り最終：17時</p>
                     <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
                   </div>
                 </div>

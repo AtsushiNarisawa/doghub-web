@@ -53,7 +53,7 @@ function CancellationFeeNotice({ date }: { date: string }) {
           いまキャンセルされる場合、キャンセル料はかかりません。無料でキャンセルいただけます。
         </p>
         <p className="text-[12px] text-[#888] mt-2">
-          ご予約日の前日は予約日数の50%、当日は予約日数の100%のキャンセル料が発生いたします。
+          ご予約日の前日は予約日数の50%、当日は予約日数の100%のキャンセル料を申し受けております。
         </p>
         <p className="text-[12px] text-[#888] mt-1">{exception}</p>
       </div>

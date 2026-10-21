@@ -129,11 +129,11 @@ export default function ServicePage() {
           </div>
         </section>
 
-        {/* KOWADARI */}
+        {/* KODAWARI */}
         <section className="py-16 px-6 bg-white">
           <div className="max-w-[1050px] mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(28px, 5vw, 36px)", fontWeight: 400, letterSpacing: "1.8px" }}>KOWADARI</h2>
+              <h2 className="text-[#3C200F] mb-3" style={{ fontSize: "clamp(28px, 5vw, 36px)", fontWeight: 400, letterSpacing: "1.8px" }}>KODAWARI</h2>
               <p className="text-[#311908]" style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 400 }}>DogHubの4つのこだわり</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 md:gap-y-10">
@@ -175,7 +175,7 @@ export default function ServicePage() {
                 <div className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   <p>お預かり時間：午前9時〜午後5時</p>
                   <p>早朝対応：午前7時〜（1日プランのみ）</p>
-                  <p>お預かり最終受付：15時 ／ お引き取り最終：17時</p>
+                  <p>お引き取り最終：17時</p>
                 </div>
                 <a
                   href="/booking"

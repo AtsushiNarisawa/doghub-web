@@ -1,3 +1,4 @@
+import Link from "next/link";
 const reviews = [
   {
     text: "ゴルフの間、安心して預けられました。帰ってきた時の愛犬が本当に嬉しそうで、また利用したいと思います。",
@@ -17,6 +18,15 @@ const reviews = [
     location: "埼玉県",
     plan: "半日プラン",
   },
+];
+
+// 宿・ゴルフ場ごとのご案内（当店の記事）。並び順に優劣はない。
+const stayGuides = [
+  { name: "エクシブ箱根離宮", href: "/news/hakone-miyanoshita-xiv-dog-guide" },
+  { name: "箱根仙石原プリンスホテル", href: "/news/hakone-sengokuhara-prince-dog-guide" },
+  { name: "リトナ箱根", href: "/news/hakone-retona-dog-guide" },
+  { name: "レジーナリゾート箱根仙石原", href: "/news/hakone-regina-resort-dog-guide" },
+  { name: "大箱根カントリークラブ", href: "/news/hakone-daihakone-cc-dog-guide" },
 ];
 
 const media = [
@@ -96,7 +106,7 @@ export function Testimonials() {
         {/* Media & Partners */}
         <div className="mt-12 md:mt-16 pt-10 border-t border-[#E5DDD8]">
           <p className="text-center text-[#8F7B65] mb-6" style={{ fontSize: "13px", fontWeight: 400, letterSpacing: "1px" }}>
-            MEDIA & PARTNERS
+            掲載・ご案内
           </p>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6 mb-6">
             {media.map((m) => (
@@ -106,12 +116,20 @@ export function Testimonials() {
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-[#8F7B65]" style={{ fontSize: "12px", fontWeight: 400 }}>
-            <span>大箱根カントリークラブ 提携</span>
-            <span>リトナ箱根 提携</span>
-            <span>レジーナリゾート箱根仙石原 連携</span>
-            <span>エクシブ箱根離宮 相互紹介</span>
-            <span>アニマルクリニック仙石原 提携</span>
+          {/* 「提携」は取り決めのあるクリニックだけ。宿・ゴルフ場は並列で「ご案内」として載せる（10-21 CEO）。
+              宿・ゴルフ場は施設ごとに掲載の了解をいただいたものだけを足す。 */}
+          <div className="text-center text-[#8F7B65]" style={{ fontSize: "12px", fontWeight: 400, lineHeight: 1.8 }}>
+            <p>提携：アニマルクリニック仙石原（急な体調不良時の受診）</p>
+            <p className="mt-5 mb-2 text-[#3C200F]" style={{ fontSize: "13px" }}>宿・ゴルフ場ごとのご案内</p>
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+              {stayGuides.map((g) => (
+                <Link key={g.href} href={g.href} className="underline underline-offset-2 hover:text-[#B87942]">{g.name}</Link>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-3">
+              <Link href="/hotels" className="text-[#B87942] hover:underline">箱根の宿の預け方 →</Link>
+              <Link href="/golf" className="text-[#B87942] hover:underline">近くのゴルフ場13コース →</Link>
+            </div>
           </div>
         </div>
       </div>

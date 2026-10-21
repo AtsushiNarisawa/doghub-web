@@ -335,8 +335,8 @@ export default function PetHotelPage() {
                 <Link href="/news/hakone-dog-friendly-hotels" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
                   → 箱根で犬と泊まれる宿が見つからない時に｜現実と選択肢
                 </Link>
-                <Link href="/hakone" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
-                  → 箱根 犬連れ旅行ガイド｜犬と箱根を楽しむすべてがここに
+                <Link href="/news/hakone-dog-trip-guide" className="block text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>
+                  → 箱根 犬連れ旅行ガイド｜地元スタッフおすすめの1泊2日プラン
                 </Link>
               </div>
             </div>

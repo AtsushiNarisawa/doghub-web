@@ -76,11 +76,14 @@ export function Footer() {
               <div>
                 <p className="text-[#3C200F] mb-3" style={{ fontSize: "14px", fontWeight: 400 }}>シーン別ガイド</p>
                 <nav className="flex flex-col gap-2">
+                  <Link href="/hotels" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>箱根の宿 × 愛犬の預け方</Link>
                   <Link href="/golf" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>ゴルフ × ペットホテル</Link>
                   <Link href="/yunessun" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>ユネッサン × ペット預かり</Link>
                   <Link href="/onsen" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>温泉 × ペット預かり</Link>
                   <Link href="/museum" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>美術館 × ペット預かり</Link>
                   <Link href="/ryokan" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>高級旅館 × ペットホテル</Link>
+                  <Link href="/pethotel" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>ペット可の宿 × 日中預かり</Link>
+                  <Link href="/yumoto" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>箱根湯本から</Link>
                 </nav>
               </div>
               <div>
@@ -91,7 +94,7 @@ export function Footer() {
                   <Link href="/faq" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>よくある質問</Link>
                   <Link href="/spots" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>おすすめスポット</Link>
                   <Link href="/access" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>店舗情報</Link>
-                  <Link href="/news" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>お知らせ</Link>
+                  <Link href="/news" className="text-[#8F7B65] hover:text-[#3C200F] transition-colors" style={{ fontSize: "13px" }}>読みもの</Link>
                 </nav>
               </div>
             </div>
