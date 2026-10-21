@@ -90,6 +90,13 @@ export default function BookingPage() {
           destination: prev.destination || partner.destination,
           referral_source: prev.referral_source || partner.referralSource,
         }));
+      } else {
+        // 宿の記事（検索で来た方）からは ?dest=<slug> で行き先だけ埋める。
+        // きっかけは埋めない＝先方サイト経由（?partner=）の件数と混ざらないようにする。
+        const dest = getPartner(params.get("dest"));
+        if (dest) {
+          setForm((prev) => ({ ...prev, destination: prev.destination || dest.destination }));
+        }
       }
     }
 

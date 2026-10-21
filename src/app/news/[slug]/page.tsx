@@ -195,9 +195,9 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "宿泊プランを見る",
   },
   "hakone-miyanoshita-xiv-dog-guide": {
-    subtext: "宿まで車で約13分。観光の途中にお立ち寄りいただけます。宿泊プラン¥7,700〜。",
-    href: "/stay",
-    btnLabel: "宿泊プランを見る",
+    subtext: "宿まで車で約13分。宿泊プラン¥7,700〜。翌日のお迎えを遅らせる場合は1時間¥1,100（ワンちゃん1頭あたり）です。",
+    href: "/booking?plan=stay&dest=exiv-hakone",
+    btnLabel: "宿泊のお預かりを予約する",
   },
   "hakone-daihakone-cc-dog-guide": {
     subtext: "ゴルフ場まで車で約5分。早朝7時からお預かり対応。8時間プラン¥5,500。",
@@ -390,8 +390,6 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   ],
   "hakone-miyanoshita-xiv-dog-guide": [
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
-    { label: "8時間プランを見る", href: "/8h", description: "¥5,500 翌日17時までの延長に" },
-    { label: "4時間プランを見る", href: "/4h", description: "¥3,300 翌日15時までの延長に" },
     { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-daihakone-cc-dog-guide": [
