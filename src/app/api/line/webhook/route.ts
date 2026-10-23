@@ -12,9 +12,16 @@ import {
   impliesBooking,
   getJstMoment,
   isWithinBusinessHours,
+  nameGreeting,
   nonTextReply,
 } from "@/lib/line-ack";
 import { sendLineStaffAlert } from "@/lib/email";
+import {
+  isBookingStatusQuery,
+  decideBookingStatus,
+  buildBookingStatusReply,
+  type StatusReservation,
+} from "@/lib/line-booking-status";
 import {
   recordInboundWithBotReply,
   ensureLineConversation,
@@ -96,15 +103,22 @@ async function handleEvent(event: LineEvent) {
         // 受信から約1分・1回限り＝ここで待たされて返信を落とすのが最悪なので、必ず有限時間で
         // 打ち切り、取れなければ「名前なし・曜日ベースの営業時間判定」で必ず送る。
         const ackContext = await loadAckContext(userId);
-        const reply = buildAckMessages(classifyAckKind(text, category), {
-          ...ackContext,
-          infoTopics: detectInfoTopics(text),
-          textImpliesBooking: impliesBooking(text),
-        });
+        // 「予約内容の確認」は、LINE連携済みで安全に答えられる予約だけ自動で答える（2026-10-23）。
+        // 答えられない（延長・仮予約・スタッフメモあり・未連携など）ときは null＝従来の受付文。
+        const statusReply = isBookingStatusQuery(text)
+          ? await loadBookingStatusReply(userId, ackContext)
+          : null;
+        const reply =
+          statusReply ??
+          buildAckMessages(classifyAckKind(text, category), {
+            ...ackContext,
+            infoTopics: detectInfoTopics(text),
+            textImpliesBooking: impliesBooking(text),
+          });
         // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
         await sendLineReplyMessage(replyToken, reply);
         // 自由文は内容を問わず必ずスタッフへメールでエスカレーション
-        await alertStaff(userId, text, category);
+        await alertStaff(userId, text, statusReply ? "予約確認（予約内容を自動回答済み）" : category);
         // 受信トレイへ記録（reply送信後・独立処理。失敗してもreply/200を壊さない）
         await recordInboundWithBotReply({
           lineUserId: userId,
@@ -226,6 +240,58 @@ async function loadAckContext(lineUserId?: string): Promise<AckContext> {
   } catch (e) {
     console.error("loadAckContext failed:", e);
     return fallback;
+  }
+}
+
+// ───── 予約内容の自動回答（2026-10-23）─────
+// LINE連携済みの顧客（customers.line_id 一致）の今後の予約を引き、line-booking-status の
+// decideBookingStatus が「答えてよい」と判断したときだけ文面を返す。それ以外・遅延・失敗は null。
+async function loadBookingStatusReply(
+  lineUserId: string | undefined,
+  ctx: AckContext
+): Promise<ReturnType<typeof buildBookingStatusReply> | null> {
+  if (!lineUserId) return null;
+  const today = getJstMoment().date;
+  const load = async () => {
+    const { data: custs } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("line_id", lineUserId)
+      .limit(5)
+      .returns<{ id: string }[]>();
+    const ids = (custs ?? []).map((c) => c.id);
+    if (ids.length === 0) return null;
+    const { data: rows, error } = await supabase
+      .from("reservations")
+      .select(
+        "id, plan, date, checkout_date, checkin_time, status, walk_option, checkin_extension_from, checkout_extension_until, notes, admin_notes, reservation_dogs(dogs(name, sex))"
+      )
+      .in("customer_id", ids)
+      .neq("status", "cancelled")
+      .or(`date.gte.${today},checkout_date.gte.${today}`)
+      .limit(10);
+    if (error || !rows) return null;
+    type Row = Omit<StatusReservation, "dogs"> & {
+      reservation_dogs: { dogs: { name: string | null; sex: string | null } | null }[] | null;
+    };
+    const upcoming: StatusReservation[] = (rows as unknown as Row[]).map((r) => ({
+      ...r,
+      dogs: (r.reservation_dogs ?? []).map((rd) => rd.dogs).filter((d): d is { name: string | null; sex: string | null } => !!d),
+    }));
+    const decision = decideBookingStatus(upcoming);
+    if (!decision.ok) return null;
+    return buildBookingStatusReply(decision.reservations, {
+      greeting: nameGreeting(ctx.lastName),
+      outsideBusinessHours: ctx.outsideBusinessHours,
+    });
+  };
+  try {
+    const pending = load();
+    pending.catch(() => {});
+    return await withTimeout(pending, ACK_CONTEXT_TIMEOUT_MS, null);
+  } catch (e) {
+    console.error("loadBookingStatusReply failed:", e);
+    return null;
   }
 }
 
