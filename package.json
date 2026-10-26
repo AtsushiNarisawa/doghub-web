@@ -10,7 +10,7 @@
     "check:fragrance": "node scripts/check_fragrance_copy.mjs"
   },
   "dependencies": {
-    "@line/liff": "^2.28.0",
+    "@line/liff": "^2.31.2",
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/supabase-js": "^2.98.0",
     "googleapis": "^171.4.0",
