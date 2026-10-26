@@ -94,8 +94,9 @@ const spots = [
     address: "〒250-0408 神奈川県足柄下郡箱根町強羅1323-119",
     gmaps: "https://maps.google.com/?q=ニコライ バーグマン 箱根 ガーデンズ",
     hp: "https://hakonegardens.jp/",
-    body: "フラワーアーティストのニコライ・バーグマンが手がける、強羅の森の中の庭園です。四季の花と緑の小道を、リードをつけた愛犬と一緒にゆっくり歩けます（放し飼いは不可）。園内のカフェは店内への同伴ができないので、お茶はテラス席でどうぞ。開園は10:00〜17:00（最終入園16:30）、毎週水曜休園、入園料は大人1,800円（当日）。駐車場は先着順です。",
-    img: "",
+    body: "デンマーク出身のフラワーアーティスト、ニコライ・バーグマンが手がける強羅の森の庭園です。ウッドチップを敷いた小道や季節の花に囲まれたパビリオンを、リードをつけた愛犬と一緒にゆっくり歩けます（放し飼いは不可）。入園の受付は入口そばのガーデンショップで。園内のカフェ「NOMU hakone」は店内への同伴ができないので、テイクアウトをテラスや好きな場所で愛犬のそばで味わうのがおすすめです。いちばん高い場所のパビリオンへは階段があります。開園は10:00〜17:00（最終入園16:30）、毎週水曜日は休園、入園料は大人1,800円（当日）。駐車場は先着順です。",
+    img: "/images/nicolai-bergmann-hakone-gardens.jpg",
+    credit: "写真提供：ニコライ バーグマン 箱根 ガーデンズ",
   },
   {
     name: "箱根ラリック美術館",
@@ -157,6 +158,9 @@ export default function SpotsPage() {
                   {spot.img && (
                     <div className="flex-shrink-0">
                       <Image src={spot.img} alt="" className="w-full h-auto object-cover" width={700} height={400} />
+                      {"credit" in spot && spot.credit && (
+                        <p className="text-[#97826F] mt-1" style={{ fontSize: "11px" }}>{spot.credit}</p>
+                      )}
                     </div>
                   )}
                   <div>
