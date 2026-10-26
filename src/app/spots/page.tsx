@@ -87,6 +87,17 @@ const spots = [
     img: "/images/img-065.png",
   },
   {
+    name: "ニコライ バーグマン 箱根 ガーデンズ",
+    category: "散策スポット",
+    canBring: true,
+    distance: "店舗から車で8分",
+    address: "〒250-0408 神奈川県足柄下郡箱根町強羅1323-119",
+    gmaps: "https://maps.google.com/?q=ニコライ バーグマン 箱根 ガーデンズ",
+    hp: "https://hakonegardens.jp/",
+    body: "フラワーアーティストのニコライ・バーグマンが手がける、強羅の森の中の庭園です。四季の花と緑の小道を、リードをつけた愛犬と一緒にゆっくり歩けます（放し飼いは不可）。園内のカフェは店内への同伴ができないので、お茶はテラス席でどうぞ。開園は10:00〜17:00（最終入園16:30）、毎週水曜休園、入園料は大人1,800円（当日）。駐車場は先着順です。",
+    img: "",
+  },
+  {
     name: "箱根ラリック美術館",
     category: "美術館",
     canBring: false,
@@ -142,10 +153,12 @@ export default function SpotsPage() {
           <div className="max-w-7xl mx-auto space-y-12">
             {spots.map((spot) => (
               <div key={spot.name} className="border-t border-[#E5DDD8] pt-10">
-                <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-6 md:gap-8">
-                  <div className="flex-shrink-0">
-                    <Image src={spot.img} alt="" className="w-full h-auto object-cover" width={700} height={400} />
-                  </div>
+                <div className={`grid grid-cols-1 gap-6 md:gap-8 ${spot.img ? "md:grid-cols-[340px_1fr]" : ""}`}>
+                  {spot.img && (
+                    <div className="flex-shrink-0">
+                      <Image src={spot.img} alt="" className="w-full h-auto object-cover" width={700} height={400} />
+                    </div>
+                  )}
                   <div>
                     <div className="flex flex-wrap gap-2 mb-3">
                       <span className="border border-[#311908] text-[#311908] px-3 py-0.5" style={{ fontSize: "13px" }}>{spot.category}</span>
