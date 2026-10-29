@@ -305,6 +305,14 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
     { keyword: "涼しく預けて", images: ["/images/dog-dachshund-poodle-dogrun-wide.jpg"] },
     { keyword: "夏の仙石原を楽しむなら", images: ["/images/doghub-schnauzer-exterior.jpg"] },
   ],
+  // 箱根駅伝の観戦日の記事（2026-10-30 CEO「画像が1個もない」→見出しごとに1枚）
+  "hakone-ekiden-dog-guide": [
+    { keyword: "駅伝の日の箱根は、こうなります", images: [WM.ashinokoTorii.url] },
+    { keyword: "どのプランが合うか", images: ["/images/doghub-hotel-room-full-01.jpg"] },
+    { keyword: "去年のお正月に来られた方は", images: ["/images/dog-poodle-hotel-bed-relax.jpg"] },
+    { keyword: "沿道は、犬にとっても大変な場所です", images: ["/images/dog-dachshund-poodle-dogrun-wide.jpg"] },
+    { keyword: "持ち物とワクチンのこと", images: ["/images/img-037.jpg"] },
+  ],
   "hakone-dog-heatstroke-guide": [
     { keyword: "箱根のような場所へ行くときの暑さ対策", images: ["/images/img-008.jpg"] },
     { keyword: "夏の犬たちの過ごし方", images: ["/images/doghub-hotel-room-full-01.jpg"] },
