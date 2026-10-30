@@ -1,6 +1,22 @@
 import nodemailer from "nodemailer";
 import type { BookingFormData } from "@/types/booking";
 import { PLANS } from "@/types/booking";
+import { currentAgeLabel } from "@/lib/dog-age";
+
+/**
+ * メールに出す年齢（2026-10-30 CEO「最近の予約で年齢が書かれていない」の是正）。
+ * 9/21 からフォームは「生まれた年月」を聞くため、form.dogs[].age は空のまま届く
+ * （年齢は保存時に route.ts の dogAgeFields で計算して DB に入れている）。
+ * 生年月があればそこから計算し、無い子（「わからない」を選んだ方）は入力された年齢を使う。
+ */
+function dogAgeText(dog: { birth_month?: string; birth_unknown?: boolean; age?: string; age_months?: string }): string {
+  if (!dog.birth_unknown && dog.birth_month) {
+    const fromBirth = currentAgeLabel(dog.birth_month);
+    if (fromBirth) return fromBirth;
+  }
+  if (dog.age === "0" && dog.age_months) return `${dog.age_months}ヶ月`;
+  return dog.age ? `${dog.age}歳` : "";
+}
 
 // SMTP トランスポート設定を1箇所に集約（単発共有・一括専用の両方でこの設定を使う）。
 function buildTransport() {
@@ -117,7 +133,7 @@ function buildCustomerEmailHtml(
       : 0;
 
   const dogsHtml = form.dogs.map((dog) => {
-    const ageStr = dog.age === "0" && dog.age_months ? `${dog.age_months}ヶ月` : dog.age ? `${dog.age}歳` : "";
+    const ageStr = dogAgeText(dog);
     return `
     <tr>
       <td style="padding:6px 0;border-bottom:1px solid #f0ebe5;">
@@ -294,7 +310,7 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
   <div style="background:#f7f5f0;border-radius:8px;padding:12px;margin-bottom:8px;font-size:13px;">
     <strong>${escapeHtml(dog.name)}</strong>（${escapeHtml(dog.breed)}）
     ${parseFloat(dog.weight) >= 15 ? `<span style="color:#c2410c;font-weight:600;"> ⚠️ ${escapeHtml(dog.weight)}kg</span>` : ` ${escapeHtml(dog.weight)}kg`}
-    / ${dog.age === "0" && dog.age_months ? `${escapeHtml(dog.age_months)}ヶ月` : dog.age ? `${escapeHtml(dog.age)}歳` : ""}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
+    / ${escapeHtml(dogAgeText(dog)) || "年齢未記入"}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
     / 狂犬病: ${dog.has_rabies_vaccine ? "接種済" : "未接種"} / 混合: ${dog.has_mixed_vaccine ? "接種済" : "未接種"}
     ${dog.allergies ? `<br><span style="color:#888;">アレルギー: ${escapeMultiline(dog.allergies)}</span>` : ""}
     ${dog.meal_notes ? `<br><span style="color:#888;">食事: ${escapeMultiline(dog.meal_notes)}</span>` : ""}
