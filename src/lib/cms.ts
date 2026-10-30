@@ -309,7 +309,7 @@ const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = 
   "hakone-ekiden-dog-guide": [
     { keyword: "駅伝の日の箱根は、こうなります", images: [WM.ashinokoTorii.url] },
     { keyword: "どのプランが合うか", images: ["/images/doghub-hotel-room-full-01.jpg"] },
-    { keyword: "去年のお正月に来られた方は", images: ["/images/img-125.jpg"] },
+    { keyword: "去年のお正月に来られた方は", images: ["/images/img-125-wide.jpg"] },
     { keyword: "沿道は、犬にとっても大変な場所です", images: ["/images/dog-dachshund-poodle-dogrun-wide.jpg"] },
     { keyword: "持ち物とワクチンのこと", images: ["/images/img-037.jpg"] },
   ],
