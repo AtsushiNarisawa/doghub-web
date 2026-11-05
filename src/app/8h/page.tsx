@@ -121,10 +121,11 @@ export default function EightHourPage() {
                     <p>スポット（1時間）：<span className="text-[#B87942]" style={{ fontSize: "24px" }}>¥1,100</span></p>
                   </div>
                   <div className="mt-4 pt-4 border-t border-[#E5DDD8] text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
-                    <p>通常プラン：9時〜17時</p>
-                    <p>早朝プラン：7時〜15時</p>
-                    <p>お引き取り最終：17時</p>
-                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
+                    <p>お預け：7時〜9時の間（7時より前は承っておりません）</p>
+                    <p>ご予約のお預け時刻から8時間が基本料金（例：7時にお預け→15時まで／9時にお預け→17時まで）</p>
+                    <p>過ぎた分は1時間ごとに¥1,100（1頭あたり）。お迎えは17時まで</p>
+                    <p className="mt-1 text-[#B87942]" style={{ fontSize: "14px" }}>例：7時にお預けで16時お迎えなら¥6,600、17時なら¥7,700</p>
+                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※料金は1頭あたり・税込です。スポット（1時間）はお電話でのご予約です。</p>
                   </div>
                 </div>
 
@@ -193,7 +194,7 @@ export default function EightHourPage() {
               </Link>
               <Link href="/stay" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊プラン</p>
-                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥7,700〜 / 1泊</h3>
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥7,700 / 1泊</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>愛犬と泊まれない宿でも箱根旅行を。24時間スタッフ常駐。</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>

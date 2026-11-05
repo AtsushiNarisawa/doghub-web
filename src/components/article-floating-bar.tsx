@@ -19,7 +19,7 @@ export function ArticleFloatingBar({ href }: { href: string; label: string }) {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-40 lg:hidden flex gap-2">
+    <div className="fixed bottom-4 left-4 right-[84px] z-40 lg:hidden flex gap-2">
       <a
         href={IG_PROFILE_URL}
         target="_blank"
@@ -37,8 +37,8 @@ export function ArticleFloatingBar({ href }: { href: string; label: string }) {
         className="flex-1 flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur border border-border rounded-xl shadow-lg"
         style={{ textDecoration: "none" }}
       >
-        <span className="text-text" style={{ fontSize: "13px" }}>箱根旅行中、わんちゃんをお預かり</span>
-        <span className="text-accent" style={{ fontSize: "13px", fontWeight: 500 }}>半日¥3,300〜 →</span>
+        <span className="text-text" style={{ fontSize: "13px" }}>観光中のお預かり</span>
+        <span className="text-accent" style={{ fontSize: "13px", fontWeight: 500 }}>半日¥3,300 →</span>
       </a>
     </div>
   );

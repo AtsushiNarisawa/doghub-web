@@ -225,7 +225,7 @@ export default function SpotsPage() {
                 { href: "/onsen", label: "温泉 × 預かり", desc: "日帰り温泉を堪能" },
                 { href: "/golf", label: "ゴルフ × 預かり", desc: "早朝7時から対応" },
                 { href: "/ryokan", label: "旅館 × 預かり", desc: "憧れの宿に泊まる" },
-                { href: "/service", label: "料金・プラン一覧", desc: "半日¥3,300〜" },
+                { href: "/service", label: "料金・プラン一覧", desc: "半日¥3,300" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="block bg-white border border-[#E5DDD8] hover:border-[#B87942] transition-colors p-4">
                   <p className="text-[#3C200F]" style={{ fontSize: "14px", fontWeight: 500 }}>{item.label}</p>

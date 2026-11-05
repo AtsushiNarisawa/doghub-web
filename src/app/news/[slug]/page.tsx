@@ -15,7 +15,7 @@ import Image from "next/image";
 // 記事スラッグ別CTA設定
 const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: string }> = {
   "hakone-dog-map-zenzan": {
-    subtext: "愛犬と一緒に歩く日は施設マップで、美術館や温泉の日はDogHubで。紅葉の11月と年始の箱根駅伝（1/2・3）はご予約が早く埋まります。宿泊1泊¥7,700〜、日帰りは半日¥3,300〜。",
+    subtext: "愛犬と一緒に歩く日は施設マップで、美術館や温泉の日はDogHubで。紅葉の11月と年始の箱根駅伝（1/2・3）はご予約が早く埋まります。宿泊1泊¥7,700、日帰りは半日¥3,300。",
     href: "/booking",
     btnLabel: "お預かり・宿泊を予約する",
   },
@@ -25,22 +25,22 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "お預かりプラン・料金を見る",
   },
   "hakone-dog-sick-during-trip": {
-    subtext: "24時間スタッフ常駐・完全個室。車で4分のアニマルクリニック仙石原と提携しています（受診はクリニックの診療時間内）。宿泊1泊¥7,700〜、日帰りは半日¥3,300〜。",
+    subtext: "24時間スタッフ常駐・完全個室。車で4分のアニマルクリニック仙石原と提携しています（受診はクリニックの診療時間内）。宿泊1泊¥7,700、日帰りは半日¥3,300。",
     href: "/stay",
     btnLabel: "宿泊プラン・料金を見る",
   },
   "hakone-summer-dog-guide": {
-    subtext: "ユネッサンや美術館など犬NGスポットの間に。完全個室と屋根付きドッグランで、暑い車内に待たせずに済みます。半日¥3,300〜、1日¥5,500〜。",
+    subtext: "ユネッサンや美術館など犬NGスポットの間に。完全個室と屋根付きドッグランで、暑い車内に待たせずに済みます。半日¥3,300、1日¥5,500。",
     href: "/service",
     btnLabel: "夏のお預かりプラン・料金を見る",
   },
   "hakone-dog-heatstroke-guide": {
-    subtext: "空調のきいた完全個室と屋根付きドッグランで、夏の暑さから愛犬を守ります。暑い時間帯やNGスポットの間だけでも。半日¥3,300〜、1日¥5,500〜。",
+    subtext: "空調のきいた完全個室と屋根付きドッグランで、夏の暑さから愛犬を守ります。暑い時間帯やNGスポットの間だけでも。半日¥3,300、1日¥5,500。",
     href: "/service",
     btnLabel: "夏のお預かりプラン・料金を見る",
   },
   "hakone-retona-dog-guide": {
-    subtext: "早朝7時からお預かり。大箱根CCまで約5分、リトナ箱根さんからDogHubまで約10分です。1日¥5,500〜。",
+    subtext: "早朝7時からお預かり。大箱根CCまで約5分、リトナ箱根さんからDogHubまで約10分です。1日¥5,500。",
     href: "/golf",
     btnLabel: "ゴルフ×お預かりプランを見る",
   },
@@ -55,7 +55,7 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "日帰りお預かりプランを見る",
   },
   "hakone-museum-dog-guide": {
-    subtext: "ポーラ美術館まで車4分。2時間¥2,200〜のスポット利用で気軽にお預けできます。",
+    subtext: "ポーラ美術館まで車4分。2時間¥2,200のスポット利用で気軽にお預けできます。",
     href: "/museum",
     btnLabel: "美術館×お預かりのモデルコースを見る",
   },
@@ -65,12 +65,12 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "DogHubのサービス・料金を見る",
   },
   "hakone-dog-friendly-hotels": {
-    subtext: "お好きな宿に泊まって、愛犬は近くのDogHubに1泊お預けする「宿泊分離型」という過ごし方。完全個室・24時間スタッフ常駐で、1泊¥7,700〜。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
+    subtext: "お好きな宿に泊まって、愛犬は近くのDogHubに1泊お預けする「宿泊分離型」という過ごし方。完全個室・24時間スタッフ常駐で、1泊¥7,700。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
     href: "/stay",
     btnLabel: "宿泊お預かりのプラン・料金を見る",
   },
   "hakone-dog-trip-guide": {
-    subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。観光中の暑い時間だけでも、涼しい個室でお預かりします。半日¥3,300〜、1日¥5,500〜。",
+    subtext: "温泉・美術館・ユネッサンなど、ペット不可スポットも安心。観光中の暑い時間だけでも、涼しい個室でお預かりします。半日¥3,300、1日¥5,500。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
@@ -80,17 +80,17 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "カフェメニュー・アクセスを見る",
   },
   "hakone-dog-hotel-guide": {
-    subtext: "24時間スタッフ常駐・完全個室・ドッグラン併設。宿泊¥7,700〜、半日預かり¥3,300〜。",
+    subtext: "24時間スタッフ常駐・完全個室・ドッグラン併設。宿泊¥7,700、半日預かり¥3,300。",
     href: "/stay",
     btnLabel: "宿泊・預かりプランを見る",
   },
   "hakone-dog-overnight-stay-guide": {
-    subtext: "木の壁で仕切った完全個室で1泊¥7,700〜。夜は宿直スタッフが建物に泊まり、ライブカメラで見守ります。お預かり中は毎日、スタッフがドッグランにもお出しします。",
+    subtext: "木の壁で仕切った完全個室で1泊¥7,700。夜は宿直スタッフが建物に泊まり、ライブカメラで見守ります。お預かり中は毎日、スタッフがドッグランにもお出しします。",
     href: "/stay",
     btnLabel: "宿泊プラン・料金を見る",
   },
   "hakone-pet-not-allowed-stay-guide": {
-    subtext: "ペットを受けていない宿にお泊まりの日も、旅の予定を変えずに済みます。完全個室・24時間スタッフ常駐で1泊¥7,700〜。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
+    subtext: "ペットを受けていない宿にお泊まりの日も、旅の予定を変えずに済みます。完全個室・24時間スタッフ常駐で1泊¥7,700。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。",
     href: "/stay",
     btnLabel: "宿泊お預かりのプラン・料金を見る",
   },
@@ -110,7 +110,7 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "料金・サービスを見る",
   },
   "hakone-ashinoko-dog-guide": {
-    subtext: "桃源台から車10分、元箱根から車20分。半日預かり¥3,300〜。",
+    subtext: "桃源台から車10分、元箱根から車20分。半日預かり¥3,300。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
@@ -120,7 +120,7 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "カフェの詳細を見る",
   },
   "hakone-owakudani-dog-guide": {
-    subtext: "大涌谷から車約20分。硫黄ガスの心配なく、愛犬を安心してお預けください。紅葉期と夏の週末は駐車場も混み合います。観光の間、個室でお預かりします。半日¥3,300〜。",
+    subtext: "大涌谷から車約20分。硫黄ガスの心配なく、愛犬を安心してお預けください。紅葉期と夏の週末は駐車場も混み合います。観光の間、個室でお預かりします。半日¥3,300。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
@@ -135,32 +135,32 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "宿泊プランを見る",
   },
   "hakone-chokoku-no-mori-dog-guide": {
-    subtext: "美術館まで車13分。半日¥3,300〜で、ピカソ館までゆっくり鑑賞できます。",
+    subtext: "美術館まで車13分。半日¥3,300で、ピカソ館までゆっくり鑑賞できます。",
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
   "hakone-pola-museum-dog-guide": {
-    subtext: "DogHubから車たった4分。半日¥3,300〜で名画をゆっくり楽しめます。",
+    subtext: "DogHubから車たった4分。半日¥3,300で名画をゆっくり楽しめます。",
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
   "hakone-glass-forest-museum-dog-guide": {
-    subtext: "ガラスの森美術館までDogHubから車3分。半日¥3,300〜で館内もじっくり鑑賞できます。",
+    subtext: "ガラスの森美術館までDogHubから車3分。半日¥3,300で館内もじっくり鑑賞できます。",
     href: "/museum",
     btnLabel: "美術館×お預かりプランを見る",
   },
   "hakone-dog-day-hot-spring-guide": {
-    subtext: "仙石原・強羅・湯本の温泉施設へ好アクセス。半日¥3,300〜で温泉＋ランチにちょうどいい時間配分。",
+    subtext: "仙石原・強羅・湯本の温泉施設へ好アクセス。半日¥3,300で温泉＋ランチにちょうどいい時間配分。",
     href: "/onsen",
     btnLabel: "温泉×お預かりプランを見る",
   },
   "hakone-jinja-dog-guide": {
-    subtext: "箱根神社は犬OKでも、美術館や温泉は犬NG。参拝後の観光中だけお預かりできます。半日¥3,300〜。",
+    subtext: "箱根神社は犬OKでも、美術館や温泉は犬NG。参拝後の観光中だけお預かりできます。半日¥3,300。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
   "hakone-ropeway-pirate-ship-dog-guide": {
-    subtext: "ロープウェイから海賊船への周遊中、ケージを持ち歩かずに身軽に。半日¥3,300〜でお預かりします。",
+    subtext: "ロープウェイから海賊船への周遊中、ケージを持ち歩かずに身軽に。半日¥3,300でお預かりします。",
     href: "/4h",
     btnLabel: "半日お預かりプランを見る",
   },
@@ -180,22 +180,22 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "プラン・料金を見る",
   },
   "hakone-dog-day-trip": {
-    subtext: "半日¥3,300〜。仙石原を拠点に美術館も温泉も効率よく。",
+    subtext: "半日¥3,300。仙石原を拠点に美術館も温泉も効率よく。",
     href: "/service",
     btnLabel: "日帰りプラン・料金を見る",
   },
   "pet-hotel-first-time-tips": {
-    subtext: "完全個室で安心。まずは1時間¥1,100〜のスポット利用から始められます。",
+    subtext: "完全個室で安心。まずは1時間¥1,100のスポット利用から始められます。",
     href: "/service",
     btnLabel: "スポット利用・料金を見る",
   },
   "hakone-sengokuhara-prince-dog-guide": {
-    subtext: "ホテルまで車で約5分。宿泊プラン¥7,700〜。翌日のお迎えを遅らせる場合は1時間¥1,100（ワンちゃん1頭あたり）です。",
+    subtext: "ホテルまで車で約5分。宿泊プラン¥7,700。翌日のお迎えを遅らせる場合は1時間¥1,100（ワンちゃん1頭あたり）です。",
     href: "/booking?plan=stay&dest=sengokuhara-prince",
     btnLabel: "宿泊のお預かりを予約する",
   },
   "hakone-miyanoshita-xiv-dog-guide": {
-    subtext: "宿まで車で約13分。宿泊プラン¥7,700〜。翌日のお迎えを遅らせる場合は1時間¥1,100（ワンちゃん1頭あたり）です。",
+    subtext: "宿まで車で約13分。宿泊プラン¥7,700。翌日のお迎えを遅らせる場合は1時間¥1,100（ワンちゃん1頭あたり）です。",
     href: "/booking?plan=stay&dest=exiv-hakone",
     btnLabel: "宿泊のお預かりを予約する",
   },
@@ -205,12 +205,12 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     btnLabel: "1日お預かりプランを見る",
   },
   "hakone-regina-resort-dog-guide": {
-    subtext: "宿まで車で約2分。チェックイン前・アウト後・観光中の愛犬お預けに。半日¥3,300〜。",
+    subtext: "宿まで車で約2分。チェックイン前・アウト後・観光中の愛犬お預けに。半日¥3,300。",
     href: "/4h",
     btnLabel: "半日プランを見る",
   },
   "hakone-gw-traffic-route-guide": {
-    subtext: "乙女峠を越えて仙石原に着いたら、犬NGの施設もあります。到着後の観光の間、個室で愛犬をお預かりします。半日¥3,300〜、1日¥5,500〜。",
+    subtext: "乙女峠を越えて仙石原に着いたら、犬NGの施設もあります。到着後の観光の間、個室で愛犬をお預かりします。半日¥3,300、1日¥5,500。",
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
@@ -225,7 +225,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車で4分" },
   ],
   "hakone-dog-sick-during-trip": [
-    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐・完全個室" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 24時間スタッフ常駐・完全個室" },
     { label: "ペット可の宿に泊まるなら", href: "/pethotel", description: "チェックイン前・アウト後のお預かり" },
     { label: "はじめての方へ", href: "/guide/pet-hotel-tips", description: "預ける前の不安と、選ぶときの5つの視点" },
     { label: "よくある質問", href: "/faq", description: "持ち物・ワクチン・体調面のご質問" },
@@ -233,19 +233,19 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-summer-dog-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで真夏の温泉プールを満喫" },
     { label: "日帰り温泉に行くなら", href: "/onsen", description: "犬NGの温泉の間だけお預かり" },
-    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 美術館1館＋ランチに" },
-    { label: "1日お預かり", href: "/8h", description: "¥5,500〜 ユネッサンや1日観光に" },
+    { label: "半日お預かり", href: "/4h", description: "¥3,300 美術館1館＋ランチに" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500 ユネッサンや1日観光に" },
   ],
   "hakone-dog-heatstroke-guide": [
-    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 暑い時間帯だけ涼しい個室で" },
-    { label: "1日お預かり", href: "/8h", description: "¥5,500〜 1日通して空調の効いた室内で" },
+    { label: "半日お預かり", href: "/4h", description: "¥3,300 暑い時間帯だけ涼しい個室で" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500 1日通して空調の効いた室内で" },
     { label: "日帰り温泉に行くなら", href: "/onsen", description: "犬NGの温泉の間、涼しくお預かり" },
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "屋内で涼しい1日を満喫" },
   ],
   "hakone-retona-dog-guide": [
     { label: "1日お預かりプランを見る", href: "/8h", description: "¥5,500 ゴルフ1ラウンドに。早朝7時〜" },
     { label: "半日プランを見る", href: "/4h", description: "¥3,300 チェックイン前後・ハーフに" },
-    { label: "宿泊プランを見る", href: "/stay", description: "前泊・連泊に便利。1泊¥7,700〜" },
+    { label: "宿泊プランを見る", href: "/stay", description: "前泊・連泊に便利。1泊¥7,700" },
     { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-dog-trip-guide": [
@@ -258,7 +258,7 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
   "hakone-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "半日で美術館1館＋ランチ" },
     { label: "温泉も楽しみたいなら", href: "/onsen", description: "美術館のあとに温泉も" },
-    { label: "半日プランの料金", href: "/4h", description: "¥3,300〜で美術館1〜2館分の時間" },
+    { label: "半日プランの料金", href: "/4h", description: "¥3,300で美術館1〜2館分の時間" },
   ],
   "hakone-dog-rainy-day": [
     { label: "温泉で過ごすなら", href: "/onsen", description: "雨の日の温泉は格別" },
@@ -266,13 +266,13 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "美術館巡りなら", href: "/museum", description: "雨の日こそ美術館日和" },
   ],
   "hakone-dog-overnight-stay-guide": [
-    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 14時IN・翌朝11時までお預かり" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 14時IN・翌朝11時までお預かり" },
     { label: "ペット可の宿に泊まるなら", href: "/pethotel", description: "チェックイン前・チェックアウト後のお預かり" },
     { label: "はじめて預ける方へ", href: "/guide/pet-hotel-tips", description: "預ける前の不安と、選ぶときの5つの視点" },
     { label: "よくある質問", href: "/faq", description: "持ち物・ワクチン・体調面のご質問" },
   ],
   "hakone-pet-not-allowed-stay-guide": [
-    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐・完全個室" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 24時間スタッフ常駐・完全個室" },
     { label: "旅館にお泊まりなら", href: "/ryokan", description: "ペット不可の旅館に泊まりたい時の選択肢" },
     { label: "犬と泊まれる宿をお探しなら", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びと、分離型という過ごし方" },
     { label: "よくある質問", href: "/faq", description: "持ち物・ワクチン・体調面のご質問" },
@@ -281,22 +281,22 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "ペット可ホテル×日中預かり", href: "/pethotel", description: "チェックイン前・チェックアウト後の観光に" },
     { label: "高級旅館×お預かり", href: "/ryokan", description: "ペット不可の旅館に泊まりたい時の選択肢" },
     { label: "日帰り温泉に行くなら", href: "/onsen", description: "仙石原・強羅・湯本の温泉施設へ" },
-    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 24時間スタッフ常駐" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 24時間スタッフ常駐" },
   ],
   "hakone-ashinoko-dog-guide": [
-    { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "桃源台から車10分。半日¥3,300〜" },
+    { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "桃源台から車10分。半日¥3,300" },
     { label: "芦ノ湖エリアの温泉", href: "/onsen", description: "龍宮殿本館まで車約20分" },
     { label: "美術館にも寄るなら", href: "/museum", description: "犬NGの館内は半日¥3,300でお預かり" },
     { label: "カフェでランチ", href: "/cafe", description: "お迎え前後におむすび＆スープ（土日祝）" },
   ],
   "hakone-owakudani-dog-guide": [
-    { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+    { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300" },
     { label: "観光の後に温泉へ", href: "/onsen", description: "仙石原・小涌谷の温泉施設" },
-    { label: "ロープウェイ＋芦ノ湖も行くなら", href: "/service", description: "1日プラン¥5,500〜で大涌谷→芦ノ湖コース" },
+    { label: "ロープウェイ＋芦ノ湖も行くなら", href: "/service", description: "1日プラン¥5,500で大涌谷→芦ノ湖コース" },
     { label: "帰りに仙石原の美術館へ", href: "/museum", description: "ポーラ・ガラスの森の館内は犬NG。半日¥3,300でお預かり" },
   ],
   "hakone-dog-lunch-guide": [
-    { label: "店内NGのお店で食べる日は", href: "/4h", description: "ランチと観光のあいだだけお預かり。半日¥3,300〜" },
+    { label: "店内NGのお店で食べる日は", href: "/4h", description: "ランチと観光のあいだだけお預かり。半日¥3,300" },
     { label: "カフェのメニューを見る", href: "/cafe", description: "土日祝は愛犬と店内OK。おむすび＆スープ" },
     { label: "午前は美術館、ランチは愛犬と", href: "/museum", description: "ポーラ・ガラスの森は当店から車3〜4分。半日¥3,300" },
   ],
@@ -308,32 +308,32 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "カフェでランチ", href: "/cafe", description: "室内犬連れOK（ランチは土日祝）" },
   ],
   "hakone-dog-hotel-guide": [
-    { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700〜" },
-    { label: "半日プラン", href: "/4h", description: "¥3,300〜" },
+    { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700" },
+    { label: "半日プラン", href: "/4h", description: "¥3,300" },
   ],
   "hakone-pet-hotel-comparison": [
     { label: "料金・サービス詳細", href: "/service", description: "プラン・料金・設備のご案内" },
   ],
   "hakone-dog-hotel-cost-comparison": [
-    { label: "宿泊プラン詳細", href: "/stay", description: "1泊¥7,700〜 個室・24時間常駐" },
+    { label: "宿泊プラン詳細", href: "/stay", description: "1泊¥7,700 個室・24時間常駐" },
     { label: "高級旅館×お預かり", href: "/ryokan", description: "憧れの旅館も犬連れで" },
   ],
   "hakone-chokoku-no-mori-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "半日で彫刻の森＋ランチ" },
     { label: "美術館の後に温泉へ", href: "/onsen", description: "小涌谷の森の湯にもアクセス良好" },
-    { label: "ポーラ美術館も行くなら", href: "/4h", description: "1日プラン¥5,500〜で2館回れる" },
+    { label: "ポーラ美術館も行くなら", href: "/4h", description: "半日¥3,300で美術館1〜2館" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "hakone-pola-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "ポーラ美術館まで車4分" },
     { label: "美術館の後に温泉へ", href: "/onsen", description: "仙石原周辺の温泉施設" },
-    { label: "彫刻の森もセットで", href: "/8h", description: "1日プラン¥5,500〜" },
+    { label: "彫刻の森もセットで", href: "/museum", description: "半日¥3,300で1〜2館・ゆっくりなら1日" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "hakone-glass-forest-museum-dog-guide": [
     { label: "美術館×お預かりプラン", href: "/museum", description: "ガラスの森美術館まで車3分" },
     { label: "温泉もセットで", href: "/onsen", description: "仙石原の日帰り温泉も近隣に" },
-    { label: "ポーラ美術館もセットで", href: "/8h", description: "1日プラン¥5,500〜で2館ハシゴ" },
+    { label: "ポーラ美術館もセットで", href: "/4h", description: "半日¥3,300で美術館1〜2館" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "hakone-jinja-dog-guide": [
@@ -342,71 +342,71 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "ユネッサンにも行くなら", href: "/yunessun", description: "犬NG。DogHubに預けて温泉プール満喫" },
   ],
   "hakone-ropeway-pirate-ship-dog-guide": [
-    { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+    { label: "大涌谷観光中のお預かり", href: "/4h", description: "半日プラン¥3,300" },
     { label: "温泉も行くなら", href: "/onsen", description: "仙石原周辺の温泉13施設" },
     { label: "カフェで休憩", href: "/cafe", description: "お迎え前後に" },
   ],
   "hakone-en-dog-guide": [
-    { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "半日¥3,300〜" },
+    { label: "芦ノ湖観光中のお預かり", href: "/4h", description: "半日¥3,300" },
     { label: "美術館にも寄るなら", href: "/museum", description: "犬NGの館内は半日¥3,300でお預かり" },
     { label: "カフェで休憩", href: "/cafe", description: "仙石原でおむすび＆スープ（土日祝）" },
   ],
   "hakone-gora-park-dog-guide": [
-    { label: "クラフト体験中のお預かり", href: "/4h", description: "半日プラン¥3,300〜" },
+    { label: "クラフト体験中のお預かり", href: "/4h", description: "半日プラン¥3,300" },
     { label: "温泉も行くなら", href: "/onsen", description: "強羅エリアの温泉" },
     { label: "カフェでランチ", href: "/cafe", description: "DogHubのおむすび＆スープ（土日祝）" },
   ],
   "hakone-gw-spring-dog-guide": [
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで温泉プール満喫" },
     { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車4分" },
-    { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700〜" },
+    { label: "宿泊プラン", href: "/stay", description: "1泊¥7,700" },
   ],
   "hakone-dog-day-trip": [
     { label: "日帰り温泉プラン", href: "/onsen", description: "半日お預かりで温泉＋ランチ" },
-    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 美術館1館＋温泉に" },
-    { label: "1日お預かり", href: "/8h", description: "¥5,500〜 芦ノ湖方面まで" },
+    { label: "半日お預かり", href: "/4h", description: "¥3,300 美術館1館＋温泉に" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500 芦ノ湖方面まで" },
     { label: "カフェで休憩", href: "/cafe", description: "おむすび＆スープ（土日祝）" },
   ],
   "hakone-dog-day-hot-spring-guide": [
     { label: "温泉×お預かりプラン", href: "/onsen", description: "仙石原・強羅・湯本の温泉施設へ" },
-    { label: "半日お預かり", href: "/4h", description: "¥3,300〜 温泉＋ランチにちょうどいい" },
+    { label: "半日お預かり", href: "/4h", description: "¥3,300 温泉＋ランチにちょうどいい" },
     { label: "ユネッサンに行くなら", href: "/yunessun", description: "1日お預かりで温泉プール満喫" },
     { label: "お迎え後にカフェ", href: "/cafe", description: "おむすび＆スープで一休み（土日祝）" },
   ],
   "spring-walk-guide": [
     { label: "カフェで休憩", href: "/cafe", description: "お散歩後におむすび＆スープ" },
-    { label: "お散歩のあと美術館へ", href: "/4h", description: "その間だけお預かり。半日¥3,300〜" },
+    { label: "お散歩のあと美術館へ", href: "/4h", description: "その間だけお預かり。半日¥3,300" },
     { label: "ドッグランで遊ぶ", href: "/dogrun", description: "お散歩のあとに自由に走り回れる" },
   ],
   "pet-hotel-first-time-tips": [
     { label: "ご利用ガイド", href: "/guide", description: "初めての方向けのご案内" },
-    { label: "料金プラン", href: "/service", description: "スポット1時間¥1,100〜" },
+    { label: "料金プラン", href: "/service", description: "スポット1時間¥1,100" },
   ],
   "hakone-sengokuhara-prince-dog-guide": [
-    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 完全個室・24時間常駐" },
     { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-miyanoshita-xiv-dog-guide": [
-    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 完全個室・24時間常駐" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 完全個室・24時間常駐" },
     { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-daihakone-cc-dog-guide": [
     { label: "8時間プランを見る", href: "/8h", description: "¥5,500 早朝7時〜のお預かり対応" },
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 短時間ラウンドに" },
-    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700〜 前泊に便利" },
+    { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 前泊に便利" },
     { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-regina-resort-dog-guide": [
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 チェックイン前後の観光に" },
     { label: "8時間プランを見る", href: "/8h", description: "¥5,500 ユネッサンや1日観光に" },
-    { label: "スポットプラン", href: "/service", description: "1時間¥1,100〜 短時間のお預けに" },
+    { label: "スポットプラン", href: "/service", description: "1時間¥1,100 短時間のお預けに" },
     { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
   "hakone-gw-traffic-route-guide": [
     { label: "DogHubへのアクセス", href: "/access", description: "乙女峠から仙石原へ。駐車場情報もこちら" },
     { label: "仙石原の観光スポット", href: "/spots", description: "到着後の過ごし方の参考に" },
     { label: "美術館に行くなら預ける", href: "/museum", description: "ポーラ美術館まで車4分" },
-    { label: "ユネッサンに行くなら預ける", href: "/yunessun", description: "1日お預かり¥5,500〜" },
+    { label: "ユネッサンに行くなら預ける", href: "/yunessun", description: "1日お預かり¥5,500" },
   ],
 };
 
@@ -723,7 +723,7 @@ export default async function NewsDetailPage({ params }: Props) {
                   泊まりがけの箱根旅行なら、夜だけお預けする方法も
                 </p>
                 <p style={{ fontSize: "13px", color: "#8F7B65", marginBottom: "12px", lineHeight: "1.7" }}>
-                  お泊まりの宿がペット不可でも、旅程はそのままで大丈夫。愛犬は完全個室のお部屋で1泊お預かりします（1泊¥7,700〜・24時間スタッフ常駐）。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。
+                  お泊まりの宿がペット不可でも、旅程はそのままで大丈夫。愛犬は完全個室のお部屋で1泊お預かりします（1泊¥7,700・24時間スタッフ常駐）。チェックインは14:00〜17:00、お引き取りは翌9:00〜11:00です。
                 </p>
                 <Link
                   href="/stay"

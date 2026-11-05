@@ -129,7 +129,7 @@ export default function HakonePage() {
               <div className="bg-white p-6">
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "18px", fontWeight: 400 }}>ペットホテル</h3>
                 <p className="text-[#8F7B65] mb-3" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
-                  宿泊¥7,700〜、半日¥3,300〜。24時間スタッフ常駐・個室・ドッグラン併設。
+                  宿泊¥7,700、半日¥3,300。24時間スタッフ常駐・個室・ドッグラン併設。
                 </p>
                 <Link href="/service" data-cta-id="hakone_service" className="text-[#B87942] hover:underline" style={{ fontSize: "14px" }}>料金・サービス →</Link>
               </div>
@@ -163,7 +163,7 @@ export default function HakonePage() {
                 mainEntity: [
                   { "@type": "Question", name: "箱根で犬と一緒に行ける観光スポットは？", acceptedAnswer: { "@type": "Answer", text: "すすき草原（仙石原）、芦ノ湖畔の遊歩道、箱根神社、恩賜箱根公園などが犬連れOKです。一方、美術館（ポーラ、ガラスの森等）、温泉施設、ユネッサンはペット不可です。" }},
                   { "@type": "Question", name: "犬連れで箱根のレストランに入れますか？", acceptedAnswer: { "@type": "Answer", text: "テラス席のみ犬OKのお店はいくつかあります。室内で犬と食事できるお店は限られていますが、DogHub箱根仙石原のOMUSUBI & SOUP CAFEは室内犬同伴OKです。" }},
-                  { "@type": "Question", name: "箱根に犬のペットホテルはありますか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原が箱根エリアのペットホテルです。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。仙石原の中心にあり、強羅・芦ノ湖・ユネッサンなど主要観光地へアクセス良好です。" }},
+                  { "@type": "Question", name: "箱根に犬のペットホテルはありますか？", acceptedAnswer: { "@type": "Answer", text: "DogHub箱根仙石原が箱根エリアのペットホテルです。宿泊1泊¥7,700、半日預かり¥3,300。24時間スタッフ常駐・完全個室・ドッグラン併設。仙石原の中心にあり、強羅・芦ノ湖・ユネッサンなど主要観光地へアクセス良好です。" }},
                   { "@type": "Question", name: "犬連れの箱根旅行で車は必要ですか？", acceptedAnswer: { "@type": "Answer", text: "車での移動がおすすめです。箱根登山鉄道はキャリーバッグに入れれば犬も乗車可能ですが、観光の自由度を考えると車が一番便利です。" }},
                 ],
               }) }}
@@ -172,7 +172,7 @@ export default function HakonePage() {
               {[
                 { q: "箱根で犬と一緒に行ける観光スポットは？", a: "すすき草原（仙石原）、芦ノ湖畔の遊歩道、箱根神社、恩賜箱根公園などが犬連れOKです。一方、美術館（ポーラ、ガラスの森等）、温泉施設、ユネッサンはペット不可です。" },
                 { q: "犬連れで箱根のレストランに入れますか？", a: "テラス席のみ犬OKのお店はいくつかあります。室内で犬と食事できるお店は限られていますが、DogHub箱根仙石原のOMUSUBI & SOUP CAFEは室内犬同伴OKです。" },
-                { q: "箱根に犬のペットホテルはありますか？", a: "DogHub箱根仙石原が箱根エリアのペットホテルです。宿泊1泊¥7,700〜、半日預かり¥3,300〜。24時間スタッフ常駐・完全個室・ドッグラン併設。仙石原の中心にあり、強羅・芦ノ湖・ユネッサンなど主要観光地へアクセス良好です。" },
+                { q: "箱根に犬のペットホテルはありますか？", a: "DogHub箱根仙石原が箱根エリアのペットホテルです。宿泊1泊¥7,700、半日預かり¥3,300。24時間スタッフ常駐・完全個室・ドッグラン併設。仙石原の中心にあり、強羅・芦ノ湖・ユネッサンなど主要観光地へアクセス良好です。" },
                 { q: "犬連れの箱根旅行で車は必要ですか？", a: "車での移動がおすすめです。箱根登山鉄道はキャリーバッグに入れれば犬も乗車可能ですが、観光の自由度を考えると車が一番便利です。" },
               ].map((faq) => (
                 <details key={faq.q} className="border border-[#E5DDD8] group">

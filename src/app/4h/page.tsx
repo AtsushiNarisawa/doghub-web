@@ -11,19 +11,19 @@ import { InstagramFollowLight } from "@/components/instagram-follow";
 export const metadata: Metadata = {
   openGraph: {
     title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
-    description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
+    description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
     url: "https://dog-hub.shop/4h",
     type: "website",
   },
   title: "箱根 半日預かり 4時間プラン｜DogHub箱根仙石原 ペットホテル",
-  description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
+  description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
   alternates: { canonical: "/4h" },
 };
 
 const scenes = [
   {
     title: "ユネッサンを楽しむ間に",
-    body: "箱根小涌園ユネッサンはペット同伴不可。DogHubから車で約15分。ユネッサンは移動含めると半日では足りないため、1日プラン（¥5,500）がおすすめです。",
+    body: "箱根小涌園ユネッサンはペット同伴不可。DogHubから車で約15分。温泉プールだけなら半日、森の湯やランチまでゆっくりなら1日プラン（¥5,500）がちょうどいいです。",
     keyword: "ユネッサン ペット 預かり",
   },
   {
@@ -65,7 +65,7 @@ export default function FourHourPage() {
             "@context": "https://schema.org",
             "@type": "Service",
             name: "犬の半日お預かり（4時間）",
-            description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300〜。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
+            description: "箱根仙石原の犬の半日お預かりプラン。4時間¥3,300。温泉や美術館の間にちょこっとお預け。スポット利用¥1,100/1時間も。24時間スタッフ常駐。",
             provider: {
               "@type": "LocalBusiness",
               name: "DogHub箱根仙石原",
@@ -113,7 +113,7 @@ export default function FourHourPage() {
                   そんな箱根旅行のお悩みを解決するのが、DogHub箱根仙石原の半日お預かりプランです。
                 </p>
                 <p className="text-[#3C200F] mb-8" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                  4時間¥3,300からご利用いただけます。スポット利用なら1時間¥1,100から。
+                  4時間¥3,300でご利用いただけます。スポット利用（お電話でのご予約）なら1時間¥1,100。
                   日帰り旅行の中に組み合わせて、愛犬も飼い主様も箱根を満喫してください。
                 </p>
 
@@ -125,9 +125,10 @@ export default function FourHourPage() {
                     <p>スポット（1時間）：<span className="text-[#B87942]" style={{ fontSize: "24px" }}>¥1,100</span></p>
                   </div>
                   <div className="mt-4 pt-4 border-t border-[#E5DDD8] text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
-                    <p>お預かり時間：9時〜17時</p>
-                    <p>受付時間：9時〜13時 ／ お引き取り最終：17時</p>
-                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※表示料金はすべて税込です。</p>
+                    <p>お預け：9時〜13時の間</p>
+                    <p>ご予約のお預け時刻から4時間が基本料金（例：11時にお預け→15時まで）</p>
+                    <p>過ぎた分は1時間ごとに¥1,100（1頭あたり）。お迎えは17時まで</p>
+                    <p className="mt-2 text-[#8F7B65]" style={{ fontSize: "14px" }}>※料金は1頭あたり・税込です。スポット（1時間）はお電話でのご予約です。</p>
                   </div>
                 </div>
 
@@ -223,7 +224,7 @@ export default function FourHourPage() {
               </Link>
               <Link href="/stay" className="block border border-[#E5DDD8] p-6 hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊プラン</p>
-                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥7,700〜 / 1泊</h3>
+                <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>¥7,700 / 1泊</h3>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>愛犬と泊まれない宿でも箱根旅行を。24時間スタッフ常駐。</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>

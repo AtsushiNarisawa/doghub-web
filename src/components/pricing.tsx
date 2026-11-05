@@ -20,7 +20,7 @@ const plans = [
   {
     label: "宿泊プラン",
     en: "PET HOTEL",
-    price: "¥7,700〜",
+    price: "¥7,700",
     unit: "/ 1泊",
     description: "愛犬と泊まれない宿でも箱根旅行をあきらめない",
     href: "/stay",

@@ -10,12 +10,12 @@ import Image from "next/image";
 export const metadata: Metadata = {
   openGraph: {
     title: "箱根の日帰り温泉×犬連れ｜愛犬はDogHubに預けて温泉を満喫｜仙石原",
-    description: "箱根の日帰り温泉を犬連れで楽しみたい方へ。犬OKの温泉は限定的ですが、愛犬をDogHub箱根仙石原に預ければ自由に温泉を満喫できます。半日4時間¥3,300〜。仙石原・強羅・箱根湯本エリアの温泉施設へ好アクセス。",
+    description: "箱根の日帰り温泉を犬連れで楽しみたい方へ。犬OKの温泉は限定的ですが、愛犬をDogHub箱根仙石原に預ければ自由に温泉を満喫できます。半日4時間¥3,300。仙石原・強羅・箱根湯本エリアの温泉施設へ好アクセス。",
     url: "https://dog-hub.shop/onsen",
     type: "website",
   },
   title: "箱根の日帰り温泉×犬連れ｜愛犬はDogHubに預けて温泉を満喫｜仙石原",
-  description: "箱根の日帰り温泉を犬連れで楽しみたい方へ。犬OKの温泉は限定的ですが、愛犬をDogHub箱根仙石原に預ければ自由に温泉を満喫できます。半日4時間¥3,300〜。仙石原・強羅・箱根湯本エリアの温泉施設へ好アクセス。",
+  description: "箱根の日帰り温泉を犬連れで楽しみたい方へ。犬OKの温泉は限定的ですが、愛犬をDogHub箱根仙石原に預ければ自由に温泉を満喫できます。半日4時間¥3,300。仙石原・強羅・箱根湯本エリアの温泉施設へ好アクセス。",
   alternates: { canonical: "/onsen" },
 };
 
@@ -94,7 +94,7 @@ const faqJsonLd = {
       "name": "DogHubに愛犬を預けて温泉に行く場合の料金は？",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "日帰り温泉とランチなら半日プラン（4時間¥3,300）がちょうどいい時間配分です。1時間¥1,100〜のスポット利用も可能で、温泉だけサッと楽しむ使い方もできます。宿泊プランは¥7,700/泊〜。"
+        "text": "日帰り温泉とランチなら半日プラン（4時間¥3,300）がちょうどいい時間配分です。1時間¥1,100のスポット利用も可能で、温泉だけサッと楽しむ使い方もできます。宿泊プランは¥7,700/泊。"
       }
     },
     {
@@ -166,7 +166,7 @@ export default function OnsenPage() {
               車の中で待たせるのも、夏は熱中症・冬は低温のリスクがあります。でも、だからといって箱根の温泉を諦めるのはもったいない。
             </p>
             <p className="text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-              うちのお客さまで一番多いのは「<b>犬はDogHubに預けて、飼い主さんだけ温泉を満喫する</b>」スタイル。半日4時間¥3,300〜で、日帰り温泉＋ランチがちょうど収まる時間配分です。
+              うちのお客さまで一番多いのは「<b>犬はDogHubに預けて、飼い主さんだけ温泉を満喫する</b>」スタイル。半日4時間¥3,300で、日帰り温泉＋ランチがちょうど収まる時間配分です。
             </p>
           </div>
         </section>
@@ -196,7 +196,7 @@ export default function OnsenPage() {
                     </div>
                     <div>
                       <p className="text-[#B87942]" style={{ fontSize: "14px" }}>スポット利用（1時間〜）</p>
-                      <p style={{ fontSize: "24px" }}>¥1,100〜</p>
+                      <p style={{ fontSize: "24px" }}>¥1,100</p>
                       <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>「温泉だけ入りたい」なら2〜3時間でOK</p>
                     </div>
                   </div>
@@ -241,7 +241,7 @@ export default function OnsenPage() {
               </div>
               <div className="bg-white border border-[#E5DDD8] p-8">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>温泉旅館 + 宿泊プラン</h3>
-                <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊プラン ¥7,700〜</p>
+                <p className="text-[#B87942] mb-4" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊プラン ¥7,700</p>
                 <div className="space-y-3 text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "2" }}>
                   <p>【1日目】14:00 DogHubにチェックイン</p>
                   <p>15:00 温泉旅館でチェックイン</p>
@@ -285,7 +285,7 @@ export default function OnsenPage() {
               <div className="border border-[#E5DDD8] p-6 rounded-sm">
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>Q. DogHubに預けるとどのくらいの料金ですか？</h3>
                 <p className="text-[#3C200F]" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>
-                  日帰り温泉＋ランチなら半日プラン（4時間 ¥3,300）がちょうどいい時間配分です。1時間¥1,100〜のスポット利用（お電話でのご予約）もあるので、「温泉だけサッと」という使い方もできます。宿泊プランは¥7,700/泊〜。
+                  日帰り温泉＋ランチなら半日プラン（4時間 ¥3,300）がちょうどいい時間配分です。1時間¥1,100のスポット利用（お電話でのご予約）もあるので、「温泉だけサッと」という使い方もできます。宿泊プランは¥7,700/泊。
                 </p>
               </div>
               <div className="border border-[#E5DDD8] p-6 rounded-sm">
@@ -317,7 +317,7 @@ export default function OnsenPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Link href="/yunessun" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ユネッサン × ペット預かり</h3>
-                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>車で約15分。半日¥3,300〜</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>車で約15分。半日¥3,300</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
               <Link href="/museum" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">

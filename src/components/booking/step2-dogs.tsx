@@ -164,9 +164,9 @@ function DogForm({
         </div>
       </div>
 
-      {parseFloat(dog.weight) >= 15 && (
+      {parseFloat(dog.weight) > 15 && (
         <p className="text-orange-500 text-sm bg-orange-50 p-3 rounded-lg">
-          体重15kg以上のワンちゃんは、スタッフ確認後に予約確定となります。
+          体重15kgを超えるワンちゃんは、スタッフ確認後に予約確定となります。
         </p>
       )}
 

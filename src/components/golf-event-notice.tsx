@@ -53,7 +53,7 @@ export function GolfEventNotice() {
               className="text-[#3C200F]"
               style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}
             >
-              宿泊 1泊 ¥7,700〜
+              宿泊 1泊 ¥7,700
               <br />
               チェックイン14〜17時／チェックアウト9〜11時
             </p>

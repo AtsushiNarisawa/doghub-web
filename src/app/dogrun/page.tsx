@@ -10,12 +10,12 @@ import Image from "next/image";
 export const metadata: Metadata = {
   openGraph: {
     title: "箱根 ドッグラン｜屋根付き・自然の中の専用ドッグラン｜DogHub箱根仙石原",
-    description: "箱根仙石原、専用ドッグラン併設のペットホテル。お預かり中は必ずドッグランにお出しして運動。屋根付きで雨の日・夏の暑い日も快適。完全個室・早朝7時から、半日¥3,300〜・1泊¥7,700〜。観光やゴルフの間も安心です。",
+    description: "箱根仙石原、専用ドッグラン併設のペットホテル。お預かり中は必ずドッグランにお出しして運動。屋根付きで雨の日・夏の暑い日も快適。完全個室・早朝7時から、半日¥3,300・1泊¥7,700。観光やゴルフの間も安心です。",
     url: "https://dog-hub.shop/dogrun",
     type: "website",
   },
   title: "箱根 ドッグラン｜屋根付き・自然の中の専用ドッグラン｜DogHub箱根仙石原",
-  description: "箱根仙石原、専用ドッグラン併設のペットホテル。お預かり中は必ずドッグランにお出しして運動。屋根付きで雨の日・夏の暑い日も快適。完全個室・早朝7時から、半日¥3,300〜・1泊¥7,700〜。観光やゴルフの間も安心です。",
+  description: "箱根仙石原、専用ドッグラン併設のペットホテル。お預かり中は必ずドッグランにお出しして運動。屋根付きで雨の日・夏の暑い日も快適。完全個室・早朝7時から、半日¥3,300・1泊¥7,700。観光やゴルフの間も安心です。",
   alternates: { canonical: "/dogrun" },
 };
 
@@ -53,6 +53,19 @@ export default function DogrunPage() {
                 <h3 className="text-[#3C200F] mb-6" style={{ fontSize: "26px", fontWeight: 400, lineHeight: "1.6" }}>
                   仙石原の自然の中で<br />のびのび遊べるドッグラン
                 </h3>
+                <div className="bg-[#FFF8F3] border-2 border-[#B87942] rounded-lg px-4 py-4 mb-6">
+                  <p className="text-[#3C200F] font-medium mb-2" style={{ fontSize: "16px", lineHeight: "1.6" }}>ドッグランをご利用いただけるのは</p>
+                  <ul className="text-[#3C200F] list-disc pl-5" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>
+                    <li>お預かり中のわんちゃん（毎日・スタッフがお出しします）</li>
+                    <li><span className="font-medium">土日祝</span>にカフェ（おむすび＆スープ）をご利用のお客様と、そのわんちゃん（<span className="font-medium">無料</span>）</li>
+                  </ul>
+                  <p className="text-[#B87942] font-medium mt-2" style={{ fontSize: "15px", lineHeight: "1.8" }}>
+                    平日（金・月・火）はカフェがお飲み物のテイクアウトのみのため、ドッグランだけのご利用はできません。
+                  </p>
+                  <p className="text-[#8F7B65] mt-1" style={{ fontSize: "13px", lineHeight: "1.8" }}>
+                    お預かり中のわんちゃんが優先です。カフェご利用時の長時間のご利用はご遠慮ください。
+                  </p>
+                </div>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   DogHub箱根仙石原は、専用ドッグランを併設した箱根仙石原のペットホテル・犬のホテルです。
                   わんちゃんが走り回れるドッグランで、箱根の豊かな自然に囲まれながら、愛犬ものびのびリフレッシュできます。
@@ -62,11 +75,6 @@ export default function DogrunPage() {
                   お預かり中のわんちゃんは、毎日必ず専用ドッグランにお出しして運動します。お散歩は宿泊のお預かりのみ、¥550/回のオプションで承ります。
                   ケージに閉じ込めっぱなしにはしません。
                 </p>
-                <div className="bg-[#FFF8F3] border-l-4 border-[#B87942] px-4 py-3 mb-6">
-                  <p className="text-[#3C200F]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
-                    <span className="font-medium">ご利用について：</span>ドッグランの単独利用はできません。お預かりサービスをご利用のお客様、または<span className="font-medium">おむすび＆スープをご提供する土日祝にカフェをご利用のお客様</span>にご利用いただけます（平日はお飲み物のテイクアウト販売のみのため、ドッグランのご利用はできません）。お預かり中のわんちゃんが優先となりますので、カフェご利用時の長時間のご利用はご遠慮ください。
-                  </p>
-                </div>
               </div>
 
               <div>
@@ -141,7 +149,7 @@ export default function DogrunPage() {
           <div className="max-w-7xl mx-auto text-center">
             <h2 className="text-[#3C200F] mb-4" style={{ fontSize: "26px", fontWeight: 400 }}>お預かりプラン</h2>
             <p className="text-[#8F7B65] mb-6" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.8" }}>
-              半日お預かり ¥3,300〜 ／ 1日お預かり ¥5,500〜 ／ 宿泊 ¥7,700〜
+              半日お預かり ¥3,300 ／ 1日お預かり ¥5,500 ／ 宿泊 ¥7,700
             </p>
             <Link
               href="/service"

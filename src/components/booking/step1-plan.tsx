@@ -511,7 +511,7 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
             <div>
               <p className="font-medium text-[15px]">{selectedPlan.name}</p>
               <p className="text-[#B87942] text-sm mt-0.5">
-                ¥{selectedPlan.basePrice.toLocaleString()}{selectedPlan.priceUnit || ""}〜
+                ¥{selectedPlan.basePrice.toLocaleString()}{selectedPlan.priceUnit || ""}（1頭あたり）
               </p>
             </div>
             <button
@@ -571,9 +571,12 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
                     <p className="text-[12px] text-[#B87942] mt-1">{plan.checkoutInfo}</p>
                   )}
                 </div>
-                <p className="text-[#B87942] font-medium whitespace-nowrap ml-3">
-                  ¥{plan.basePrice.toLocaleString()}{plan.priceUnit || ""}〜
-                </p>
+                <div className="text-right ml-3">
+                  <p className="text-[#B87942] font-medium whitespace-nowrap">
+                    ¥{plan.basePrice.toLocaleString()}{plan.priceUnit || ""}
+                  </p>
+                  <p className="text-[11px] text-[#888] whitespace-nowrap">1頭あたり・税込</p>
+                </div>
               </div>
             </button>
           ))}
@@ -672,9 +675,14 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
               ))}
             </div>
           ) : null}
-          <p className="text-[13px] text-[#888] mt-2">
-            お引き取り最終: 17:00（超過: ¥1,100/時間）
-          </p>
+          {form.plan !== "stay" && selectedPlan?.maxHours ? (
+            <p className="text-[13px] text-[#888] mt-2">
+              {form.checkin_time
+                ? `${form.checkin_time}にお預け → ${String(Number(form.checkin_time.split(":")[0]) + selectedPlan.maxHours).padStart(2, "0")}:00までが基本料金です。`
+                : `ご予約のお預け時刻から${selectedPlan.maxHours}時間が基本料金です。`}
+              過ぎた分は1時間ごとに¥1,100（1頭あたり）。お迎えは17:00までです。
+            </p>
+          ) : null}
         </div>
       )}
 

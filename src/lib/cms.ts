@@ -400,7 +400,8 @@ function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string):
 
   // モデルコース（時間→の形式）をタイムライン風に変換
   html = html.replace(
-    /<p>((?:\d{1,2}:\d{2}\s.+?→\s*)+.+?)<\/p>/gi,
+    // 段落の区切り（</p>）を越えないようにする。越えると次の段落（見出し）まで1つの時刻表に取り込まれる（2026-11-05 美術館記事で発生）
+    /<p>((?:\d{1,2}:\d{2}\s(?:(?!<\/p>).)+?→\s*)+(?:(?!<\/p>).)+?)<\/p>/gi,
     (_match, content) => {
       const text = content.replace(/<[^>]+>/g, "");
       const steps = text.split(/\s*→\s*/).filter(Boolean);

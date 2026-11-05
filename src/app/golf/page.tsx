@@ -64,7 +64,7 @@ const faqs = [
   },
   {
     q: "前の日から箱根に泊まってゴルフをします。",
-    a: `前日の${stay.checkinRange.start}〜${stay.checkinRange.end}から宿泊でお預かりできます（1泊${yen(stay.basePrice)}〜）。翌朝はそのままゴルフ場へ向かい、ラウンド後にお迎えに来ていただけます。`,
+    a: `前日の${stay.checkinRange.start}〜${stay.checkinRange.end}から宿泊でお預かりできます（1泊${yen(stay.basePrice)}）。翌朝はそのままゴルフ場へ向かい、ラウンド後にお迎えに来ていただけます。`,
   },
   {
     q: "どんな犬を預けられますか？",
@@ -138,7 +138,7 @@ export default function GolfPage() {
             <div className="grid md:grid-cols-3 gap-4">
               {[
                 { id: "day", price: `1日（8時間）${yen(day.basePrice)}`, label: "日帰りでゴルフ", sub: `朝${day.checkinRange.start}〜${day.checkinRange.end}にお預け` },
-                { id: "trip", price: `宿泊 ${yen(stay.basePrice)}〜/泊`, label: "泊まりがけのゴルフ旅行", sub: "前の日から預けて、翌朝そのままゴルフ場へ" },
+                { id: "trip", price: `宿泊 ${yen(stay.basePrice)}/泊`, label: "泊まりがけのゴルフ旅行", sub: "前の日から預けて、翌朝そのままゴルフ場へ" },
                 { id: "half", price: `半日（4時間）${yen(half.basePrice)}`, label: "ハーフ・午後スタート", sub: `${half.checkinRange.start}〜${half.checkinRange.end}にお預け` },
               ].map((c) => (
                 <a key={c.id} href={`#${c.id}`} data-cta-id={`golf_toc_${c.id}`} className="block border border-[#3C200F] p-5 hover:bg-[#F7F7F7] transition-colors">
@@ -168,11 +168,13 @@ export default function GolfPage() {
                       ["7:00", "DogHubにお預け"],
                       ["7:30ごろ", "ゴルフ場に到着・スタート"],
                       ["昼すぎ", "ラウンド終了・昼食"],
-                      ["〜15:00", "DogHubでお迎え（7:00にお預けの場合）"],
+                      ["15:00", "ここまでが基本料金（7:00にお預けの場合）"],
+                      ["〜17:00", "お迎え（15時を過ぎた分は1時間ごとに延長）"],
                     ]}
                   />
                   <p className="text-[#8F7B65] mt-4" style={{ fontSize: "14px", lineHeight: "1.8" }}>
-                    8時間を過ぎる場合は、1時間{yen(EXTRA_HOUR_FEE)}（ワンちゃん1頭あたり）で延長できます。お迎えは17:00までです。
+                    ご予約のお預け時刻から8時間が基本料金です。過ぎた分は1時間{yen(EXTRA_HOUR_FEE)}（ワンちゃん1頭あたり）。お迎えは17:00までです。
+                    <br />例：7:00にお預けで16:00お迎えなら {yen(day.basePrice + EXTRA_HOUR_FEE)}、17:00なら {yen(day.basePrice + EXTRA_HOUR_FEE * 2)}。
                   </p>
                 </div>
               </div>
@@ -184,7 +186,7 @@ export default function GolfPage() {
         {/* 場面2: ゴルフ旅行 */}
         <section id="trip" className="py-12 md:py-16 px-6 bg-white scroll-mt-20">
           <div className="max-w-4xl mx-auto">
-            <p className="text-[#B87942] mb-2" style={{ fontSize: "14px" }}>宿泊プラン {yen(stay.basePrice)}〜/泊</p>
+            <p className="text-[#B87942] mb-2" style={{ fontSize: "14px" }}>宿泊プラン {yen(stay.basePrice)}/泊</p>
             <H2>泊まりがけのゴルフ旅行</H2>
             <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", lineHeight: "2" }}>
               前の日に箱根へ入る場合は、宿へ向かう前にDogHubへ。ワンちゃんはDogHubに泊まり、翌朝はそのままゴルフ場へ向かっていただけます。
@@ -200,7 +202,7 @@ export default function GolfPage() {
                 ]}
               />
               <p className="text-[#8F7B65] mt-4" style={{ fontSize: "14px", lineHeight: "1.8" }}>
-                宿泊のお迎えは翌9:00〜11:00です。ラウンド後のお迎え（〜15:00）にする場合は、宿泊に半日（4時間・{yen(half.basePrice)}）を足していただく形になります（合計 {yen(stay.basePrice + half.basePrice)}〜）。
+                宿泊のお迎えは翌9:00〜11:00です。ラウンド後のお迎え（〜15:00）にする場合は、宿泊に半日（4時間・{yen(half.basePrice)}）を足していただく形になります（合計 {yen(stay.basePrice + half.basePrice)}）。
               </p>
             </div>
             <p className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.9" }}>
@@ -276,7 +278,7 @@ export default function GolfPage() {
               {[
                 { name: "1日（8時間）", price: yen(day.basePrice), time: `お預け ${day.checkinRange.start}〜${day.checkinRange.end}`, href: "/8h" },
                 { name: "半日（4時間）", price: yen(half.basePrice), time: `お預け ${half.checkinRange.start}〜${half.checkinRange.end}`, href: "/4h" },
-                { name: "宿泊", price: `${yen(stay.basePrice)}〜/泊`, time: `お預け ${stay.checkinRange.start}〜${stay.checkinRange.end}／お迎え 翌9:00〜11:00`, href: "/stay" },
+                { name: "宿泊", price: `${yen(stay.basePrice)}/泊`, time: `お預け ${stay.checkinRange.start}〜${stay.checkinRange.end}／お迎え 翌9:00〜11:00`, href: "/stay" },
               ].map((r) => (
                 <Link key={r.name} href={r.href} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-4 border-b border-[#E5DDD8] last:border-b-0 hover:bg-[#FAFAFA]">
                   <span className="text-[#3C200F]" style={{ fontSize: "16px" }}>{r.name}</span>
@@ -286,7 +288,7 @@ export default function GolfPage() {
               ))}
             </div>
             <p className="text-[#8F7B65] mb-8" style={{ fontSize: "13px", lineHeight: "1.8" }}>
-              ※ お時間の延長は1頭につき1時間{yen(EXTRA_HOUR_FEE)}です。箱根町にお住まいの方の宿泊は{yen(5500)}〜です。
+              ※ 料金は1頭あたり・税込。ご予約のお預け時刻からの時間（半日4時間・1日8時間）を過ぎた分は、1時間ごとに{yen(EXTRA_HOUR_FEE)}（1頭あたり）です。
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">

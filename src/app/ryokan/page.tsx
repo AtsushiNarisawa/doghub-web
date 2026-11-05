@@ -10,12 +10,12 @@ import Image from "next/image";
 export const metadata: Metadata = {
   openGraph: {
     title: "箱根 高級旅館 × ペットホテル｜ペット不可の宿でも愛犬と箱根旅行｜DogHub箱根仙石原",
-    description: "箱根吟遊、富士屋ホテル、強羅花壇など憧れの高級旅館はペット不可。DogHub箱根仙石原なら愛犬を安心して預けて特別な宿に宿泊。1泊¥7,700〜。24時間スタッフ常駐・完全個室。",
+    description: "箱根吟遊、富士屋ホテル、強羅花壇など憧れの高級旅館はペット不可。DogHub箱根仙石原なら愛犬を安心して預けて特別な宿に宿泊。1泊¥7,700。24時間スタッフ常駐・完全個室。",
     url: "https://dog-hub.shop/ryokan",
     type: "website",
   },
   title: "箱根 高級旅館 × ペットホテル｜ペット不可の宿でも愛犬と箱根旅行｜DogHub箱根仙石原",
-  description: "箱根吟遊、富士屋ホテル、強羅花壇など憧れの高級旅館はペット不可。DogHub箱根仙石原なら愛犬を安心して預けて特別な宿に宿泊。1泊¥7,700〜。24時間スタッフ常駐・完全個室。",
+  description: "箱根吟遊、富士屋ホテル、強羅花壇など憧れの高級旅館はペット不可。DogHub箱根仙石原なら愛犬を安心して預けて特別な宿に宿泊。1泊¥7,700。24時間スタッフ常駐・完全個室。",
   alternates: { canonical: "/ryokan" },
 };
 
@@ -81,13 +81,12 @@ export default function RyokanPage() {
                 <div className="bg-[#F7F7F7] p-8 mb-8">
                   <h4 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>宿泊プラン</h4>
                   <div className="text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-                    <p>1泊：<span className="text-[#B87942]" style={{ fontSize: "24px" }}>¥7,700</span>〜</p>
+                    <p>1泊：<span className="text-[#B87942]" style={{ fontSize: "24px" }}>¥7,700</span></p>
                     <p>追加1時間あたり：¥1,100</p>
                     <div className="mt-4 pt-4 border-t border-[#E5DDD8] text-[#8F7B65]" style={{ fontSize: "14px" }}>
                       <p>チェックイン：14時〜17時</p>
                       <p>チェックアウト：9時〜11時</p>
-                      <p className="mt-2">※表示料金はすべて税込です。</p>
-                      <p>※箱根町在住の方は¥5,500〜</p>
+                      <p className="mt-2">※料金は1頭あたり・税込です。</p>
                     </div>
                   </div>
                 </div>
@@ -117,7 +116,7 @@ export default function RyokanPage() {
             <h2 className="text-[#3C200F] mb-8" style={{ fontSize: "26px", fontWeight: 400 }}>高級旅館 × DogHubのモデルケース</h2>
             <div className="border border-[#E5DDD8] bg-white p-8">
               <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "20px", fontWeight: 400 }}>箱根吟遊 × DogHub 1泊2日プラン</h3>
-              <p className="text-[#B87942] mb-6" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊プラン ¥7,700〜</p>
+              <p className="text-[#B87942] mb-6" style={{ fontSize: "14px", fontWeight: 400 }}>宿泊プラン ¥7,700</p>
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <p className="text-[#3C200F] mb-3" style={{ fontSize: "16px", fontWeight: 400 }}>1日目</p>

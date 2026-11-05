@@ -100,12 +100,12 @@ export default function CafePage() {
                 </p>
                 <div className="bg-[#F7F7F7] p-6 mb-6">
                   <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>おむすび＆スープ：土日祝 午前11時〜午後5時</p>
-                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>お飲み物のテイクアウト：平日 午前9時〜午後5時</p>
+                  <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>お飲み物のテイクアウト：平日（金・月・火）午前9時〜午後5時</p>
                   <p className="text-[#3C200F] mb-1" style={{ fontSize: "16px", fontWeight: 400 }}>定休日：水曜・木曜</p>
                   <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400, lineHeight: "1.8" }}>
                     店内のイートインスペースと併設ドッグランをご利用いただけるのは、<br />
                     おむすび＆スープをご提供する土日祝のみです。<br />
-                    平日はお飲み物のテイクアウト販売のみとなります。<br />
+                    平日（金・月・火）はお飲み物のテイクアウト販売のみで、店内・ドッグランはご利用いただけません。<br />
                     ※おにぎりのテイクアウト予約も承っております。<br />
                     ※メニュー内容は予告なく変わることがあります。ご了承ください。
                   </p>

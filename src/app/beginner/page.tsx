@@ -93,10 +93,10 @@ export default function BeginnerPage() {
             <h2 className="text-[#3C200F] text-center mb-12" style={{ fontSize: "26px", fontWeight: 400 }}>料金プラン</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { name: "宿泊", price: "¥7,700〜", desc: "1泊。チェックイン14時〜、チェックアウト〜11時", href: "/stay" },
+                { name: "宿泊", price: "¥7,700", desc: "1泊。チェックイン14時〜、チェックアウト〜11時", href: "/stay" },
                 { name: "1日預かり", price: "¥5,500", desc: "8時間。ゴルフや丸一日観光に", href: "/8h" },
-                { name: "半日預かり", price: "¥3,300〜", desc: "4時間。温泉や美術館の間に", href: "/4h" },
-                { name: "スポット", price: "¥1,100〜", desc: "1時間から。ちょっとだけ預けたい時に", href: "/service" },
+                { name: "半日預かり", price: "¥3,300", desc: "4時間。温泉や美術館の間に", href: "/4h" },
+                { name: "スポット", price: "¥1,100", desc: "1時間から。ちょっとだけ預けたい時に", href: "/service" },
               ].map((plan) => (
                 <Link key={plan.name} href={plan.href} className="block bg-white border border-[#E5DDD8] p-6 hover:border-[#B87942] transition-colors group text-center">
                   <p className="text-[#B87942] mb-1" style={{ fontSize: "14px", fontWeight: 400 }}>{plan.name}</p>
@@ -105,7 +105,7 @@ export default function BeginnerPage() {
                 </Link>
               ))}
             </div>
-            <p className="text-center text-[#8F7B65] mt-4" style={{ fontSize: "13px", fontWeight: 400 }}>※すべて税込料金です。箱根町在住の方は宿泊¥5,500〜の地元割引あり。</p>
+            <p className="text-center text-[#8F7B65] mt-4" style={{ fontSize: "13px", fontWeight: 400 }}>※料金は1頭あたり・税込です。</p>
           </div>
         </section>
 

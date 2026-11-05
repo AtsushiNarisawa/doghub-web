@@ -264,7 +264,7 @@ export function PartnerGuidePage({ guide }: { guide: PartnerGuide }) {
             </h2>
             <div className="divide-y divide-[#E5DDD8] border-y border-[#E5DDD8]">
               {[
-                { name: "ご宿泊のお預かり", time: "お預け 14:00〜17:00／お迎え 翌9:00〜11:00", price: `${yen(stay.basePrice)}〜／1泊` },
+                { name: "ご宿泊のお預かり", time: "お預け 14:00〜17:00／お迎え 翌9:00〜11:00", price: `${yen(stay.basePrice)}／1泊` },
                 { name: "1日のお預かり（8時間）", time: "お預け 7:00〜9:00", price: yen(day.basePrice) },
                 { name: "半日のお預かり（4時間）", time: "お預け 9:00〜13:00", price: yen(half.basePrice) },
               ].map((p) => (

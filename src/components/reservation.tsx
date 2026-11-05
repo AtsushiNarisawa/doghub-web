@@ -18,7 +18,7 @@ export function Reservation() {
         </a>
         <div className="mt-4 text-center">
           <LineBookingButton className="w-full sm:w-auto" />
-          <p className="text-xs text-[#888] mt-2">2回目以降はLINEから入力不要でかんたん予約</p>
+          <p className="text-xs text-[#888] mt-2">初めての方もLINEでご予約いただけます（2回目以降は入力不要）</p>
         </div>
       </div>
     </section>

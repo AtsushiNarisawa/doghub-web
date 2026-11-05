@@ -352,7 +352,7 @@ export default function BookingPage() {
           <div>
             <p className="text-[13px] text-[#3C200F] font-medium">当日のご予約・お問い合わせはお電話で</p>
             <a href="tel:0460800290" data-phone-location="booking_form" className="text-[14px] text-[#B87942] font-medium">0460-80-0290</a>
-            <p className="text-[11px] text-[#888] mt-0.5">オンライン予約は前日17:00まで受付</p>
+            <p className="text-[11px] text-[#888] mt-0.5">Web予約は前日まで（17時以降は仮予約）</p>
           </div>
         </div>
       </div>

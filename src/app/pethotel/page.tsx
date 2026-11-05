@@ -10,13 +10,13 @@ import { EmergencyCare } from "@/components/emergency-care";
 
 export const metadata: Metadata = {
   openGraph: {
-    title: "箱根のペットホテル｜DogHub箱根仙石原 完全個室・ドッグラン併設｜半日¥3,300〜",
-    description: "箱根のペットホテルならDogHub箱根仙石原。完全個室・24時間スタッフ常駐・ドッグラン併設。半日¥3,300〜、1日¥5,500〜、宿泊¥7,700〜。観光中の数時間から、ペット不可の宿に泊まる夜まで。",
+    title: "箱根のペットホテル｜DogHub箱根仙石原 完全個室・ドッグラン併設｜半日¥3,300",
+    description: "箱根のペットホテルならDogHub箱根仙石原。完全個室・24時間スタッフ常駐・ドッグラン併設。半日¥3,300、1日¥5,500、宿泊¥7,700。観光中の数時間から、ペット不可の宿に泊まる夜まで。",
     url: "https://dog-hub.shop/pethotel",
     type: "website",
   },
-  title: "箱根のペットホテル｜DogHub箱根仙石原 完全個室・ドッグラン併設｜半日¥3,300〜",
-  description: "箱根のペットホテルならDogHub箱根仙石原。完全個室・24時間スタッフ常駐・ドッグラン併設。半日¥3,300〜、1日¥5,500〜、宿泊¥7,700〜。観光中の数時間から、ペット不可の宿に泊まる夜まで。",
+  title: "箱根のペットホテル｜DogHub箱根仙石原 完全個室・ドッグラン併設｜半日¥3,300",
+  description: "箱根のペットホテルならDogHub箱根仙石原。完全個室・24時間スタッフ常駐・ドッグラン併設。半日¥3,300、1日¥5,500、宿泊¥7,700。観光中の数時間から、ペット不可の宿に泊まる夜まで。",
   alternates: { canonical: "/pethotel" },
 };
 
@@ -46,7 +46,7 @@ export default function PetHotelPage() {
               箱根のペットホテル DogHub箱根仙石原
             </h1>
             <p className="mt-3 opacity-90" style={{ fontSize: "clamp(13px, 2vw, 16px)", fontWeight: 400, lineHeight: 1.7 }}>
-              完全個室・ドッグラン併設・24時間スタッフ常駐。半日¥3,300〜、宿泊¥7,700〜。
+              完全個室・ドッグラン併設・24時間スタッフ常駐。半日¥3,300、宿泊¥7,700。
             </p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function PetHotelPage() {
               DogHub箱根仙石原は、仙石原の中心にある犬専門のペットホテルです。<b>完全個室・ドッグラン併設・24時間スタッフ常駐</b>で、箱根観光中の預かりから、ご旅行中の宿泊までフレキシブルに対応します。
             </p>
             <p className="text-[#3C200F] mb-4" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
-              プランは3種類。<b>半日預かり（4時間 ¥3,300〜）</b>、<b>1日預かり（8時間 ¥5,500〜）</b>、<b>宿泊預かり（1泊 ¥7,700〜）</b>。1時間¥1,100〜のスポット利用もあり、「ちょっとだけ預けたい」にも対応します。
+              プランは3種類。<b>半日預かり（4時間 ¥3,300）</b>、<b>1日預かり（8時間 ¥5,500）</b>、<b>宿泊預かり（1泊 ¥7,700）</b>。1時間¥1,100のスポット利用もあり、「ちょっとだけ預けたい」にも対応します。
             </p>
             <p className="text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
               下記の3パターンでご利用される方が多いです。どのシーンにも合わせやすいのが当店の特徴です。
@@ -91,19 +91,19 @@ export default function PetHotelPage() {
               <Link href="/4h" data-cta-id="pethotel_3choice_A" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>A. ペット可の宿に泊まる</p>
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>チェックイン前後・観光中だけ預ける</h3>
-                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>愛犬と泊まれる宿でも、美術館や温泉など犬NGの数時間だけお預け。半日¥3,300〜。</p>
+                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>愛犬と泊まれる宿でも、美術館や温泉など犬NGの数時間だけお預け。半日¥3,300。</p>
                 <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>半日・1日のお預かりを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
               <Link href="/ryokan" data-cta-id="pethotel_3choice_B" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>B. ペット不可の憧れの宿に泊まる</p>
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>夜は預けて、宿泊分離型で泊まる</h3>
-                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>高級旅館や温泉宿の多くはペット不可。愛犬は完全個室で1泊¥7,700〜お預けし、憧れの宿へ。</p>
+                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>高級旅館や温泉宿の多くはペット不可。愛犬は完全個室で1泊¥7,700お預けし、憧れの宿へ。</p>
                 <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>高級旅館×お預かりを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
               <Link href="/stay" data-cta-id="pethotel_3choice_C" className="block border border-[#E5DDD8] p-6 rounded-sm hover:bg-[#F7F7F7] transition-colors group">
                 <p className="text-[#B87942] mb-1" style={{ fontSize: "13px", fontWeight: 400 }}>C. 犬と泊まれる宿が見つからない</p>
                 <h3 className="text-[#3C200F] mb-3" style={{ fontSize: "17px", fontWeight: 500 }}>普通の宿に泊まって、犬はDogHubへ</h3>
-                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>ペット可の部屋が満室でも大丈夫。お好きな宿に泊まり、愛犬は安心の個室で1泊¥7,700〜。</p>
+                <p className="text-[#3C200F] mb-3" style={{ fontSize: "15px", fontWeight: 400, lineHeight: "1.9" }}>ペット可の部屋が満室でも大丈夫。お好きな宿に泊まり、愛犬は安心の個室で1泊¥7,700。</p>
                 <span className="text-[#3C200F] inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>宿泊プランを見る <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
             </div>
@@ -143,7 +143,7 @@ export default function PetHotelPage() {
                     </div>
                     <div>
                       <p className="text-[#B87942]" style={{ fontSize: "14px" }}>スポット利用（1時間〜）</p>
-                      <p style={{ fontSize: "24px" }}>¥1,100〜</p>
+                      <p style={{ fontSize: "24px" }}>¥1,100</p>
                       <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ちょっとだけ預けたい時にも</p>
                     </div>
                   </div>
@@ -279,7 +279,7 @@ export default function PetHotelPage() {
                 mainEntity: [
                   { "@type": "Question", name: "ペット可の宿に泊まっていても預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい、もちろんです。チェックイン前やチェックアウト後の観光時間に、日中預かりとしてご利用いただくお客様が多くいらっしゃいます。レジーナリゾート仙石原など、近隣のペット可施設からのご案内も多数いただいています。" }},
                   { "@type": "Question", name: "当日でも預けられますか？", acceptedAnswer: { "@type": "Answer", text: "空きがあれば当日予約も承っています。お電話（0460-80-0290）でご確認ください。" }},
-                  { "@type": "Question", name: "短時間でも預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい、1時間¥1,100〜のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" }},
+                  { "@type": "Question", name: "短時間でも預けられますか？", acceptedAnswer: { "@type": "Answer", text: "はい、1時間¥1,100のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" }},
                   { "@type": "Question", name: "お預かり中に体調を崩したらどうなりますか？", acceptedAnswer: { "@type": "Answer", text: "まず飼い主様へご連絡いたします。DogHub箱根仙石原は車で4分の場所にあるアニマルクリニック仙石原と提携しており、クリニックの診療時間内であればご相談・受診いたします。夜間や診療時間外は、24時間常駐のスタッフとライブカメラで見守りながら、飼い主様と連絡を取り合って対応いたします。24時間いつでも受診できる体制ではございませんので、あらかじめご了承ください。" }},
                 ],
               }) }}
@@ -288,7 +288,7 @@ export default function PetHotelPage() {
               {[
                 { q: "ペット可の宿に泊まっていても預けられますか？", a: "はい、もちろんです。チェックイン前やチェックアウト後の観光時間に、日中預かりとしてご利用いただくお客様が多くいらっしゃいます。レジーナリゾート仙石原など、近隣のペット可施設からのご案内も多数いただいています。" },
                 { q: "当日でも預けられますか？", a: "空きがあれば当日予約も承っています。お電話（0460-80-0290）でご確認ください。" },
-                { q: "短時間でも預けられますか？", a: "はい、1時間¥1,100〜のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" },
+                { q: "短時間でも預けられますか？", a: "はい、1時間¥1,100のスポット利用に対応しています。「ちょっとだけ預けたい」というご要望にも柔軟に対応します。" },
                 { q: "お預かり中に体調を崩したらどうなりますか？", a: "まず飼い主様へご連絡いたします。DogHub箱根仙石原は車で4分の場所にあるアニマルクリニック仙石原と提携しており、クリニックの診療時間内であればご相談・受診いたします。夜間や診療時間外は、24時間常駐のスタッフとライブカメラで見守りながら、飼い主様と連絡を取り合って対応いたします。24時間いつでも受診できる体制ではございませんので、あらかじめご了承ください。" },
               ].map((faq) => (
                 <details key={faq.q} className="border border-[#E5DDD8] group">

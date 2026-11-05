@@ -126,7 +126,7 @@ export default function MuseumPage() {
                     </div>
                     <div>
                       <p className="text-[#B87942]" style={{ fontSize: "14px" }}>スポット利用（1時間〜）</p>
-                      <p style={{ fontSize: "24px" }}>¥1,100〜</p>
+                      <p style={{ fontSize: "24px" }}>¥1,100</p>
                       <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>美術館1つだけなら2〜3時間。ご予約はお電話で（0460-80-0290）</p>
                     </div>
                   </div>
@@ -210,7 +210,7 @@ export default function MuseumPage() {
               </Link>
               <Link href="/yunessun" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">
                 <h3 className="text-[#3C200F] mb-2" style={{ fontSize: "18px", fontWeight: 400 }}>ユネッサン × ペット預かり</h3>
-                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>車で約15分。半日¥3,300〜</p>
+                <p className="text-[#8F7B65]" style={{ fontSize: "14px", fontWeight: 400 }}>車で約15分。半日¥3,300</p>
                 <span className="text-[#3C200F] mt-3 inline-flex items-center gap-1 group-hover:text-[#B87942] transition-colors" style={{ fontSize: "14px" }}>詳しくはこちら <span className="transition-transform group-hover:translate-x-1">→</span></span>
               </Link>
               <Link href="/golf" className="block bg-white border border-[#E5DDD8] p-6 hover:bg-white/80 transition-colors group">

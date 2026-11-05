@@ -473,8 +473,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. ステータス決定（15kg以上 or 前日17時以降の翌日予約 → 仮予約。スタッフ入力は常に確定）
-    const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) >= 15);
+    // 3. ステータス決定（15kgを超える or 前日17時以降の翌日予約 → 仮予約。スタッフ入力は常に確定）
+    const hasHeavyDog = body.dogs.some((d) => parseFloat(d.weight) > 15);
     const status = isStaffBooking ? "confirmed" : (hasHeavyDog || isLateBookingFlag) ? "pending" : "confirmed";
 
     // ワクチン未接種(事情あり)の理由を備考に取り込む。従来はフォームで収集してもサーバーで破棄され、

@@ -42,7 +42,7 @@ export function LineAddFriendBanner() {
         <span className="text-sm font-medium" style={{ color: "#22543D" }}>LINE友だち追加</span>
       </div>
       <p className="text-xs" style={{ color: "#2F855A" }}>
-        予約確認・リマインドがLINEで届きます。2回目以降は入力不要でかんたん予約。
+        初めての方もLINEでご予約・ご相談いただけます。予約確認・リマインドもLINEで届き、2回目以降は入力不要です。
       </p>
     </a>
   );

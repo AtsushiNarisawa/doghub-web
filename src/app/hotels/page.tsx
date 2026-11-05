@@ -17,7 +17,7 @@ import { PLANS, EXTRA_HOUR_FEE } from "@/types/booking";
 
 const title = "箱根の宿は犬と泊まれる？答えごとの愛犬の預け方｜DogHub箱根仙石原";
 const description =
-  "箱根の宿は犬と泊まれる？答えが「泊まれない」なら愛犬は夜DogHubへ（1泊¥7,700〜）。「一部のお部屋だけ」「泊まれる」宿の預け方も。半日¥3,300〜。";
+  "箱根の宿は犬と泊まれる？答えが「泊まれない」なら愛犬は夜DogHubへ（1泊¥7,700）。「一部のお部屋だけ」「泊まれる」宿の預け方も。半日¥3,300。";
 
 const plan = (id: string) => PLANS.find((p) => p.id === id)!;
 const stay = plan("stay");
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: "泊まる宿が犬と泊まれない宿です。愛犬はどうすればいいですか？",
-    a: `DogHubの宿泊お預かり（1泊${yen(stay.basePrice)}〜）をご利用ください。チェックインは14:00〜17:00、翌朝のお迎えは9:00〜11:00です。宿へ向かう前に預けて、翌朝お迎えに来ていただく流れです。`,
+    a: `DogHubの宿泊お預かり（1泊${yen(stay.basePrice)}）をご利用ください。チェックインは14:00〜17:00、翌朝のお迎えは9:00〜11:00です。宿へ向かう前に預けて、翌朝お迎えに来ていただく流れです。`,
   },
   {
     q: "犬と泊まれる宿に泊まります。それでも預ける場面はありますか？",
@@ -83,7 +83,7 @@ const faqs = [
   },
   {
     q: "「犬と泊まれる」宿なのに、予約したお部屋は犬と泊まれませんでした。",
-    a: `犬と泊まれるのは一部のお部屋だけ、という宿は少なくありません。そのお部屋が取れなかったときは、一般のお部屋にお泊まりいただき、ワンちゃんはDogHubの宿泊お預かり（1泊${yen(stay.basePrice)}〜）でお預かりします。`,
+    a: `犬と泊まれるのは一部のお部屋だけ、という宿は少なくありません。そのお部屋が取れなかったときは、一般のお部屋にお泊まりいただき、ワンちゃんはDogHubの宿泊お預かり（1泊${yen(stay.basePrice)}）でお預かりします。`,
   },
   {
     q: "どんな犬を預けられますか？",
@@ -146,7 +146,7 @@ export default function HotelsPage() {
             </p>
             <div className="grid md:grid-cols-3 gap-4">
               <a href="#pet-ng" data-cta-id="hotels_toc_petng" className="block border border-[#3C200F] p-5 hover:bg-[#F7F7F7] transition-colors">
-                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>宿泊プラン {yen(stay.basePrice)}〜/泊</p>
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>宿泊プラン {yen(stay.basePrice)}/泊</p>
                 <p className="text-[#3C200F]" style={{ fontSize: "18px" }}>犬と泊まれない宿に泊まる ↓</p>
                 <p className="text-[#8F7B65] mt-1" style={{ fontSize: "14px", lineHeight: "1.7" }}>ワンちゃんは夜DogHubに泊まり、飼い主様はお好きな宿へ</p>
               </a>
@@ -182,7 +182,7 @@ export default function HotelsPage() {
                 <li><span className="text-[#B87942] mr-2">2日目 9:00〜11:00</span>DogHubでお迎え</li>
               </ol>
               <p className="text-[#8F7B65] mt-4" style={{ fontSize: "14px", lineHeight: "1.8" }}>
-                {yen(stay.basePrice)}〜/泊。連泊もできます。お迎えが11時を過ぎる場合は、1頭につき1時間{yen(EXTRA_HOUR_FEE)}です。
+                {yen(stay.basePrice)}/泊。連泊もできます。お迎えが11時を過ぎる場合は、1頭につき1時間{yen(EXTRA_HOUR_FEE)}です。
               </p>
             </div>
 
@@ -207,7 +207,7 @@ export default function HotelsPage() {
             </p>
             <div className="grid sm:grid-cols-2 gap-4 mb-8">
               <div className="border border-[#E5DDD8] p-5">
-                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>宿泊プラン {yen(stay.basePrice)}〜/泊</p>
+                <p className="text-[#B87942] mb-1" style={{ fontSize: "13px" }}>宿泊プラン {yen(stay.basePrice)}/泊</p>
                 <p className="text-[#3C200F] mb-2" style={{ fontSize: "16px" }}>犬と泊まれるお部屋が取れなかったとき</p>
                 <p className="text-[#8F7B65]" style={{ fontSize: "14px", lineHeight: "1.8" }}>
                   一般のお部屋にお泊まりいただき、ワンちゃんはDogHubに泊まります。お預けは{stay.checkinRange.start}〜{stay.checkinRange.end}、お迎えは翌9:00〜11:00です。
@@ -284,7 +284,7 @@ export default function HotelsPage() {
             <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>料金（税込）</h3>
             <div className="bg-white mb-8">
               {[
-                { name: "宿泊", price: `${yen(stay.basePrice)}〜/泊`, time: `お預け ${stay.checkinRange.start}〜${stay.checkinRange.end}／お迎え 翌9:00〜11:00` },
+                { name: "宿泊", price: `${yen(stay.basePrice)}/泊`, time: `お預け ${stay.checkinRange.start}〜${stay.checkinRange.end}／お迎え 翌9:00〜11:00` },
                 { name: "1日（8時間）", price: yen(day.basePrice), time: `お預け ${day.checkinRange.start}〜${day.checkinRange.end}` },
                 { name: "半日（4時間）", price: yen(half.basePrice), time: `お預け ${half.checkinRange.start}〜${half.checkinRange.end}` },
               ].map((r) => (
@@ -296,7 +296,7 @@ export default function HotelsPage() {
               ))}
             </div>
             <p className="text-[#8F7B65] -mt-5 mb-8" style={{ fontSize: "13px", lineHeight: "1.8" }}>
-              ※ 箱根町にお住まいの方の宿泊は{yen(5500)}〜です。お時間の延長は1頭につき1時間{yen(EXTRA_HOUR_FEE)}です。
+              ※ 料金は1頭あたり・税込。ご予約のお預け時刻からの時間（半日4時間・1日8時間）を過ぎた分や、宿泊で11時を過ぎるお迎えは、1時間ごとに{yen(EXTRA_HOUR_FEE)}（1頭あたり）です。
             </p>
 
             <h3 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>預け方の流れ</h3>

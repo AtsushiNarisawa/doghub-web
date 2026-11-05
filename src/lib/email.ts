@@ -188,7 +188,7 @@ function buildCustomerEmailHtml(
       </tr>` : ""}
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">基本料金</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">¥${((plan?.basePrice ?? 0) * form.dogs.length * Math.max(stayNights || 1, 1)).toLocaleString()}〜</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">¥${((plan?.basePrice ?? 0) * form.dogs.length * Math.max(stayNights || 1, 1)).toLocaleString()}</td>
       </tr>
       ${form.walk_option ? `
       <tr>
@@ -208,7 +208,7 @@ function buildCustomerEmailHtml(
         <li>ワクチン証明書（狂犬病・混合）をご持参ください</li>
         <li>本人確認できるもの（免許証等）をご持参ください</li>
         <li>お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）</li>
-        <li>引き取り最終時間は17:00です（超過¥1,100/時間）</li>
+        <li>基本の時間（半日はご予約のお預け時刻から4時間・1日は8時間・宿泊は翌朝11時まで）を過ぎた分は、1時間ごとに¥1,100（1頭あたり）となります。お迎えは17:00までです</li>
       </ul>
       <div style="margin-top:10px;display:flex;gap:16px;">
         <a href="https://dog-hub.shop/booking/modify/${reservationId}" style="color:#B87942;font-size:13px;">予約内容を変更する</a>
@@ -309,7 +309,7 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
   ${form.dogs.map((dog) => `
   <div style="background:#f7f5f0;border-radius:8px;padding:12px;margin-bottom:8px;font-size:13px;">
     <strong>${escapeHtml(dog.name)}</strong>（${escapeHtml(dog.breed)}）
-    ${parseFloat(dog.weight) >= 15 ? `<span style="color:#c2410c;font-weight:600;"> ⚠️ ${escapeHtml(dog.weight)}kg</span>` : ` ${escapeHtml(dog.weight)}kg`}
+    ${parseFloat(dog.weight) > 15 ? `<span style="color:#c2410c;font-weight:600;"> ⚠️ ${escapeHtml(dog.weight)}kg</span>` : ` ${escapeHtml(dog.weight)}kg`}
     / ${escapeHtml(dogAgeText(dog)) || "年齢未記入"}${dog.sex === "male" ? " / オス" : dog.sex === "female" ? " / メス" : ""}
     / 狂犬病: ${dog.has_rabies_vaccine ? "接種済" : "未接種"} / 混合: ${dog.has_mixed_vaccine ? "接種済" : "未接種"}
     ${dog.allergies ? `<br><span style="color:#888;">アレルギー: ${escapeMultiline(dog.allergies)}</span>` : ""}

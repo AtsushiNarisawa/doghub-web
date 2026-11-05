@@ -10,12 +10,12 @@ import Image from "next/image";
 export const metadata: Metadata = {
   openGraph: {
     title: "ユネッサン × ペット預かり｜箱根小涌園の間に愛犬をお預け｜DogHub箱根仙石原",
-    description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。1日8時間¥5,500〜でユネッサンを満喫。24時間スタッフ常駐・完全個室のペットホテル。",
+    description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。温泉プールだけなら半日¥3,300、森の湯までなら1日¥5,500。24時間スタッフ常駐・完全個室のペットホテル。",
     url: "https://dog-hub.shop/yunessun",
     type: "website",
   },
   title: "ユネッサン × ペット預かり｜箱根小涌園の間に愛犬をお預け｜DogHub箱根仙石原",
-  description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。1日8時間¥5,500〜でユネッサンを満喫。24時間スタッフ常駐・完全個室のペットホテル。",
+  description: "箱根小涌園ユネッサンはペット同伴不可。DogHub箱根仙石原なら車で約15分。温泉プールだけなら半日¥3,300、森の湯までなら1日¥5,500。24時間スタッフ常駐・完全個室のペットホテル。",
   alternates: { canonical: "/yunessun" },
 };
 
@@ -59,25 +59,31 @@ export default function YunessunPage() {
                 </p>
                 <p className="text-[#3C200F] mb-6" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                   DogHub箱根仙石原はユネッサンから車で約15分。
-                  ユネッサンは移動時間を含めると4時間では足りないため、1日プラン（8時間 ¥5,500）がおすすめです。
-                  ほとんどのお客様がユネッサンと森の湯をセットで楽しまれています。
+                  選び方は、ユネッサンでの過ごし方で決まります。<b>温泉プールだけなら半日（4時間 ¥3,300）</b>、
+                  <b>森の湯やランチまでゆっくりなら1日（8時間 ¥5,500）</b>。片道約15分の移動も、お預かりの時間に含めてお考えください。
+                  ユネッサンへ行かれるお客様は、1日を選ぶ方が半日の約2倍です。
                 </p>
 
                 <div className="bg-[#F7F7F7] p-8 mb-8">
-                  <h4 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>おすすめプラン</h4>
+                  <h4 className="text-[#3C200F] mb-4" style={{ fontSize: "20px", fontWeight: 400 }}>過ごし方で選ぶプラン</h4>
                   <div className="space-y-4 text-[#3C200F]" style={{ fontSize: "16px", fontWeight: 400, lineHeight: "2" }}>
                     <div className="pb-3 border-b border-[#E5DDD8]">
-                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>1日お預かり（8時間）— おすすめ</p>
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>半日お預かり（4時間）</p>
+                      <p style={{ fontSize: "24px" }}>¥3,300</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>温泉プールだけ（滞在3時間ほど）なら。例：9時にお預け→13時お迎え</p>
+                    </div>
+                    <div className="pb-3 border-b border-[#E5DDD8]">
+                      <p className="text-[#B87942]" style={{ fontSize: "14px" }}>1日お預かり（8時間）</p>
                       <p style={{ fontSize: "24px" }}>¥5,500</p>
-                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサン＋移動時間にちょうどいい</p>
+                      <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>森の湯やランチもゆっくりなら。例：9時にお預け→17時までにお迎え</p>
                     </div>
                     <div>
                       <p className="text-[#B87942]" style={{ fontSize: "14px" }}>宿泊お預かり（1泊）</p>
-                      <p style={{ fontSize: "24px" }}>¥7,700〜</p>
+                      <p style={{ fontSize: "24px" }}>¥7,700</p>
                       <p className="text-[#8F7B65]" style={{ fontSize: "14px" }}>ユネッサン＋温泉＋翌日の観光もセットで</p>
                     </div>
                   </div>
-                  <p className="text-[#8F7B65] mt-3" style={{ fontSize: "13px" }}>※表示料金はすべて税込です。</p>
+                  <p className="text-[#8F7B65] mt-3" style={{ fontSize: "13px" }}>※料金は1頭あたり・税込です。お預けからの時間を過ぎた分は1時間ごとに¥1,100（1頭あたり）。</p>
                 </div>
 
                 <a
@@ -139,7 +145,7 @@ export default function YunessunPage() {
             <div className="grid sm:grid-cols-3 gap-8">
               {[
                 { title: "ユネッサンから車15分", body: "箱根仙石原に位置するDogHubは、ユネッサンから車で約15分。お預け・お迎えがスムーズです。" },
-                { title: "1日¥5,500から", body: "ユネッサンは移動含めて4時間では足りないため、1日プラン（8時間 ¥5,500）がおすすめです。" },
+                { title: "半日¥3,300・1日¥5,500", body: "温泉プールだけなら半日、森の湯やランチまでゆっくりなら1日。過ごし方に合わせてお選びください。" },
                 { title: "完全個室＆ドッグラン", body: "ケージではなく完全個室。お預かり中は必ず専用ドッグランにお出しするので、わんちゃんもストレスフリーです。" },
               ].map((item) => (
                 <div key={item.title} className="bg-[#F7F7F7] p-6">

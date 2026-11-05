@@ -24,7 +24,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
 
   const plan = PLANS.find((p) => p.id === form.plan);
   const dogCount = form.dogs.length;
-  const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) >= 15);
+  const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) > 15);
 
   // 料金は lib/pricing.ts が唯一の正本。この画面で式を再実装しない（総点検 #28）。
   // GA4 に送る booking_complete の value も同じ関数から出るため、表示金額と必ず一致する。
@@ -208,10 +208,10 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
         )}
         <div className="flex justify-between text-sm font-medium pt-2 border-t border-[#E5DDD8]">
           <span>合計（税込）</span>
-          <span>¥{price.total.toLocaleString()}〜</span>
+          <span>¥{price.total.toLocaleString()}</span>
         </div>
         <p className="text-[12px] text-[#888]">
-          ※ 引き取り時間超過の場合 ¥{EXTRA_HOUR_FEE.toLocaleString()}/時間が別途発生します
+          ※ お迎えがご予約の時間を過ぎた場合のみ、1時間ごとに¥{EXTRA_HOUR_FEE.toLocaleString()}（1頭あたり）が加わります。それ以外はこの金額です
         </p>
         <p className="text-[12px] text-[#888]">
           ※ お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）
@@ -221,7 +221,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
       {/* 15kg以上の注意 */}
       {hasHeavyDog && (
         <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-700">
-          体重15kg以上のワンちゃんがいるため、スタッフ確認後に予約確定となります。
+          体重15kgを超えるワンちゃんがいるため、スタッフ確認後に予約確定となります。
           確認メールをお送りいたしますので、しばらくお待ちください。
         </div>
       )}
@@ -243,7 +243,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
         <div className="text-[13px] text-[#666] space-y-1.5">
           <p><span className="font-medium text-[#3C200F]">持ち物:</span> ワクチン証明書（狂犬病・混合）、リード、マナーパッド、普段の食事（宿泊の場合）</p>
           <p><span className="font-medium text-[#3C200F]">場所:</span> 神奈川県足柄下郡箱根町仙石原928-15（<a href="https://maps.google.com/?q=35.2547,139.0295" data-directions="booking_confirm" target="_blank" rel="noopener noreferrer" style={{color:"#B87942",textDecoration:"underline"}}>Googleマップ</a>）</p>
-          <p><span className="font-medium text-[#3C200F]">駐車場:</span> 施設前に無料駐車スペースあり（3台）</p>
+          <p><span className="font-medium text-[#3C200F]">駐車場:</span> 店舗横に無料駐車場あり（3台・案内看板あり。店舗前の駐車場は当店のものではありません）</p>
           <p><span className="font-medium text-[#3C200F]">お支払い:</span> 現地にて（現金・クレジットカード・電子マネー・QR決済対応）</p>
         </div>
       </div>
