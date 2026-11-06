@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import ReplyDraftBanner from "@/components/admin/reply-draft-banner";
 import { supabase } from "@/lib/supabase";
 import { ROOM_LIMIT } from "@/lib/capacity";
 import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
@@ -253,6 +254,7 @@ export default function ReservationsPage() {
 
   return (
     <div className="space-y-3">
+      <ReplyDraftBanner />
       {/* 表示切替 */}
       <div className="flex bg-gray-100 rounded-lg p-0.5">
         {([["week", "週"], ["month", "月"], ["list", "リスト"]] as [ViewMode, string][]).map(([mode, label]) => (

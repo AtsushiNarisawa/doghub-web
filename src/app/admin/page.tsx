@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import ReplyDraftBanner from "@/components/admin/reply-draft-banner";
 import { ROOM_LIMIT } from "@/lib/capacity";
 import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
@@ -299,6 +300,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-4">
+      <ReplyDraftBanner />
       {/* 予約検索への動線 */}
       <div className="flex justify-end">
         <Link href="/admin/reservations" className="flex items-center gap-1 text-sm text-[#B87942] active:opacity-70">

@@ -112,6 +112,8 @@ export default function ReservationDetailPage() {
   const [newCheckinTime, setNewCheckinTime] = useState("");
   const [newCheckoutDate, setNewCheckoutDate] = useState("");
   const [composing, setComposing] = useState(false);
+  // 毎朝の要返信チェックが作った返信の下書き（reservation_reply_drafts・2026-11-06）
+  const [replyDraft, setReplyDraft] = useState<{ subject: string; body: string; confirm_note: string | null } | null>(null);
   const [msgSubject, setMsgSubject] = useState("");
   const [msgBody, setMsgBody] = useState("");
   const [sendingMsg, setSendingMsg] = useState(false);
@@ -119,6 +121,22 @@ export default function ReservationDetailPage() {
   const [optOutSaved, setOptOutSaved] = useState(false);
 
   useEffect(() => { fetchReservation(); }, [id]);
+
+  // 下書きが読めないときは無いものとして扱う（画面を止めない）
+  const fetchReplyDraft = async () => {
+    const { data, error } = await supabase
+      .from("reservation_reply_drafts" as never)
+      .select("subject, body, confirm_note")
+      .eq("reservation_id", id)
+      .maybeSingle();
+    setReplyDraft(error || !data ? null : (data as unknown as { subject: string; body: string; confirm_note: string | null }));
+  };
+  useEffect(() => { fetchReplyDraft(); }, [id]);
+
+  const discardReplyDraft = async () => {
+    await supabase.from("reservation_reply_drafts" as never).delete().eq("reservation_id", id);
+    setReplyDraft(null);
+  };
 
   const fetchReservation = async () => {
     const { data } = await supabase
@@ -325,8 +343,8 @@ export default function ReservationDetailPage() {
       const dt = new Date(res.date + "T00:00:00");
       return `${dt.getMonth() + 1}月${dt.getDate()}日`;
     })();
-    setMsgSubject(`【DogHub箱根仙石原】ご予約について（${dateLabel}）`);
-    setMsgBody("");
+    setMsgSubject(replyDraft?.subject || `【DogHub箱根仙石原】ご予約について（${dateLabel}）`);
+    setMsgBody(replyDraft?.body || "");
     setComposing(true);
   };
 
@@ -350,6 +368,7 @@ export default function ReservationDetailPage() {
       const data = await resp.json();
       if (resp.ok) {
         alert(`${data.sent_to} にメールを送信しました`);
+        if (replyDraft) await discardReplyDraft();
         setComposing(false);
         setMsgSubject("");
         setMsgBody("");
@@ -629,6 +648,30 @@ export default function ReservationDetailPage() {
         </div>
       </div>
 
+      {/* 返信の下書きのお知らせ */}
+      {replyDraft && !composing && customer.email && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <p className="text-sm font-medium text-amber-900 mb-1">✉ 返信の下書きがあります</p>
+          {replyDraft.confirm_note && (
+            <p className="text-sm text-red-700 mb-2">送信前に確認: {replyDraft.confirm_note}</p>
+          )}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={openCompose}
+              className="flex-1 py-2.5 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830]"
+            >
+              下書きを開く
+            </button>
+            <button
+              onClick={() => { if (confirm("この下書きを捨てますか？")) discardReplyDraft(); }}
+              className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 active:bg-gray-50"
+            >
+              捨てる
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* メッセージ送信フォーム */}
       {composing && customer.email && (
         <div className="bg-white rounded-xl p-4 border-2 border-[#B87942]">
@@ -660,6 +703,12 @@ export default function ReservationDetailPage() {
             <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
               <p className="text-xs text-gray-500 mb-0.5">お客様の備考（参考）</p>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{res.notes}</p>
+            </div>
+          )}
+
+          {replyDraft?.confirm_note && (
+            <div className="bg-red-50 rounded-lg px-3 py-2 mb-3">
+              <p className="text-sm text-red-700">送信前に確認: {replyDraft.confirm_note}</p>
             </div>
           )}
 
