@@ -34,7 +34,7 @@ export function MobileCta() {
       <div className="bg-[#3C200F] px-3 py-3 flex items-center justify-between gap-2">
         <div className="text-white min-w-0">
           <p style={{ fontSize: "11px", fontWeight: 400, lineHeight: "1.4" }}>
-            Google ★4.9（61件）
+            Google ★4.9（63件）
           </p>
           <p style={{ fontSize: "12px", fontWeight: 400, lineHeight: "1.4" }}>
             電話 9〜17時・水木休
