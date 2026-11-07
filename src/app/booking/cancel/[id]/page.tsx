@@ -42,6 +42,7 @@ type Reservation = {
 function CancellationFeeNotice({ date }: { date: string }) {
   const timing = getCancellationTiming(date);
   const percent = CANCELLATION_FEE_PERCENT[timing];
+  const shortened = "お部屋はご予約の時間に合わせてお取りしています。早めのお迎えや当日のプラン変更の場合も、ご予約の料金を申し受けております。";
   const exception =
     "※ペットの体調不良・ケガ・病気、飼い主様の病気、台風や大雪などの場合はキャンセル料をいただかない場合もございます。";
 
@@ -55,6 +56,7 @@ function CancellationFeeNotice({ date }: { date: string }) {
         <p className="text-[12px] text-[#888] mt-2">
           ご予約日の前日は予約日数の50%、当日は予約日数の100%のキャンセル料を申し受けております。
         </p>
+        <p className="text-[12px] text-[#888] mt-1">{shortened}</p>
         <p className="text-[12px] text-[#888] mt-1">{exception}</p>
       </div>
     );
@@ -73,6 +75,7 @@ function CancellationFeeNotice({ date }: { date: string }) {
         <span className="font-medium">前日はご予約日数の50%、当日は100%</span>
         ）を申し受けております。
       </p>
+      <p className="text-sm text-amber-900 mt-2">{shortened}</p>
       <p className="text-sm text-amber-900 mt-2">
         ただし、ペットの体調不良・ケガ・病気、飼い主様の病気、台風や大雪など、やむを得ないご事情の場合は、
         <span className="font-medium">基本的にいただいておりません</span>。
