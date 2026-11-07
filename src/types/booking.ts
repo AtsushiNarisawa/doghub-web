@@ -59,6 +59,11 @@ export interface BookingFormData {
   checkin_extension_from: string;    // 早預かり開始時間
   checkout_extension: boolean;       // 宿泊チェックアウト後の延長預かり
   checkout_extension_until: string;  // 延長終了時間
+  // チェックアウト後に半日・1日を付ける希望（宿泊のみ）。スタッフが空きを確認して確定する。
+  // 保存は備考への追記だけ＝料金の目安にも部屋数にも入れない。時間の延長とは同時に選べない。
+  checkout_addon_request?: CheckoutAddonPlan | "";
+  // チェックイン前に半日・1日を付ける希望（宿泊のみ）。扱いはチェックアウト後と同じ。早預かりとは同時に選べない。
+  checkin_addon_request?: CheckoutAddonPlan | "";
   early_morning: boolean; // 早朝プラン希望
   destination: string;    // お客様の行き先（マーケティング用）
   // STEP2
@@ -111,6 +116,54 @@ export const PLANS: PlanInfo[] = [
 ];
 
 export const EXTRA_HOUR_FEE = 1100;
+
+// チェックアウト後に付ける半日・1日の希望。フォーム・確認画面・備考への追記で同じ定義を使う。
+// 金額はここに書かず、呼ぶ側が PLANS から読む（checkoutAddonPrice）。
+export type CheckoutAddonPlan = "4h" | "8h";
+
+export const CHECKOUT_ADDON_OPTIONS: {
+  plan: CheckoutAddonPlan;
+  /** 「半日」「1日」 */
+  shortName: string;
+  /** 「半日お預かり」「1日お預かり」 */
+  name: string;
+  /** お迎えの最終時刻 "HH:mm" */
+  until: string;
+  /** フォームに出す「15時まで」 */
+  untilLabel: string;
+}[] = [
+  { plan: "4h", shortName: "半日", name: "半日お預かり", until: "15:00", untilLabel: "15時まで" },
+  { plan: "8h", shortName: "1日", name: "1日お預かり", until: "17:00", untilLabel: "17時まで" },
+];
+
+// チェックイン前に付ける半日・1日の希望。開始時刻は店頭の精算の実績（10時＝半日・9時＝1日）に合わせた。
+export const CHECKIN_ADDON_OPTIONS: {
+  plan: CheckoutAddonPlan;
+  shortName: string;
+  name: string;
+  /** お預けの開始時刻 "HH:mm" */
+  from: string;
+  /** フォームに出す「10時から」 */
+  fromLabel: string;
+}[] = [
+  { plan: "4h", shortName: "半日", name: "半日お預かり", from: "10:00", fromLabel: "10時から" },
+  { plan: "8h", shortName: "1日", name: "1日お預かり", from: "09:00", fromLabel: "9時から" },
+];
+
+/** チェックイン前の希望の定義を返す（未選択・不正な値は null） */
+export function findCheckinAddon(plan: string | null | undefined) {
+  return CHECKIN_ADDON_OPTIONS.find((o) => o.plan === plan) ?? null;
+}
+
+/** 希望の定義を返す（未選択・不正な値は null） */
+export function findCheckoutAddon(plan: string | null | undefined) {
+  return CHECKOUT_ADDON_OPTIONS.find((o) => o.plan === plan) ?? null;
+}
+
+/** 希望のプランの1頭あたりの金額（PLANS が正本） */
+export function checkoutAddonPrice(plan: CheckoutAddonPlan): number {
+  return PLANS.find((p) => p.id === plan)?.basePrice ?? 0;
+}
 export const WALK_OPTION_FEE = 550;
 
 // ワクチン接種状況の3択。入力画面（step2-dogs）と確認画面（step4-confirm）で
@@ -262,6 +315,8 @@ export const INITIAL_FORM: BookingFormData = {
   checkin_extension_from: "",
   checkout_extension: false,
   checkout_extension_until: "",
+  checkout_addon_request: "",
+  checkin_addon_request: "",
   early_morning: false,
   destination: "",
   dogs: [{ ...INITIAL_DOG }],

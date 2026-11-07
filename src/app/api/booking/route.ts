@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
+import { findCheckoutAddon, findCheckinAddon } from "@/types/booking";
 import { sendBookingEmails, sendBookingNotifyFailureAlert } from "@/lib/email";
 import { buildBookingConfirmMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
@@ -486,6 +487,32 @@ export async function POST(req: NextRequest) {
       .join("\n");
     if (vaccineReasonNotes) {
       body.notes = [body.notes?.trim(), vaccineReasonNotes].filter(Boolean).join("\n");
+    }
+
+    // チェックアウト後に半日・1日を付ける希望を備考に取り込む。スタッフが空きを確認して確定する
+    // ものなので、保存はこの備考だけで、料金の目安にも部屋数にも入れない。
+    // ワクチンの理由と同じく body.notes に足す＝予約の控えとスタッフ宛のメールの備考にも載る。
+    // 値は定義済みの2つだけ受ける（公開APIから任意の文字を書き込まれないように）。
+    // 宿泊以外・時間の延長と同時の送信はフォームでは起きないので、希望は無視して予約は通す。
+    const checkoutAddon = body.plan === "stay" && !body.checkout_extension
+      ? findCheckoutAddon(body.checkout_addon_request)
+      : null;
+    if (checkoutAddon) {
+      body.notes = [
+        body.notes?.trim(),
+        `【${checkoutAddon.shortName}を付ける希望】チェックアウト後〜${checkoutAddon.until}`,
+      ].filter(Boolean).join("\n");
+    }
+
+    // チェックイン前の希望も同じ扱い（早預かりと同時の送信では無視する）
+    const checkinAddon = body.plan === "stay" && !body.checkin_extension
+      ? findCheckinAddon(body.checkin_addon_request)
+      : null;
+    if (checkinAddon) {
+      body.notes = [
+        body.notes?.trim(),
+        `【${checkinAddon.shortName}を付ける希望】${checkinAddon.from}〜チェックイン`,
+      ].filter(Boolean).join("\n");
     }
 
     // 4. 予約作成（UUIDを事前生成してSELECT不要にする）

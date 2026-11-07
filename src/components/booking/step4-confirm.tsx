@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import type { BookingFormData } from "@/types/booking";
-import { PLANS, EXTRA_HOUR_FEE, WALK_OPTION_FEE, vaccineStatusLabel } from "@/types/booking";
+import {
+  PLANS,
+  EXTRA_HOUR_FEE,
+  WALK_OPTION_FEE,
+  vaccineStatusLabel,
+  findCheckoutAddon,
+  findCheckinAddon,
+  checkoutAddonPrice,
+} from "@/types/booking";
 import { isLateBooking } from "@/lib/booking-rules";
 import { calculateBookingBreakdown } from "@/lib/pricing";
 import { currentAgeLabel } from "@/lib/dog-age";
@@ -25,6 +33,15 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
   const plan = PLANS.find((p) => p.id === form.plan);
   const dogCount = form.dogs.length;
   const hasHeavyDog = form.dogs.some((d) => parseFloat(d.weight) > 15);
+  // チェックアウト後に半日・1日を付ける希望。スタッフ確認後に確定するので合計には足さない
+  const checkoutAddon =
+    form.plan === "stay" && !form.checkout_extension ? findCheckoutAddon(form.checkout_addon_request) : null;
+  const checkinAddon =
+    form.plan === "stay" && !form.checkin_extension ? findCheckinAddon(form.checkin_addon_request) : null;
+  const addonNotes = [
+    ...(checkinAddon ? [{ key: "in", label: `チェックイン前の${checkinAddon.shortName}`, plan: checkinAddon.plan }] : []),
+    ...(checkoutAddon ? [{ key: "out", label: `チェックアウト後の${checkoutAddon.shortName}`, plan: checkoutAddon.plan }] : []),
+  ];
 
   // 料金は lib/pricing.ts が唯一の正本。この画面で式を再実装しない（総点検 #28）。
   // GA4 に送る booking_complete の value も同じ関数から出るため、表示金額と必ず一致する。
@@ -71,6 +88,16 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
             {form.checkout_extension && form.checkout_extension_until && (
               <p className="text-[12px] text-[#B87942]">
                 延長預かり: チェックアウト後〜{form.checkout_extension_until}（¥1,100/時間）
+              </p>
+            )}
+            {checkinAddon && (
+              <p className="text-[12px] text-[#B87942]">
+                {checkinAddon.shortName}を付けるご希望: {checkinAddon.from}〜チェックイン（スタッフ確認後に確定）
+              </p>
+            )}
+            {checkoutAddon && (
+              <p className="text-[12px] text-[#B87942]">
+                {checkoutAddon.shortName}を付けるご希望: チェックアウト後〜{checkoutAddon.until}（スタッフ確認後に確定）
               </p>
             )}
           </>
@@ -210,9 +237,17 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
           <span>合計（税込）</span>
           <span>¥{price.total.toLocaleString()}</span>
         </div>
-        <p className="text-[12px] text-[#888]">
-          ※ お迎えがご予約の時間を過ぎた場合のみ、1時間ごとに¥{EXTRA_HOUR_FEE.toLocaleString()}（1頭あたり）が加わります。それ以外はこの金額です
-        </p>
+        {addonNotes.length > 0 ? (
+          addonNotes.map((n) => (
+            <p key={n.key} className="text-[12px] text-[#888]">
+              ※ {n.label}の料金（1頭あたり¥{checkoutAddonPrice(n.plan).toLocaleString()}）は、確定後に加わります
+            </p>
+          ))
+        ) : (
+          <p className="text-[12px] text-[#888]">
+            ※ お迎えがご予約の時間を過ぎた場合のみ、1時間ごとに¥{EXTRA_HOUR_FEE.toLocaleString()}（1頭あたり）が加わります。それ以外はこの金額です
+          </p>
+        )}
         <p className="text-[12px] text-[#888]">
           ※ お支払いは現地にて（現金・カード・各種電子マネー・QR決済対応）
         </p>
