@@ -268,6 +268,7 @@ export function Step4Confirm({ form, onChange, onSubmit, onBack, onGoToStep }: P
           <li>前日キャンセル：予約日数の50%</li>
           <li>当日キャンセル：予約日数の100%</li>
         </ul>
+        <p className="text-[#888] text-[13px]">お部屋はご予約の時間に合わせてお取りしています。早めのお迎えや当日のプラン変更の場合も、ご予約の料金を申し受けております。</p>
         <p className="text-[#888] text-[12px] mt-1">※ペットの体調不良・ケガ・病気、飼い主様の病気、台風や大雪などの場合はキャンセル料をいただかない場合もございます。</p>
         <p className="text-[#888] text-[12px]">※キャンセル・変更の際はできるだけ速やかにご連絡ください。</p>
       </div>
