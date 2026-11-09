@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { adminFetch } from "@/lib/admin-fetch";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
 import { dogAgeDisplay, dogWeightDisplay } from "@/lib/dog-age";
 import {
@@ -178,7 +179,7 @@ export default function ReservationDetailPage() {
       return;
     setSaving(true);
     try {
-      const resp = await fetch("/api/admin/update-status", {
+      const resp = await adminFetch("/api/admin/update-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reservation_id: id, status: newStatus }),
@@ -258,7 +259,7 @@ export default function ReservationDetailPage() {
 
     setSaving(true);
     try {
-      const resp = await fetch("/api/admin/reschedule", {
+      const resp = await adminFetch("/api/admin/reschedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -356,7 +357,7 @@ export default function ReservationDetailPage() {
     if (!confirm(`${res?.customers.email} にメールを送信しますか？`)) return;
     setSendingMsg(true);
     try {
-      const resp = await fetch("/api/admin/send-message", {
+      const resp = await adminFetch("/api/admin/send-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -893,7 +894,7 @@ export default function ReservationDetailPage() {
                 if (!confirm(`${warn}${customer.last_name}様（${customer.email}）に確認メールを再送しますか？`)) return;
                 setSaving(true);
                 try {
-                  const r = await fetch("/api/admin/resend-email", {
+                  const r = await adminFetch("/api/admin/resend-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ reservation_id: id }),
@@ -971,7 +972,7 @@ export default function ReservationDetailPage() {
                 if (!confirm(`${warn}${customer.last_name}様にお礼のご連絡（LINE登録があればLINE、なければメール）を送信しますか？`)) return;
                 setSaving(true);
                 try {
-                  const resp = await fetch("/api/admin/send-thankyou", {
+                  const resp = await adminFetch("/api/admin/send-thankyou", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ reservation_id: id }),

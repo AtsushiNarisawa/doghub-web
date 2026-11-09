@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdminBearer } from "@/lib/admin-auth";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -7,9 +8,11 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const session = req.cookies.get("doghub-admin-session");
-  if (!session || session.value !== "authorized") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await verifyAdminBearer(req))) {
+    return NextResponse.json(
+      { error: "ログインの有効期限が切れました。ログインし直してください。" },
+      { status: 401 },
+    );
   }
 
   try {

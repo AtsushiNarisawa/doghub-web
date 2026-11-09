@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { adminFetch } from "@/lib/admin-fetch";
 import { fetchVisitCounts } from "@/lib/visit-count";
 import { dogAgeDisplay, dogWeightDisplay } from "@/lib/dog-age";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
@@ -189,7 +190,7 @@ export default function CustomerDetailPage() {
     const pairKey = `${keepDogId}_${removeDogId}`;
     setMergingPairKey(pairKey);
     try {
-      const res = await fetch("/api/admin/merge-dogs", {
+      const res = await adminFetch("/api/admin/merge-dogs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ keep_dog_id: keepDogId, remove_dog_id: removeDogId }),

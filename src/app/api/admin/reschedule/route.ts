@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdminBearer } from "@/lib/admin-auth";
 import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { exceedsRoomLimit, PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
@@ -30,9 +31,11 @@ async function updateCapacity(date: string, column: string, delta: number) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = req.cookies.get("doghub-admin-session");
-  if (!session || session.value !== "authorized") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await verifyAdminBearer(req))) {
+    return NextResponse.json(
+      { error: "ログインの有効期限が切れました。ログインし直してください。" },
+      { status: 401 },
+    );
   }
 
   try {

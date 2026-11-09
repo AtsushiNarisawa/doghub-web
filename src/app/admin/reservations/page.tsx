@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import ReplyDraftBanner from "@/components/admin/reply-draft-banner";
 import { supabase } from "@/lib/supabase";
+import { adminFetch } from "@/lib/admin-fetch";
 import { ROOM_LIMIT } from "@/lib/capacity";
 import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 import { fetchVisitOrdinals } from "@/lib/visit-count";
@@ -219,7 +220,7 @@ export default function ReservationsPage() {
     }
     setConfirmingId(r.id);
     try {
-      const resp = await fetch("/api/admin/update-status", {
+      const resp = await adminFetch("/api/admin/update-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reservation_id: r.id, status: "confirmed" }),

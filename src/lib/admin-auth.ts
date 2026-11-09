@@ -29,7 +29,30 @@ const REFRESH_COOKIE = "doghub-admin-refresh";  // ここに本物の refresh_to
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+// スタッフのアカウント。DB の RLS（staff_full_access_*）と同じ UID。
+// Supabase のアカウントは新規登録でも作れるため、「ログイン済み」だけでは管理者として通さない。
+// スタッフを増やすときは RLS とここの両方に追加する。
+const STAFF_USER_IDS = new Set(["fb9eff00-5e1f-485a-9e59-c6627aad5d23"]);
+
 export type AdminIdentity = { userId: string; email: string | null };
+
+function toStaffIdentity(user: { id: string; email?: string | null }): AdminIdentity | null {
+  if (!STAFF_USER_IDS.has(user.id)) return null;
+  return { userId: user.id, email: user.email ?? null };
+}
+
+/**
+ * Authorization: Bearer の access_token だけでスタッフ本人か確認する。
+ *
+ * refresh_token は1回使うと新しいものに置き換わる。API の中で Cookie の値を使うと、
+ * 新しい値を Cookie に保存できないまま古い値が残り、ログインが切れる原因になる。
+ * そのため期限切れは 401 で返し、画面側の adminFetch が /api/admin/refresh で更新して再送する。
+ */
+export async function verifyAdminBearer(req: NextRequest): Promise<AdminIdentity | null> {
+  const bearer = req.headers.get("authorization");
+  const token = bearer?.startsWith("Bearer ") ? bearer.slice(7).trim() : null;
+  return token ? identityFromAccessToken(token) : null;
+}
 
 /**
  * 管理者本人であることを確認する。
@@ -59,7 +82,7 @@ export async function verifyAdmin(req: NextRequest): Promise<AdminIdentity | nul
       });
       const { data, error } = await client.auth.refreshSession({ refresh_token: refreshToken });
       if (!error && data.user) {
-        return { userId: data.user.id, email: data.user.email ?? null };
+        return toStaffIdentity(data.user);
       }
     } catch {
       // 失敗＝未ログイン扱い
@@ -76,7 +99,7 @@ async function identityFromAccessToken(token: string): Promise<AdminIdentity | n
     });
     const { data, error } = await client.auth.getUser(token);
     if (error || !data.user) return null;
-    return { userId: data.user.id, email: data.user.email ?? null };
+    return toStaffIdentity(data.user);
   } catch {
     return null;
   }
