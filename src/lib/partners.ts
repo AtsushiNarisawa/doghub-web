@@ -33,6 +33,11 @@ export const PARTNERS: Record<string, Partner> = {
     destination: "箱根湯の花プリンスホテル",
     referralSource: "宿泊先・ゴルフ場で知った",
   },
+  mizunoto: {
+    slug: "mizunoto",
+    destination: "水の音",
+    referralSource: "宿泊先・ゴルフ場で知った",
+  },
   "daihakone-cc": {
     slug: "daihakone-cc",
     destination: "大箱根カントリークラブ",
