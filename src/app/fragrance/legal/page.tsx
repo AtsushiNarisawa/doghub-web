@@ -12,8 +12,10 @@ import { Footer } from "@/components/Footer";
 //    片方だけだと「商品到着後8日以内は理由を問わず返品可」が法律上の既定になる。
 //    決済画面側は src/lib/fragrance/config.ts の consentText() が担っている。
 //
-// 🔴 事業者名は登記が済んだら法人名に差し替える。環境変数で切り替えられるようにしてあるのは、
-//    ラベルの「販売元」表記・Stripe の名義・入金口座と必ず一致させるため。
+// 🔴 事業者＝Motonari株式会社（2026-11-19 CEO 決定・EC だけ。店舗＝ホテル・カフェは個人事業のまま）。
+//    ラベルの「販売元」表記・Stripe の名義・入金口座と必ず一致させること。
+//    電話は EC 用（CEO 携帯・3事業共通）。店の 0460-80-0290 は EC に使わない。
+//    メールの事業者表記は src/lib/fragrance-email.ts の SELLER と同じ値にそろえる。
 
 export const metadata: Metadata = {
   title: "特定商取引法に基づく表記｜DogHub FRAGRANCE",
@@ -21,11 +23,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/fragrance/legal" },
 };
 
-const SELLER_LEGAL_NAME = process.env.FRAGRANCE_SELLER_LEGAL_NAME || "";
-const SELLER_REPRESENTATIVE = process.env.FRAGRANCE_SELLER_REPRESENTATIVE || "成澤 篤志";
+const SELLER_LEGAL_NAME = "Motonari株式会社";
+const SELLER_REPRESENTATIVE = "代表取締役 成澤 元子";
+const SELLER_TEL = "080-5031-0488";
 
 export default function FragranceLegalPage() {
-  const sellerName = SELLER_LEGAL_NAME || "DogHub箱根仙石原";
+  const sellerName = SELLER_LEGAL_NAME;
 
   return (
     <>
@@ -41,20 +44,13 @@ export default function FragranceLegalPage() {
             <dl className="text-sm text-[#3C200F]/85 space-y-5 leading-relaxed">
               <Item label="販売業者">
                 {sellerName}
-                {SELLER_LEGAL_NAME && (
-                  <span className="block text-[#3C200F]/60">
-                    （DogHub FRAGRANCE は {SELLER_LEGAL_NAME} が運営しています）
-                  </span>
-                )}
-              </Item>
-              <Item label="運営責任者">{SELLER_REPRESENTATIVE}</Item>
-              <Item label="所在地">神奈川県足柄下郡箱根町仙石原928-15</Item>
-              <Item label="電話番号">
-                0460-80-0290
                 <span className="block text-[#3C200F]/60">
-                  受付時間 9:00〜17:00（水曜・木曜は定休）
+                  （DogHub のオンラインショップは {SELLER_LEGAL_NAME} が運営しています）
                 </span>
               </Item>
+              <Item label="運営責任者">{SELLER_REPRESENTATIVE}</Item>
+              <Item label="所在地">〒250-0631 神奈川県足柄下郡箱根町仙石原928-15</Item>
+              <Item label="電話番号">{SELLER_TEL}</Item>
               <Item label="メールアドレス">info@dog-hub.shop</Item>
 
               <Item label="販売価格">
@@ -106,7 +102,7 @@ export default function FragranceLegalPage() {
               </Item>
 
               <Item label="お問い合わせ">
-                info@dog-hub.shop または 0460-80-0290
+                info@dog-hub.shop または {SELLER_TEL}
               </Item>
             </dl>
 

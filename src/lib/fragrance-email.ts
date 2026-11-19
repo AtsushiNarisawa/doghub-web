@@ -22,16 +22,16 @@ import {
 //
 // 正本＝fragrance/EC構築計画_2026-09-05.md §7
 
-/** 事業者表記。🔴 会社設立後に法人名へ差し替える（特商法の事業者名・Stripe 名義と一致させること）。 */
+/** 事業者表記。特商法の事業者名（/fragrance/legal）・Stripe 名義と一致させること。 */
 export const SELLER = {
-  /** 表示名。設立後は「DogHub Fragrance（Motonari株式会社）」にする。 */
+  /** 表示名（ブランド）。 */
   displayName: "DogHub Fragrance",
-  /** 法人名（登記後に設定）。未設定の間は屋号のみで出す。 */
-  legalName: process.env.FRAGRANCE_SELLER_LEGAL_NAME || "",
-  // 🔴 住所・電話は店舗（/access・/privacy と同じ）。2026-09-18 CEO確認。
-  //    commit fe89020 で入った別の番地・電話は誤りだった。/fragrance/legal も同じ値にそろえること。
-  address: "神奈川県足柄下郡箱根町仙石原928-15",
-  tel: "0460-80-0290",
+  /** 法人名。2026-11-19 CEO 決定＝EC の売り手は Motonari株式会社（店舗は個人事業のまま）。 */
+  legalName: "Motonari株式会社",
+  // 住所＝登記の本店（店舗と同じ番地）。電話＝EC 用（CEO 携帯・3事業共通・11-19 CEO 決定）。
+  //    店の 0460-80-0290 は EC に使わない。/fragrance/legal も同じ値にそろえること。
+  address: "〒250-0631 神奈川県足柄下郡箱根町仙石原928-15",
+  tel: "080-5031-0488",
   email: "info@dog-hub.shop",
   from: "narisawa@dog-hub.shop",
 } as const;
