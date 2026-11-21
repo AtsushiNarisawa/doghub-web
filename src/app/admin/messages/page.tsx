@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { LineInboxNotice, conversationName, formatJst } from "@/components/admin/line-inbox";
+import ReplyDraftBanner from "@/components/admin/reply-draft-banner";
 
 const PAGE_SIZE = 100;
 
@@ -77,6 +78,7 @@ export default function LineMessagesPage() {
 
   return (
     <div className="space-y-4">
+      <ReplyDraftBanner />
       <div>
         <h2 className="text-base font-medium text-gray-900">LINEのやり取り</h2>
         <p className="text-xs text-gray-500 mt-0.5">新しい順。タップすると全文が読めます。</p>

@@ -45,9 +45,26 @@ const BLOCK_WORDS = [
 /** 「確認できました」はお礼であって問い合わせではない（実例「予約内容確認できました。よろしく」） */
 const ALREADY_CONFIRMED = /確認(でき|でし|し|いたし|させていただき)ました/;
 
+/**
+ * 「予約の時間を忘れた・教えてほしい」という問い合わせ（2026-11-21 追加）。
+ * 実例「予約している到着時間が分からなくなってしまいました。予約時間を教えてください」（尾形様）
+ * ／「早めにチェックインをお願いしたかと思うのですが、何時からだったか忘れてしまいました」（秋吉様）。
+ * 「時間」「到着」を含むので上の判定では弾かれ、到着連絡（①）の返事になっていた。
+ * 動かしたい意思（変更・延長・遅れ等）が混ざるときは対象にしない。
+ */
+const RECALL_PATTERN = /(忘れ|分から(なく|ない)|わから(なく|ない)|教えて(ください|下さい|いただ|頂))/;
+const RECALL_TOPIC = /(予約|時間|何時|チェックイン|お預け|お迎え)/;
+const RECALL_BLOCK = ["変更", "キャンセル", "取り消", "取消", "空き", "空いて", "延長", "延泊", "追加", "遅れ", "遅刻", "行けなく", "料金", "金額", "いくら"];
+
+export function isRecallQuestion(text: string): boolean {
+  const t = (text ?? "").replace(/\s+/g, "");
+  return RECALL_PATTERN.test(t) && RECALL_TOPIC.test(t) && !RECALL_BLOCK.some((w) => t.includes(w));
+}
+
 /** 「予約内容を確認したい」という問い合わせか */
 export function isBookingStatusQuery(text: string): boolean {
   const t = (text ?? "").replace(/\s+/g, "");
+  if (isRecallQuestion(t) && t.includes("予約")) return true;
   if (!t.includes("予約")) return false;
   if (!STATUS_WORDS.some((w) => t.includes(w))) return false;
   if (BLOCK_WORDS.some((w) => t.includes(w))) return false;

@@ -369,7 +369,8 @@ export default function ReservationDetailPage() {
       const data = await resp.json();
       if (resp.ok) {
         alert(`${data.sent_to} にメールを送信しました`);
-        if (replyDraft) await discardReplyDraft();
+        // 画面を開いた後に下書きが作られた場合も残さない（11-21 森田様の件）＝表示に関係なく必ず消す
+        await discardReplyDraft();
         setComposing(false);
         setMsgSubject("");
         setMsgBody("");

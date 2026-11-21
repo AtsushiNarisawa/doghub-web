@@ -25,6 +25,7 @@
 import type { LineMessage } from "./line";
 import { TEL } from "./line-faq";
 import { DEFAULT_CLOSED_WEEKDAYS } from "./business-days";
+import { isRecallQuestion } from "./line-booking-status";
 
 // ───── 1. 営業時間の判定（JST）─────────────────────────────────────
 //
@@ -243,6 +244,9 @@ export function classifyAckKind(text: string, faqCategory: string): AckKind {
   if (compact.length <= MISTAKE_MAX_LENGTH && MISTAKE_WORDS.some((w) => compact.includes(w))) {
     return "mistake";
   }
+
+  // 予約の時間を忘れた・教えてほしい＝人が答える（2026-11-21・①到着の返事になっていた）
+  if (isRecallQuestion(compact)) return "general";
 
   // ⑤ 予約を入れた直後のご挨拶（②より先。BOOKING_WORDS の「予約を」に当たってしまうため）
   if (

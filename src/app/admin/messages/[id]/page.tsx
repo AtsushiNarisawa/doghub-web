@@ -2,7 +2,9 @@
 
 // LINE のやり取り（1件の会話・読むだけ / Phase 2B）
 //
-// この画面もDBには一切書き込まない。既読にする処理も持たない（未読管理は作らない方針）。
+// この画面はやり取りを書き換えない。既読にする処理も持たない（未読管理は作らない方針）。
+// 例外（2026-11-21）: 毎朝の要返信チェックが作った「返信の下書き」（line_reply_drafts）を表示し、
+// 「LINEで送りました」を押すと下書きを消す。LINE への送信そのものはしない（LINE アプリで送る）。
 // 表示できるのは3種類だけ:
 //   ① お客様からの受信  ② Botの自動応答  ③ 当店からの自動通知（予約確認・リマインドなど）
 // スタッフがLINEアプリから手で送った返信はLINEの仕様上取得できないため、ここには出ない。
@@ -41,6 +43,38 @@ export default function LineConversationPage() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [draft, setDraft] = useState<{ body: string; confirm_note: string | null } | null>(null);
+  const [draftText, setDraftText] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from("line_reply_drafts" as never)
+      .select("body, confirm_note")
+      .eq("conversation_id", conversationId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        const d = error || !data ? null : (data as unknown as { body: string; confirm_note: string | null });
+        setDraft(d);
+        setDraftText(d?.body ?? "");
+      });
+  }, [conversationId]);
+
+  const copyDraft = async () => {
+    try {
+      await navigator.clipboard.writeText(draftText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      alert("コピーできませんでした。文面を長押しして選んでください");
+    }
+  };
+
+  const finishDraft = async (message: string) => {
+    if (!confirm(message)) return;
+    await supabase.from("line_reply_drafts" as never).delete().eq("conversation_id", conversationId);
+    setDraft(null);
+  };
 
   useEffect(() => {
     (async () => {
@@ -114,6 +148,44 @@ export default function LineConversationPage() {
           </p>
         )}
       </div>
+
+      {draft && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <p className="text-sm font-medium text-amber-900 mb-1">✉ 返信の下書きがあります</p>
+          {draft.confirm_note && (
+            <p className="text-sm text-red-700 mb-2">送信前に確認: {draft.confirm_note}</p>
+          )}
+          <textarea
+            value={draftText}
+            onChange={(e) => setDraftText(e.target.value)}
+            rows={8}
+            className="w-full mt-1 p-3 text-sm border border-gray-200 rounded-lg bg-white focus:border-[#B87942] focus:outline-none resize-none"
+          />
+          <p className="text-xs text-gray-500 mt-1 mb-3">
+            直したら「コピー」を押し、LINEアプリのこのお客様とのトークに貼って送ってください。
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={copyDraft}
+              className="flex-1 py-2.5 rounded-lg bg-[#B87942] text-white text-sm font-medium active:bg-[#A06830]"
+            >
+              {copied ? "コピーしました" : "コピー"}
+            </button>
+            <button
+              onClick={() => finishDraft("LINEで送りましたか？下書きを消します。")}
+              className="flex-1 py-2.5 rounded-lg border border-[#B87942] text-[#B87942] text-sm font-medium active:bg-[#F7F5F0]"
+            >
+              LINEで送りました
+            </button>
+            <button
+              onClick={() => finishDraft("この下書きを捨てますか？")}
+              className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 active:bg-gray-50"
+            >
+              捨てる
+            </button>
+          </div>
+        </div>
+      )}
 
       <LineInboxNotice />
 

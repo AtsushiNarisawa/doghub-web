@@ -13,27 +13,45 @@ import { supabase } from "@/lib/supabase";
 interface DraftRow {
   reservation_id: string;
   confirm_note: string | null;
-  reservations: { date: string; customers: { last_name: string } | null } | null;
+  reservations: { date: string; status: string; customers: { last_name: string } | null } | null;
+}
+
+interface LineDraftRow {
+  conversation_id: string;
+  confirm_note: string | null;
+  line_conversations: { display_name: string | null; customers: { last_name: string } | null } | null;
 }
 
 export default function ReplyDraftBanner() {
   const [drafts, setDrafts] = useState<DraftRow[]>([]);
+  const [lineDrafts, setLineDrafts] = useState<LineDraftRow[]>([]);
 
   useEffect(() => {
     supabase
       .from("reservation_reply_drafts" as never)
-      .select("reservation_id, confirm_note, reservations(date, customers(last_name))")
+      .select("reservation_id, confirm_note, reservations(date, status, customers(last_name))")
       .order("created_at", { ascending: true })
       .then(({ data, error }) => {
-        if (!error && data) setDrafts(data as unknown as DraftRow[]);
+        // キャンセル済みの予約の下書きは出さない（11-21）
+        if (!error && data) {
+          setDrafts((data as unknown as DraftRow[]).filter((d) => d.reservations?.status !== "cancelled"));
+        }
+      });
+    // LINE への返信の下書き（2026-11-21）。LINE はここから送れないので、コピーして LINE アプリで送る
+    supabase
+      .from("line_reply_drafts" as never)
+      .select("conversation_id, confirm_note, line_conversations(display_name, customers(last_name))")
+      .order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) setLineDrafts(data as unknown as LineDraftRow[]);
       });
   }, []);
 
-  if (drafts.length === 0) return null;
+  if (drafts.length === 0 && lineDrafts.length === 0) return null;
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
-      <p className="text-sm font-medium text-amber-900 mb-2">✉ 返信の下書きが{drafts.length}件あります</p>
+      <p className="text-sm font-medium text-amber-900 mb-2">✉ 返信の下書きが{drafts.length + lineDrafts.length}件あります</p>
       <div className="space-y-1">
         {drafts.map((d) => {
           const date = d.reservations?.date ?? "";
@@ -49,6 +67,21 @@ export default function ReplyDraftBanner() {
             </Link>
           );
         })}
+        {lineDrafts.map((d) => (
+          <Link
+            key={d.conversation_id}
+            href={`/admin/messages/${d.conversation_id}`}
+            className="flex items-center justify-between text-sm text-amber-900 underline underline-offset-2 active:text-amber-700"
+          >
+            <span>
+              <span className="text-xs no-underline px-1 py-0.5 mr-1 rounded bg-green-100 text-green-700">LINE</span>
+              {d.line_conversations?.customers?.last_name
+                ? `${d.line_conversations.customers.last_name}様`
+                : d.line_conversations?.display_name ?? "お客様"}
+            </span>
+            {d.confirm_note && <span className="text-xs no-underline text-red-700">要確認</span>}
+          </Link>
+        ))}
       </div>
     </div>
   );
