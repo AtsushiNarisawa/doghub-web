@@ -25,15 +25,27 @@ import Stripe from "stripe";
 //   1. 環境とキーの種類が合っているか（本番以外で本番キーを使わない）
 //   2. キーが当店のアカウントのものか
 //      ─ Stripe のシークレットキーは値の中にアカウント ID を含んでいる。
-//        acct_1UDCKBCwpcORaX9C → キーに "1UDCKBCwpcORaX9C" が現れる。
+//        acct_1UdM5ACMH9nWrIWC → キーに "1UdM5ACMH9nWrIWC" が現れる。
 //        これは公式に文書化された仕様ではないので、将来 Stripe が形式を
 //        変えたらこの検査が誤って落ちる可能性がある。そのときは
 //        STRIPE_ACCOUNT_CHECK=off で一時的に外せるようにしてある
 //        （外したまま本番に出さないこと）。
 // ---------------------------------------------------------------------------
 
-/** Motonari株式会社の Stripe アカウント。ここ以外に決済を作ってはいけない。 */
-export const EXPECTED_STRIPE_ACCOUNT = "acct_1UDCKBCwpcORaX9C";
+/**
+ * DogHub の EC の Stripe アカウント（Motonari株式会社 の組織の中の口座「DogHub」）。
+ * ここ以外に決済を作ってはいけない。2026-11-19 に新しい口座へ切り替え
+ * （旧テスト口座 acct_1UDCKBCwpcORaX9C は使わない＝general が閉じる）。
+ */
+export const EXPECTED_STRIPE_ACCOUNT = "acct_1UdM5ACMH9nWrIWC";
+
+/**
+ * テストで使ってよいアカウント。
+ * 🔴 今の Stripe のテスト環境（サンドボックス）は、本番と別のアカウント ID を持つことがある。
+ *    その ID をここに足す（ID は秘密ではない。鍵の値は書かない）。
+ *    本番キー（live）は EXPECTED_STRIPE_ACCOUNT だけに通す。
+ */
+const TEST_STRIPE_ACCOUNTS: string[] = [EXPECTED_STRIPE_ACCOUNT];
 
 /** 本番環境かどうか（Vercel の Production だけを本番とみなす）。 */
 function isProductionEnv(): boolean {
@@ -41,12 +53,13 @@ function isProductionEnv(): boolean {
 }
 
 function assertKeyBelongsHere(key: string): void {
-  const live = key.startsWith("sk_live_");
-  const test = key.startsWith("sk_test_");
+  // sk_＝シークレットキー／rk_＝制限付きキー（必要な権限だけ）。どちらも受け付ける。
+  const live = /^(sk|rk)_live_/.test(key);
+  const test = /^(sk|rk)_test_/.test(key);
 
   if (!live && !test) {
     throw new Error(
-      "STRIPE_SECRET_KEY の形式が不正です（sk_test_ か sk_live_ で始まる必要があります）。",
+      "STRIPE_SECRET_KEY の形式が不正です（sk_test_／sk_live_／rk_test_／rk_live_ で始まる必要があります）。",
     );
   }
 
@@ -62,11 +75,12 @@ function assertKeyBelongsHere(key: string): void {
 
   // 2. アカウントの一致
   if (process.env.STRIPE_ACCOUNT_CHECK !== "off") {
-    const fragment = EXPECTED_STRIPE_ACCOUNT.replace(/^acct_/, "");
-    if (!key.includes(fragment)) {
+    const allowed = live ? [EXPECTED_STRIPE_ACCOUNT] : TEST_STRIPE_ACCOUNTS;
+    const ok = allowed.some((acct) => key.includes(acct.replace(/^acct_/, "")));
+    if (!ok) {
       throw new Error(
         `別の Stripe アカウントのキーが使われています。停止しました。\n` +
-          `当店のアカウント: ${EXPECTED_STRIPE_ACCOUNT}（Motonari株式会社）\n` +
+          `当店のアカウント: ${allowed.join(" / ")}（Motonari株式会社・口座「DogHub」）\n` +
           `このキーはそこに属していません。.env.local と、シェルの環境変数の両方を確認してください。`,
       );
     }
@@ -97,7 +111,7 @@ export function requireStripe(): Stripe {
  * Webhook の livemode ガードで「届いたイベントの種別」と突き合わせる。
  */
 export function isLiveKey(): boolean {
-  return (process.env.STRIPE_SECRET_KEY || "").startsWith("sk_live_");
+  return /^(sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY || "");
 }
 
 /**
