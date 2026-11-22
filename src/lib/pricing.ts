@@ -1,4 +1,4 @@
-import { PLANS, EXTRA_HOUR_FEE, WALK_OPTION_FEE } from "@/types/booking";
+import { PLANS, EXTRA_HOUR_FEE, WALK_OPTION_FEE, findCheckinAddon, findCheckoutAddon, checkoutAddonPrice } from "@/types/booking";
 import type { BookingFormData } from "@/types/booking";
 
 // 料金計算はこのファイルが唯一の正本（Single Source of Truth）。
@@ -21,6 +21,10 @@ export interface BookingPriceBreakdown {
   /** チェックアウト後の延長預かり時間数 */
   coExtHours: number;
   coExtFee: number;
+  /** チェックイン前の半日・1日（1頭あたり PLANS の金額 x 頭数）。付いていなければ 0 */
+  ciAddonFee: number;
+  /** チェックアウト後の半日・1日（同上） */
+  coAddonFee: number;
   /** お散歩オプション（宿泊のみ） */
   walkFee: number;
   /** 合計（税込） */
@@ -35,6 +39,8 @@ const EMPTY_BREAKDOWN: BookingPriceBreakdown = {
   ciExtFee: 0,
   coExtHours: 0,
   coExtFee: 0,
+  ciAddonFee: 0,
+  coAddonFee: 0,
   walkFee: 0,
   total: 0,
 };
@@ -73,6 +79,13 @@ export function calculateBookingBreakdown(form: BookingFormData): BookingPriceBr
     coExtFee = coExtHours * EXTRA_HOUR_FEE * dogCount;
   }
 
+  // 宿泊に付ける半日・1日（2026-11-22〜 枠を確保して確定）。同じ側の時間の延長とは同時に持たない
+  // （フォーム・API・DB の制約で止めているが、ここでも延長がある側は数えない）。
+  const ciAddon = form.plan === "stay" && !form.checkin_extension ? findCheckinAddon(form.checkin_addon) : null;
+  const coAddon = form.plan === "stay" && !form.checkout_extension ? findCheckoutAddon(form.checkout_addon) : null;
+  const ciAddonFee = ciAddon ? checkoutAddonPrice(ciAddon.plan) * dogCount : 0;
+  const coAddonFee = coAddon ? checkoutAddonPrice(coAddon.plan) * dogCount : 0;
+
   // お散歩オプションは宿泊のお預かりのみ
   const walkFee = form.plan === "stay" && form.walk_option ? WALK_OPTION_FEE * dogCount : 0;
 
@@ -84,8 +97,10 @@ export function calculateBookingBreakdown(form: BookingFormData): BookingPriceBr
     ciExtFee,
     coExtHours,
     coExtFee,
+    ciAddonFee,
+    coAddonFee,
     walkFee,
-    total: baseFee + ciExtFee + coExtFee + walkFee,
+    total: baseFee + ciExtFee + coExtFee + ciAddonFee + coAddonFee + walkFee,
   };
 }
 

@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { GOOGLE_REVIEW_URL } from "./email";
+import { findCheckinAddon, findCheckoutAddon, formatAddonTime } from "@/types/booking";
 
 const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 // Channel ID は過去に "\n" 混入の事故があるため数字のみに正規化する
@@ -170,6 +171,30 @@ const PLAN_LABELS: Record<string, string> = {
 // 両方が渡るため、通知文に出す前にここで揃える。
 const toHHMM = (t: string | null | undefined) => (t || "").slice(0, 5);
 
+// 宿泊に付ける半日・1日（2026-11-22〜）。料金は出さない（LINE は今の方針どおり料金を載せない）。
+export interface LineAddonParams {
+  checkoutAddonPlan?: string | null;
+  checkinAddonPlan?: string | null;
+  checkinAddonFrom?: string | null;
+}
+
+/** チェックイン行: チェックイン前の半日・1日があれば「お預け開始 7:00」に置き換える */
+function checkinLine(checkinTime: string | null | undefined, p: LineAddonParams): string | null {
+  const ci = findCheckinAddon(p.checkinAddonPlan);
+  if (ci) {
+    return `🕐 お預け開始 ${formatAddonTime(p.checkinAddonFrom || ci.from)}（チェックイン前の${ci.name}）`;
+  }
+  const hhmm = toHHMM(checkinTime);
+  return hhmm ? `🕐 チェックイン ${hhmm}` : null;
+}
+
+/** チェックアウト行: チェックアウト後の半日・1日があれば時刻を「〜15:00」に置き換える */
+function checkoutLine(label: string, p: LineAddonParams, withTime: boolean): string {
+  const co = findCheckoutAddon(p.checkoutAddonPlan);
+  if (co) return `🏠 お迎え ${label} 〜${co.until}（チェックアウト後の${co.name}）`;
+  return withTime ? `🏠 チェックアウト ${label} 9:00〜11:00` : `🏠 チェックアウト ${label}`;
+}
+
 export function buildBookingConfirmMessage(params: {
   customerName: string;
   plan: string;
@@ -184,7 +209,7 @@ export function buildBookingConfirmMessage(params: {
   // ※ メールに既にある事実だけを移す（料金などをここで新しく増やさない）。
   checkoutDate?: string | null;
   dogs?: string[];
-}): LineMessage[] {
+} & LineAddonParams): LineMessage[] {
   const { customerName, plan, date, checkinTime, reservationId, status } = params;
   // 日付の書式は従来の確定メッセージと同じまま（チェックイン行の見た目を変えない）。
   // チェックアウト日も同じ書式で揃えるため関数にしている。
@@ -206,11 +231,11 @@ export function buildBookingConfirmMessage(params: {
     statusText,
     "",
     `📅 ${fmt(date)}`,
-    `🕐 チェックイン ${toHHMM(checkinTime)}`,
+    checkinLine(checkinTime, params) ?? `🕐 チェックイン ${toHHMM(checkinTime)}`,
   ];
   // チェックアウトは宿泊のときだけ。時間帯も含めてリマインドLINEと同じ行に揃える。
   if (plan === "stay" && params.checkoutDate) {
-    lines.push(`🏠 チェックアウト ${fmt(params.checkoutDate)} 9:00〜11:00`);
+    lines.push(checkoutLine(fmt(params.checkoutDate), params, true));
   }
   lines.push(`📋 ${PLAN_LABELS[plan] ?? plan}`);
   // 多頭は「ポロちゃん、ぱんちちゃん」（リマインドLINEと同じ作法）。
@@ -251,7 +276,7 @@ export function buildReservationChangeMessage(params: {
   changes: string[];
   reservationId: string;
   changedBy: "customer" | "staff";
-}): LineMessage[] {
+} & LineAddonParams): LineMessage[] {
   const days = ["日", "月", "火", "水", "木", "金", "土"];
   const fmt = (d: string) => {
     const dt = new Date(d + "T00:00:00");
@@ -268,10 +293,10 @@ export function buildReservationChangeMessage(params: {
     "【変更後のご予約】",
     `📅 ${fmt(params.date)}`,
   ];
-  const hhmm = (params.checkinTime || "").slice(0, 5);
-  if (hhmm) lines.push(`🕐 チェックイン ${hhmm}`);
+  const ciLine = checkinLine(params.checkinTime, params);
+  if (ciLine) lines.push(ciLine);
   if (params.plan === "stay" && params.checkoutDate) {
-    lines.push(`🏠 チェックアウト ${fmt(params.checkoutDate)}`);
+    lines.push(checkoutLine(fmt(params.checkoutDate), params, false));
   }
   lines.push(`📋 ${PLAN_LABELS[params.plan] ?? params.plan}`);
   lines.push("", "【変更内容】", ...params.changes.map((c) => `・${c}`));
@@ -331,7 +356,7 @@ export function buildReminderLineMessage(params: {
   checkoutDate: string | null;
   dogs: string[];
   reservationId: string;
-}): LineMessage[] {
+} & LineAddonParams): LineMessage[] {
   const { customerName, plan, date, checkinTime, checkoutDate, dogs, reservationId } = params;
   const days = ["日", "月", "火", "水", "木", "金", "土"];
   const fmt = (d: string) => {
@@ -345,10 +370,10 @@ export function buildReminderLineMessage(params: {
     "ご予約日が近づいてまいりました🐾",
     "",
     `📅 ${fmt(date)}`,
-    `🕐 チェックイン ${toHHMM(checkinTime)}`,
+    checkinLine(checkinTime, params) ?? `🕐 チェックイン ${toHHMM(checkinTime)}`,
   ];
   if (plan === "stay" && checkoutDate) {
-    lines.push(`🏠 チェックアウト ${fmt(checkoutDate)} 9:00〜11:00`);
+    lines.push(checkoutLine(fmt(checkoutDate), params, true));
   }
   lines.push(`📋 ${PLAN_LABELS[plan] ?? plan}`);
   // 多頭は「ポロちゃん、ぱんちちゃん」。まとめて「ポロ、ぱんち ちゃん」にすると読みが不自然になる。

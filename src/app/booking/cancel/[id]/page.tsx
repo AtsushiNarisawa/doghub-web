@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { checkinAddonLabel, checkoutAddonLabel } from "@/types/booking";
 import { getJstToday } from "@/lib/datetime";
 import { getJstWeekday } from "@/lib/business-days";
 import { getCancellationTiming, CANCELLATION_FEE_PERCENT } from "@/lib/booking-rules";
@@ -27,6 +28,9 @@ type Reservation = {
   checkin_time: string;
   plan: string;
   checkout_date: string | null;
+  checkout_addon_plan?: string | null;
+  checkin_addon_plan?: string | null;
+  checkin_addon_from?: string | null;
   customers: { last_name: string; first_name: string } | null;
   reservation_dogs: { dogs: { name: string } | null }[];
 };
@@ -222,10 +226,22 @@ export default function CancelPage() {
                 <span className="text-sm text-[#888]">日付</span>
                 <span className="text-sm">{formatDate(reservation.date)} {reservation.checkin_time.slice(0, 5)}</span>
               </div>
+              {reservation.plan === "stay" && checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from) && (
+                <div className="flex justify-between py-2 border-b border-[#f0ebe5]">
+                  <span className="text-sm text-[#888]">チェックイン前</span>
+                  <span className="text-sm">{checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from)?.replace(/^チェックイン前 /, "")}</span>
+                </div>
+              )}
               {reservation.plan === "stay" && reservation.checkout_date && (
                 <div className="flex justify-between py-2 border-b border-[#f0ebe5]">
                   <span className="text-sm text-[#888]">チェックアウト</span>
                   <span className="text-sm">{formatDate(reservation.checkout_date)}</span>
+                </div>
+              )}
+              {reservation.plan === "stay" && checkoutAddonLabel(reservation.checkout_addon_plan) && (
+                <div className="flex justify-between py-2 border-b border-[#f0ebe5]">
+                  <span className="text-sm text-[#888]">チェックアウト後</span>
+                  <span className="text-sm">{checkoutAddonLabel(reservation.checkout_addon_plan)?.replace(/^チェックアウト後 /, "")}</span>
                 </div>
               )}
               <div className="flex justify-between py-2 border-b border-[#f0ebe5]">

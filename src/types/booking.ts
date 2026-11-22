@@ -59,10 +59,16 @@ export interface BookingFormData {
   checkin_extension_from: string;    // 早預かり開始時間
   checkout_extension: boolean;       // 宿泊チェックアウト後の延長預かり
   checkout_extension_until: string;  // 延長終了時間
-  // チェックアウト後に半日・1日を付ける希望（宿泊のみ）。スタッフが空きを確認して確定する。
-  // 保存は備考への追記だけ＝料金の目安にも部屋数にも入れない。時間の延長とは同時に選べない。
+  // 宿泊に付ける半日・1日（2026-11-22 改修＝選んだ時点で空きを見て確定）。
+  // チェックアウト後: CO日の部屋数（day_booked）に頭数分を足す。時間の延長とは同時に選べない。
+  checkout_addon?: CheckoutAddonPlan | "";
+  // チェックイン前: 部屋数は足さない（CI日はすでに宿泊で数えている）。早預かりとは同時に選べない。
+  checkin_addon?: CheckoutAddonPlan | "";
+  // チェックイン前の開始時刻 "HH:mm"。1日は 07:00/08:00/09:00 から選ぶ・半日は 10:00 固定
+  checkin_addon_from?: string;
+  /** @deprecated 11-22 以前のフォームの項目名。開いたままの古い画面からの送信だけ読み替える（〜2026-12 末で削除） */
   checkout_addon_request?: CheckoutAddonPlan | "";
-  // チェックイン前に半日・1日を付ける希望（宿泊のみ）。扱いはチェックアウト後と同じ。早預かりとは同時に選べない。
+  /** @deprecated 同上 */
   checkin_addon_request?: CheckoutAddonPlan | "";
   early_morning: boolean; // 早朝プラン希望
   destination: string;    // お客様の行き先（マーケティング用）
@@ -117,7 +123,7 @@ export const PLANS: PlanInfo[] = [
 
 export const EXTRA_HOUR_FEE = 1100;
 
-// チェックアウト後に付ける半日・1日の希望。フォーム・確認画面・備考への追記で同じ定義を使う。
+// チェックアウト後に付ける半日・1日。フォーム・確認画面・メール・管理画面で同じ定義を使う。
 // 金額はここに書かず、呼ぶ側が PLANS から読む（checkoutAddonPrice）。
 export type CheckoutAddonPlan = "4h" | "8h";
 
@@ -136,7 +142,8 @@ export const CHECKOUT_ADDON_OPTIONS: {
   { plan: "8h", shortName: "1日", name: "1日お預かり", until: "17:00", untilLabel: "17時まで" },
 ];
 
-// チェックイン前に付ける半日・1日の希望。開始時刻は店頭の精算の実績（10時＝半日・9時＝1日）に合わせた。
+// チェックイン前に付ける半日・1日。半日は10時から固定。
+// 1日は 7:00／8:00／9:00 から選ぶ（11-22 CEO 決定＝1日お預かりの受付 7〜9時と同じ）。from は既定値。
 export const CHECKIN_ADDON_OPTIONS: {
   plan: CheckoutAddonPlan;
   shortName: string;
@@ -147,20 +154,54 @@ export const CHECKIN_ADDON_OPTIONS: {
   fromLabel: string;
 }[] = [
   { plan: "4h", shortName: "半日", name: "半日お預かり", from: "10:00", fromLabel: "10時から" },
-  { plan: "8h", shortName: "1日", name: "1日お預かり", from: "09:00", fromLabel: "9時から" },
+  { plan: "8h", shortName: "1日", name: "1日お預かり", from: "07:00", fromLabel: "7〜9時から" },
 ];
 
-/** チェックイン前の希望の定義を返す（未選択・不正な値は null） */
+/** チェックイン前の1日の開始時刻の選択肢 */
+export const CHECKIN_ADDON_8H_FROM_OPTIONS = ["07:00", "08:00", "09:00"] as const;
+
+/**
+ * チェックイン前の半日・1日の開始時刻を正規化する。
+ * 半日は 10:00 固定。1日は選択肢にある値だけ受ける（不正・未選択は null）。
+ */
+export function normalizeCheckinAddonFrom(plan: string | null | undefined, from: string | null | undefined): string | null {
+  const opt = findCheckinAddon(plan);
+  if (!opt) return null;
+  if (opt.plan === "4h") return opt.from;
+  const v = (from || "").slice(0, 5);
+  return (CHECKIN_ADDON_8H_FROM_OPTIONS as readonly string[]).includes(v) ? v : null;
+}
+
+/** "07:00" → "7:00" */
+export function formatAddonTime(t: string | null | undefined): string {
+  const v = (t || "").slice(0, 5);
+  return v.startsWith("0") ? v.slice(1) : v;
+}
+
+/** 表示用「チェックアウト後 半日お預かり（〜15:00）」。付いていなければ null */
+export function checkoutAddonLabel(plan: string | null | undefined): string | null {
+  const o = findCheckoutAddon(plan);
+  return o ? `チェックアウト後 ${o.name}（〜${o.until}）` : null;
+}
+
+/** 表示用「チェックイン前 1日お預かり（7:00〜）」。付いていなければ null */
+export function checkinAddonLabel(plan: string | null | undefined, from: string | null | undefined): string | null {
+  const o = findCheckinAddon(plan);
+  if (!o) return null;
+  return `チェックイン前 ${o.name}（${formatAddonTime(from || o.from)}〜）`;
+}
+
+/** チェックイン前の半日・1日の定義を返す（未選択・不正な値は null） */
 export function findCheckinAddon(plan: string | null | undefined) {
   return CHECKIN_ADDON_OPTIONS.find((o) => o.plan === plan) ?? null;
 }
 
-/** 希望の定義を返す（未選択・不正な値は null） */
+/** チェックアウト後の半日・1日の定義を返す（未選択・不正な値は null） */
 export function findCheckoutAddon(plan: string | null | undefined) {
   return CHECKOUT_ADDON_OPTIONS.find((o) => o.plan === plan) ?? null;
 }
 
-/** 希望のプランの1頭あたりの金額（PLANS が正本） */
+/** 半日・1日の1頭あたりの金額（PLANS が正本） */
 export function checkoutAddonPrice(plan: CheckoutAddonPlan): number {
   return PLANS.find((p) => p.id === plan)?.basePrice ?? 0;
 }
@@ -318,8 +359,9 @@ export const INITIAL_FORM: BookingFormData = {
   checkin_extension_from: "",
   checkout_extension: false,
   checkout_extension_until: "",
-  checkout_addon_request: "",
-  checkin_addon_request: "",
+  checkout_addon: "",
+  checkin_addon: "",
+  checkin_addon_from: "",
   early_morning: false,
   destination: "",
   dogs: [{ ...INITIAL_DOG }],

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { checkinAddonLabel, checkoutAddonLabel } from "@/types/booking";
 
 const PLAN_NAMES: Record<string, string> = {
   spot: "スポットお預かり",
@@ -26,6 +27,9 @@ type Reservation = {
   checkin_time: string;
   plan: string;
   checkout_date: string | null;
+  checkout_addon_plan?: string | null;
+  checkin_addon_plan?: string | null;
+  checkin_addon_from?: string | null;
   notes: string | null;
   customers: { last_name: string; first_name: string } | null;
   reservation_dogs: { dogs: { name: string; breed: string } | null }[];
@@ -212,6 +216,15 @@ export default function ModifyPage() {
             {reservation.checkout_date && (
               <p><span className="text-[#888] inline-block w-20">チェックアウト</span>{formatDate(reservation.checkout_date)}</p>
             )}
+            {reservation.plan === "stay" && checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from) && (
+              <p>{checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from)}</p>
+            )}
+            {reservation.plan === "stay" && checkoutAddonLabel(reservation.checkout_addon_plan) && (
+              <p>{checkoutAddonLabel(reservation.checkout_addon_plan)}</p>
+            )}
+            {reservation.plan === "stay" && (reservation.checkin_addon_plan || reservation.checkout_addon_plan) && (
+              <p className="text-xs text-[#888]">半日・1日のお預かりの変更・お取り消しは、お電話（0460-80-0290）かLINEでご連絡ください。</p>
+            )}
             <p><span className="text-[#888] inline-block w-20">ワンちゃん</span>{dogNames}</p>
           </div>
         </div>
@@ -221,7 +234,15 @@ export default function ModifyPage() {
           <h2 className="font-medium text-[15px]">変更できる項目</h2>
 
           {/* 到着予定時間（宿泊のみグリッド表示） */}
-          {reservation.plan === "stay" ? (
+          {reservation.plan === "stay" && reservation.checkin_addon_plan ? (
+            <div>
+              <label className="text-sm text-[#888] block mb-2">お預けの開始時刻</label>
+              <p className="text-sm text-[#3C200F] bg-[#F8F5F0] rounded-lg p-3">
+                {checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from)}
+                <span className="text-xs text-[#888] ml-2">（時間の変更はお電話でご連絡ください）</span>
+              </p>
+            </div>
+          ) : reservation.plan === "stay" ? (
             <div>
               <label className="text-sm text-[#888] block mb-2">到着予定時間（目安）</label>
               <div className="grid grid-cols-4 gap-2">

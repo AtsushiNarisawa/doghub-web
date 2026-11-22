@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { buildReminderLineMessage } from "@/lib/line";
+import { findCheckinAddon, findCheckoutAddon, formatAddonTime } from "@/types/booking";
 import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { buildLineLinkSection } from "@/lib/email";
@@ -30,16 +31,25 @@ function buildReminderHtml(reservation: {
   date: string;
   checkin_time: string;
   checkout_date: string | null;
+  checkout_addon_plan?: string | null;
+  checkin_addon_plan?: string | null;
+  checkin_addon_from?: string | null;
   notes: string | null;
   customer_name: string;
   dogs: string[];
   // まだLINEと紐付いていない方にだけ渡す1タップ連携リンク（lib/link-token.ts）
   lineLinkUrl?: string | null;
 }) {
+  // 宿泊に付けた半日・1日があれば、お迎え・お預けの時刻をそちらに置き換える
+  const coAddon = reservation.plan === "stay" ? findCheckoutAddon(reservation.checkout_addon_plan) : null;
+  const ciAddon = reservation.plan === "stay" ? findCheckinAddon(reservation.checkin_addon_plan) : null;
+  const checkinText = ciAddon
+    ? `お預け開始 ${formatAddonTime(reservation.checkin_addon_from || ciAddon.from)}〜（チェックイン前の${ciAddon.name}）`
+    : reservation.checkin_time.slice(0, 5);
   const stayInfo = reservation.plan === "stay" && reservation.checkout_date
     ? `<tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックアウト</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(reservation.checkout_date)} / 9:00〜11:00</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(reservation.checkout_date)} / ${coAddon ? `〜${coAddon.until}（${coAddon.name}）` : "9:00〜11:00"}</td>
       </tr>`
     : "";
 
@@ -73,7 +83,7 @@ function buildReminderHtml(reservation: {
       </tr>
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックイン</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(reservation.date)} ${reservation.checkin_time.slice(0, 5)}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(reservation.date)} ${checkinText}</td>
       </tr>
       ${stayInfo}
       <tr>
@@ -144,6 +154,7 @@ export async function GET(req: NextRequest) {
     .from("reservations")
     .select(`
       id, customer_id, plan, date, checkin_time, checkout_date, notes,
+      checkout_addon_plan, checkin_addon_plan, checkin_addon_from,
       customers!inner(last_name, first_name, email, line_id),
       reservation_dogs(dogs(name))
     `)
@@ -200,6 +211,9 @@ export async function GET(req: NextRequest) {
         date: r.date,
         checkin_time: r.checkin_time,
         checkout_date: r.checkout_date,
+        checkout_addon_plan: r.checkout_addon_plan,
+        checkin_addon_plan: r.checkin_addon_plan,
+        checkin_addon_from: r.checkin_addon_from,
         notes: r.notes,
         customer_name: customerName,
         dogs,
@@ -233,6 +247,9 @@ export async function GET(req: NextRequest) {
             checkoutDate: r.checkout_date,
             dogs,
             reservationId: r.id,
+            checkoutAddonPlan: r.checkout_addon_plan,
+            checkinAddonPlan: r.checkin_addon_plan,
+            checkinAddonFrom: r.checkin_addon_from,
           }),
           "reminder"
         ).catch((e) => {

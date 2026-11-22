@@ -84,6 +84,9 @@ export interface StatusReservation {
   walk_option: boolean | null;
   checkin_extension_from: string | null;
   checkout_extension_until: string | null;
+  /** 宿泊に付けた半日・1日（2026-11-22〜）。付いていれば自動で答えず人に回す */
+  checkout_addon_plan?: string | null;
+  checkin_addon_plan?: string | null;
   notes: string | null;
   admin_notes: string | null;
   dogs: { name: string | null; sex: string | null }[];
@@ -110,7 +113,10 @@ export function decideBookingStatus(upcoming: StatusReservation[]): StatusDecisi
   if (list.length > MAX_RESERVATIONS) return { ok: false, reason: "too_many" };
   for (const r of list) {
     if (r.status !== "confirmed") return { ok: false, reason: "not_confirmed" };
-    if (r.checkin_extension_from || r.checkout_extension_until) return { ok: false, reason: "extension" };
+    // 延長・早預かり、宿泊に付けた半日・1日はお迎え・お預けの時刻が通常と違う＝人が答える
+    if (r.checkin_extension_from || r.checkout_extension_until || r.checkin_addon_plan || r.checkout_addon_plan) {
+      return { ok: false, reason: "extension" };
+    }
     if ((r.admin_notes ?? "").trim()) return { ok: false, reason: "admin_notes" };
     if (NOTES_RISK.test(r.notes ?? "")) return { ok: false, reason: "notes" };
     if (!["stay", "8h", "4h"].includes(r.plan)) return { ok: false, reason: "plan" };

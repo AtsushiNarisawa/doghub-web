@@ -90,6 +90,12 @@ export type Database = {
           referral_source: string | null;
           notes: string | null;
           admin_notes: string | null;
+          /** 宿泊のチェックアウト後に付けた半日・1日。CO日の day_booked に頭数分を数える */
+          checkout_addon_plan: "4h" | "8h" | null;
+          /** 宿泊のチェックイン前に付けた半日・1日（部屋数には数えない） */
+          checkin_addon_plan: "4h" | "8h" | null;
+          /** チェックイン前の半日・1日の開始時刻 "HH:mm:ss" */
+          checkin_addon_from: string | null;
           source: "web" | "line" | "phone" | "walk_in";
           created_at: string;
           updated_at: string;
@@ -110,6 +116,9 @@ export type Database = {
           referral_source?: string | null;
           notes?: string | null;
           admin_notes?: string | null;
+          checkout_addon_plan?: "4h" | "8h" | null;
+          checkin_addon_plan?: "4h" | "8h" | null;
+          checkin_addon_from?: string | null;
           source?: "web" | "line" | "phone" | "walk_in";
         };
         Update: Partial<Database["public"]["Tables"]["reservations"]["Insert"]>;

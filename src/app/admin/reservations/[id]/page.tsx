@@ -12,6 +12,11 @@ import {
   findAfternoonOnlyViolation,
   afternoonOnlyStaffWarning,
 } from "@/lib/booking-rules";
+import {
+  CHECKIN_ADDON_8H_FROM_OPTIONS,
+  checkinAddonLabel,
+  checkoutAddonLabel,
+} from "@/types/booking";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
@@ -21,6 +26,12 @@ interface Reservation {
   date: string;
   checkin_time: string;
   checkout_date: string | null;
+  // 宿泊に付けた半日・1日（2026-11-22〜）。CO後は CO日の部屋数に数える／CI前は数えない
+  checkout_addon_plan: string | null;
+  checkin_addon_plan: string | null;
+  checkin_addon_from: string | null;
+  checkin_extension_from: string | null;
+  checkout_extension_until: string | null;
   status: string;
   total_price: number | null;
   extra_hours_fee: number;
@@ -113,6 +124,11 @@ export default function ReservationDetailPage() {
   const [newCheckinTime, setNewCheckinTime] = useState("");
   const [newCheckoutDate, setNewCheckoutDate] = useState("");
   const [composing, setComposing] = useState(false);
+  // 半日・1日の付け外し（宿泊のみ）
+  const [addonEditing, setAddonEditing] = useState(false);
+  const [coAddonInput, setCoAddonInput] = useState<"" | "4h" | "8h">("");
+  const [ciAddonInput, setCiAddonInput] = useState<"" | "4h" | "8h">("");
+  const [ciAddonFromInput, setCiAddonFromInput] = useState("07:00");
   // 毎朝の要返信チェックが作った返信の下書き（reservation_reply_drafts・2026-11-06）
   const [replyDraft, setReplyDraft] = useState<{ subject: string; body: string; confirm_note: string | null } | null>(null);
   const [msgSubject, setMsgSubject] = useState("");
@@ -222,6 +238,54 @@ export default function ReservationDetailPage() {
     );
     setOptOutSaved(true);
     setTimeout(() => setOptOutSaved(false), 3000);
+  };
+
+  const startAddonEdit = () => {
+    if (!res) return;
+    setCoAddonInput((res.checkout_addon_plan as "4h" | "8h" | null) || "");
+    setCiAddonInput((res.checkin_addon_plan as "4h" | "8h" | null) || "");
+    setCiAddonFromInput(res.checkin_addon_from?.slice(0, 5) || "07:00");
+    setAddonEditing(true);
+  };
+
+  // 半日・1日を付ける／外す（api/admin/set-addon）。CO後は CO日の部屋数が動く。お客様への通知はしない。
+  const saveAddon = async () => {
+    if (!res) return;
+    const calls: { side: "checkout" | "checkin"; plan: "4h" | "8h" | null; from?: string }[] = [];
+    if ((res.checkout_addon_plan || "") !== coAddonInput) {
+      calls.push({ side: "checkout", plan: coAddonInput || null });
+    }
+    const ciFrom = ciAddonInput === "4h" ? "10:00" : ciAddonFromInput;
+    if (
+      (res.checkin_addon_plan || "") !== ciAddonInput ||
+      (ciAddonInput && (res.checkin_addon_from || "").slice(0, 5) !== ciFrom)
+    ) {
+      calls.push({ side: "checkin", plan: ciAddonInput || null, from: ciFrom });
+    }
+    if (calls.length === 0) {
+      setAddonEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      for (const c of calls) {
+        const resp = await adminFetch("/api/admin/set-addon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reservation_id: id, ...c }),
+        });
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          alert(data.error || "変更に失敗しました");
+          break;
+        }
+      }
+      setAddonEditing(false);
+      await fetchReservation();
+    } catch {
+      alert("通信エラー");
+    }
+    setSaving(false);
   };
 
   const startReschedule = () => {
@@ -540,6 +604,88 @@ export default function ReservationDetailPage() {
           </div>
         )}
         {res.walk_option && <p className="text-xs text-[#B87942] mb-2">🐕 お散歩オプションあり</p>}
+
+        {/* 宿泊に付けた半日・1日（2026-11-22〜 確定扱い）。電話・LINE で受けた付け外しはここで行う */}
+        {res.plan === "stay" && res.checkout_date && (
+          addonEditing ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 space-y-2">
+              <p className="text-sm font-medium text-amber-800">半日・1日を付ける／外す</p>
+              <div>
+                <label className="text-xs text-gray-500">チェックイン前（部屋数は変わりません）</label>
+                <select
+                  value={ciAddonInput}
+                  onChange={(e) => setCiAddonInput(e.target.value as "" | "4h" | "8h")}
+                  disabled={!!res.checkin_extension_from}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white"
+                >
+                  <option value="">なし</option>
+                  <option value="4h">半日（10:00〜）</option>
+                  <option value="8h">1日</option>
+                </select>
+                {ciAddonInput === "8h" && (
+                  <select
+                    value={ciAddonFromInput}
+                    onChange={(e) => setCiAddonFromInput(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white"
+                  >
+                    {CHECKIN_ADDON_8H_FROM_OPTIONS.map((t) => (
+                      <option key={t} value={t}>{t}から</option>
+                    ))}
+                  </select>
+                )}
+                {res.checkin_extension_from && (
+                  <p className="text-xs text-gray-500 mt-1">早預かり（{res.checkin_extension_from.slice(0, 5)}〜）が付いているため選べません</p>
+                )}
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">チェックアウト後（チェックアウト日の部屋数に頭数分を数えます）</label>
+                <select
+                  value={coAddonInput}
+                  onChange={(e) => setCoAddonInput(e.target.value as "" | "4h" | "8h")}
+                  disabled={!!res.checkout_extension_until}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white"
+                >
+                  <option value="">なし</option>
+                  <option value="4h">半日（〜15:00）</option>
+                  <option value="8h">1日（〜17:00）</option>
+                </select>
+                {res.checkout_extension_until && (
+                  <p className="text-xs text-gray-500 mt-1">延長預かり（〜{res.checkout_extension_until.slice(0, 5)}）が付いているため選べません</p>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">※お客様にメール・LINE は送られません。定休日・臨時休業のチェックアウト日には付けられません。</p>
+              <div className="flex gap-2">
+                <button onClick={saveAddon} disabled={saving}
+                  className="flex-1 py-2 bg-[#B87942] text-white text-sm rounded-lg font-medium disabled:opacity-50">
+                  {saving ? "保存中..." : "保存"}
+                </button>
+                <button onClick={() => setAddonEditing(false)}
+                  className="px-4 py-2 bg-gray-100 text-sm text-gray-500 rounded-lg">
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 mb-2 flex-wrap">
+              <div className="text-xs text-[#B87942] space-y-0.5">
+                {checkinAddonLabel(res.checkin_addon_plan, res.checkin_addon_from) && (
+                  <p>🕒 {checkinAddonLabel(res.checkin_addon_plan, res.checkin_addon_from)}</p>
+                )}
+                {checkoutAddonLabel(res.checkout_addon_plan) && (
+                  <p>🕒 {checkoutAddonLabel(res.checkout_addon_plan)}</p>
+                )}
+                {!res.checkin_addon_plan && !res.checkout_addon_plan && (
+                  <p className="text-gray-400">半日・1日の付け足し なし</p>
+                )}
+              </div>
+              {(res.status === "confirmed" || res.status === "pending") && (
+                <button onClick={startAddonEdit} className="text-xs text-[#B87942] font-medium ml-1">
+                  半日・1日を変更
+                </button>
+              )}
+            </div>
+          )
+        )}
 
         {/* キャンセル理由 */}
         {res.status === "cancelled" && res.cancel_reason && (

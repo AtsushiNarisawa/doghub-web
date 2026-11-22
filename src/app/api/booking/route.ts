@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import type { BookingFormData } from "@/types/booking";
-import { findCheckoutAddon, findCheckinAddon } from "@/types/booking";
+import { findCheckoutAddon, findCheckinAddon, normalizeCheckinAddonFrom } from "@/types/booking";
 import { sendBookingEmails, sendBookingNotifyFailureAlert } from "@/lib/email";
 import { buildBookingConfirmMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
@@ -15,7 +15,13 @@ import {
   afternoonOnlyDatesToCheck,
   findAfternoonOnlyViolation,
   afternoonOnlyCustomerMessage,
+  capacityFootprint,
+  diffFootprint,
+  checkoutAddonBlockReason,
+  checkoutAddonCustomerMessage,
+  checkoutAddonStaffMessage,
 } from "@/lib/booking-rules";
+import { applyCapacityDelta } from "@/lib/capacity-server";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { ageFromBirthDate } from "@/lib/dog-age";
 
@@ -107,6 +113,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "チェックアウト日はチェックイン日の翌日以降を選択してください" }, { status: 400 });
     }
 
+    // 宿泊に付ける半日・1日（2026-11-22〜 選んだ時点で枠を確保して確定する）。
+    // 11-22 より前のフォームを開いたままのお客様は *_request の項目名で送ってくるので読み替える。
+    const rawCoAddon = body.checkout_addon || body.checkout_addon_request || "";
+    const rawCiAddon = body.checkin_addon || body.checkin_addon_request || "";
+    // 宿泊以外で送られてきた値は無視する（プランを切り替えたときの残り。フォームでは消している）
+    const checkoutAddon = body.plan === "stay" ? findCheckoutAddon(rawCoAddon) : null;
+    const checkinAddon = body.plan === "stay" ? findCheckinAddon(rawCiAddon) : null;
+    if (body.plan === "stay" && ((rawCoAddon && !checkoutAddon) || (rawCiAddon && !checkinAddon))) {
+      return NextResponse.json({ error: "半日・1日のお預かりの内容が正しくありません" }, { status: 400 });
+    }
+    // 同じ側で「時間の延長（早預かり）」と同時には持たない（DB の制約でも止めている）
+    if ((checkoutAddon && body.checkout_extension) || (checkinAddon && body.checkin_extension)) {
+      return NextResponse.json(
+        { error: "半日・1日のお預かりと時間の延長は、同じ側では一緒に選べません" },
+        { status: 400 },
+      );
+    }
+    // チェックイン前の開始時刻: 半日は10:00固定・1日は 07:00/08:00/09:00。
+    // 古いフォーム（開始時刻の欄が無い）からの1日は、従来の 9:00 として受ける。
+    const checkinAddonFrom = checkinAddon
+      ? normalizeCheckinAddonFrom(
+          checkinAddon.plan,
+          body.checkin_addon_from || (body.checkin_addon_request && !body.checkin_addon ? "09:00" : ""),
+        )
+      : null;
+    if (checkinAddon && !checkinAddonFrom) {
+      return NextResponse.json({ error: "チェックイン前の1日お預かりの開始時刻をお選びください" }, { status: 400 });
+    }
+    // チェックイン前の半日・1日があるときの到着時刻は 14:00 に揃えて保存する。
+    // 実際のお預けは checkin_addon_from から。checkin_time に早い時刻を入れると
+    // 午後から営業の判定や一意制約が別の意味で動いてしまうため（計画書 §1-2）。
+    if (checkinAddon) body.checkin_time = "14:00";
+
     // サーバー側：前日17時まで受付（当日予約不可）— スタッフ入力（source: phone）は制限なし
     // Vercel サーバーは UTC で動くため、JST 9時以降に new Date() からローカル日付を作ると
     // 1日ズレて「翌日予約が当日扱い」になるバグがあった（2026-05-03 修正）。
@@ -151,14 +190,9 @@ export async function POST(req: NextRequest) {
     // サーバー側：宿泊期間中の休業日チェック（CI日〜CO前日。CO日は除外）
     // 定休日 + 臨時休業の両方を考慮
     if (body.plan === "stay" && body.checkout_date) {
-      const start = new Date(body.date);
-      const end = new Date(body.checkout_date);
-      const d = new Date(start);
-      const datesToCheck: string[] = [];
-      while (d < end) { // CO日を除外
-        datesToCheck.push(d.toISOString().split("T")[0]);
-        d.setDate(d.getDate() + 1);
-      }
+      // CO日を除外した泊まる各日（footprint の stay_booked と同じ日）
+      const datesToCheck = capacityFootprint({ plan: "stay", date: body.date, checkout_date: body.checkout_date })
+        .map((it) => it.date);
 
       if (datesToCheck.length > 0) {
         const { data: capData } = await supabase
@@ -203,7 +237,8 @@ export async function POST(req: NextRequest) {
         date: body.date,
         checkoutDate: body.checkout_date,
         checkinTime: body.checkin_time,
-        checkinExtensionFrom: body.checkin_extension ? body.checkin_extension_from : null,
+        // チェックイン前の半日・1日も「14時より前のお預け」なので早預かりと同じに扱う
+        checkinExtensionFrom: body.checkin_extension ? body.checkin_extension_from : checkinAddonFrom,
       };
       const { data: aoRows } = await supabase
         .from("daily_capacity")
@@ -273,23 +308,46 @@ export async function POST(req: NextRequest) {
     // サーバー側：容量チェック（頭数=部屋の物理プールで判定）
     // Web客は運用上限15で満席とし、スタッフ入力(source=phone)は物理上限19まで受付可能にする
     // （満席のお問い合わせをスタッフが手動で受けられるようにするソフト上限。2026-07-13 CEO決定）。
+    // 対象の日は lib/booking-rules.ts の capacityFootprint が正本（宿泊＝CI日〜CO前日、
+    // チェックアウト後の半日・1日があれば CO日も）。ここは事前の案内用で、最終の判定は
+    // 予約作成後の apply_capacity_delta（DB 関数）が原子的に行う。
     const dogCount = body.dogs.length;
     const roomLimit = isStaffBooking ? PHYSICAL_ROOM_LIMIT : WEB_ROOM_LIMIT;
-    {
-      const datesToCheck: string[] = [];
+    const footprint = capacityFootprint({
+      plan: body.plan,
+      date: body.date,
+      checkout_date: body.plan === "stay" ? body.checkout_date : null,
+      dog_count: dogCount,
+      checkout_addon_plan: checkoutAddon?.plan ?? null,
+    });
 
-      if (body.plan === "stay" && body.checkout_date) {
-        // 宿泊：CI日〜CO前日まで在室扱い（連泊中も含む。CO日は除外）
-        const d = new Date(body.date);
-        const end = new Date(body.checkout_date);
-        while (d < end) {
-          datesToCheck.push(d.toISOString().split("T")[0]);
-          d.setDate(d.getDate() + 1);
-        }
-      } else {
-        datesToCheck.push(body.date);
+    // チェックアウト日に半日・1日を付けられるか（定休日・臨時休業はスタッフも不可／
+    // Web受付停止・満席はお客様のみ不可。11-22 CEO 決定）
+    if (checkoutAddon && body.checkout_date) {
+      const { data: coRow } = await supabase
+        .from("daily_capacity")
+        .select("closed, web_closed, day_booked, stay_booked")
+        .eq("date", body.checkout_date)
+        .maybeSingle();
+      const reason = checkoutAddonBlockReason(body.checkout_date, coRow, {
+        isStaff: isStaffBooking,
+        addDogs: dogCount,
+        limit: roomLimit,
+      });
+      if (reason) {
+        return NextResponse.json(
+          {
+            error: isStaffBooking
+              ? checkoutAddonStaffMessage(reason, body.checkout_date)
+              : checkoutAddonCustomerMessage(reason, body.checkout_date),
+          },
+          { status: 400 },
+        );
       }
+    }
 
+    {
+      const datesToCheck = [...new Set(footprint.map((it) => it.date))];
       // 各日の合計使用部屋数（day_booked + stay_booked）+ 追加頭数 が上限を超えないこと
       // （Web=15 / スタッフ=19）
       for (const date of datesToCheck) {
@@ -489,31 +547,7 @@ export async function POST(req: NextRequest) {
       body.notes = [body.notes?.trim(), vaccineReasonNotes].filter(Boolean).join("\n");
     }
 
-    // チェックアウト後に半日・1日を付ける希望を備考に取り込む。スタッフが空きを確認して確定する
-    // ものなので、保存はこの備考だけで、料金の目安にも部屋数にも入れない。
-    // ワクチンの理由と同じく body.notes に足す＝予約の控えとスタッフ宛のメールの備考にも載る。
-    // 値は定義済みの2つだけ受ける（公開APIから任意の文字を書き込まれないように）。
-    // 宿泊以外・時間の延長と同時の送信はフォームでは起きないので、希望は無視して予約は通す。
-    const checkoutAddon = body.plan === "stay" && !body.checkout_extension
-      ? findCheckoutAddon(body.checkout_addon_request)
-      : null;
-    if (checkoutAddon) {
-      body.notes = [
-        body.notes?.trim(),
-        `【${checkoutAddon.shortName}を付ける希望】チェックアウト後〜${checkoutAddon.until}`,
-      ].filter(Boolean).join("\n");
-    }
-
-    // チェックイン前の希望も同じ扱い（早預かりと同時の送信では無視する）
-    const checkinAddon = body.plan === "stay" && !body.checkin_extension
-      ? findCheckinAddon(body.checkin_addon_request)
-      : null;
-    if (checkinAddon) {
-      body.notes = [
-        body.notes?.trim(),
-        `【${checkinAddon.shortName}を付ける希望】${checkinAddon.from}〜チェックイン`,
-      ].filter(Boolean).join("\n");
-    }
+    // 宿泊に付ける半日・1日は 2026-11-22 から専用の列に保存する（以前は備考に【…を付ける希望】と追記）。
 
     // 4. 予約作成（UUIDを事前生成してSELECT不要にする）
     const reservationId = randomUUID();
@@ -540,6 +574,9 @@ export async function POST(req: NextRequest) {
         checkout_extension_until: body.checkout_extension && body.checkout_extension_until
           ? body.checkout_extension_until
           : null,
+        checkout_addon_plan: checkoutAddon?.plan ?? null,
+        checkin_addon_plan: checkinAddon?.plan ?? null,
+        checkin_addon_from: checkinAddonFrom,
         notes: [
           body.notes || "",
           body.checkin_extension && body.checkin_extension_from
@@ -592,60 +629,28 @@ export async function POST(req: NextRequest) {
     }));
     await supabase.from("reservation_dogs").insert(rdInserts);
 
-    // 6. daily_capacity 更新（宿泊は全泊日分、日帰りはチェックイン日のみ）
-    const capacityColumn = body.plan === "stay" ? "stay_booked" : "day_booked";
-    const datesToUpdate: string[] = [];
-
-    if (body.plan === "stay" && body.checkout_date) {
-      // 宿泊：チェックイン日〜チェックアウト前日まで全日分
-      const d = new Date(body.date);
-      const end = new Date(body.checkout_date);
-      while (d < end) {
-        datesToUpdate.push(d.toISOString().split("T")[0]);
-        d.setDate(d.getDate() + 1);
+    // 6. daily_capacity 更新（footprint＝宿泊は全泊日分＋CO後の半日・1日はCO日、日帰りはその日）。
+    // DB 関数 apply_capacity_delta が対象日を日付順にロック→休業・上限（Web15/スタッフ19）を確認→
+    // 1トランザクションで加算する。従来の reserve_capacity は1列しか足せず、上限は19固定だった。
+    const capResult = await applyCapacityDelta(supabase, diffFootprint([], footprint), roomLimit);
+    if (!capResult.ok) {
+      // 休業・満室のレース → 直前に作成した予約を取り消す（オーバーブック防止）。
+      await supabase.from("reservation_dogs").delete().eq("reservation_id", reservation.id);
+      await supabase.from("reservations").delete().eq("id", reservation.id);
+      const isCoDay = !!checkoutAddon && capResult.date === body.checkout_date;
+      let error: string;
+      if (isCoDay) {
+        const reason = capResult.kind === "closed" ? "closed" : "full";
+        error = isStaffBooking
+          ? checkoutAddonStaffMessage(reason, capResult.date)
+          : checkoutAddonCustomerMessage(reason, capResult.date);
+      } else if (capResult.kind === "closed") {
+        error = `${capResult.date}は休業日です`;
+      } else {
+        error = `${capResult.date}は満席です。お問い合わせください（TEL 0460-80-0290）`;
       }
-    } else {
-      datesToUpdate.push(body.date);
+      return NextResponse.json({ error }, { status: 400 });
     }
-
-    // 容量を原子的に確保する（対象日を昇順でFOR UPDATEロック→各日の上限チェック→加算を
-    // 1トランザクションで実行する reserve_capacity RPC）。従来の「SELECT→JSで加算→UPDATE」は
-    // 満室境界(18/19)での同時予約で lost update / オーバーブッキングを起こしうるため置換。
-    const { error: capErr } = await supabase.rpc("reserve_capacity", {
-      p_dates: datesToUpdate,
-      p_column: capacityColumn,
-      p_dog_count: dogCount,
-    });
-    if (capErr) {
-      const msg = capErr.message || "";
-      if (msg.includes("CAPACITY_EXCEEDED")) {
-        // 満室レース → 直前に作成した予約を取り消してロールバック（オーバーブック防止）。
-        await supabase.from("reservation_dogs").delete().eq("reservation_id", reservation.id);
-        await supabase.from("reservations").delete().eq("id", reservation.id);
-        return NextResponse.json(
-          { error: `${body.date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
-          { status: 400 },
-        );
-      }
-      // 想定外のRPCエラー時は予約を失わせないよう従来の加算ロジックにフォールバック（容量の取りこぼし防止）。
-      console.error("reserve_capacity unexpected error, fallback to non-atomic update:", msg);
-      for (const date of datesToUpdate) {
-        const { data: existing } = await supabase
-          .from("daily_capacity")
-          .select("*")
-          .eq("date", date)
-          .maybeSingle();
-        if (existing) {
-          await supabase
-            .from("daily_capacity")
-            .update({ [capacityColumn]: Math.max(0, (existing[capacityColumn] || 0) + dogCount) })
-            .eq("date", date);
-        } else {
-          await supabase.from("daily_capacity").insert({ date, [capacityColumn]: dogCount });
-        }
-      }
-    }
-    // CO日のday_booked加算は廃止（day_limit は純粋な日帰りプランのみで管理）
 
     // 7. 利用回数は「legacy_visit_count + 確定/完了予約数」で都度導出するため、
     //    累積カウンタ increment_total_visits は廃止（キャンセルで減算されず初回客が
@@ -680,6 +685,9 @@ export async function POST(req: NextRequest) {
             // 確認メールに載っている事実をLINEにも載せる（メールを送らなくなったため）
             checkoutDate: body.checkout_date,
             dogs: (body.dogs || []).map((d) => d.name).filter(Boolean),
+            checkoutAddonPlan: checkoutAddon?.plan ?? null,
+            checkinAddonPlan: checkinAddon?.plan ?? null,
+            checkinAddonFrom: checkinAddonFrom,
           }),
           "booking_confirm"
         ).catch((err) => {
@@ -697,7 +705,12 @@ export async function POST(req: NextRequest) {
         // （LINE優先のまま黙ると予約の控えが丸ごと消えるため）。
         // スタッフ宛2通は skipCustomerEmail に関係なく必ず送られる。
         await sendBookingEmails(
-          body,
+          {
+            ...body,
+            checkout_addon: checkoutAddon?.plan ?? "",
+            checkin_addon: checkinAddon?.plan ?? "",
+            checkin_addon_from: checkinAddonFrom ?? "",
+          },
           reservation.id,
           status,
           duplicateWarnings.length > 0 ? duplicateWarnings : undefined,

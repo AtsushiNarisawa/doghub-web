@@ -7,28 +7,19 @@ import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { sendReservationChangeEmail } from "@/lib/email";
 import { buildReservationChangeMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
+import {
+  activeFootprint,
+  diffFootprint,
+  increasedDates,
+  checkoutAddonBlockReason,
+  checkoutAddonStaffMessage,
+} from "@/lib/booking-rules";
+import { applyCapacityDelta } from "@/lib/capacity-server";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
-async function updateCapacity(date: string, column: string, delta: number) {
-  const { data: existing } = await supabase
-    .from("daily_capacity")
-    .select("*")
-    .eq("date", date)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("daily_capacity")
-      .update({ [column]: Math.max(0, (existing[column] || 0) + delta) })
-      .eq("date", date);
-  } else if (delta > 0) {
-    await supabase.from("daily_capacity").insert({ date, [column]: delta });
-  }
-}
 
 export async function POST(req: NextRequest) {
   if (!(await verifyAdminBearer(req))) {
@@ -57,47 +48,45 @@ export async function POST(req: NextRequest) {
     }
 
     const dogCount = res.dog_count || 1;
-    const capacityColumn = res.plan === "stay" ? "stay_booked" : "day_booked";
-
-    // 旧日程と新日程の占有日リストを構築
-    const buildRange = (ciStr: string, coStr: string | null): string[] => {
-      if (!coStr) return [];
-      const dates: string[] = [];
-      const d = new Date(ciStr);
-      const end = new Date(coStr);
-      while (d < end) {
-        dates.push(d.toISOString().split("T")[0]);
-        d.setDate(d.getDate() + 1);
-      }
-      return dates;
-    };
-    const oldDates = res.plan === "stay" && res.checkout_date
-      ? buildRange(res.date, res.checkout_date)
-      : [res.date];
     const effectiveCheckout = (res.plan === "stay" && new_checkout_date) ? new_checkout_date : res.checkout_date;
-    const newDates = res.plan === "stay" && effectiveCheckout
-      ? buildRange(new_date, effectiveCheckout)
-      : [new_date];
+    if (res.plan === "stay" && (!effectiveCheckout || effectiveCheckout <= new_date)) {
+      return NextResponse.json({ error: "チェックアウト日はチェックイン日の翌日以降にしてください" }, { status: 400 });
+    }
+
+    // 枠の差分（lib/booking-rules.ts の footprint が正本）。
+    // 🔴 キャンセル済み・完了・無断キャンセルの予約は枠を持たないので、日程を動かしても枠は動かない
+    //    （以前は状態を見ずに旧日程を引き新日程を足していた＝キャンセル済みをリスケすると枠が増えた）。
+    // チェックアウト後の半日・1日が付いていれば CO日の分も一緒に動く。
+    const fpBefore = activeFootprint(res);
+    const fpAfter = activeFootprint({ ...res, date: new_date, checkout_date: res.plan === "stay" ? effectiveCheckout : null });
+    const capDelta = diffFootprint(fpBefore, fpAfter);
 
     // 休業日判定（新規予約API route.ts と同一ロジック）。
     // daily_capacity 行が無い将来の水木には行が無いのが常態のため、cap=null のときは
-    // 曜日で定休(水=3/木=4)を判定する。これを怠ると、新規予約では弾かれる「定休日をまたぐ/
-    // 定休日に在室する連泊」をリスケで成立させられてしまう。
-    // 曜日の値と JST 曜日の求め方は lib/business-days.ts が正本（総点検 #29）。
+    // 曜日で定休(水=3/木=4)を判定する。曜日の値と JST 曜日の求め方は lib/business-days.ts が正本。
     const isClosedDate = (date: string, cap: { closed: boolean } | null): boolean => {
       if (cap) return cap.closed;
       return isDefaultClosedWeekday(date);
     };
 
-    // 純粋な追加日のみ容量チェック（重複日は元々 dogCount 含まれているのでスキップ）
-    const oldSet = new Set(oldDates);
-    const addedDates = newDates.filter((d) => !oldSet.has(d));
-    for (const date of addedDates) {
+    // 新しく枠が増える日だけ事前にチェック（最終判定は apply_capacity_delta が原子的に行う）
+    for (const date of increasedDates(capDelta)) {
       const { data: cap } = await supabase
         .from("daily_capacity")
-        .select("day_booked, stay_booked, closed")
+        .select("day_booked, stay_booked, closed, web_closed")
         .eq("date", date)
         .maybeSingle();
+      // チェックアウト後の半日・1日の日: 定休日・臨時休業はスタッフも不可（11-22 CEO 決定）
+      if (res.plan === "stay" && res.checkout_addon_plan && date === effectiveCheckout) {
+        const reason = checkoutAddonBlockReason(date, cap, { isStaff: true, addDogs: dogCount, limit: PHYSICAL_ROOM_LIMIT });
+        if (reason) {
+          return NextResponse.json(
+            { error: `${checkoutAddonStaffMessage(reason, date)}。半日・1日を外してから日程を変更してください` },
+            { status: 400 },
+          );
+        }
+        continue;
+      }
       if (isClosedDate(date, cap)) {
         return NextResponse.json({ error: `${date}は休業日のため、この日程には変更できません` }, { status: 400 });
       }
@@ -106,9 +95,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 旧日程の容量を戻す
-    for (const date of oldDates) {
-      await updateCapacity(date, capacityColumn, -dogCount);
+    // 枠を先に動かす（旧日程の解放と新日程の確保を1トランザクションで）
+    if (capDelta.length > 0) {
+      const cap = await applyCapacityDelta(supabase, capDelta, PHYSICAL_ROOM_LIMIT);
+      if (!cap.ok) {
+        return NextResponse.json(
+          {
+            error: cap.kind === "closed"
+              ? `${cap.date}は休業日のため、この日程には変更できません`
+              : `${cap.date}は満室です（全${PHYSICAL_ROOM_LIMIT}室）`,
+          },
+          { status: 400 },
+        );
+      }
     }
 
     // 予約を更新
@@ -116,11 +115,10 @@ export async function POST(req: NextRequest) {
     if (new_checkin_time) updates.checkin_time = new_checkin_time;
     if (res.plan === "stay" && new_checkout_date) updates.checkout_date = new_checkout_date;
 
-    await supabase.from("reservations").update(updates).eq("id", reservation_id);
-
-    // 新日程の容量を加算
-    for (const date of newDates) {
-      await updateCapacity(date, capacityColumn, dogCount);
+    const { error: updErr } = await supabase.from("reservations").update(updates).eq("id", reservation_id);
+    if (updErr) {
+      if (capDelta.length > 0) await applyCapacityDelta(supabase, diffFootprint(capDelta, []));
+      return NextResponse.json({ error: "日程の変更に失敗しました" }, { status: 500 });
     }
 
     // お客様への変更通知（メール + LINE）。
@@ -148,7 +146,7 @@ export async function POST(req: NextRequest) {
         try {
           const { data: full } = await supabase
             .from("reservations")
-            .select("plan, date, checkin_time, checkout_date, customers(last_name, first_name, email, line_id)")
+            .select("plan, date, checkin_time, checkout_date, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers(last_name, first_name, email, line_id)")
             .eq("id", reservation_id)
             .single();
           const customer = full?.customers as unknown as {
@@ -173,6 +171,9 @@ export async function POST(req: NextRequest) {
                 changes,
                 reservationId: reservation_id,
                 changedBy: "staff",
+                checkoutAddonPlan: full.checkout_addon_plan,
+                checkinAddonPlan: full.checkin_addon_plan,
+                checkinAddonFrom: full.checkin_addon_from,
               }),
               "reschedule"
             ).catch((lineErr) => {
@@ -192,6 +193,9 @@ export async function POST(req: NextRequest) {
                 date: full.date,
                 checkin_time: full.checkin_time,
                 checkout_date: full.checkout_date,
+                checkout_addon_plan: full.checkout_addon_plan,
+                checkin_addon_plan: full.checkin_addon_plan,
+                checkin_addon_from: full.checkin_addon_from,
               },
               changes,
               changedBy: "staff",

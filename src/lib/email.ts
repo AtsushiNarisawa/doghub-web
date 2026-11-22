@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import type { BookingFormData } from "@/types/booking";
-import { PLANS } from "@/types/booking";
+import { findCheckinAddon, findCheckoutAddon, formatAddonTime } from "@/types/booking";
+import { calculateBookingBreakdown } from "@/lib/pricing";
 import { currentAgeLabel } from "@/lib/dog-age";
 
 /**
@@ -115,6 +116,26 @@ function escapeMultiline(s: string | undefined | null): string {
   return escapeHtml(s).replace(/\r?\n/g, "<br>");
 }
 
+// 宿泊に付ける半日・1日（2026-11-22〜 枠を確保して確定）の表示用の文言。
+// 定義は types/booking.ts（CHECKIN/CHECKOUT_ADDON_OPTIONS）が正本。
+function addonTexts(r: {
+  plan: string;
+  checkout_addon_plan?: string | null;
+  checkin_addon_plan?: string | null;
+  checkin_addon_from?: string | null;
+}) {
+  const co = r.plan === "stay" ? findCheckoutAddon(r.checkout_addon_plan) : null;
+  const ci = r.plan === "stay" ? findCheckinAddon(r.checkin_addon_plan) : null;
+  return {
+    co,
+    ci,
+    /** 「7:00〜（チェックイン前の1日お預かり）」 */
+    ciText: ci ? `${formatAddonTime(r.checkin_addon_from || ci.from)}〜（チェックイン前の${ci.name}）` : "",
+    /** 「〜15:00（チェックアウト後の半日お預かり）」 */
+    coText: co ? `〜${co.until}（チェックアウト後の${co.name}）` : "",
+  };
+}
+
 // 予約確認メール（お客様宛）。
 // lineLinkUrl は「まだLINEと紐付いていないお客様」にだけ呼び出し側から渡す
 // （紐付け済みの方には渡さない＝案内が出ない）。null/undefined なら
@@ -126,11 +147,20 @@ function buildCustomerEmailHtml(
   lineLinkUrl?: string | null,
 ): string {
   const isPending = status === "pending";
-  const plan = PLANS.find((p) => p.id === form.plan);
-  const stayNights =
-    form.plan === "stay" && form.checkout_date && form.date
-      ? Math.max(1, Math.round((new Date(form.checkout_date).getTime() - new Date(form.date).getTime()) / 86400000))
-      : 0;
+  // 料金は lib/pricing.ts が正本（式をここに書かない）。半日・1日・延長も含めた合計を出す。
+  const price = calculateBookingBreakdown(form);
+  const stayNights = price.stayNights;
+  const addon = addonTexts({
+    plan: form.plan,
+    checkout_addon_plan: form.checkout_addon,
+    checkin_addon_plan: form.checkin_addon,
+    checkin_addon_from: form.checkin_addon_from,
+  });
+  const priceRow = (label: string, yen: number) => `
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">${label}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">¥${yen.toLocaleString()}</td>
+      </tr>`;
 
   const dogsHtml = form.dogs.map((dog) => {
     const ageStr = dogAgeText(dog);
@@ -179,22 +209,27 @@ function buildCustomerEmailHtml(
       </tr>
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックイン</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(form.date)} ${form.checkin_time}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(form.date)} ${addon.ci ? `お預け開始 ${addon.ciText}` : form.checkin_time}</td>
       </tr>
       ${form.plan === "stay" && form.checkout_date ? `
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックアウト</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(form.checkout_date)}（${stayNights}泊） / 9:00〜11:00</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${formatDate(form.checkout_date)}（${stayNights}泊） / ${addon.co ? `お迎え ${addon.coText}` : "9:00〜11:00"}</td>
       </tr>` : ""}
-      <tr>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">基本料金</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">¥${((plan?.basePrice ?? 0) * form.dogs.length * Math.max(stayNights || 1, 1)).toLocaleString()}</td>
-      </tr>
+      ${priceRow("基本料金", price.baseFee)}
+      ${price.ciAddonFee > 0 && addon.ci ? priceRow(`チェックイン前の${addon.ci.shortName}`, price.ciAddonFee) : ""}
+      ${price.ciExtFee > 0 ? priceRow(`早預かり（${price.ciExtHours}時間）`, price.ciExtFee) : ""}
+      ${price.coExtFee > 0 ? priceRow(`延長預かり（${price.coExtHours}時間）`, price.coExtFee) : ""}
+      ${price.coAddonFee > 0 && addon.co ? priceRow(`チェックアウト後の${addon.co.shortName}`, price.coAddonFee) : ""}
       ${form.walk_option ? `
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">散歩オプション</td>
         <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">あり（¥550/1回1頭）</td>
       </tr>` : ""}
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">合計（目安）</td>
+        <td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;font-weight:600;">¥${price.total.toLocaleString()}（税込）</td>
+      </tr>
     </table>
 
     <h3 style="font-size:14px;color:#888;margin:20px 0 10px;">ワンちゃん情報</h3>
@@ -264,6 +299,12 @@ function buildCustomerEmailHtml(
 
 function buildStaffEmailHtml(form: BookingFormData, reservationId: string, status: string, duplicateWarnings?: string[]): string {
   const isPending = status === "pending";
+  const staffAddon = addonTexts({
+    plan: form.plan,
+    checkout_addon_plan: form.checkout_addon,
+    checkin_addon_plan: form.checkin_addon,
+    checkin_addon_from: form.checkin_addon_from,
+  });
   const stayNights =
     form.plan === "stay" && form.checkout_date && form.date
       ? Math.max(1, Math.round((new Date(form.checkout_date).getTime() - new Date(form.date).getTime()) / 86400000))
@@ -294,6 +335,8 @@ function buildStaffEmailHtml(form: BookingFormData, reservationId: string, statu
     <tr><td style="padding:6px 0;color:#888;width:110px;">予約番号</td><td style="padding:6px 0;">${reservationId.slice(0, 8).toUpperCase()}</td></tr>
     <tr><td style="padding:6px 0;color:#888;">プラン</td><td style="padding:6px 0;">${PLAN_NAMES[form.plan] || form.plan}</td></tr>
     <tr><td style="padding:6px 0;color:#888;">日付</td><td style="padding:6px 0;">${formatDate(form.date)} ${form.checkin_time}〜${form.plan === "stay" ? `（${stayNights}泊 / CO: ${formatDate(form.checkout_date || "")}）` : ""}</td></tr>
+    ${staffAddon.ci ? `<tr><td style="padding:6px 0;color:#888;">CI前</td><td style="padding:6px 0;color:#B87942;font-weight:600;">${staffAddon.ci.shortName} ${staffAddon.ciText}</td></tr>` : ""}
+    ${staffAddon.co ? `<tr><td style="padding:6px 0;color:#888;">CO後</td><td style="padding:6px 0;color:#B87942;font-weight:600;">${staffAddon.co.shortName} ${staffAddon.coText}・CO日の部屋数に計上済み</td></tr>` : ""}
     <tr><td style="padding:6px 0;color:#888;">お客様</td><td style="padding:6px 0;">${escapeHtml(form.customer.last_name)} ${escapeHtml(form.customer.first_name)}（${escapeHtml(form.customer.last_name_kana)} ${escapeHtml(form.customer.first_name_kana)}）</td></tr>
     <tr><td style="padding:6px 0;color:#888;">電話</td><td style="padding:6px 0;"><a href="tel:${encodeURIComponent(form.customer.phone)}" style="color:#B87942;">${escapeHtml(form.customer.phone)}</a></td></tr>
     <tr><td style="padding:6px 0;color:#888;">メール</td><td style="padding:6px 0;">${escapeHtml(form.customer.email)}</td></tr>
@@ -562,6 +605,11 @@ export async function resendConfirmationEmail(
     walk_option: boolean;
     destination: string | null;
     notes: string | null;
+    checkout_addon_plan?: string | null;
+    checkin_addon_plan?: string | null;
+    checkin_addon_from?: string | null;
+    checkin_extension_from?: string | null;
+    checkout_extension_until?: string | null;
   },
   customer: {
     last_name: string;
@@ -580,10 +628,14 @@ export async function resendConfirmationEmail(
     date: reservation.date,
     checkin_time: reservation.checkin_time?.slice(0, 5) || "",
     checkout_date: reservation.checkout_date || "",
-    checkin_extension: false,
-    checkin_extension_from: "",
-    checkout_extension: false,
-    checkout_extension_until: "",
+    // 延長・半日/1日も新規送信時と同じ金額になるよう、DB の列から戻す
+    checkin_extension: !!reservation.checkin_extension_from,
+    checkin_extension_from: reservation.checkin_extension_from?.slice(0, 5) || "",
+    checkout_extension: !!reservation.checkout_extension_until,
+    checkout_extension_until: reservation.checkout_extension_until?.slice(0, 5) || "",
+    checkout_addon: (reservation.checkout_addon_plan as "4h" | "8h" | null) || "",
+    checkin_addon: (reservation.checkin_addon_plan as "4h" | "8h" | null) || "",
+    checkin_addon_from: reservation.checkin_addon_from?.slice(0, 5) || "",
     early_morning: false,
     walk_option: reservation.walk_option,
     destination: reservation.destination || "",
@@ -775,6 +827,9 @@ export async function sendCancellationEmails(params: {
     date: string;
     checkin_time: string;
     checkout_date: string | null;
+    checkout_addon_plan?: string | null;
+    checkin_addon_plan?: string | null;
+    checkin_addon_from?: string | null;
   };
   customer: {
     last_name: string;
@@ -801,6 +856,10 @@ export async function sendCancellationEmails(params: {
   const checkinTime = params.reservation.checkin_time?.slice(0, 5) || "";
   const planName = PLAN_NAMES_LOCAL[params.reservation.plan] || params.reservation.plan;
   const { customer } = params;
+  const cAddon = addonTexts(params.reservation);
+  const addonRowsHtml =
+    (cAddon.ci ? `<tr><td style="padding:4px 12px 4px 0;color:#888;">チェックイン前</td><td>${cAddon.ci.name} ${cAddon.ciText.split("（")[0]}</td></tr>` : "") +
+    (cAddon.co ? `<tr><td style="padding:4px 12px 4px 0;color:#888;">チェックアウト後</td><td>${cAddon.co.name} ${cAddon.coText.split("（")[0]}</td></tr>` : "");
 
   const emails: Promise<unknown>[] = [];
 
@@ -836,6 +895,7 @@ export async function sendCancellationEmails(params: {
         <tr><td style="padding:4px 12px 4px 0;color:#888;">プラン</td><td>${planName}</td></tr>
         <tr><td style="padding:4px 12px 4px 0;color:#888;">日程</td><td>${dateStr} ${checkinTime}</td></tr>
         ${params.reservation.checkout_date ? `<tr><td style="padding:4px 12px 4px 0;color:#888;">チェックアウト</td><td>${new Date(params.reservation.checkout_date).getMonth() + 1}/${new Date(params.reservation.checkout_date).getDate()}</td></tr>` : ""}
+        ${addonRowsHtml}
       </table>
     </div>
     ${staffNote}
@@ -872,6 +932,7 @@ export async function sendCancellationEmails(params: {
         <tr><td style="padding:6px 12px 6px 0;color:#888;">プラン</td><td>${planName}</td></tr>
         <tr><td style="padding:6px 12px 6px 0;color:#888;">日程</td><td>${dateStr} ${checkinTime}</td></tr>
         <tr><td style="padding:6px 12px 6px 0;color:#888;">頭数</td><td>${params.dogCount}頭</td></tr>
+        ${addonRowsHtml.replace(/padding:4px 12px 4px 0/g, "padding:6px 12px 6px 0")}
         ${params.cancelReason ? `<tr><td style="padding:6px 12px 6px 0;color:#888;">理由</td><td>${params.cancelReason}</td></tr>` : ""}
       </table>
       <p style="margin-top:16px;"><a href="https://dog-hub.shop/admin/reservations/${params.reservationId}" style="color:#B87942;">管理画面で確認する</a></p>
@@ -916,6 +977,9 @@ export async function sendReservationChangeEmail(params: {
     date: string;
     checkin_time: string | null;
     checkout_date: string | null;
+    checkout_addon_plan?: string | null;
+    checkin_addon_plan?: string | null;
+    checkin_addon_from?: string | null;
   };
   changes: string[];
   changedBy: "customer" | "staff";
@@ -926,7 +990,8 @@ export async function sendReservationChangeEmail(params: {
   if (changes.length === 0) return false;
 
   const planName = PLAN_NAMES[reservation.plan] || reservation.plan;
-  const checkinTime = reservation.checkin_time?.slice(0, 5) || "";
+  const chAddon = addonTexts(reservation);
+  const checkinTime = chAddon.ci ? `お預け開始 ${chAddon.ciText}` : reservation.checkin_time?.slice(0, 5) || "";
   const changesHtml = changes
     .map(
       (ch) =>
@@ -965,7 +1030,7 @@ export async function sendReservationChangeEmail(params: {
       <table style="font-size:14px;color:#3C200F;border-collapse:collapse;width:100%;">
         <tr><td style="padding:4px 12px 4px 0;color:#888;white-space:nowrap;">プラン</td><td>${planName}</td></tr>
         <tr><td style="padding:4px 12px 4px 0;color:#888;white-space:nowrap;">日程</td><td>${formatDate(reservation.date)}${checkinTime ? ` ${checkinTime}` : ""}</td></tr>
-        ${reservation.checkout_date ? `<tr><td style="padding:4px 12px 4px 0;color:#888;white-space:nowrap;">チェックアウト</td><td>${formatDate(reservation.checkout_date)}</td></tr>` : ""}
+        ${reservation.checkout_date ? `<tr><td style="padding:4px 12px 4px 0;color:#888;white-space:nowrap;">チェックアウト</td><td>${formatDate(reservation.checkout_date)}${chAddon.co ? ` / お迎え ${chAddon.coText}` : ""}</td></tr>` : ""}
       </table>
     </div>
     <div style="padding:16px;background:#FFF7ED;border-radius:10px;margin:0 0 20px;">

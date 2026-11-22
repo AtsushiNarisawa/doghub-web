@@ -2,7 +2,15 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { BookingFormData } from "@/types/booking";
-import { PLANS, CHECKOUT_ADDON_OPTIONS, CHECKIN_ADDON_OPTIONS, checkoutAddonPrice } from "@/types/booking";
+import {
+  PLANS,
+  CHECKOUT_ADDON_OPTIONS,
+  CHECKIN_ADDON_OPTIONS,
+  CHECKIN_ADDON_8H_FROM_OPTIONS,
+  checkoutAddonPrice,
+  findCheckinAddon,
+  formatAddonTime,
+} from "@/types/booking";
 import { supabase } from "@/lib/supabase";
 import { fetchSiteSettings } from "@/lib/site-settings";
 import { WEB_ROOM_LIMIT, LOW_STOCK_REMAINING } from "@/lib/capacity";
@@ -14,6 +22,9 @@ import {
   afternoonOnlyCustomerMessage,
   formatDateJaWithWeekday,
   AFTERNOON_OPEN_TIME,
+  checkoutAddonBlockReason,
+  checkoutAddonCustomerMessage,
+  type CheckoutDayRow,
 } from "@/lib/booking-rules";
 import { DEFAULT_CLOSED_WEEKDAYS, getJstWeekday } from "@/lib/business-days";
 import { BookingCalendar, type CalendarDayState } from "./booking-calendar";
@@ -60,6 +71,8 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
   const [bookingWindowDays, setBookingWindowDays] = useState(180);
   const [closedWeekdays, setClosedWeekdays] = useState<number[]>(DEFAULT_CLOSED_WEEKDAYS);
   const [showOtherInput, setShowOtherInput] = useState(false);
+  // 各日の daily_capacity 行そのもの（チェックアウト日に半日・1日を付けられるかの判定に使う）
+  const [capRows, setCapRows] = useState<Record<string, CheckoutDayRow>>({});
 
   // ── 選んだら次の入力欄が見えるように自動で送る ──
   // スマホでは、プランを押してもカレンダーが画面の外に出るだけで「押したのに何も起きない」に
@@ -105,8 +118,10 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
         if (data) {
           const closedMap: Record<string, boolean> = {};
           const remMap: Record<string, number> = {};
+          const rowMap: Record<string, CheckoutDayRow> = {};
           data.forEach((r) => {
             closedMap[r.date] = r.closed;
+            rowMap[r.date] = r;
             // web_closed=true の日は「Web受付停止」＝残0扱いにして × 満席（お問い合わせ）へ倒す。
             // 店を閉める closed とは別物で、スタッフは管理画面から引き続き受け付けられる。
             remMap[r.date] = r.web_closed
@@ -115,6 +130,7 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
           });
           setClosedOverrides(closedMap);
           setRemainingMap(remMap);
+          setCapRows(rowMap);
         }
       });
     // 午後から営業（宿泊のみ）の日。上の問い合わせと分けている＝この列が読めなくても
@@ -229,7 +245,9 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
       ...form,
       date: dateStr,
       checkout_date: checkout,
-      ...(clearExtension ? { checkin_extension: false, checkin_extension_from: "", checkin_addon_request: "" as const } : {}),
+      ...(clearExtension
+        ? { checkin_extension: false, checkin_extension_from: "", checkin_addon: "" as const, checkin_addon_from: "" }
+        : {}),
     });
     pushStep1Event("booking_date_select", {
       plan: form.plan,
@@ -409,10 +427,29 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
       date: form.date,
       checkoutDate: form.checkout_date,
       checkinTime: form.checkin_time,
-      checkinExtensionFrom: form.checkin_extension ? form.checkin_extension_from : null,
+      // チェックイン前の半日・1日も「14時より前のお預け」（予約APIと同じ扱い）
+      checkinExtensionFrom: form.checkin_extension
+        ? form.checkin_extension_from
+        : findCheckinAddon(form.checkin_addon)
+          ? form.checkin_addon_from || null
+          : null,
     },
     isAfternoonOnly
   );
+
+  // チェックアウト日に半日・1日を付けられない理由（予約APIと同じ関数・同じ文言）。
+  // この画面では頭数がまだ決まっていないので1頭で判定し、最終の判定はサーバーが頭数で行う。
+  const coAddonBlock = (coDate: string) =>
+    coDate
+      ? checkoutAddonBlockReason(coDate, capRows[coDate] ?? null, {
+          isStaff: false,
+          closedWeekdays,
+          addDogs: Math.max(1, form.dogs.length),
+          limit: WEB_ROOM_LIMIT,
+        })
+      : null;
+  const coAddonBlockReason = form.plan === "stay" ? coAddonBlock(form.checkout_date) : null;
+  const ciAddonSelected = findCheckinAddon(form.checkin_addon);
 
   // 受付期間内にある「午後から営業」の日（カレンダー下の案内に使う）。
   // 宿泊では「前日からのお泊まり」が実際に止まる日だけ出す（前日が休業なら元々泊まれないので案内不要）。
@@ -451,7 +488,9 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
       ? form.checkout_date &&
         stayClosedDates.length === 0 &&
         (!form.checkin_extension || form.checkin_extension_from) &&
-        (!form.checkout_extension || form.checkout_extension_until)
+        (!form.checkout_extension || form.checkout_extension_until) &&
+        (!ciAddonSelected || form.checkin_addon_from) &&
+        !(form.checkout_addon && coAddonBlockReason)
       : true);
 
   // 「次へ」が押せないとき、何をすれば進めるかを具体的に伝える。
@@ -473,6 +512,10 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
       need.push("早預かりの開始時間");
     if (form.plan === "stay" && form.checkout_extension && !form.checkout_extension_until)
       need.push("延長のお迎え時間");
+    if (form.plan === "stay" && ciAddonSelected && !form.checkin_addon_from)
+      need.push("チェックイン前の1日お預かりの開始時刻");
+    if (form.plan === "stay" && form.checkout_addon && coAddonBlockReason)
+      return checkoutAddonCustomerMessage(coAddonBlockReason, form.checkout_date);
     if (need.length > 0) return `あと「${need.join("」「")}」をお選びください`;
     return null;
   })();
@@ -551,8 +594,9 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
                   checkin_extension_from: "",
                   checkout_extension: false,
                   checkout_extension_until: "",
-                  checkout_addon_request: "",
-                  checkin_addon_request: "",
+                  checkout_addon: "",
+                  checkin_addon: "",
+                  checkin_addon_from: "",
                   early_morning: false,
                   // お散歩オプションは宿泊のみ。プランを切り替えたら選択を外す
                   // （宿泊で選択→日帰りに戻した時の取りこぼし防止）
@@ -699,7 +743,12 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
             key={form.date}
             value={form.checkout_date}
             onSelect={(dateStr) => {
-              onChange({ ...form, checkout_date: dateStr });
+              // 新しいチェックアウト日に半日・1日を付けられないなら、選択を外す（理由は下に出る）
+              onChange({
+                ...form,
+                checkout_date: dateStr,
+                ...(form.checkout_addon && coAddonBlock(dateStr) ? { checkout_addon: "" as const } : {}),
+              });
               // 下に早預かり・延長の選択（任意）が出る。次へボタンが見えるところまで最小限送る
               requestScroll("next");
             }}
@@ -714,7 +763,7 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
             }
           />
           <p className="text-[12px] text-[#888] mt-2">
-            チェックアウト日は{closedWeekdayNames()}曜日（定休日）でもお引き取りいただけます。
+            チェックアウト日は{closedWeekdayNames()}曜日（定休日）でもお引き取りいただけます（半日・1日はお付けできません）。
           </p>
           {form.checkout_date && stayClosedDates.length > 0 && (
             <p className="text-red-500 text-sm mt-2">
@@ -746,8 +795,8 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
                   ...form,
                   checkin_extension: e.target.checked,
                   checkin_extension_from: "",
-                  // 時間の早預かりと半日・1日の希望は同時に選べない
-                  ...(e.target.checked ? { checkin_addon_request: "" as const } : {}),
+                  // 時間の早預かりと半日・1日は同時に選べない
+                  ...(e.target.checked ? { checkin_addon: "" as const, checkin_addon_from: "" } : {}),
                 })
               }
               className="w-5 h-5 rounded accent-[#B87942] mt-0.5"
@@ -793,26 +842,59 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
             </div>
           )}
 
-          {/* チェックイン前に半日・1日を付ける希望。扱いはチェックアウト後と同じ */}
+          {/* チェックイン前に半日・1日を付ける（2026-11-22〜 確定）。CI日はすでに宿泊でお部屋を数えているので
+              部屋数は増えない。半日は10時から固定・1日は 7:00／8:00／9:00 から選ぶ（11-22 CEO 決定） */}
           {CHECKIN_ADDON_OPTIONS.map((option) => (
-            <label key={option.plan} className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
-              <input
-                type="checkbox"
-                checked={form.checkin_addon_request === option.plan}
-                onChange={(e) =>
-                  onChange({
-                    ...form,
-                    checkin_addon_request: e.target.checked ? option.plan : "",
-                    ...(e.target.checked ? { checkin_extension: false, checkin_extension_from: "" } : {}),
-                  })
-                }
-                className="w-5 h-5 rounded accent-[#B87942] mt-0.5"
-              />
-              <span className="text-sm font-medium">
-                チェックイン前に{option.name}を付けたい（1頭あたり¥{checkoutAddonPrice(option.plan).toLocaleString()}・{option.fromLabel}）
-              </span>
-            </label>
+            <div key={option.plan} className="space-y-2">
+              <label className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
+                <input
+                  type="checkbox"
+                  checked={form.checkin_addon === option.plan}
+                  onChange={(e) =>
+                    onChange({
+                      ...form,
+                      checkin_addon: e.target.checked ? option.plan : "",
+                      // 半日は10時固定。1日は開始時刻を下のボタンで選んでもらう
+                      checkin_addon_from: e.target.checked && option.plan === "4h" ? option.from : "",
+                      ...(e.target.checked ? { checkin_extension: false, checkin_extension_from: "" } : {}),
+                    })
+                  }
+                  className="w-5 h-5 rounded accent-[#B87942] mt-0.5"
+                />
+                <span className="text-sm font-medium">
+                  チェックイン前に{option.name}を付ける（1頭あたり¥{checkoutAddonPrice(option.plan).toLocaleString()}・{option.fromLabel}）
+                </span>
+              </label>
+              {option.plan === "8h" && form.checkin_addon === "8h" && (
+                <div className="pl-1">
+                  <p className="text-sm font-medium mb-2">何時からお預けしますか？</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {CHECKIN_ADDON_8H_FROM_OPTIONS.map((time) => (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => onChange({ ...form, checkin_addon_from: time })}
+                        className={`py-3 rounded-lg text-sm font-medium transition-all ${
+                          form.checkin_addon_from === time
+                            ? "bg-[#B87942] text-white"
+                            : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
+          {ciAddonSelected && (
+            <p className="text-[12px] text-[#B87942] leading-relaxed">
+              チェックイン前の{ciAddonSelected.name}を付けた場合は、
+              {form.checkin_addon_from ? `${formatAddonTime(form.checkin_addon_from)}に` : "お選びの時刻に"}
+              お越しください（14時の到着は不要です）。
+            </p>
+          )}
         </div>
       )}
 
@@ -828,8 +910,8 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
                   ...form,
                   checkout_extension: e.target.checked,
                   checkout_extension_until: "",
-                  // 時間の延長と半日・1日の希望は同時に選べない
-                  ...(e.target.checked ? { checkout_addon_request: "" as const } : {}),
+                  // 時間の延長と半日・1日は同時に選べない
+                  ...(e.target.checked ? { checkout_addon: "" as const } : {}),
                 })
               }
               className="w-5 h-5 rounded accent-[#B87942] mt-0.5"
@@ -864,24 +946,37 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
               {form.checkout_extension_until && (() => {
                 const ext = calcExtension("11:00", form.checkout_extension_until);
                 return (
-                  <p className="mt-2 text-[13px] text-[#888]">
-                    延長料金目安: {ext.hours}時間 × ¥1,100 ＝ ¥{ext.fee.toLocaleString()}
-                  </p>
+                  <>
+                    <p className="mt-2 text-[13px] text-[#888]">
+                      延長料金目安: {ext.hours}時間 × ¥1,100 ＝ ¥{ext.fee.toLocaleString()}
+                    </p>
+                    {/* 15時以降のお迎えは、半日（〜15時）・1日（〜17時）の方が安くなる場合がある */}
+                    {form.checkout_extension_until >= "15:00" && !coAddonBlockReason && (
+                      <p className="mt-1 text-[12px] text-[#B87942] leading-relaxed">
+                        15時まで／17時までなら、下の「半日・1日」（お部屋の枠を確保・固定料金）もお選びいただけます。
+                      </p>
+                    )}
+                  </>
                 );
               })()}
             </div>
           )}
 
-          {/* チェックアウト後に半日・1日を付ける希望。保存は備考だけで、スタッフが空きを確認して確定する */}
+          {/* チェックアウト後に半日・1日を付ける（2026-11-22〜 選んだ時点で CO日のお部屋の枠を確保して確定）。
+              CO日が定休日・臨時休業・Web受付停止・満席なら押せない（理由と案内は lib/booking-rules.ts の文言） */}
           {CHECKOUT_ADDON_OPTIONS.map((option) => (
-            <label key={option.plan} className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
+            <label
+              key={option.plan}
+              className={`flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0] ${coAddonBlockReason ? "opacity-60" : ""}`}
+            >
               <input
                 type="checkbox"
-                checked={form.checkout_addon_request === option.plan}
+                disabled={!!coAddonBlockReason && form.checkout_addon !== option.plan}
+                checked={form.checkout_addon === option.plan}
                 onChange={(e) =>
                   onChange({
                     ...form,
-                    checkout_addon_request: e.target.checked ? option.plan : "",
+                    checkout_addon: e.target.checked ? option.plan : "",
                     // 時間の延長と同時には選べない
                     ...(e.target.checked ? { checkout_extension: false, checkout_extension_until: "" } : {}),
                   })
@@ -889,13 +984,20 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
                 className="w-5 h-5 rounded accent-[#B87942] mt-0.5"
               />
               <span className="text-sm font-medium">
-                チェックアウト後に{option.name}を付けたい（1頭あたり¥{checkoutAddonPrice(option.plan).toLocaleString()}・{option.untilLabel}）
+                チェックアウト後に{option.name}を付ける（1頭あたり¥{checkoutAddonPrice(option.plan).toLocaleString()}・{option.untilLabel}）
               </span>
             </label>
           ))}
-          <p className="text-[12px] text-[#888] leading-relaxed">
-            半日・1日は、スタッフが空きを確認して確定します。
-          </p>
+          {coAddonBlockReason ? (
+            <p className="text-[12px] text-red-500 leading-relaxed">
+              {checkoutAddonCustomerMessage(coAddonBlockReason, form.checkout_date)}
+            </p>
+          ) : (
+            <p className="text-[12px] text-[#888] leading-relaxed">
+              時間の延長（1時間 ¥1,100・1頭あたり）はお迎えの時刻に応じた料金で、お部屋の枠は確保しません。
+              半日・1日を付けると、その時間のお部屋の枠をご予約と同時に確保します。固定料金のため、早めにお迎えの場合も同じ金額です。
+            </p>
+          )}
         </div>
       )}
 

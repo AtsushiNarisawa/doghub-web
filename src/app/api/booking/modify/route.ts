@@ -8,7 +8,14 @@ import {
   afternoonOnlyDatesToCheck,
   findAfternoonOnlyViolation,
   afternoonOnlyCustomerMessage,
+  activeFootprint,
+  diffFootprint,
+  increasedDates,
+  checkoutAddonBlockReason,
+  formatDateJaWithWeekday,
 } from "@/lib/booking-rules";
+import { applyCapacityDelta } from "@/lib/capacity-server";
+import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { sendReservationChangeEmail } from "@/lib/email";
 import { buildReservationChangeMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
@@ -39,23 +46,6 @@ const PLAN_NAMES: Record<string, string> = {
   "8h": "1日お預かり（8時間）",
   stay: "宿泊お預かり",
 };
-
-async function updateCapacity(date: string, column: string, delta: number) {
-  const { data: existing } = await supabase
-    .from("daily_capacity")
-    .select("*")
-    .eq("date", date)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("daily_capacity")
-      .update({ [column]: Math.max(0, (existing[column] || 0) + delta) })
-      .eq("date", date);
-  } else if (delta > 0) {
-    await supabase.from("daily_capacity").insert({ date, [column]: delta });
-  }
-}
 
 export async function POST(req: Request) {
   try {
@@ -114,48 +104,58 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, message: "変更なし" });
     }
 
-    // CO日変更時の容量チェック（新規に占有する日のみ判定）
-    if (coChanged && reservation.plan === "stay") {
-      const buildRange = (ciStr: string, coStr: string): string[] => {
-        const dates: string[] = [];
-        const d = new Date(ciStr);
-        const end = new Date(coStr);
-        while (d < end) {
-          dates.push(d.toISOString().split("T")[0]);
-          d.setDate(d.getDate() + 1);
-        }
-        return dates;
-      };
-      const oldDates = reservation.checkout_date
-        ? buildRange(reservation.date, reservation.checkout_date)
-        : [];
-      const newDates = buildRange(reservation.date, checkout_date);
-      const oldSet = new Set(oldDates);
-      const addedDates = newDates.filter((d) => !oldSet.has(d));
+    if (coChanged && (reservation.plan !== "stay" || checkout_date <= reservation.date)) {
+      return NextResponse.json({ error: "チェックアウト日はチェックイン日の翌日以降を選択してください" }, { status: 400 });
+    }
 
-      for (const date of addedDates) {
-        const { data: cap } = await supabase
-          .from("daily_capacity")
-          .select("day_booked, stay_booked, closed, web_closed")
-          .eq("date", date)
-          .maybeSingle();
-        if (cap) {
-          if (cap.closed) {
-            return NextResponse.json({ error: `${date}は臨時休業です` }, { status: 400 });
-          }
-          // Web受付停止日への延長はお客様側からは受けない（電話で相談いただく）
-          if (cap.web_closed === true) {
-            return NextResponse.json(
-              { error: `${date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
-              { status: 400 },
-            );
-          }
-          if (exceedsRoomLimit(cap, dogCount, WEB_ROOM_LIMIT)) {
-            return NextResponse.json(
-              { error: `${date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
-              { status: 400 },
-            );
-          }
+    // CO日変更時の枠の差分（lib/booking-rules.ts の footprint が正本）。
+    // チェックアウト後の半日・1日が付いている予約は、CO日を動かすとその分の枠も一緒に動く。
+    const capDelta = coChanged
+      ? diffFootprint(activeFootprint(reservation), activeFootprint({ ...reservation, checkout_date }))
+      : [];
+
+    // 事前チェック（新しく枠が増える日だけ）。最終判定は下の apply_capacity_delta（Web上限15）が原子的に行う。
+    for (const date of increasedDates(capDelta)) {
+      const { data: cap } = await supabase
+        .from("daily_capacity")
+        .select("day_booked, stay_booked, closed, web_closed")
+        .eq("date", date)
+        .maybeSingle();
+      // 新しいチェックアウト日（半日・1日の分）: 定休日・臨時休業・Web受付停止・満席なら止める
+      if (reservation.checkout_addon_plan && date === checkout_date) {
+        const reason = checkoutAddonBlockReason(date, cap, { isStaff: false, addDogs: dogCount, limit: WEB_ROOM_LIMIT });
+        if (reason) {
+          const label = formatDateJaWithWeekday(date);
+          const why =
+            reason === "regular_closed" ? "定休日" :
+            reason === "closed" ? "臨時休業" : "満席";
+          return NextResponse.json(
+            {
+              error: `変更後のチェックアウト日（${label}）は${why}のため、半日・1日はお付けできません。` +
+                (why === "満席" ? "お手数ですがお電話（0460-80-0290）でご相談ください" : "日程を選び直してください"),
+            },
+            { status: 400 },
+          );
+        }
+        continue;
+      }
+      // 泊まる晩: 定休日（行なしの水木）・臨時休業・Web受付停止・満席なら止める
+      if (cap ? cap.closed : isDefaultClosedWeekday(date)) {
+        return NextResponse.json({ error: `${date}は休業日です` }, { status: 400 });
+      }
+      if (cap) {
+        // Web受付停止日への延長はお客様側からは受けない（電話で相談いただく）
+        if (cap.web_closed === true) {
+          return NextResponse.json(
+            { error: `${date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
+            { status: 400 },
+          );
+        }
+        if (exceedsRoomLimit(cap, dogCount, WEB_ROOM_LIMIT)) {
+          return NextResponse.json(
+            { error: `${date}は満席です。お問い合わせください（TEL 0460-80-0290）` },
+            { status: 400 },
+          );
         }
       }
     }
@@ -189,6 +189,21 @@ export async function POST(req: Request) {
       }
     }
 
+    // 枠を先に動かす（原子的・Web上限15）。休業・満室のレースならここで止まり、予約は変わらない。
+    if (capDelta.length > 0) {
+      const cap = await applyCapacityDelta(supabase, capDelta, WEB_ROOM_LIMIT);
+      if (!cap.ok) {
+        return NextResponse.json(
+          {
+            error: cap.kind === "closed"
+              ? `${cap.date}は休業日のため、この日程には変更できません`
+              : `${cap.date}は満席です。お問い合わせください（TEL 0460-80-0290）`,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     // DB更新
     const { error: updateErr } = await supabase
       .from("reservations")
@@ -196,33 +211,9 @@ export async function POST(req: Request) {
       .eq("id", reservationId);
 
     if (updateErr) {
+      // 先に動かした枠を戻す
+      if (capDelta.length > 0) await applyCapacityDelta(supabase, diffFootprint(capDelta, []));
       return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
-    }
-
-    // CO日変更時の容量再計算（宿泊のみ・stay_bookedのみ）
-    if (coChanged && reservation.plan === "stay") {
-      const oldCO = reservation.checkout_date;
-      const newCO = checkout_date;
-
-      // 旧泊日のstay_bookedを戻す
-      if (oldCO) {
-        const d = new Date(reservation.date);
-        const end = new Date(oldCO);
-        while (d < end) {
-          await updateCapacity(d.toISOString().split("T")[0], "stay_booked", -dogCount);
-          d.setDate(d.getDate() + 1);
-        }
-      }
-      // 新泊日のstay_bookedを加算
-      {
-        const d = new Date(reservation.date);
-        const end = new Date(newCO);
-        while (d < end) {
-          await updateCapacity(d.toISOString().split("T")[0], "stay_booked", dogCount);
-          d.setDate(d.getDate() + 1);
-        }
-      }
-      // CO日のday_booked加減算は廃止
     }
 
     // お客様への変更控え。
@@ -244,6 +235,9 @@ export async function POST(req: Request) {
           date: reservation.date,
           checkin_time: (updates.checkin_time as string) ?? reservation.checkin_time,
           checkout_date: (updates.checkout_date as string) ?? reservation.checkout_date,
+          checkout_addon_plan: reservation.checkout_addon_plan,
+          checkin_addon_plan: reservation.checkin_addon_plan,
+          checkin_addon_from: reservation.checkin_addon_from,
         };
         // 送れたかを確かめてからメールの要否を決めるため、メールより先に push する。
         let lineDelivered = false;
@@ -259,6 +253,9 @@ export async function POST(req: Request) {
               changes,
               reservationId,
               changedBy: "customer",
+              checkoutAddonPlan: reservation.checkout_addon_plan,
+              checkinAddonPlan: reservation.checkin_addon_plan,
+              checkinAddonFrom: reservation.checkin_addon_from,
             }),
             "reschedule"
           ).catch((lineErr) => {

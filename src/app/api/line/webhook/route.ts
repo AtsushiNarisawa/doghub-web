@@ -264,7 +264,7 @@ async function loadBookingStatusReply(
     const { data: rows, error } = await supabase
       .from("reservations")
       .select(
-        "id, plan, date, checkout_date, checkin_time, status, walk_option, checkin_extension_from, checkout_extension_until, notes, admin_notes, reservation_dogs(dogs(name, sex))"
+        "id, plan, date, checkout_date, checkin_time, status, walk_option, checkin_extension_from, checkout_extension_until, checkout_addon_plan, checkin_addon_plan, notes, admin_notes, reservation_dogs(dogs(name, sex))"
       )
       .in("customer_id", ids)
       .neq("status", "cancelled")

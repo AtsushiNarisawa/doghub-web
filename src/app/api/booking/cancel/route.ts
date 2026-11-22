@@ -2,27 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendCancellationEmails } from "@/lib/email";
 import { verifyPhoneLast4 } from "@/lib/booking-auth";
+import { activeFootprint, diffFootprint } from "@/lib/booking-rules";
+import { applyCapacityDelta } from "@/lib/capacity-server";
+import { getJstToday } from "@/lib/datetime";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
-// 容量を更新する共通関数
-async function updateCapacity(date: string, column: string, delta: number) {
-  const { data: existing } = await supabase
-    .from("daily_capacity")
-    .select("*")
-    .eq("date", date)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("daily_capacity")
-      .update({ [column]: Math.max(0, existing[column] + delta) })
-      .eq("date", date);
-  }
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +22,7 @@ export async function POST(req: NextRequest) {
     // 予約を取得（容量戻し・通知に必要な情報をすべて取得）
     const { data: reservation, error: fetchError } = await supabase
       .from("reservations")
-      .select("id, status, date, plan, checkout_date, checkin_time, dog_count, checkout_extension_until, customers(last_name, first_name, phone, email, line_id)")
+      .select("id, status, date, plan, checkout_date, checkin_time, dog_count, checkout_extension_until, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers(last_name, first_name, phone, email, line_id)")
       .eq("id", reservation_id)
       .single();
 
@@ -55,8 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "この予約は既にキャンセルされています" }, { status: 400 });
     }
 
-    const jstNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-    const today = `${jstNow.getFullYear()}-${String(jstNow.getMonth()+1).padStart(2,"0")}-${String(jstNow.getDate()).padStart(2,"0")}`;
+    const today = getJstToday();
     if (reservation.date < today) {
       return NextResponse.json({ error: "過去の予約はキャンセルできません" }, { status: 400 });
     }
@@ -72,26 +58,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "キャンセル処理に失敗しました" }, { status: 500 });
     }
 
-    // daily_capacity を戻す（頭数分 × 全日程）
+    // daily_capacity を戻す。戻す枠は lib/booking-rules.ts の footprint が正本
+    // （宿泊＝CI日〜CO前日の stay_booked ＋ チェックアウト後の半日・1日があれば CO日の day_booked）。
+    // 「有効だった状態 → 空」の差分なので、確定・仮予約以外（完了など）なら何も動かさない。
     const dogCount = reservation.dog_count || 1;
-    const capacityColumn = reservation.plan === "stay" ? "stay_booked" : "day_booked";
-    const datesToRelease: string[] = [];
-
-    if (reservation.plan === "stay" && reservation.checkout_date) {
-      const d = new Date(reservation.date);
-      const end = new Date(reservation.checkout_date);
-      while (d < end) {
-        datesToRelease.push(d.toISOString().split("T")[0]);
-        d.setDate(d.getDate() + 1);
-      }
-    } else {
-      datesToRelease.push(reservation.date);
-    }
-
-    for (const date of datesToRelease) {
-      await updateCapacity(date, capacityColumn, -dogCount);
-    }
-    // CO日のday_booked戻しは廃止（CO日加算自体を停止したため）
+    await applyCapacityDelta(supabase, diffFootprint(activeFootprint(reservation), []));
 
     const customer = reservation.customers as unknown as { last_name: string; first_name: string; phone: string; email: string; line_id: string | null } | null;
 
@@ -133,6 +104,9 @@ export async function POST(req: NextRequest) {
           date: reservation.date,
           checkin_time: reservation.checkin_time,
           checkout_date: reservation.checkout_date,
+          checkout_addon_plan: reservation.checkout_addon_plan,
+          checkin_addon_plan: reservation.checkin_addon_plan,
+          checkin_addon_from: reservation.checkin_addon_from,
         },
         customer,
         dogCount,

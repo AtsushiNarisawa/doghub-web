@@ -20,6 +20,9 @@ interface ReservationRow {
   source: string;
   notes: string | null;
   dog_count: number;
+  // 宿泊に付けた半日・1日（2026-11-22〜）
+  checkout_addon_plan?: string | null;
+  checkin_addon_plan?: string | null;
   customers: { last_name: string; first_name: string; phone: string };
   reservation_dogs: { dogs: { name: string; breed: string; weight: number; allergies: string | null } | null }[];
 }
@@ -114,7 +117,7 @@ export default function ReservationsPage() {
     let q = supabase
       .from("reservations")
       .select(`
-        id, customer_id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count,
+        id, customer_id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count, checkout_addon_plan, checkin_addon_plan,
         customers!inner(last_name, first_name, phone),
         reservation_dogs(dogs(name, breed, weight, allergies))
       `)
@@ -128,7 +131,7 @@ export default function ReservationsPage() {
       q = supabase
         .from("reservations")
         .select(`
-          id, customer_id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count,
+          id, customer_id, plan, date, checkin_time, checkout_date, status, source, notes, dog_count, checkout_addon_plan, checkin_addon_plan,
           customers!inner(last_name, first_name, phone),
           reservation_dogs(dogs(name, breed, weight, allergies))
         `)
@@ -476,6 +479,16 @@ export default function ReservationsPage() {
                     <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${planColor}`}>
                       {PLAN_LABELS[r.plan] || r.plan}
                     </span>
+                    {r.plan === "stay" && r.checkin_addon_plan && (
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-50 text-[#B87942] border border-[#E5DDD8]">
+                        CI前＋{r.checkin_addon_plan === "8h" ? "1日" : "半日"}
+                      </span>
+                    )}
+                    {r.plan === "stay" && r.checkout_addon_plan && (
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-amber-50 text-[#B87942] border border-[#E5DDD8]">
+                        CO後＋{r.checkout_addon_plan === "8h" ? "1日" : "半日"}
+                      </span>
+                    )}
                     {r.source === "line" && (
                       <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-green-100 text-green-700 border border-green-300">
                         LINE

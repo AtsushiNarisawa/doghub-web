@@ -6,54 +6,15 @@ import { sendCancellationEmails, buildLineLinkSection } from "@/lib/email";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { buildBookingConfirmMessage, buildCancellationMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
+import { activeFootprint, diffFootprint, increasedDates } from "@/lib/booking-rules";
+import { applyCapacityDelta } from "@/lib/capacity-server";
+import { PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
+import { checkinAddonLabel, checkoutAddonLabel } from "@/types/booking";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
-async function updateCapacity(date: string, column: string, delta: number) {
-  const { data: existing } = await supabase
-    .from("daily_capacity")
-    .select("*")
-    .eq("date", date)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("daily_capacity")
-      .update({ [column]: Math.max(0, existing[column] + delta) })
-      .eq("date", date);
-  } else if (delta > 0) {
-    await supabase.from("daily_capacity").insert({ date, [column]: delta });
-  }
-}
-
-async function adjustCapacity(reservationId: string, direction: 1 | -1) {
-  const { data: r } = await supabase
-    .from("reservations")
-    .select("plan, date, checkout_date, dog_count")
-    .eq("id", reservationId)
-    .single();
-
-  if (!r) return;
-
-  const dogCount = (r.dog_count || 1) * direction;
-  const capacityColumn = r.plan === "stay" ? "stay_booked" : "day_booked";
-
-  if (r.plan === "stay" && r.checkout_date) {
-    // 宿泊：CI日〜CO前日のstay_bookedのみ（CO日のday_booked加算は廃止）
-    const d = new Date(r.date);
-    const end = new Date(r.checkout_date);
-    while (d < end) {
-      const dateStr = d.toISOString().split("T")[0];
-      await updateCapacity(dateStr, capacityColumn, dogCount);
-      d.setDate(d.getDate() + 1);
-    }
-  } else {
-    await updateCapacity(r.date, capacityColumn, dogCount);
-  }
-}
 
 export async function POST(req: NextRequest) {
   if (!(await verifyAdminBearer(req))) {
@@ -84,10 +45,10 @@ export async function POST(req: NextRequest) {
     const SILENT_STATUSES = new Set(["no_show"]);
     const notifyCustomer = !SILENT_STATUSES.has(status);
 
-    // 現在のステータスを取得
+    // 現在のステータスと、枠の計算に要る列を取得
     const { data: current } = await supabase
       .from("reservations")
-      .select("status")
+      .select("status, plan, date, checkout_date, dog_count, checkout_addon_plan")
       .eq("id", reservation_id)
       .single();
 
@@ -97,6 +58,29 @@ export async function POST(req: NextRequest) {
 
     const oldStatus = current.status;
 
+    // 容量調整。枠は lib/booking-rules.ts の footprint が正本で、「変更前の状態の枠 → 変更後の状態の枠」の
+    // 差分だけを動かす（確定⇄仮予約は差分0。キャンセル・完了・無断キャンセルは枠を持たない）。
+    // no_show は「お越しにならなかった」＝在庫を占有しないので、キャンセル・完了と同じく非アクティブ扱い。
+    // 🔴 完了にすると、チェックアウト後の半日・1日の分も含めて枠が戻る（計画書 §8 F10）。
+    const capDelta = diffFootprint(activeFootprint(current), activeFootprint({ ...current, status }));
+    const reactivating = increasedDates(capDelta).length > 0;
+
+    // 有効に戻すとき（キャンセル→確定 など）は、先に枠を確保する。休業・満室なら状態を変えずに止める
+    // （以前は状態を先に変えてから黙って足していたため、休業日や19室超でも戻せてしまった）。
+    if (reactivating) {
+      const cap = await applyCapacityDelta(supabase, capDelta, PHYSICAL_ROOM_LIMIT);
+      if (!cap.ok) {
+        return NextResponse.json(
+          {
+            error: cap.kind === "closed"
+              ? `${cap.date}は休業日のため、この予約を有効に戻せません。予約は変更されていません。`
+              : `${cap.date}は満室です（全${PHYSICAL_ROOM_LIMIT}室）。予約は変更されていません。`,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     // ステータス更新
     const { error } = await supabase
       .from("reservations")
@@ -105,6 +89,8 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("Status update error:", error);
+      // 先に確保した枠を戻す（状態は変わっていないため）
+      if (reactivating) await applyCapacityDelta(supabase, diffFootprint(capDelta, []));
       // 23514 = DB側のCHECK制約違反。status に許していない値を入れようとしたときに出る。
       // 「無断キャンセル」を後から足した経緯があるため、原因が分かる文言にしておく。
       if (error.code === "23514") {
@@ -116,17 +102,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
     }
 
-    // 容量調整。no_show は「お越しにならなかった」＝在庫を占有しないので、
-    // キャンセル・完了と同じく非アクティブ扱い（過去日にしか付かないため実運用の空き表示には影響しない）。
+    // 有効 → 無効（キャンセル・完了など）は、状態を変えたあとで枠を戻す
     const wasActive = oldStatus === "confirmed" || oldStatus === "pending";
-    const isActive = status === "confirmed" || status === "pending";
-
-    if (wasActive && !isActive) {
-      // 確定/確認待ち → キャンセル/完了：容量を戻す
-      await adjustCapacity(reservation_id, -1);
-    } else if (!wasActive && isActive) {
-      // キャンセル/完了 → 確定/確認待ち：容量を加算
-      await adjustCapacity(reservation_id, 1);
+    if (!reactivating && capDelta.length > 0) {
+      await applyCapacityDelta(supabase, capDelta);
     }
 
     // active → cancelled: お客様＋スタッフにキャンセル通知メールを送信
@@ -134,7 +113,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data: res } = await supabase
           .from("reservations")
-          .select("plan, date, checkin_time, checkout_date, dog_count, customers!inner(last_name, first_name, email, phone, line_id)")
+          .select("plan, date, checkin_time, checkout_date, dog_count, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers!inner(last_name, first_name, email, phone, line_id)")
           .eq("id", reservation_id)
           .single();
         if (res) {
@@ -175,6 +154,9 @@ export async function POST(req: NextRequest) {
               date: res.date,
               checkin_time: res.checkin_time,
               checkout_date: res.checkout_date,
+              checkout_addon_plan: res.checkout_addon_plan,
+              checkin_addon_plan: res.checkin_addon_plan,
+              checkin_addon_from: res.checkin_addon_from,
             },
             customer,
             dogCount: res.dog_count || 1,
@@ -227,6 +209,9 @@ export async function POST(req: NextRequest) {
               // 確定メールに載っている事実をLINEにも載せる（メールを送らなくなったため）
               checkoutDate: res.checkout_date,
               dogs: dogNameList,
+              checkoutAddonPlan: res.checkout_addon_plan,
+              checkinAddonPlan: res.checkin_addon_plan,
+              checkinAddonFrom: res.checkin_addon_from,
             }),
             "booking_confirmed"
           ).catch((lineErr) => {
@@ -240,6 +225,9 @@ export async function POST(req: NextRequest) {
         if (!lineDelivered && res?.customers?.email) {
           const PLAN_NAMES: Record<string, string> = { spot: "スポット", "4h": "半日（4時間）", "8h": "1日（8時間）", stay: "宿泊" };
           const dogNames = dogNameList.join("、");
+          // 宿泊に付けた半日・1日（「半日お預かり（〜15:00）」の形）
+          const ciAddonText = res.plan === "stay" ? checkinAddonLabel(res.checkin_addon_plan, res.checkin_addon_from)?.replace(/^チェックイン前 /, "") ?? "" : "";
+          const coAddonText = res.plan === "stay" ? checkoutAddonLabel(res.checkout_addon_plan)?.replace(/^チェックアウト後 /, "") ?? "" : "";
           const d = new Date(res.date + "T00:00:00");
           const days = ["日","月","火","水","木","金","土"];
           const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${days[d.getDay()]}）`;
@@ -269,6 +257,8 @@ export async function POST(req: NextRequest) {
                   <tr><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;width:80px;">プラン</td><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${PLAN_NAMES[res.plan] || res.plan}</td></tr>
                   <tr><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">日付</td><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${dateStr}</td></tr>
                   <tr><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">ワンちゃん</td><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${dogNames}</td></tr>
+                  ${ciAddonText ? `<tr><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックイン前</td><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${ciAddonText}</td></tr>` : ""}
+                  ${coAddonText ? `<tr><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;color:#888;font-size:13px;">チェックアウト後</td><td style="padding:8px 0;border-bottom:1px solid #f0ebe5;font-size:14px;">${coAddonText}</td></tr>` : ""}
                 </table>
                 <div style="margin-top:16px;display:flex;gap:16px;">
                   <a href="https://dog-hub.shop/booking/modify/${reservation_id}" style="color:#B87942;font-size:13px;">予約内容を変更する</a>
