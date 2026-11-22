@@ -201,6 +201,25 @@ export function findCheckoutAddon(plan: string | null | undefined) {
   return CHECKOUT_ADDON_OPTIONS.find((o) => o.plan === plan) ?? null;
 }
 
+/**
+ * GA4 の booking_complete に載せる addon の値（2026-11-22 第2段）。
+ * "none" / "ci_4h" / "ci_8h" / "co_4h" / "co_8h"。前後両方なら "ci_8h,co_4h"（チェックイン前→後の順・カンマ区切り）。
+ * 宿泊以外は常に "none"。
+ */
+export function bookingAddonParam(f: {
+  plan: string;
+  checkin_addon?: string | null;
+  checkout_addon?: string | null;
+}): string {
+  if (f.plan !== "stay") return "none";
+  const parts: string[] = [];
+  const ci = findCheckinAddon(f.checkin_addon);
+  const co = findCheckoutAddon(f.checkout_addon);
+  if (ci) parts.push(`ci_${ci.plan}`);
+  if (co) parts.push(`co_${co.plan}`);
+  return parts.length ? parts.join(",") : "none";
+}
+
 /** 半日・1日の1頭あたりの金額（PLANS が正本） */
 export function checkoutAddonPrice(plan: CheckoutAddonPlan): number {
   return PLANS.find((p) => p.id === plan)?.basePrice ?? 0;

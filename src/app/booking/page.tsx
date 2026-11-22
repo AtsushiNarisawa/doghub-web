@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import liff from "@line/liff";
 import type { BookingStep, BookingFormData, Plan } from "@/types/booking";
-import { INITIAL_FORM, PLANS } from "@/types/booking";
+import { INITIAL_FORM, PLANS, bookingAddonParam } from "@/types/booking";
 import { StepIndicator } from "@/components/booking/step-indicator";
 import { Step1Plan } from "@/components/booking/step1-plan";
 import { Step2Dogs } from "@/components/booking/step2-dogs";
@@ -184,6 +184,9 @@ export default function BookingPage() {
             // 行き先カテゴリ（GA4「広告ソース×行き先」分析用）。サーバーが destination_master 辞書を
             // 引いて返す（空=「なし」/辞書外=「未分類」）。レスポンス欠落時は安全側で「なし」。
             destination_category: data.destination_category ?? "なし",
+            // 宿泊に付けた半日・1日（none / ci_4h / ci_8h / co_4h / co_8h。前後両方は "ci_8h,co_4h"）。
+            // 2026-11-22 第2段で追加。GTM 側でパラメータとして拾うまでは GA4 には届かない（既存タグは壊さない）
+            addon: bookingAddonParam(form),
           });
         }
         setResult(data.email_failed ? "success_no_email" : "success");

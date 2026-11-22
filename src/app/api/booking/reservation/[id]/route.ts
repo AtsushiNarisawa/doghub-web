@@ -28,7 +28,7 @@ export async function GET(
     const { data, error } = await supabase
       .from("reservations")
       .select(
-        "id, status, date, checkin_time, plan, checkout_date, notes, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers(last_name, first_name, phone), reservation_dogs(dogs(name, breed))"
+        "id, status, date, checkin_time, plan, checkout_date, notes, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, dog_count, checkin_extension_from, checkout_extension_until, customers(last_name, first_name, phone), reservation_dogs(dogs(name, breed))"
       )
       .eq("id", id)
       .single();

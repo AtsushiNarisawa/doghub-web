@@ -10,6 +10,12 @@
 
 import { getJstToday, getJstHour, addDaysJst } from "./datetime";
 import { getJstWeekday, DEFAULT_CLOSED_WEEKDAYS } from "./business-days";
+import {
+  findCheckoutAddon,
+  findCheckinAddon,
+  normalizeCheckinAddonFrom,
+  type CheckoutAddonPlan,
+} from "../types/booking";
 
 /** この時刻（JST）以降に入った「翌日」のご予約は仮予約として受け付ける */
 export const LATE_BOOKING_HOUR = 17;
@@ -399,6 +405,72 @@ export function checkoutAddonCustomerMessage(reason: CheckoutAddonBlockReason, c
     case "full":
       return `チェックアウト日の${label}は満席のため、半日・1日はお付けできません。時間の延長か、お電話（0460-80-0290）でご相談ください`;
   }
+}
+
+// ── お客様ご自身の付け外し（/booking/modify・2026-11-22 第2段） ─────────────
+// 項目を送ってこなければ「変更しない」。"" / null は外す、"4h"/"8h" は付ける（付け替え）。
+// 同じ側に時間の延長・早預かりが付いている予約は、ここでは付けられない（DB の制約でも止まる）。
+
+export interface AddonChangeInput {
+  checkout_addon?: string | null;
+  checkin_addon?: string | null;
+  checkin_addon_from?: string | null;
+}
+
+export interface AddonCurrent {
+  plan: string;
+  checkout_addon_plan?: string | null;
+  checkin_addon_plan?: string | null;
+  checkin_addon_from?: string | null;
+  checkout_extension_until?: string | null;
+  checkin_extension_from?: string | null;
+}
+
+export type AddonChangeResult =
+  | { coAddon: CheckoutAddonPlan | null; ciAddon: CheckoutAddonPlan | null; ciAddonFrom: string | null }
+  | { error: string };
+
+/** 送られてきた付け外しの希望を、変更後の値（変えない側は今の値）に直す。不正なら error */
+export function resolveAddonChange(req: AddonChangeInput, cur: AddonCurrent): AddonChangeResult {
+  const curCo = (findCheckoutAddon(cur.checkout_addon_plan)?.plan ?? null) as CheckoutAddonPlan | null;
+  const curCi = (findCheckinAddon(cur.checkin_addon_plan)?.plan ?? null) as CheckoutAddonPlan | null;
+  const curCiFrom = curCi ? (cur.checkin_addon_from || "").slice(0, 5) || null : null;
+  let coAddon = curCo;
+  let ciAddon = curCi;
+  let ciAddonFrom = curCiFrom;
+  const touchesCo = req.checkout_addon !== undefined;
+  const touchesCi = req.checkin_addon !== undefined;
+  if ((touchesCo || touchesCi) && cur.plan !== "stay") {
+    return { error: "半日・1日を付けられるのは宿泊のご予約だけです" };
+  }
+
+  if (touchesCo) {
+    const v = req.checkout_addon || "";
+    if (v && !findCheckoutAddon(v)) return { error: "半日・1日のお預かりの内容が正しくありません" };
+    coAddon = (v || null) as CheckoutAddonPlan | null;
+    if (coAddon && coAddon !== curCo && cur.checkout_extension_until) {
+      return {
+        error: "チェックアウト後の時間の延長が付いているため、半日・1日はお付けできません。お手数ですがお電話（0460-80-0290）でご連絡ください",
+      };
+    }
+  }
+  if (touchesCi) {
+    const v = req.checkin_addon || "";
+    if (v && !findCheckinAddon(v)) return { error: "半日・1日のお預かりの内容が正しくありません" };
+    ciAddon = (v || null) as CheckoutAddonPlan | null;
+    if (ciAddon) {
+      ciAddonFrom = normalizeCheckinAddonFrom(ciAddon, req.checkin_addon_from);
+      if (!ciAddonFrom) return { error: "チェックイン前の1日お預かりの開始時刻をお選びください" };
+      if (ciAddon !== curCi && cur.checkin_extension_from) {
+        return {
+          error: "チェックイン前の早預かりが付いているため、半日・1日はお付けできません。お手数ですがお電話（0460-80-0290）でご連絡ください",
+        };
+      }
+    } else {
+      ciAddonFrom = null;
+    }
+  }
+  return { coAddon, ciAddon, ciAddonFrom };
 }
 
 /** スタッフ向け（管理画面の付け外し・日程変更で止めるとき） */

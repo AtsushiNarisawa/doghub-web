@@ -12,8 +12,14 @@ import {
   diffFootprint,
   increasedDates,
   checkoutAddonBlockReason,
+  checkoutAddonCustomerMessage,
   formatDateJaWithWeekday,
+  resolveAddonChange,
+  isActiveReservationStatus,
+  isLateBooking,
 } from "@/lib/booking-rules";
+import { getJstToday, getJstHour } from "@/lib/datetime";
+import { checkoutAddonLabel, checkinAddonLabel } from "@/types/booking";
 import { applyCapacityDelta } from "@/lib/capacity-server";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { sendReservationChangeEmail } from "@/lib/email";
@@ -82,7 +88,56 @@ export async function POST(req: Request) {
     const changes: string[] = [];
     const dogCount = reservation.dog_count || 1;
 
-    if (checkin_time && checkin_time !== reservation.checkin_time?.slice(0, 5)) {
+    // ── 宿泊に付ける半日・1日の付け外し・付け替え（2026-11-22 第2段） ──
+    // 項目を送ってこなければ「変更しない」。"" は外す、"4h"/"8h" は付ける（付け替え）。
+    // 枠は下の footprint の差分だけで動く（CO後の半日⇄1日の付け替えは差分0・CI前は部屋数に入らない）。
+    const addonReq = resolveAddonChange(body, reservation);
+    if ("error" in addonReq) {
+      return NextResponse.json({ error: addonReq.error }, { status: 400 });
+    }
+    const nextCoAddon = addonReq.coAddon;
+    const nextCiAddon = addonReq.ciAddon;
+    const nextCiAddonFrom = addonReq.ciAddonFrom;
+    const coAddonChanged = (reservation.checkout_addon_plan ?? null) !== nextCoAddon;
+    const ciAddonChanged =
+      (reservation.checkin_addon_plan ?? null) !== nextCiAddon ||
+      ((reservation.checkin_addon_from as string | null)?.slice(0, 5) ?? null) !== nextCiAddonFrom;
+
+    if (coAddonChanged || ciAddonChanged) {
+      if (!isActiveReservationStatus(reservation.status)) {
+        return NextResponse.json({ error: "このご予約では半日・1日の変更はできません" }, { status: 400 });
+      }
+      // 締切: 新しくご予約いただくときと同じ（当日はお電話・前日17時以降の翌日分もお電話）。
+      // 付け外しが影響する日＝CO後はチェックアウト日、CI前はチェックイン日。
+      const today = getJstToday();
+      const hour = getJstHour();
+      const affected = [
+        coAddonChanged ? reservation.checkout_date : null,
+        ciAddonChanged ? reservation.date : null,
+      ].filter(Boolean) as string[];
+      if (affected.some((d) => d <= today || isLateBooking(d, today, hour))) {
+        return NextResponse.json(
+          { error: "直前の半日・1日のお預かりの変更は、お手数ですがお電話（0460-80-0290）でご連絡ください" },
+          { status: 400 },
+        );
+      }
+    }
+    if (coAddonChanged) {
+      updates.checkout_addon_plan = nextCoAddon;
+      changes.push(`チェックアウト後: ${(checkoutAddonLabel(reservation.checkout_addon_plan) ?? "なし")} → ${(checkoutAddonLabel(nextCoAddon) ?? "なし")}`);
+    }
+    if (ciAddonChanged) {
+      updates.checkin_addon_plan = nextCiAddon;
+      updates.checkin_addon_from = nextCiAddonFrom;
+      changes.push(
+        `チェックイン前: ${(checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from) ?? "なし")} → ${(checkinAddonLabel(nextCiAddon, nextCiAddonFrom) ?? "なし")}`,
+      );
+      // CI前の半日・1日があるときの到着時刻は 14:00 に揃える（予約APIと同じ・計画書 §1-2）
+      if (nextCiAddon && reservation.checkin_time?.slice(0, 5) !== "14:00") updates.checkin_time = "14:00";
+    }
+
+    // CI前の半日・1日が付いている（付ける）予約は到着時刻を変えない（14:00 に揃えているため）
+    if (!nextCiAddon && checkin_time && checkin_time !== reservation.checkin_time?.slice(0, 5)) {
       const oldTime = reservation.checkin_time?.slice(0, 5);
       updates.checkin_time = checkin_time;
       changes.push(`到着予定時間: ${oldTime} → ${checkin_time}`);
@@ -110,8 +165,12 @@ export async function POST(req: Request) {
 
     // CO日変更時の枠の差分（lib/booking-rules.ts の footprint が正本）。
     // チェックアウト後の半日・1日が付いている予約は、CO日を動かすとその分の枠も一緒に動く。
-    const capDelta = coChanged
-      ? diffFootprint(activeFootprint(reservation), activeFootprint({ ...reservation, checkout_date }))
+    const nextCheckoutDate: string | null = coChanged ? checkout_date : reservation.checkout_date;
+    const capDelta = coChanged || coAddonChanged
+      ? diffFootprint(
+          activeFootprint(reservation),
+          activeFootprint({ ...reservation, checkout_date: nextCheckoutDate, checkout_addon_plan: nextCoAddon }),
+        )
       : [];
 
     // 事前チェック（新しく枠が増える日だけ）。最終判定は下の apply_capacity_delta（Web上限15）が原子的に行う。
@@ -121,10 +180,14 @@ export async function POST(req: Request) {
         .select("day_booked, stay_booked, closed, web_closed")
         .eq("date", date)
         .maybeSingle();
-      // 新しいチェックアウト日（半日・1日の分）: 定休日・臨時休業・Web受付停止・満席なら止める
-      if (reservation.checkout_addon_plan && date === checkout_date) {
+      // チェックアウト日（半日・1日の分）: 定休日・臨時休業・Web受付停止・満席なら止める
+      if (nextCoAddon && date === nextCheckoutDate) {
         const reason = checkoutAddonBlockReason(date, cap, { isStaff: false, addDogs: dogCount, limit: WEB_ROOM_LIMIT });
         if (reason) {
+          // CO日はそのままで付けるだけ＝予約フォームと同じ文言（lib/booking-rules.ts）
+          if (!coChanged) {
+            return NextResponse.json({ error: checkoutAddonCustomerMessage(reason, date) }, { status: 400 });
+          }
           const label = formatDateJaWithWeekday(date);
           const why =
             reason === "regular_closed" ? "定休日" :
@@ -163,17 +226,20 @@ export async function POST(req: Request) {
     // 午後から営業（宿泊のみ）の日: お客様ご自身の変更で、新たにルールに触れる日程にはさせない。
     // 判定式は lib/booking-rules.ts が正本。すでに入っている予約（スタッフが警告を見て入れた分など）を
     // 理由に到着時刻や備考の変更まで止めないよう、「今回の変更で新しく触れたもの」だけを止める。
-    if (reservation.plan === "stay" && (coChanged || updates.checkin_time)) {
+    if (reservation.plan === "stay" && (coChanged || updates.checkin_time || ciAddonChanged)) {
       const before = {
         plan: reservation.plan,
         date: reservation.date,
         checkoutDate: reservation.checkout_date,
         checkinTime: reservation.checkin_time,
+        // チェックイン前の半日・1日も「14時より前のお預け」なので早預かりと同じに扱う（予約APIと同じ）
+        checkinExtensionFrom: reservation.checkin_extension_from || reservation.checkin_addon_from || null,
       };
       const next = {
         ...before,
         checkoutDate: coChanged ? checkout_date : reservation.checkout_date,
         checkinTime: (updates.checkin_time as string | undefined) ?? reservation.checkin_time,
+        checkinExtensionFrom: reservation.checkin_extension_from || nextCiAddonFrom || null,
       };
       const { data: aoRows } = await supabase
         .from("daily_capacity")
@@ -235,9 +301,9 @@ export async function POST(req: Request) {
           date: reservation.date,
           checkin_time: (updates.checkin_time as string) ?? reservation.checkin_time,
           checkout_date: (updates.checkout_date as string) ?? reservation.checkout_date,
-          checkout_addon_plan: reservation.checkout_addon_plan,
-          checkin_addon_plan: reservation.checkin_addon_plan,
-          checkin_addon_from: reservation.checkin_addon_from,
+          checkout_addon_plan: nextCoAddon,
+          checkin_addon_plan: nextCiAddon,
+          checkin_addon_from: nextCiAddonFrom,
         };
         // 送れたかを確かめてからメールの要否を決めるため、メールより先に push する。
         let lineDelivered = false;
@@ -253,9 +319,9 @@ export async function POST(req: Request) {
               changes,
               reservationId,
               changedBy: "customer",
-              checkoutAddonPlan: reservation.checkout_addon_plan,
-              checkinAddonPlan: reservation.checkin_addon_plan,
-              checkinAddonFrom: reservation.checkin_addon_from,
+              checkoutAddonPlan: nextCoAddon,
+              checkinAddonPlan: nextCiAddon,
+              checkinAddonFrom: nextCiAddonFrom,
             }),
             "reschedule"
           ).catch((lineErr) => {

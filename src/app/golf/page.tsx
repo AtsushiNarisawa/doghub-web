@@ -64,7 +64,7 @@ const faqs = [
   },
   {
     q: "前の日から箱根に泊まってゴルフをします。",
-    a: `前日の${stay.checkinRange.start}〜${stay.checkinRange.end}から宿泊でお預かりできます（1泊${yen(stay.basePrice)}）。翌朝はそのままゴルフ場へ向かい、ラウンド後にお迎えに来ていただけます。`,
+    a: `前日の${stay.checkinRange.start}〜${stay.checkinRange.end}から宿泊でお預かりできます（1泊${yen(stay.basePrice)}）。翌朝はそのままゴルフ場へ向かい、ラウンド後にお迎えに来ていただけます。お迎えが11:00を過ぎる場合は、ご予約のときに宿泊へ半日（〜15:00）か1日（〜17:00）を付けてください。`,
   },
   {
     q: "どんな犬を預けられますか？",
@@ -202,7 +202,7 @@ export default function GolfPage() {
                 ]}
               />
               <p className="text-[#8F7B65] mt-4" style={{ fontSize: "14px", lineHeight: "1.8" }}>
-                宿泊のお迎えは翌9:00〜11:00です。ラウンド後のお迎え（〜15:00）にする場合は、宿泊に半日（4時間・{yen(half.basePrice)}）を足していただく形になります（合計 {yen(stay.basePrice + half.basePrice)}）。
+                宿泊のお迎えは翌9:00〜11:00です。ラウンド後のお迎え（〜15:00）にする場合は、ご予約のときに宿泊へ半日（4時間・{yen(half.basePrice)}）を付けられます（1頭あたり合計 {yen(stay.basePrice + half.basePrice)}・お部屋を確保する固定料金）。
               </p>
             </div>
             <p className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.9" }}>

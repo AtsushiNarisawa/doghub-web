@@ -3,14 +3,29 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { PLANS, REFERRAL_SOURCES, REFERRAL_OTHER, REFERRAL_PHONE_UNKNOWN } from "@/types/booking";
+import {
+  PLANS,
+  REFERRAL_SOURCES,
+  REFERRAL_OTHER,
+  REFERRAL_PHONE_UNKNOWN,
+  CHECKOUT_ADDON_OPTIONS,
+  CHECKIN_ADDON_OPTIONS,
+  CHECKIN_ADDON_8H_FROM_OPTIONS,
+  normalizeCheckinAddonFrom,
+  formatAddonTime,
+  type CheckoutAddonPlan,
+} from "@/types/booking";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
 import { dogAgeDisplay } from "@/lib/dog-age";
 import {
   afternoonOnlyDatesToCheck,
   findAfternoonOnlyViolation,
   afternoonOnlyStaffWarning,
+  checkoutAddonBlockReason,
+  checkoutAddonStaffMessage,
+  type CheckoutDayRow,
 } from "@/lib/booking-rules";
+import { PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
 
@@ -141,6 +156,11 @@ function NewBookingForm() {
   // 既存の犬について、この電話でうかがった体重・年齢・ワクチン（総点検 #16）。
   // 前回の値はここに入れない＝空欄から入力してもらう。キーは犬ID。
   const [dogInputs, setDogInputs] = useState<Record<string, DogFreshInput>>({});
+  // 宿泊に付ける半日・1日（2026-11-22 第2段）。予約APIが枠を確保して確定する（スタッフ上限19・
+  // Web受付停止の日も可・定休日／臨時休業のチェックアウト日は不可＝11-22 CEO 決定）。
+  const [coAddon, setCoAddon] = useState<CheckoutAddonPlan | "">("");
+  const [ciAddon, setCiAddon] = useState<CheckoutAddonPlan | "">("");
+  const [ciAddonFrom, setCiAddonFrom] = useState("");
   const [walkOption, setWalkOption] = useState(false);
   const [destination, setDestination] = useState("");
   const [notes, setNotes] = useState("");
@@ -204,8 +224,31 @@ function NewBookingForm() {
     return regularClosed ? "regular_closed" : "open";
   })();
 
+  // チェックアウト日の受付状態（半日・1日を付けられるか）。判定は lib/booking-rules.ts が正本。
+  // 読み込み中（coCap.date が違う）は判定しない＝一瞬でも誤った案内を出さない。
+  const [coCap, setCoCap] = useState<{ date: string; row: CheckoutDayRow | null } | null>(null);
+  useEffect(() => {
+    if (plan !== "stay" || !checkoutDate) return;
+    let cancelled = false;
+    supabase
+      .from("daily_capacity")
+      .select("closed, web_closed, day_booked, stay_booked")
+      .eq("date", checkoutDate)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        // 読めなければ行なし扱い（＝曜日で判定）。最終判定は予約APIが行う。
+        if (!cancelled) setCoCap({ date: checkoutDate, row: error ? null : (data as CheckoutDayRow | null) });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [plan, checkoutDate]);
+
+  const ciAddonFromNorm = ciAddon ? normalizeCheckinAddonFrom(ciAddon, ciAddonFrom) : null;
+
   const afternoonOnlyViolation = findAfternoonOnlyViolation(
-    { plan, date, checkoutDate, checkinTime },
+    // チェックイン前の半日・1日も「14時より前のお預け」なので早預かりと同じに扱う（予約APIと同じ）
+    { plan, date, checkoutDate, checkinTime, checkinExtensionFrom: ciAddonFromNorm },
     (d) => afternoonOnlyDates.has(d)
   );
 
@@ -419,6 +462,9 @@ function NewBookingForm() {
         date,
         checkin_time: checkinTime,
         checkout_date: plan === "stay" ? checkoutDate : undefined,
+        checkout_addon: plan === "stay" ? coAddon : "",
+        checkin_addon: plan === "stay" ? ciAddon : "",
+        checkin_addon_from: plan === "stay" && ciAddonFromNorm ? ciAddonFromNorm : "",
         walk_option: walkOption,
         notes,
         admin_notes: adminNotes,
@@ -592,6 +638,22 @@ function NewBookingForm() {
   if (!date) missingFields.push("チェックイン日");
   if (!checkinTime) missingFields.push("チェックイン時間");
   if (plan === "stay" && !checkoutDate) missingFields.push("チェックアウト日");
+  if (plan === "stay" && ciAddon && !ciAddonFromNorm) missingFields.push("チェックイン前の1日の開始時刻");
+
+  // チェックアウト後の半日・1日を付けられるか（スタッフ＝上限19・Web受付停止の日も可）
+  const capDogCount = customer && hasDogs
+    ? selectedDogIds.length
+    : newDogs.filter((d) => d.name.trim()).length;
+  const coCapLoaded = plan === "stay" && !!checkoutDate && checkoutDate > date && coCap?.date === checkoutDate;
+  const coAddonBlock = coCapLoaded
+    ? checkoutAddonBlockReason(checkoutDate, coCap!.row, {
+        isStaff: true,
+        addDogs: Math.max(1, capDogCount),
+        limit: PHYSICAL_ROOM_LIMIT,
+      })
+    : null;
+  const coIsWebClosed = coCapLoaded && coCap!.row?.web_closed === true;
+  if (coAddon && coAddonBlock) missingFields.push("チェックアウト後の半日・1日（この日は付けられません）");
 
   const canSubmit = missingFields.length === 0;
 
@@ -912,7 +974,16 @@ function NewBookingForm() {
           {PLANS.map((p) => (
             <button
               key={p.id}
-              onClick={() => { setPlan(p.id); setCheckinTime(""); if (p.id !== "stay") setWalkOption(false); }}
+              onClick={() => {
+                setPlan(p.id);
+                setCheckinTime("");
+                if (p.id !== "stay") {
+                  setWalkOption(false);
+                  setCoAddon("");
+                  setCiAddon("");
+                  setCiAddonFrom("");
+                }
+              }}
               className={`py-3 px-2 rounded-xl border text-sm font-medium transition-colors ${
                 plan === p.id
                   ? "border-[#B87942] bg-orange-50 text-[#B87942]"
@@ -979,6 +1050,95 @@ function NewBookingForm() {
               min={date || new Date().toISOString().split("T")[0]}
               className="w-full mt-1 px-3 py-2.5 text-base border border-gray-200 rounded-xl focus:border-[#B87942] focus:outline-none"
             />
+          </div>
+        )}
+        {plan === "stay" && (
+          <div className="space-y-3 border-t border-gray-100 pt-3">
+            <p className="text-sm text-gray-500">
+              半日・1日を付ける（お部屋を確保・1頭あたりの固定料金）
+            </p>
+            {/* チェックイン前（部屋数は動かない。半日10時固定・1日は7/8/9時から） */}
+            <div>
+              <p className="text-xs text-gray-500 mb-1">チェックイン前</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[{ plan: "" as const, label: "なし" }, ...CHECKIN_ADDON_OPTIONS.map((o) => ({ plan: o.plan, label: `${o.shortName}（${o.fromLabel}）` }))].map((o) => (
+                  <button
+                    key={o.plan || "none"}
+                    type="button"
+                    onClick={() => {
+                      setCiAddon(o.plan);
+                      setCiAddonFrom(""); // 1日は開始時刻を毎回選び直してもらう（既定値で入れない）
+                      // 到着時刻は14:00に揃えて保存される（予約APIと同じ・計画書 §1-2）
+                      if (o.plan) setCheckinTime("14:00");
+                    }}
+                    className={`py-2 rounded-xl text-sm border transition-colors ${
+                      ciAddon === o.plan
+                        ? "border-[#B87942] bg-orange-50 text-[#B87942]"
+                        : "border-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              {ciAddon === "8h" && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  {CHECKIN_ADDON_8H_FROM_OPTIONS.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setCiAddonFrom(t)}
+                      className={`py-2 rounded-xl text-sm border font-dm transition-colors ${
+                        ciAddonFrom === t
+                          ? "border-[#B87942] bg-orange-50 text-[#B87942]"
+                          : "border-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {formatAddonTime(t)}から
+                    </button>
+                  ))}
+                </div>
+              )}
+              {ciAddon && (
+                <p className="text-xs text-gray-500 mt-1">
+                  お預け開始は{ciAddonFromNorm ? ` ${formatAddonTime(ciAddonFromNorm)} ` : "（開始時刻を選んでください）"}。チェックイン時間は 14:00 として保存されます。
+                </p>
+              )}
+            </div>
+            {/* チェックアウト後（CO日の部屋数に頭数分を数える） */}
+            <div>
+              <p className="text-xs text-gray-500 mb-1">チェックアウト後</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[{ plan: "" as const, label: "なし" }, ...CHECKOUT_ADDON_OPTIONS.map((o) => ({ plan: o.plan, label: `${o.shortName}（〜${o.until}）` }))].map((o) => {
+                  const disabled = !!o.plan && !!coAddonBlock;
+                  return (
+                    <button
+                      key={o.plan || "none"}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setCoAddon(o.plan)}
+                      className={`py-2 rounded-xl text-sm border transition-colors ${
+                        disabled
+                          ? "border-gray-100 text-gray-300"
+                          : coAddon === o.plan
+                            ? "border-[#B87942] bg-orange-50 text-[#B87942]"
+                            : "border-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {coAddonBlock && (
+                <p className="text-xs text-red-600 mt-1">⚠ {checkoutAddonStaffMessage(coAddonBlock, checkoutDate)}</p>
+              )}
+              {!coAddonBlock && coIsWebClosed && (
+                <p className="text-xs text-orange-600 mt-1">
+                  ⚠ チェックアウト日はWeb受付停止の日です（スタッフは付けられます）
+                </p>
+              )}
+            </div>
           </div>
         )}
         {afternoonOnlyViolation && (

@@ -1,8 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { checkinAddonLabel, checkoutAddonLabel } from "@/types/booking";
+import {
+  checkinAddonLabel,
+  checkoutAddonLabel,
+  CHECKOUT_ADDON_OPTIONS,
+  CHECKIN_ADDON_OPTIONS,
+  CHECKIN_ADDON_8H_FROM_OPTIONS,
+  checkoutAddonPrice,
+  formatAddonTime,
+  normalizeCheckinAddonFrom,
+  type CheckoutAddonPlan,
+} from "@/types/booking";
+import { supabase } from "@/lib/supabase";
+import {
+  checkoutAddonBlockReason,
+  checkoutAddonCustomerMessage,
+  isLateBooking,
+  type CheckoutDayRow,
+} from "@/lib/booking-rules";
+import { WEB_ROOM_LIMIT } from "@/lib/capacity";
+import { getJstToday } from "@/lib/datetime";
 
 const PLAN_NAMES: Record<string, string> = {
   spot: "スポットお預かり",
@@ -30,6 +49,9 @@ type Reservation = {
   checkout_addon_plan?: string | null;
   checkin_addon_plan?: string | null;
   checkin_addon_from?: string | null;
+  dog_count?: number | null;
+  checkin_extension_from?: string | null;
+  checkout_extension_until?: string | null;
   notes: string | null;
   customers: { last_name: string; first_name: string } | null;
   reservation_dogs: { dogs: { name: string; breed: string } | null }[];
@@ -49,6 +71,29 @@ export default function ModifyPage() {
   const [phone4, setPhone4] = useState("");
   const [verified, setVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
+
+  // 宿泊に付ける半日・1日（2026-11-22 第2段＝お客様ご自身で付け外し・付け替え）。
+  // 判定・文言は予約フォームと同じ（lib/booking-rules.ts）。最終の判定はサーバーが行う。
+  const [coAddon, setCoAddon] = useState<CheckoutAddonPlan | "">("");
+  const [ciAddon, setCiAddon] = useState<CheckoutAddonPlan | "">("");
+  const [ciAddonFrom, setCiAddonFrom] = useState("");
+  const [coCap, setCoCap] = useState<{ date: string; row: CheckoutDayRow | null } | null>(null);
+  const coDate = reservation?.plan === "stay" ? reservation.checkout_date || "" : "";
+  useEffect(() => {
+    if (!coDate) return;
+    let cancelled = false;
+    supabase
+      .from("daily_capacity")
+      .select("closed, web_closed, day_booked, stay_booked")
+      .eq("date", coDate)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!cancelled) setCoCap({ date: coDate, row: error ? null : (data as CheckoutDayRow | null) });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [coDate]);
 
   // 本人確認（電話番号の下4桁）→ 一致したら予約内容を取得
   const handleVerify = async (e: React.FormEvent) => {
@@ -76,6 +121,9 @@ export default function ModifyPage() {
         setReservation(data as Reservation);
         setCheckinTime(data.checkin_time?.slice(0, 5) || "");
         setNotes(data.notes || "");
+        setCoAddon((data.checkout_addon_plan as CheckoutAddonPlan | null) || "");
+        setCiAddon((data.checkin_addon_plan as CheckoutAddonPlan | null) || "");
+        setCiAddonFrom(data.checkin_addon_from?.slice(0, 5) || "");
       }
       setVerified(true);
       setVerifying(false);
@@ -99,6 +147,9 @@ export default function ModifyPage() {
           checkin_time: checkinTime,
           notes: notes || null,
           phone_last4: phone4,
+          // 変えた側だけ送る（送らない側はサーバーが「変更しない」と扱う）
+          ...(coAddonChanged ? { checkout_addon: coAddon } : {}),
+          ...(ciAddonChanged ? { checkin_addon: ciAddon, checkin_addon_from: ciAddonFromNorm || "" } : {}),
         }),
       });
       const data = await res.json();
@@ -113,9 +164,17 @@ export default function ModifyPage() {
     setSaving(false);
   };
 
+  const ciAddonFromNorm = ciAddon ? normalizeCheckinAddonFrom(ciAddon, ciAddonFrom) : null;
+  const coAddonChanged = (reservation?.checkout_addon_plan || "") !== coAddon;
+  const ciAddonChanged =
+    (reservation?.checkin_addon_plan || "") !== ciAddon ||
+    (!!ciAddon && (reservation?.checkin_addon_from || "").slice(0, 5) !== (ciAddonFromNorm || ""));
   const hasChanges =
-    checkinTime !== reservation?.checkin_time?.slice(0, 5) ||
-    (notes || "") !== (reservation?.notes || "");
+    (!ciAddon && checkinTime !== reservation?.checkin_time?.slice(0, 5)) ||
+    (notes || "") !== (reservation?.notes || "") ||
+    coAddonChanged ||
+    ciAddonChanged;
+  const addonIncomplete = !!ciAddon && !ciAddonFromNorm;
 
   if (!verified) {
     return (
@@ -190,6 +249,142 @@ export default function ModifyPage() {
   }
 
   const customerName = `${reservation.customers?.last_name || ""}${reservation.customers?.first_name || ""}`;
+
+  // ── 半日・1日の付け外し（宿泊のみ） ──
+  function renderAddonSection() {
+    if (!reservation) return null;
+    const today = getJstToday();
+    const dogCount = Math.max(1, reservation.dog_count || 1);
+    // 締切は新しくご予約いただくときと同じ（当日・前日17時以降の翌日分はお電話）
+    const tooLate = (d: string) => !d || d <= today || isLateBooking(d, today);
+    const coLocked = tooLate(coDate);
+    const ciLocked = tooLate(reservation.date);
+    // 今は付いていない側に新しく付けるときだけ、チェックアウト日の空きを見る（付け替えはお部屋の数が変わらない）
+    const coLoaded = coCap?.date === coDate;
+    const coBlock =
+      !reservation.checkout_addon_plan && coLoaded
+        ? checkoutAddonBlockReason(coDate, coCap!.row, { isStaff: false, addDogs: dogCount, limit: WEB_ROOM_LIMIT })
+        : null;
+    const choiceClass = (on: boolean, disabled = false) =>
+      `py-3 rounded-lg text-sm font-medium transition-all ${
+        disabled
+          ? "bg-[#F8F5F0] text-[#C8BFB8] cursor-not-allowed"
+          : on
+            ? "bg-[#B87942] text-white"
+            : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+      }`;
+    const phoneNote = "直前の変更は、お手数ですがお電話（0460-80-0290）でご連絡ください。";
+
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="text-sm text-[#888] block mb-1">半日・1日のお預かり</label>
+          <p className="text-xs text-[#888] leading-relaxed">
+            半日・1日を付けると、その時間のお部屋の枠を確保します。固定料金のため、早めにお迎えの場合も同じ金額です。
+          </p>
+        </div>
+
+        {/* チェックイン前 */}
+        <div>
+          <p className="text-sm text-[#3C200F] mb-2">チェックイン前</p>
+          {reservation.checkin_extension_from ? (
+            <p className="text-xs text-[#888] bg-[#F8F5F0] rounded-lg p-3">
+              早預かり（{formatAddonTime(reservation.checkin_extension_from)}から）が付いています。半日・1日への切り替えはお電話でご連絡ください。
+            </p>
+          ) : ciLocked ? (
+            <p className="text-xs text-[#888] bg-[#F8F5F0] rounded-lg p-3">
+              {checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from) ?? "なし"}。{phoneNote}
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-2">
+                <button type="button" onClick={() => { setCiAddon(""); setCiAddonFrom(""); }} className={choiceClass(ciAddon === "")}>
+                  なし
+                </button>
+                {CHECKIN_ADDON_OPTIONS.map((o) => (
+                  <button
+                    key={o.plan}
+                    type="button"
+                    onClick={() => {
+                      setCiAddon(o.plan);
+                      setCiAddonFrom(o.plan === "4h" ? o.from : "");
+                    }}
+                    className={choiceClass(ciAddon === o.plan)}
+                  >
+                    {o.shortName}
+                  </button>
+                ))}
+              </div>
+              {ciAddon && (
+                <p className="text-xs text-[#888] mt-2">
+                  {CHECKIN_ADDON_OPTIONS.find((o) => o.plan === ciAddon)?.name}（1頭あたり¥
+                  {checkoutAddonPrice(ciAddon).toLocaleString()}・{CHECKIN_ADDON_OPTIONS.find((o) => o.plan === ciAddon)?.fromLabel}）
+                </p>
+              )}
+              {ciAddon === "8h" && (
+                <div className="mt-2">
+                  <p className="text-sm text-[#3C200F] mb-2">何時からお預けしますか？</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {CHECKIN_ADDON_8H_FROM_OPTIONS.map((t) => (
+                      <button key={t} type="button" onClick={() => setCiAddonFrom(t)} className={choiceClass(ciAddonFrom === t)}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* チェックアウト後 */}
+        <div>
+          <p className="text-sm text-[#3C200F] mb-2">チェックアウト後</p>
+          {reservation.checkout_extension_until ? (
+            <p className="text-xs text-[#888] bg-[#F8F5F0] rounded-lg p-3">
+              延長（〜{formatAddonTime(reservation.checkout_extension_until)}）が付いています。半日・1日への切り替えはお電話でご連絡ください。
+            </p>
+          ) : coLocked ? (
+            <p className="text-xs text-[#888] bg-[#F8F5F0] rounded-lg p-3">
+              {checkoutAddonLabel(reservation.checkout_addon_plan) ?? "なし"}。{phoneNote}
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-2">
+                <button type="button" onClick={() => setCoAddon("")} className={choiceClass(coAddon === "")}>
+                  なし
+                </button>
+                {CHECKOUT_ADDON_OPTIONS.map((o) => {
+                  const disabled = !!coBlock || (!reservation.checkout_addon_plan && !coLoaded);
+                  return (
+                    <button
+                      key={o.plan}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setCoAddon(o.plan)}
+                      className={choiceClass(coAddon === o.plan, disabled)}
+                    >
+                      {o.shortName}
+                    </button>
+                  );
+                })}
+              </div>
+              {coBlock ? (
+                <p className="text-xs text-red-500 mt-2 leading-relaxed">{checkoutAddonCustomerMessage(coBlock, coDate)}</p>
+              ) : (
+                coAddon && (
+                  <p className="text-xs text-[#888] mt-2">
+                    {CHECKOUT_ADDON_OPTIONS.find((o) => o.plan === coAddon)?.name}（1頭あたり¥
+                    {checkoutAddonPrice(coAddon).toLocaleString()}・{CHECKOUT_ADDON_OPTIONS.find((o) => o.plan === coAddon)?.untilLabel}）
+                  </p>
+                )
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
   const dogNames = reservation.reservation_dogs
     ?.map((rd) => rd.dogs?.name)
     .filter(Boolean)
@@ -222,9 +417,6 @@ export default function ModifyPage() {
             {reservation.plan === "stay" && checkoutAddonLabel(reservation.checkout_addon_plan) && (
               <p>{checkoutAddonLabel(reservation.checkout_addon_plan)}</p>
             )}
-            {reservation.plan === "stay" && (reservation.checkin_addon_plan || reservation.checkout_addon_plan) && (
-              <p className="text-xs text-[#888]">半日・1日のお預かりの変更・お取り消しは、お電話（0460-80-0290）かLINEでご連絡ください。</p>
-            )}
             <p><span className="text-[#888] inline-block w-20">ワンちゃん</span>{dogNames}</p>
           </div>
         </div>
@@ -234,12 +426,13 @@ export default function ModifyPage() {
           <h2 className="font-medium text-[15px]">変更できる項目</h2>
 
           {/* 到着予定時間（宿泊のみグリッド表示） */}
-          {reservation.plan === "stay" && reservation.checkin_addon_plan ? (
+          {reservation.plan === "stay" && ciAddon ? (
             <div>
               <label className="text-sm text-[#888] block mb-2">お預けの開始時刻</label>
               <p className="text-sm text-[#3C200F] bg-[#F8F5F0] rounded-lg p-3">
-                {checkinAddonLabel(reservation.checkin_addon_plan, reservation.checkin_addon_from)}
-                <span className="text-xs text-[#888] ml-2">（時間の変更はお電話でご連絡ください）</span>
+                {ciAddonFromNorm
+                  ? `${formatAddonTime(ciAddonFromNorm)}にお越しください（14時の到着は不要です）`
+                  : "下の「チェックイン前」で開始時刻をお選びください"}
               </p>
             </div>
           ) : reservation.plan === "stay" ? (
@@ -273,6 +466,8 @@ export default function ModifyPage() {
             </div>
           )}
 
+          {reservation.plan === "stay" && renderAddonSection()}
+
           {/* 備考 */}
           <div>
             <label className="text-sm text-[#888] block mb-2">備考・連絡事項</label>
@@ -295,9 +490,9 @@ export default function ModifyPage() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={saving || !hasChanges}
+          disabled={saving || !hasChanges || addonIncomplete}
           className={`w-full py-4 rounded-xl text-base font-medium transition-all ${
-            hasChanges && !saving
+            hasChanges && !saving && !addonIncomplete
               ? "bg-[#B87942] text-white active:bg-[#A06830]"
               : "bg-[#E5DDD8] text-[#888] cursor-not-allowed"
           }`}
