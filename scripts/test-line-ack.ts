@@ -146,6 +146,16 @@ check(general.type === "text" && general.text.includes("お時間をいただく
 check(arrival.type === "text" && !/¥|円|料金/.test(arrival.text), "①に金額を書かない");
 check(generalNight.type === "text" && generalNight.text.includes("次の営業日にご返信いたします"), "④は営業時間外の文面に差し替わる");
 check(bookingNight.type === "text" && bookingNight.text.includes("次の営業日にご返信いたします"), "②は営業時間外の文面に差し替わる");
+// 2026-11-25: ② は日付もその場で変えられる旨を添える（営業時間内・外とも）。時間外の汎用文は ② 以外で変えない
+{
+  const bookingDay = buildAckMessages("booking")[0] as { text: string };
+  const bn = bookingNight as { text: string };
+  check(bookingDay.text.includes("日付・到着予定時間・備考の変更は") && bookingDay.text.includes("前日17時以降"), "②（時間内）は日付をその場で変えられる旨と期限を書く");
+  check(bn.text.includes("日付・到着予定時間・備考の変更は") && bn.text.includes("営業時間内にお電話"), "②（時間外）にも一文添え、電話は営業時間内と書く");
+  check(!bn.text.includes("お急ぎの場合はお電話"), "②（時間外）で「お急ぎはお電話へ」と書かない");
+  check(!(generalNight as { text: string }).text.includes("日付・到着予定時間"), "④（時間外）には日付変更の一文を付けない");
+  check(![bookingDay.text, bn.text].some((t) => t.includes("必要に応じて") || t.includes("まもなく")), "②に「必要に応じて」「まもなく」を書かない");
+}
 check(
   generalNight.type === "text" && !generalNight.text.includes("お急ぎの場合はお電話"),
   "営業時間外に「お急ぎはお電話へ」と書かない"

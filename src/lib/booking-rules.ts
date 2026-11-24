@@ -14,6 +14,7 @@ import {
   findCheckoutAddon,
   findCheckinAddon,
   normalizeCheckinAddonFrom,
+  PLANS,
   type CheckoutAddonPlan,
 } from "../types/booking";
 
@@ -486,4 +487,245 @@ export function checkoutAddonStaffMessage(reason: CheckoutAddonBlockReason, coDa
     case "full":
       return `チェックアウト日の${label}は満室です（全19室）`;
   }
+}
+
+// ── お客様ご自身の日付変更（/booking/modify・2026-11-25 CEO 決定） ─────────────
+// それまで変更画面では日付を変えられず「一度キャンセルして再予約を」と小さく出すだけだった。
+// 決まり（11-25 CEO）:
+//   - 期限は新規予約と同じ（当日・前日17時以降の翌日分はお電話）。元の予約日と新しい日付の両方にかける
+//   - 期限内の日付変更はキャンセル料なし（画面にキャンセル料を出さない）
+//   - 宿泊に半日・1日（前後）・早預かり・延長が付いている予約は、日付変更はお電話
+//   - プラン・頭数・わんちゃんは変えない（日付と到着時間のみ。宿泊はチェックイン日とチェックアウト日）
+//   - 状態が confirmed / pending 以外（キャンセル・完了・無断キャンセル）は不可
+// 画面（app/booking/modify/[id]/page.tsx）と API（app/api/booking/modify/route.ts）が
+// 同じ関数を呼ぶ。最終の枠の確保は API の applyCapacityDelta（Web上限15）が原子的に行う。
+
+export const STORE_TEL = "0460-80-0290";
+
+/** "2026-11-27" → "11/27(金)"（変更内容の一行に使う） */
+export function formatDateShortJa(dateStr: string): string {
+  if (!dateStr) return "";
+  const [, m, d] = dateStr.split("-").map(Number);
+  const w = ["日", "月", "火", "水", "木", "金", "土"][getJstWeekday(dateStr)];
+  return `${m}/${d}(${w})`;
+}
+
+/** お客様ご自身の操作の期限を過ぎているか（当日以前・前日17時以降の翌日） */
+export function isPastSelfServiceDeadline(
+  date: string,
+  today: string = getJstToday(),
+  hourJst: number = getJstHour()
+): boolean {
+  return !date || date <= today || isLateBooking(date, today, hourJst);
+}
+
+/** プランごとのチェックイン（到着）時刻の選択肢 "HH:00"。正本は types/booking.ts の PLANS.checkinRange */
+export function checkinTimeOptions(plan: string): string[] {
+  const p = PLANS.find((x) => x.id === plan);
+  if (!p) return [];
+  const start = parseInt(p.checkinRange.start, 10);
+  const end = Math.max(start, parseInt(p.checkinRange.end, 10));
+  const out: string[] = [];
+  for (let h = start; h <= end; h++) out.push(`${String(h).padStart(2, "0")}:00`);
+  return out;
+}
+
+export interface RescheduleTarget extends FootprintInput {
+  checkin_time?: string | null;
+  checkin_addon_plan?: string | null;
+  checkin_addon_from?: string | null;
+  checkin_extension_from?: string | null;
+  checkout_extension_until?: string | null;
+  notes?: string | null;
+}
+
+/** 備考に残る付属の印（11-22 以前の「…を付ける希望」も含む） */
+const ATTACHMENT_NOTE_MARKERS = ["【延長預かり】", "【早預かり】", "を付ける希望】"];
+
+/** 半日・1日（前後）・早預かり・延長のどれかが付いているか */
+export function hasBookingAttachments(r: RescheduleTarget): boolean {
+  if (r.checkout_addon_plan || r.checkin_addon_plan || r.checkin_extension_from || r.checkout_extension_until) {
+    return true;
+  }
+  const notes = r.notes || "";
+  return ATTACHMENT_NOTE_MARKERS.some((m) => notes.includes(m));
+}
+
+export type RescheduleIneligibleReason = "status" | "plan" | "attachments" | "deadline";
+
+/**
+ * このご予約をお客様ご自身で日付変更できない理由（null＝できる）。
+ * 期限は元の予約日（チェックイン日）にかける。新しい日付の期限は checkReschedule が見る。
+ */
+export function rescheduleIneligibleReason(
+  r: RescheduleTarget,
+  today: string = getJstToday(),
+  hourJst: number = getJstHour()
+): RescheduleIneligibleReason | null {
+  if (!isActiveReservationStatus(r.status)) return "status";
+  // スポットは Web で選べないプラン（電話・現地枠）＝日付の変更もお電話
+  if (!checkinTimeOptions(r.plan).length) return "plan";
+  if (hasBookingAttachments(r)) return "attachments";
+  if (isPastSelfServiceDeadline(r.date, today, hourJst)) return "deadline";
+  return null;
+}
+
+export function rescheduleIneligibleMessage(reason: RescheduleIneligibleReason): string {
+  switch (reason) {
+    case "status":
+      return "このご予約は日付を変更できません";
+    case "plan":
+      return `このプランの日付の変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`;
+    case "attachments":
+      return `半日・1日のお預かりや、早預かり・延長が付いているご予約の日付の変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`;
+    case "deadline":
+      return `ご予約日の当日、および前日17時以降の日付の変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`;
+  }
+}
+
+export interface RescheduleRequest {
+  /** 新しいチェックイン日（日帰りはその日） */
+  date: string;
+  /** 宿泊の新しいチェックアウト日 */
+  checkoutDate?: string | null;
+  /** 新しい到着時刻 "HH:mm" */
+  checkinTime: string;
+}
+
+export interface RescheduleDayRow {
+  closed?: boolean | null;
+  web_closed?: boolean | null;
+  day_booked?: number | null;
+  stay_booked?: number | null;
+}
+
+export interface RescheduleContext {
+  today: string;
+  hourJst: number;
+  /** 何日先まで受け付けるか（site_settings.booking_window_days・既定180） */
+  bookingWindowDays: number;
+  /** その日の daily_capacity 行（無ければ null） */
+  rowOf: (date: string) => RescheduleDayRow | null;
+  isAfternoonOnly: (date: string) => boolean;
+  /** 部屋数の上限（お客様＝WEB_ROOM_LIMIT） */
+  limit: number;
+  closedWeekdays?: number[];
+}
+
+export type RescheduleCheck =
+  | { ok: true; capDelta: CapacityItem[] }
+  | { ok: false; message: string };
+
+/** その日が休業か（行があればその closed、無ければ定休の曜日） */
+function isClosedOn(date: string, row: RescheduleDayRow | null, closedWeekdays: number[]): boolean {
+  if (row) return !!row.closed;
+  return closedWeekdays.includes(getJstWeekday(date));
+}
+
+/**
+ * お客様ご自身の日付変更を受けてよいか。新規予約（api/booking/route.ts）と同じ受付条件を新しい日程にかける:
+ *   当日・前日17時以降の翌日は不可／受付期間（booking_window_days）の先は不可／
+ *   プランごとの到着時刻の範囲／宿泊はチェックアウト日がチェックイン日より後・泊まる晩に休業がない
+ *   （チェックアウト日だけは定休日でもよい）／Web受付停止・満席（Web上限）の日は不可／
+ *   午後から営業の日のルール。
+ * 部屋数は「いまの予約が占める枠 → 新しい日程の枠」の差分で見る（重なる日は自分の分を二重に数えない）。
+ */
+export function checkReschedule(
+  r: RescheduleTarget,
+  req: RescheduleRequest,
+  ctx: RescheduleContext
+): RescheduleCheck {
+  const ng = (message: string): RescheduleCheck => ({ ok: false, message });
+  const weekdays = ctx.closedWeekdays ?? DEFAULT_CLOSED_WEEKDAYS;
+  const isStay = r.plan === "stay";
+
+  const reason = rescheduleIneligibleReason(r, ctx.today, ctx.hourJst);
+  if (reason) return ng(rescheduleIneligibleMessage(reason));
+
+  const date = req.date || "";
+  const co = isStay ? req.checkoutDate || "" : "";
+  const isDateStr = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
+  if (!isDateStr(date) || (isStay && !isDateStr(co))) return ng("日付を選び直してください");
+
+  if (date === r.date && (!isStay || co === r.checkout_date)) {
+    return ng("変更前と同じ日程です");
+  }
+  if (isPastSelfServiceDeadline(date, ctx.today, ctx.hourJst)) {
+    return ng(`当日、および前日17時以降の翌日への変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`);
+  }
+  if (date > addDaysJst(ctx.today, ctx.bookingWindowDays)) {
+    return ng(`${formatDateJaWithWeekday(date)}はまだご予約を承っていない日です。日付を選び直してください`);
+  }
+
+  const time = (req.checkinTime || "").slice(0, 5);
+  const times = checkinTimeOptions(r.plan);
+  if (!times.includes(time)) {
+    return ng(`到着時間は${times[0]}〜${times[times.length - 1]}の間でお選びください`);
+  }
+
+  // 新しい日程でお店が開いている必要がある日（宿泊＝泊まる晩・日帰り＝その日）
+  let openDays: string[];
+  if (isStay) {
+    if (co <= date) return ng("チェックアウト日はチェックイン日の翌日以降を選択してください");
+    openDays = capacityFootprint({ plan: "stay", date, checkout_date: co }).map((it) => it.date);
+    if (addDaysJst(date, MAX_STAY_NIGHTS) < co) return ng("お泊まりの日数が長すぎます。お電話でご相談ください");
+  } else {
+    openDays = [date];
+  }
+  for (const d of openDays) {
+    const row = ctx.rowOf(d);
+    if (isClosedOn(d, row, weekdays)) {
+      const why = row ? "臨時休業" : "定休日";
+      return ng(
+        isStay
+          ? `お預かり期間中の${formatDateJaWithWeekday(d)}が${why}です（チェックアウト日は定休日でもお引き取りいただけます）。日程を選び直してください`
+          : `${formatDateJaWithWeekday(d)}は${why}です。日付を選び直してください`
+      );
+    }
+  }
+
+  // 午後から営業（宿泊のみ）の日。日付を選び直す＝新規予約と同じく、新しい日程が触れたら止める
+  // （到着時刻・備考だけの変更と違い「もともと入っていた予約だから」は理由にしない）
+  const aoNext = findAfternoonOnlyViolation(
+    { plan: r.plan, date, checkoutDate: isStay ? co : null, checkinTime: time },
+    ctx.isAfternoonOnly
+  );
+  if (aoNext) return ng(afternoonOnlyCustomerMessage(aoNext));
+
+  // 部屋数: いまの予約の枠を外して新しい日程の枠を足した差分。増える日だけ Web受付停止・満席を見る
+  const capDelta = diffFootprint(
+    activeFootprint(r),
+    activeFootprint({ ...r, date, checkout_date: isStay ? co : null })
+  );
+  const incByDate = new Map<string, number>();
+  capDelta.forEach((it) => incByDate.set(it.date, (incByDate.get(it.date) || 0) + it.delta));
+  for (const d of increasedDates(capDelta)) {
+    const row = ctx.rowOf(d);
+    const used = (row?.day_booked || 0) + (row?.stay_booked || 0);
+    if (row?.web_closed === true || used + (incByDate.get(d) || 0) > ctx.limit) {
+      return ng(`${formatDateJaWithWeekday(d)}は満席です。お手数ですがお電話（${STORE_TEL}）でお問い合わせください`);
+    }
+  }
+  return { ok: true, capDelta };
+}
+
+/** 変更内容の一行（通知に載せる）。例「日付: 11/27(金) → 11/28(土)」 */
+export function rescheduleChangeLines(
+  r: { plan: string; date: string; checkout_date?: string | null; checkin_time?: string | null },
+  req: RescheduleRequest
+): string[] {
+  const lines: string[] = [];
+  const isStay = r.plan === "stay";
+  if (req.date !== r.date) {
+    lines.push(`${isStay ? "チェックイン日" : "日付"}: ${formatDateShortJa(r.date)} → ${formatDateShortJa(req.date)}`);
+  }
+  if (isStay && req.checkoutDate && req.checkoutDate !== r.checkout_date) {
+    lines.push(`チェックアウト日: ${formatDateShortJa(r.checkout_date || "")} → ${formatDateShortJa(req.checkoutDate)}`);
+  }
+  const oldTime = (r.checkin_time || "").slice(0, 5);
+  const newTime = (req.checkinTime || "").slice(0, 5);
+  if (newTime && newTime !== oldTime) {
+    lines.push(`${isStay ? "到着予定時間" : "チェックイン時間"}: ${oldTime} → ${newTime}`);
+  }
+  return lines;
 }

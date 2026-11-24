@@ -285,12 +285,22 @@ const ARRIVAL_TEXT =
   "\n" +
   "運転にはくれぐれもお気をつけて。お待ちしております。";
 
-// ② 予約の変更・空き確認。自分で直せる範囲（到着予定時間・備考）は自己解決に誘導する。
+// ② 予約の変更・空き確認。自分で直せる範囲（日付・到着予定時間・備考）は自己解決に誘導する。
+// 2026-11-25: 変更画面で日付も変えられるようにした（CEO 承認）。きっかけは定休日の朝に
+// 「11/28に変えられますか」と届き、自動返信が「次の営業日に返信」だけでスタッフ待ちになった件。
+// 🔴 期限は新規予約と同じ＝当日・前日17時以降はお電話（lib/booking-rules.ts が正本）。
+// リンクの名前はメールが「予約内容を変更する」、LINE が「変更・キャンセルはこちら」で違うので両方書く。
+const SELF_RESCHEDULE_NOTE =
+  "日付・到着予定時間・備考の変更は、ご予約時のメール・LINEにある変更のリンク（「予約内容を変更する」「変更・キャンセルはこちら」）から、その場でお手続きいただけます。";
 const BOOKING_TEXT =
   "承りました。ご予約の変更・空き状況は、スタッフがお調べしてご連絡いたします。\n" +
   `お返事までお時間をいただくことがあります。お急ぎの場合はお電話（${TEL}）へお願いいたします。\n` +
   "\n" +
-  "なお、到着予定時間と備考の変更は、ご予約時のメール・LINEにある「変更・キャンセルはこちら」から、その場でお手続きいただけます。";
+  `なお、${SELF_RESCHEDULE_NOTE}当日、および前日17時以降の変更はお電話でお願いいたします。`;
+// ② が営業時間外に来たとき、B の後ろに添える一文。🔴 夜に「お電話を」と言わない決まりに合わせ、
+// 直前の変更は「営業時間内に」お電話、と書く。
+const BOOKING_AFTER_HOURS_NOTE =
+  `なお、${SELF_RESCHEDULE_NOTE}当日、および前日17時以降の変更は、営業時間内にお電話でお願いいたします。`;
 
 // ③ お礼・ご挨拶。🔴 ここで「担当より連絡します」と言わない（事務的な印象の元凶だったため）。
 const THANKS_TEXT = "ありがとうございます🐾 当日お待ちしております。";
@@ -438,6 +448,9 @@ const AFTER_HOURS_EXEMPT: AckKind[] = ["arrival", "thanks", "booked", "mistake"]
 export function buildAckMessages(kind: AckKind, opts: AckOptions = {}): LineMessage[] {
   const useAfterHours = opts.outsideBusinessHours === true && !AFTER_HOURS_EXEMPT.includes(kind);
   let body = useAfterHours ? AFTER_HOURS_TEXT : TEXT_BY_KIND[kind];
+  // ② だけは時間外でも「その場で日付を変えられる」ことを添える（返信を待たずに済む方がいるため）。
+  // 時間外の汎用文（AFTER_HOURS_TEXT）そのものは変えない。
+  if (useAfterHours && kind === "booking") body = AFTER_HOURS_TEXT + "\n\n" + BOOKING_AFTER_HOURS_NOTE;
   if (kind === "thanks" && opts.hasUpcomingBooking !== true && !opts.textImpliesBooking) {
     body = THANKS_NO_BOOKING_TEXT;
   }
