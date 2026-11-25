@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { PLANS, EXTRA_HOUR_FEE } from "@/types/booking";
 import { PartnerMemory } from "@/components/partner-memory";
 
-// 提携先のお客様専用ご案内ページの共通の型。kind で「宿（泊まる間に預ける）」と「ゴルフ場（ラウンドの間に預ける）」を切り替える。
+// 提携先のお客様専用ご案内ページの共通の型。kind で「宿（泊まる間に預ける）」「愛犬と泊まれる宿（お出かけの間に預ける）」「ゴルフ場（ラウンドの間に預ける）」を切り替える。
 // 各ページは /partner/<slug>/page.tsx で設定（PartnerGuide）を渡すだけ。
 // 方針＝marketing/reports/partner_network_strategy_2026-10-14.md
 
@@ -19,8 +19,8 @@ export type PartnerGuide = {
   /** Googleマップのルート検索の出発地 */
   routeOrigin: string;
   routeSteps: string[];
-  /** stay＝ペット不可の宿（泊まる間に預ける）／golf＝ゴルフ場（ラウンドの間に預ける） */
-  kind: "stay" | "golf";
+  /** stay＝ペット不可の宿（泊まる間に預ける）／daytrip＝愛犬と泊まれる宿（犬が入れない場所へ出かける間に半日・1日で預ける）／golf＝ゴルフ場（ラウンドの間に預ける） */
+  kind: "stay" | "daytrip" | "golf";
   flow: { day: string; time: string; place: string; text: string }[];
   /** 流れの下の補足（お迎えの時刻・延長など）。料金の数字は EXTRA_HOUR_FEE から差し込む */
   notes: { title: string; body: string }[];
@@ -39,6 +39,15 @@ const LABELS = {
     hero: "ご滞在のあいだ、",
     purpose: "ホテルでのご滞在に合わせた預け方・お迎えの流れ",
     flowTitle: "1泊2日のご滞在の流れ（例）",
+    footnote: "※ ホテルのチェックイン・チェックアウトの時刻は、ご予約時のホテルのご案内をご確認ください。",
+    facility: "ホテル",
+    weekLead: "ホテルは毎日営業していますが、当店は",
+  },
+  daytrip: {
+    lead: "にご宿泊のお客様へ",
+    hero: "お出かけのあいだ、",
+    purpose: "チェックインの前・チェックアウトのあとの観光に合わせた預け方・お迎えの流れ",
+    flowTitle: "観光の日の流れ（例）",
     footnote: "※ ホテルのチェックイン・チェックアウトの時刻は、ご予約時のホテルのご案内をご確認ください。",
     facility: "ホテル",
     weekLead: "ホテルは毎日営業していますが、当店は",
@@ -78,7 +87,7 @@ const body = "text-[#3C200F]";
 export function PartnerGuidePage({ guide }: { guide: PartnerGuide }) {
   const HOTEL = guide.hotel;
   const L = LABELS[guide.kind];
-  // 水曜のお迎えは「火曜からのご宿泊」のときだけ＝日帰り（ゴルフ）では水曜も ×
+  // 水曜のお迎えは「火曜からのご宿泊」のときだけ＝日帰り（ゴルフ・愛犬と泊まれる宿の半日/1日）では水曜も ×
   const WEEK = guide.kind === "stay" ? STAY_WEEK : STAY_WEEK.map((w) => (w.d === "水" ? { ...w, pick: false } : w));
   const BOOKING_HREF = `/booking?partner=${guide.slug}`;
   const ROUTE_URL =
@@ -263,11 +272,13 @@ export function PartnerGuidePage({ guide }: { guide: PartnerGuide }) {
               料金（税込・ワンちゃん1頭あたり）
             </h2>
             <div className="divide-y divide-[#E5DDD8] border-y border-[#E5DDD8]">
-              {[
-                { name: "ご宿泊のお預かり", time: "お預け 14:00〜17:00／お迎え 翌9:00〜11:00", price: `${yen(stay.basePrice)}／1泊` },
-                { name: "1日のお預かり（8時間）", time: "お預け 7:00〜9:00", price: yen(day.basePrice) },
-                { name: "半日のお預かり（4時間）", time: "お預け 9:00〜13:00", price: yen(half.basePrice) },
-              ].map((p) => (
+              {(() => {
+                const stayRow = { name: "ご宿泊のお預かり", time: "お預け 14:00〜17:00／お迎え 翌9:00〜11:00", price: `${yen(stay.basePrice)}／1泊` };
+                const dayRow = { name: "1日のお預かり（8時間）", time: "お預け 7:00〜9:00", price: yen(day.basePrice) };
+                const halfRow = { name: "半日のお預かり（4時間）", time: "お預け 9:00〜13:00", price: yen(half.basePrice) };
+                // 愛犬と泊まれる宿は、使うのが半日・1日なので先に出す
+                return guide.kind === "daytrip" ? [halfRow, dayRow, stayRow] : [stayRow, dayRow, halfRow];
+              })().map((p) => (
                 <div key={p.name} className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                   <div>
                     <p className={body} style={{ fontSize: "16px" }}>{p.name}</p>

@@ -41,7 +41,21 @@ type HotelEntry = {
   note?: string;
   articleHref?: string;
 };
-const hotels: HotelEntry[] = [];
+const hotels: HotelEntry[] = [
+  // 2026-11-25 掲載許可（THE SCENE hakone yumoto 販売促進マネージャー 大槻様のメール）。12/1 グランドオープン。
+  {
+    name: "THE SCENE hakone yumoto",
+    group: "pet-ok",
+    area: "箱根湯本",
+    drive: "車で約30分",
+    petPolicy:
+      "愛犬と同じお部屋に泊まるドッグ・プレミアムホテルです（2026年12月1日開業）。お部屋のタイプごとに、愛犬の大きさにかかわらず3頭まで・5頭までと決まっています。生後6か月以上・混合ワクチン（5種以上・1年以内）と狂犬病予防接種の証明書などが条件です。",
+    sourceUrl: "https://thescene-hakoneyumoto.com/rules/",
+    checkedAt: "2026-11-25",
+    note: "犬が入れない美術館などへ出かける間は、半日・1日でお預かりします。行きか帰りに仙石原へ寄る組み立て方を、記事にまとめました。",
+    articleHref: "/news/hakone-the-scene-yumoto-dog-guide",
+  },
+];
 
 // 既存の記事へのつなぎ（ホテル名入りの4本は 10-20 CEO 了承済み）。
 const SHOW_UNAPPROVED = process.env.NODE_ENV === "development";

@@ -204,6 +204,13 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     href: "/8h",
     btnLabel: "1日お預かりプランを見る",
   },
+  // THE SCENE hakone yumoto（2026-11-25 掲載許可）。愛犬と泊まれる宿＝犬が入れない場所へ出かける間の半日・1日。
+  // 予約ボタンは行き先だけ埋める（?dest=）。専用ページ /partner/the-scene-hakone-yumoto へはサイト内からリンクしない。
+  "hakone-the-scene-yumoto-dog-guide": {
+    subtext: "ホテルから車で約30分。犬が入れない美術館などへ出かける間に。半日お預かり（4時間）¥3,300、1日お預かり（8時間）¥5,500（いずれも1頭あたり）。",
+    href: "/booking?plan=4h&dest=the-scene-hakone-yumoto",
+    btnLabel: "半日お預かりを予約する",
+  },
   "hakone-regina-resort-dog-guide": {
     subtext: "宿まで車で約2分。チェックイン前・アウト後・観光中の愛犬お預けに。半日¥3,300。",
     href: "/4h",
@@ -214,6 +221,11 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
     href: "/service",
     btnLabel: "お預かりプラン・料金を見る",
   },
+};
+
+// 記事トップの写真（CMS F列）が宿の公式サイトなどからお借りしたものなら、出典を写真の右下に出す
+const HERO_CREDITS: Record<string, string> = {
+  "hakone-the-scene-yumoto-dog-guide": "写真：THE SCENE hakone yumoto 公式サイトより（イメージ）",
 };
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
@@ -396,6 +408,11 @@ const ARTICLE_SCENE_BRIDGES: Record<string, { label: string; href: string; descr
     { label: "宿泊プランを見る", href: "/stay", description: "1泊¥7,700 前泊に便利" },
     { label: "犬と泊まれる宿をお探しの方へ", href: "/news/hakone-dog-friendly-hotels", description: "箱根の宿選びの選択肢と、分離型という過ごし方をまとめました" },
   ],
+  "hakone-the-scene-yumoto-dog-guide": [
+    { label: "半日お預かり", href: "/4h", description: "¥3,300 美術館1館＋ランチに" },
+    { label: "1日お預かり", href: "/8h", description: "¥5,500 一日かけて観光する日に" },
+    { label: "美術館に行くなら", href: "/museum", description: "ポーラ美術館まで車4分" },
+  ],
   "hakone-regina-resort-dog-guide": [
     { label: "4時間プランを見る", href: "/4h", description: "¥3,300 チェックイン前後の観光に" },
     { label: "8時間プランを見る", href: "/8h", description: "¥5,500 ユネッサンや1日観光に" },
@@ -525,6 +542,12 @@ const ARTICLE_RELATED: Record<string, string[]> = {
     "hakone-dog-friendly-hotels",
     "hakone-dog-hotel-cost-comparison",
   ],
+  // THE SCENE hakone yumoto（2026-11-25）: 犬と泊まれる宿の記事・美術館・旅行ガイドへ（他の宿の記事は並べない）
+  "hakone-the-scene-yumoto-dog-guide": [
+    "hakone-dog-friendly-hotels",
+    "hakone-museum-dog-guide",
+    "hakone-dog-trip-guide",
+  ],
 };
 
 interface Props {
@@ -638,6 +661,11 @@ export default async function NewsDetailPage({ params }: Props) {
               {article.title}
             </h1>
           </div>
+          {HERO_CREDITS[slug] && (
+            <p className="absolute bottom-1 right-2 text-white/85" style={{ fontSize: "11px" }}>
+              {HERO_CREDITS[slug]}
+            </p>
+          )}
         </div>
 
         {/* Breadcrumb */}

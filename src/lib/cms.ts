@@ -168,7 +168,18 @@ const WM_BY_URL: Record<string, WmImage> = Object.fromEntries(
 
 // 記事に挿入する画像マッピング（slug → 見出しキーワード → 画像URL）
 // 観光地・施設画像は Wikimedia Commons、DogHub自社写真は /images/ 配下
-const ARTICLE_IMAGES: Record<string, { keyword: string; images: string[] }[]> = {
+// caption があれば画像の下に出典などの一文を出す（宿の公式サイトからお借りした写真など）。alt があれば説明文に使う（無ければ keyword）
+type ArticleImage = { keyword: string; images: string[]; caption?: string; alt?: string };
+const THE_SCENE_CREDIT = "写真：THE SCENE hakone yumoto 公式サイトより（イメージ）";
+const ARTICLE_IMAGES: Record<string, ArticleImage[]> = {
+  // THE SCENE hakone yumoto（2026-11-25 掲載許可・CEO 判断で公式サイトの写真を出典つきで使用）。外観はサムネ（CMS F列＝/images/thescene-hakone-yumoto-exterior.jpg）＝記事トップに出るので本文には入れない。原稿＝marketing/drafts/the-scene-hakone-yumoto_article_2026-11-25.md
+  "hakone-the-scene-yumoto-dog-guide": [
+    { keyword: "愛犬と泊まるためのホテルが開業します", images: ["/images/thescene-hakone-yumoto-interior.jpg"], caption: THE_SCENE_CREDIT, alt: "THE SCENE hakone yumoto の館内" },
+    { keyword: "愛犬と同じお部屋に泊まるホテル", images: ["/images/thescene-hakone-yumoto-room.jpg"], caption: THE_SCENE_CREDIT, alt: "THE SCENE hakone yumoto の客室" },
+    { keyword: "犬用のプールがあるスパテラス", images: ["/images/thescene-hakone-yumoto-spa-terrace.jpg"], caption: THE_SCENE_CREDIT, alt: "THE SCENE hakone yumoto のスパテラス" },
+    { keyword: "ポーラ美術館は館内に犬は入れませんが", images: ["/images/doghub-hotel-room-full-01.jpg"], alt: "DogHub箱根仙石原のお預かりのお部屋" },
+    { keyword: "ご予約のこと", images: ["/images/doghub-exterior-flowers-01.jpg"], alt: "DogHub箱根仙石原の外観" },
+  ],
   "hakone-autumn-dog-guide": [
     { keyword: "犬と一緒に歩ける場所", images: [WM.goraPark.url] },
     { keyword: "乗り物と建物", images: [WM.ashinokoAutumnCruise.url] },
@@ -444,10 +455,14 @@ function enhanceArticleHtml(html: string, slug?: string, thumbnailUrl?: string):
       if (afterTag === -1) continue;
 
       // 挿入位置のキーワードを画像の説明文にする（空の alt をなくす）
-      const imgAlt = mapping.keyword.replace(/[<>"&]/g, "");
-      const imgsHtml = mapping.images.length === 1
+      const imgAlt = (mapping.alt ?? mapping.keyword).replace(/[<>"&]/g, "");
+      let imgsHtml = mapping.images.length === 1
         ? `<img src="${mapping.images[0]}" alt="${imgAlt}" class="article-single-img" />`
         : `<div class="article-images">${mapping.images.map(src => `<img src="${src}" alt="${imgAlt}" />`).join("")}</div>`;
+      if (mapping.caption) {
+        const cap = mapping.caption.replace(/[<>"&]/g, "");
+        imgsHtml = `<figure class="article-figure">${imgsHtml}<figcaption>${cap}</figcaption></figure>`;
+      }
 
       html = html.slice(0, afterTag) + imgsHtml + html.slice(afterTag);
     }

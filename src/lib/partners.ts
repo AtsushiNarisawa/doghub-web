@@ -58,6 +58,12 @@ export const PARTNERS: Record<string, Partner> = {
     destination: "水の音",
     referralSource: "宿泊先・ゴルフ場で知った",
   },
+  // 2026-11-25 掲載許可（大槻様メール）。愛犬と泊まれる宿＝主に半日・1日（犬が入れない場所へ出かける間）
+  "the-scene-hakone-yumoto": {
+    slug: "the-scene-hakone-yumoto",
+    destination: "THE SCENE hakone yumoto",
+    referralSource: "宿泊先・ゴルフ場で知った",
+  },
   "daihakone-cc": {
     slug: "daihakone-cc",
     destination: "大箱根カントリークラブ",

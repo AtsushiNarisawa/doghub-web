@@ -285,7 +285,7 @@ export const DESTINATION_SUGGESTIONS = [
   "大涌谷", "芦ノ湖遊覧船", "箱根関所", "箱根神社",
   "御殿場プレミアム・アウトレット",
   // 宿泊施設（日帰り利用）
-  "強羅花壇", "箱根吟遊", "富士屋ホテル",
+  "強羅花壇", "箱根吟遊", "富士屋ホテル", "THE SCENE hakone yumoto",
 ] as const;
 
 // 宿泊預かり（stay）向け行き先
@@ -313,6 +313,7 @@ export const STAY_DESTINATIONS = [
   "水の音",
   "龍宮殿",
   "エクシブ湯河原離宮",
+  "THE SCENE hakone yumoto",
   "箱根湯本の旅館",
   // その他
   "未定",
