@@ -38,6 +38,7 @@ type HotelEntry = {
   dogRooms?: string; // pet-partial のみ。例「全◯室のうち◯室」（公式に数がなければ「一部の客室のみ」）。「少ない」等の評価は書かない
   sourceUrl: string;
   checkedAt: string; // YYYY-MM-DD
+  sourceNote?: string; // 先方と話して掲載のご了承をいただいた宿は、出典リンクの代わりにこの一文を出す（11-26 CEO「Webから取ったような表現はやめて」）
   note?: string;
   articleHref?: string;
 };
@@ -52,6 +53,7 @@ const hotels: HotelEntry[] = [
       "愛犬と同じお部屋に泊まるドッグ・プレミアムホテルです（2026年12月1日開業）。お部屋のタイプごとに、愛犬の大きさにかかわらず3頭まで・5頭までと決まっています。生後6か月以上・混合ワクチン（5種以上・1年以内）と狂犬病予防接種の証明書などが条件です。",
     sourceUrl: "https://thescene-hakoneyumoto.com/rules/",
     checkedAt: "2026-11-25",
+    sourceNote: "ホテルの方にお話をうかがい、ご了承をいただいて掲載しています。",
     note: "犬が入れない美術館などへ出かける間は、半日・1日でお預かりします。行きか帰りに仙石原へ寄る組み立て方を、記事にまとめました。",
     articleHref: "/news/hakone-the-scene-yumoto-dog-guide",
   },
@@ -77,6 +79,7 @@ const petOkLinks: ArticleLink[] = [
   { href: "/pethotel", label: "ペット可の宿 × 日中だけ預ける" },
   { href: "/news/hakone-retona-dog-guide", label: "リトナ箱根に泊まる日の愛犬" },
   { href: "/news/hakone-regina-resort-dog-guide", label: "レジーナリゾート箱根仙石原に泊まる日の愛犬" },
+  { href: "/news/hakone-the-scene-yumoto-dog-guide", label: "THE SCENE hakone yumotoに泊まる日の愛犬" },
 ];
 
 export const metadata: Metadata = {
@@ -371,7 +374,9 @@ function HotelSection({ h }: { h: HotelEntry }) {
       <p className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.8" }}>{h.petPolicy}</p>
       {h.dogRooms && <p className="text-[#3C200F]" style={{ fontSize: "15px", lineHeight: "1.8" }}>犬と泊まれるお部屋：{h.dogRooms}</p>}
       <p className="text-[#8F7B65] mt-1" style={{ fontSize: "12px" }}>
-        出典：<a href={h.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">ホテル公式サイト</a>（{h.checkedAt} 確認）
+        {h.sourceNote ?? (
+          <>出典：<a href={h.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">ホテル公式サイト</a>（{h.checkedAt} 確認）</>
+        )}
       </p>
       {h.note && <p className="text-[#3C200F] mt-3" style={{ fontSize: "15px", lineHeight: "1.8" }}>{h.note}</p>}
       {h.articleHref && (

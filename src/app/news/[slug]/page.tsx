@@ -225,7 +225,7 @@ const ARTICLE_CTA: Record<string, { subtext: string; href: string; btnLabel: str
 
 // 記事トップの写真（CMS F列）が宿の公式サイトなどからお借りしたものなら、出典を写真の右下に出す
 const HERO_CREDITS: Record<string, string> = {
-  "hakone-the-scene-yumoto-dog-guide": "写真：THE SCENE hakone yumoto 公式サイトより（イメージ）",
+  "hakone-the-scene-yumoto-dog-guide": "写真：THE SCENE hakone yumoto（イメージ）",
 };
 
 // 記事別シーンページブリッジ（記事本文内に表示する具体的な導線）
