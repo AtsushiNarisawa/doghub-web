@@ -3,6 +3,8 @@
 // 実行: node --import ./scripts/ts-resolve-hook.mjs scripts/test-booking-reschedule.ts
 import {
   checkReschedule,
+  checkTimeChange,
+  timeChangeIneligibleReason,
   rescheduleIneligibleReason,
   rescheduleChangeLines,
   checkinTimeOptions,
@@ -51,7 +53,13 @@ check(rescheduleIneligibleReason({ ...day8h, date: "2026-11-26" }, TODAY, 17) ==
 const ok = (r: ReturnType<typeof checkReschedule>) => r.ok;
 const msg = (r: ReturnType<typeof checkReschedule>) => (r.ok ? "" : r.message);
 check(ok(checkReschedule(day8h, { date: "2026-11-28", checkinTime: "07:00" }, ctx())), "1日 11/27→11/28 は通る（実例）");
-check(msg(checkReschedule(day8h, { date: "2026-11-27", checkinTime: "08:00" }, ctx())).includes("同じ日程"), "日付が同じなら止める");
+check(msg(checkReschedule(day8h, { date: "2026-11-27", checkinTime: "07:00" }, ctx())).includes("同じ日時"), "日帰りで日付も時間も同じなら止める");
+{
+  // 2026-11-26: 日帰りで同じ日・別の時間＝時間だけの変更として通す（枠は動かない）
+  const r = checkReschedule(day8h, { date: "2026-11-27", checkinTime: "08:00" }, ctx());
+  check(r.ok && r.capDelta.length === 0, "日帰りで同じ日・別の時間は通る（枠の差分なし）");
+}
+check(msg(checkReschedule(stay, { date: "2026-11-28", checkoutDate: "2026-11-30", checkinTime: "16:00" }, ctx())).includes("同じ日程"), "宿泊で日程が同じなら止める（到着時間は「変更できる項目」側）");
 check(msg(checkReschedule(day8h, { date: "2026-12-02", checkinTime: "07:00" }, ctx())).includes("定休日"), "新しい日が定休日（行なしの水）＝不可");
 check(ok(checkReschedule(day8h, { date: "2026-12-02", checkinTime: "07:00" }, ctx({}, { "2026-12-02": { closed: false } }))), "水でも臨時営業（行あり closed=false）なら可");
 check(msg(checkReschedule(day8h, { date: "2026-11-28", checkinTime: "07:00" }, ctx({}, { "2026-11-28": { closed: true } }))).includes("臨時休業"), "臨時休業は不可");
@@ -105,6 +113,39 @@ check(
   "宿泊はチェックイン日・チェックアウト日・到着時間を並べる"
 );
 check(checkinTimeOptions("stay").join(",") === "14:00,15:00,16:00,17:00", "宿泊の到着時刻の選択肢");
+
+// ── 日帰りの同じ日の時間だけの変更（2026-11-26 CEO 承認）──
+// 実例の型: 半日 11/28(土) 9:00 → 10:00 にしたい（前々日の夜＝期限内）
+{
+  const half: RescheduleTarget = { plan: "4h", date: "2026-11-28", checkin_time: "09:00:00", dog_count: 1, status: "confirmed", notes: null };
+  const tctx = (hourJst = 21, today = TODAY, isAfternoonOnly?: (d: string) => boolean) => ({ today, hourJst, isAfternoonOnly });
+  const tmsg = (r: ReturnType<typeof checkTimeChange>) => (r.ok ? "" : r.message);
+  check(checkTimeChange(half, "10:00", tctx()).ok, "半日 9:00→10:00・前々日の夜21時＝通る（実例）");
+  check(timeChangeIneligibleReason(half, TODAY, 21) === null, "時間の変更の対象（半日・期限内）");
+  check(checkTimeChange(half, "10:00", tctx(16, "2026-11-27")).ok, "前日16時＝通る");
+  check(tmsg(checkTimeChange(half, "10:00", tctx(17, "2026-11-27"))).includes("前日17時以降"), "前日17時以降＝お電話");
+  check(tmsg(checkTimeChange(half, "10:00", tctx(8, "2026-11-28"))).includes("当日"), "当日＝お電話");
+  check(tmsg(checkTimeChange(half, "14:00", tctx())).includes("09:00〜13:00"), "半日は 9〜13時の範囲だけ");
+  check(tmsg(checkTimeChange(half, "09:00", tctx())).includes("同じ時間"), "同じ時刻は変更なし");
+  check(checkTimeChange({ ...half, plan: "8h", checkin_time: "07:00:00" }, "09:00", tctx()).ok, "1日 7:00→9:00 は通る");
+  check(tmsg(checkTimeChange({ ...half, plan: "8h", checkin_time: "07:00:00" }, "10:00", tctx())).includes("07:00〜09:00"), "1日は 7〜9時の範囲だけ");
+  check(tmsg(checkTimeChange({ ...half, plan: "spot" }, "10:00", tctx())).includes("お電話"), "スポットはお電話");
+  check(tmsg(checkTimeChange({ ...half, checkin_extension_from: "08:00" }, "10:00", tctx())).includes("早預かり・延長"), "早預かり付きはお電話");
+  check(tmsg(checkTimeChange({ ...half, checkout_extension_until: "15:00" }, "10:00", tctx())).includes("早預かり・延長"), "延長付きはお電話");
+  check(tmsg(checkTimeChange({ ...half, notes: "【延長預かり】〜15:00" }, "10:00", tctx())).includes("お電話"), "備考の【延長預かり】もお電話");
+  check(!checkTimeChange({ ...half, status: "cancelled" }, "10:00", tctx()).ok, "キャンセル済みは不可");
+  // 午後から営業の日: お客様はそもそも日帰りを予約できない。スタッフが入れた分の時間変更は「新しく触れない」ので止めない
+  check(checkTimeChange(half, "10:00", tctx(21, TODAY, (d) => d === "2026-11-28")).ok, "午後から営業の日の既存の日帰り＝時間の変更では新しく触れない");
+  check(checkTimeChange({ ...stay }, "11:00", tctx()).ok, "宿泊はこの判定の対象外（従来どおり）");
+  check(timeChangeIneligibleReason({ ...stay, date: TODAY }, TODAY, 10) === null, "宿泊の到着予定時間は当日でも従来どおり");
+  // 日付の変更パネルから同じ日・別の時間を選んでも同じ判定
+  check(ok(checkReschedule(half, { date: "2026-11-28", checkinTime: "10:00" }, ctx({ hourJst: 21 }))), "パネルから 11/28 10:00 を選ぶ＝通る");
+  check(msg(checkReschedule(half, { date: "2026-11-28", checkinTime: "10:00" }, ctx({ today: "2026-11-27", hourJst: 18 }))).includes("前日17時以降"), "パネルからでも期限後は不可");
+  check(
+    rescheduleChangeLines(half, { date: "2026-11-28", checkinTime: "10:00" }).join("|") === "チェックイン時間: 09:00 → 10:00",
+    "通知の一行「チェックイン時間: 09:00 → 10:00」"
+  );
+}
 
 console.log(`日付変更テスト: ${pass}/${pass + fails.length} PASS`);
 if (fails.length) {

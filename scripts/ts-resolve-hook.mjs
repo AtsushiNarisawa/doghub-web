@@ -8,6 +8,15 @@ import { registerHooks } from "node:module";
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    // tsconfig の paths「@/* → src/*」（2026-11-26 追加: lib/line.ts の文面をテストで実走するため）
+    if (specifier.startsWith("@/")) {
+      const base = new URL("../src/" + specifier.slice(2), import.meta.url).href;
+      try {
+        return nextResolve(base, context);
+      } catch {
+        return nextResolve(base + ".ts", context);
+      }
+    }
     if (specifier.startsWith(".") && !/\.[a-z]+$/.test(specifier)) {
       try {
         return nextResolve(specifier, context);

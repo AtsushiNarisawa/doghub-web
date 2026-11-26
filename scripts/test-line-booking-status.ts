@@ -3,6 +3,8 @@
 // ⚠️ 本文・予約は実データの「型」を再現した合成ケース（個人情報をリポジトリに置かない）。
 import {
   isBookingStatusQuery,
+  isChangeDoneQuestion,
+  bookingStatusQueryKind,
   decideBookingStatus,
   buildBookingStatusReply,
   type StatusReservation,
@@ -81,6 +83,58 @@ const day = decideBookingStatus([{ ...base, plan: "8h", checkout_date: null, che
 const dayText = day.ok ? (buildBookingStatusReply(day.reservations)[0] as { text: string }).text : "";
 check(dayText.includes("1日お預かり（8時間）") && dayText.includes("お預け 7:30") && !dayText.includes("チェックアウト"), "日帰りの書き方");
 check(dayText.includes("🐕 くま") && !dayText.includes("くまくん") && !dayText.includes("くまちゃん"), "性別不明なら くん/ちゃん を付けない");
+
+// ───── D. 「変更できましたか？」（変更の結果の確かめ・2026-11-26）─────
+// 実例の型（11/25 夜・半日のお客様。お名前は置かない）
+const REAL_REQUEST = "10時に変更してください";
+const REAL_DONE_Q = "これで、28日9時の予約から、10時の予約に変更できましたか？";
+check(bookingStatusQueryKind(REAL_DONE_Q) === "change_done", `実例: 完了の確かめ＝自動回答の対象: ${REAL_DONE_Q}`);
+check(bookingStatusQueryKind(REAL_REQUEST) === null, `実例: 依頼は対象にしない: ${REAL_REQUEST}`);
+const DONE_YES = [
+  "予約の変更できましたか？",
+  "予約の変更ができているか教えてください。変更できていますか",
+  "予約の日付を変更したのですが、ちゃんと変更されていますか？",
+  "予約が10時に変更になっていますか",
+  "予約、変更できてますか?",
+  "先ほど予約を変更しましたが、変更できていますでしょうか",
+  "予約の時間を変えたのですが、変わっていますか？",
+  "到着時間の予約変更、できましたか？",
+  "予約の時間を変更していただけましたか",
+];
+const DONE_NO = [
+  "10時に変更してください", // 依頼（予約の語もなし）
+  "予約を10時に変更してください", // 依頼
+  "予約を変更できますか？", // 可否の質問
+  "予約の変更は可能ですか", // 可否
+  "予約を変更したいです", // 意思
+  "予約の変更できました！ありがとうございます", // 報告・お礼（疑問でない）
+  "予約の変更できましたか？あと延長もお願いしたいです", // 別の用件が混ざる
+  "予約の変更できましたか？まだなら10時に変更してください", // 依頼が混ざる
+  "予約変更できましたか？キャンセル料はかかりますか", // 料金・キャンセル
+  "変更できましたか？", // 予約の話か分からない（住所・電話の変更もありうる）
+  "予約の日付って変更できたら嬉しいです", // 仮定
+];
+for (const t of DONE_YES) check(isChangeDoneQuestion(t) && bookingStatusQueryKind(t) === "change_done", `完了の確かめと判定: ${t}`);
+for (const t of DONE_NO) check(!isChangeDoneQuestion(t), `完了の確かめと判定しない: ${t}`);
+for (const t of DONE_NO) check(bookingStatusQueryKind(t) === null, `自動回答の対象にしない: ${t}`);
+check(bookingStatusQueryKind("予約内容確認") === "status", "ふつうの予約確認は status のまま");
+{
+  // 実例: 取り直した 10:00 の半日（備考なし）＝答えられる。文面は「変更できました」と言い切らない
+  const half: StatusReservation = { ...base, plan: "4h", date: "2026-11-28", checkout_date: null, checkin_time: "10:00:00", dogs: [{ name: "シンバ", sex: "male" }] };
+  const dd = decideBookingStatus([half]);
+  check(dd.ok, "実例: 10:00 の半日だけが残っている＝答える");
+  const t = dd.ok
+    ? (buildBookingStatusReply(dd.reservations, { greeting: "山田様、", outsideBusinessHours: true, kind: "change_done" })[0] as { text: string }).text
+    : "";
+  check(t.startsWith("山田様、ご予約内容のご確認です🐾\n現在承っているご予約は下記のとおりです。"), "変更の確かめ＝「現在承っているご予約は下記のとおりです」");
+  check(!t.includes("変更できました") && !t.includes("変更いたしました") && !t.includes("変更されました"), "「変更できました」と言い切らない");
+  check(t.includes("11月28日（土）") && t.includes("お預け 10:00") && t.includes("シンバくん"), "日付・時刻・お名前（男の子＝くん）");
+  check(t.includes("次の営業日") && !t.includes("お急ぎの場合はお電話"), "時間外の締め（お電話へと書かない）");
+  // 安全条件は緩めていない: 仮予約・スタッフメモ・備考の時刻があれば答えない
+  check(!decideBookingStatus([{ ...half, status: "pending" }]).ok, "変更の確かめでも仮予約は答えない");
+  check(!decideBookingStatus([{ ...half, notes: "9時には間に合いそうもないので、10時にしてください" }]).ok, "備考に時刻があれば答えない");
+  check(!decideBookingStatus([{ ...half, admin_notes: "電話で11時に変更" }]).ok, "スタッフメモがあれば答えない");
+}
 
 const total = pass + fails.length;
 console.log(`\nLINE 予約内容の自動回答テスト: ${pass}/${total} PASS\n`);

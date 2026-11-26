@@ -21,7 +21,10 @@ import {
   type CheckoutDayRow,
   activeFootprint,
   checkReschedule,
+  checkTimeChange,
   checkinTimeOptions,
+  timeChangeIneligibleMessage,
+  timeChangeIneligibleReason,
   formatDateShortJa,
   isPastSelfServiceDeadline,
   lastCheckoutDate,
@@ -514,6 +517,14 @@ export default function ModifyPage() {
     if (rem < rsDogCount) return { disabled: true, mark: "full", closed: false };
     return { disabled: false, mark: rem <= LOW_STOCK_REMAINING ? "low" : "ok", closed: false };
   };
+  // 日帰りの時間だけの変更（宿泊は null＝従来どおり）
+  const tcReason = timeChangeIneligibleReason(reservation, rsToday, rsHour);
+  const tcChanged = !isStay && checkinTime !== (reservation.checkin_time?.slice(0, 5) || "");
+  const tcCheck =
+    !isStay && !tcReason && tcChanged
+      ? checkTimeChange(reservation, checkinTime, { today: rsToday, hourJst: rsHour })
+      : null;
+  const timeInvalid = !!tcCheck && !tcCheck.ok;
   const rsNightUnavailable = (d: string) =>
     rsClosed(d) || rsRemaining(d) < rsDogCount || rsAo.has(addDaysJst(d, 1));
   const getRsCheckoutState = (d: string): CalendarDayState => {
@@ -753,13 +764,41 @@ export default function ModifyPage() {
               </div>
               <p className="text-xs text-[#888] mt-2">当日のご都合に合わせて変更できます。</p>
             </div>
-          ) : (
+          ) : tcReason ? (
+            // 日帰りで時間を変えられないご予約（期限後・早預かり／延長付き・スポット）
             <div>
               <label className="text-sm text-[#888] block mb-2">チェックイン時間</label>
-              <p className="text-sm text-[#3C200F] bg-[#F8F5F0] rounded-lg p-3">
-                {checkinTime}
-                <span className="text-xs text-[#888] ml-2">（時間の変更はお電話でご連絡ください）</span>
+              <p className="text-sm text-[#3C200F] bg-[#F8F5F0] rounded-lg p-3">{reservation.checkin_time?.slice(0, 5)}</p>
+              {tcReason !== "status" && (
+                <p className="text-xs text-[#888] mt-2 leading-relaxed">{timeChangeIneligibleMessage(tcReason)}。</p>
+              )}
+            </div>
+          ) : (
+            // 日帰りの同じ日の時間だけの変更（2026-11-26 CEO 承認）。判定は checkTimeChange（API も同じ）
+            <div>
+              <label className="text-sm text-[#888] block mb-2">チェックイン時間</label>
+              <div className="grid grid-cols-4 gap-2">
+                {rsTimes.map((time) => (
+                  <button
+                    key={time}
+                    type="button"
+                    onClick={() => setCheckinTime(time)}
+                    className={`py-3 rounded-lg text-sm font-medium transition-all ${
+                      checkinTime === time
+                        ? "bg-[#B87942] text-white"
+                        : "bg-[#F8F5F0] text-[#3C200F] active:bg-[#E5DDD8]"
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-[#888] mt-2 leading-relaxed">
+                同じ日のお時間だけを変えられます（無料）。当日、および前日17時以降の変更はお電話（{STORE_TEL}）でお願いいたします。
               </p>
+              {tcCheck && !tcCheck.ok && (
+                <p className="text-sm text-red-600 mt-2 leading-relaxed">{tcCheck.message}</p>
+              )}
             </div>
           )}
 
@@ -787,9 +826,9 @@ export default function ModifyPage() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={saving || !hasChanges || addonIncomplete}
+          disabled={saving || !hasChanges || addonIncomplete || timeInvalid}
           className={`w-full py-4 rounded-xl text-base font-medium transition-all ${
-            hasChanges && !saving && !addonIncomplete
+            hasChanges && !saving && !addonIncomplete && !timeInvalid
               ? "bg-[#B87942] text-white active:bg-[#A06830]"
               : "bg-[#E5DDD8] text-[#888] cursor-not-allowed"
           }`}

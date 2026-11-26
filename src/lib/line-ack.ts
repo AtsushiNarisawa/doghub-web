@@ -25,7 +25,7 @@
 import type { LineMessage } from "./line";
 import { TEL } from "./line-faq";
 import { DEFAULT_CLOSED_WEEKDAYS } from "./business-days";
-import { isRecallQuestion } from "./line-booking-status";
+import { isRecallQuestion, isChangeDoneQuestion } from "./line-booking-status";
 
 // ───── 1. 営業時間の判定（JST）─────────────────────────────────────
 //
@@ -247,6 +247,10 @@ export function classifyAckKind(text: string, faqCategory: string): AckKind {
 
   // 予約の時間を忘れた・教えてほしい＝人が答える（2026-11-21・①到着の返事になっていた）
   if (isRecallQuestion(compact)) return "general";
+  // 「変更できましたか？」（変更の結果の確かめ・2026-11-26）。予約内容を自動で答えられなかったとき
+  // （仮予約・スタッフメモあり・未連携など）にここへ来る。②の「その場で変更できます」は答えにならない
+  // （ご本人はもう変更の操作を終えている）＝④で人が答える。
+  if (isChangeDoneQuestion(compact)) return "general";
 
   // ⑤ 予約を入れた直後のご挨拶（②より先。BOOKING_WORDS の「予約を」に当たってしまうため）
   if (

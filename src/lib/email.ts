@@ -844,6 +844,9 @@ export async function sendCancellationEmails(params: {
   // 2026-08-30 総点検 #10「LINE連携済みならLINEのみ」の受け口。
   // ⚠️ 止まるのはお客様宛の1通だけで、スタッフ宛2通は必ず送る。
   skipCustomerEmail?: boolean;
+  // 同じお客様に残っている今後のご予約の行（lib/remaining-bookings.ts）。お客様宛の1通にだけ載せる。
+  // 空・未指定なら従来の文面のまま（2026-11-26）。
+  remainingLines?: string[];
 }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return;
 
@@ -862,6 +865,14 @@ export async function sendCancellationEmails(params: {
     (cAddon.co ? `<tr><td style="padding:4px 12px 4px 0;color:#888;">チェックアウト後</td><td>${cAddon.co.name} ${cAddon.coText.split("（")[0]}</td></tr>` : "");
 
   const emails: Promise<unknown>[] = [];
+
+  // 残っているご予約（取り直し・一部だけのキャンセルのあとに、残りがどうなったか分かるように）
+  const remainingList = (params.remainingLines ?? []).filter(Boolean);
+  const remainingHtml = remainingList.length
+    ? `<div style="padding:16px;background:#F0F7EE;border-radius:10px;margin:0 0 20px;">
+         ${remainingList.map((l) => `<p style="margin:0 0 4px;font-size:14px;color:#3C200F;line-height:1.7;">${escapeHtml(l)}</p>`).join("")}
+       </div>`
+    : "";
 
   // お客様へのキャンセル完了メール（LINEで送り届け済みのときは送らない）
   if (customer?.email && !params.skipCustomerEmail) {
@@ -899,9 +910,9 @@ export async function sendCancellationEmails(params: {
       </table>
     </div>
     ${staffNote}
+    ${remainingHtml}
     <p style="margin:0 0 20px;font-size:14px;color:#888;line-height:1.7;">
-      またのご利用をお待ちしております。<br>
-      ご不明な点がございましたらお気軽にご連絡ください。
+      ${remainingHtml ? "" : "またのご利用をお待ちしております。<br>\n      "}ご不明な点がございましたらお気軽にご連絡ください。
     </p>
     <div style="text-align:center;">
       <a href="https://dog-hub.shop/booking" style="display:inline-block;padding:12px 32px;border:1px solid #B87942;color:#B87942;border-radius:8px;text-decoration:none;font-size:14px;">再度ご予約はこちら</a>

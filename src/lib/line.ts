@@ -322,6 +322,11 @@ export function buildCancellationMessage(params: {
   plan: string;
   date: string;
   cancelledBy: "customer" | "staff";
+  /**
+   * 同じお客様に残っている今後のご予約の行（lib/remaining-bookings.ts の remainingBookingLines）。
+   * 空・未指定なら従来の文面のまま（2026-11-26）。
+   */
+  remaining?: string[];
 }): LineMessage[] {
   const days = ["日", "月", "火", "水", "木", "金", "土"];
   const d = new Date(params.date + "T00:00:00");
@@ -339,7 +344,14 @@ export function buildCancellationMessage(params: {
   if (params.cancelledBy === "staff") {
     lines.push("", "お心当たりがない場合は、お手数ですがご連絡ください。");
   }
-  lines.push("", "またのご利用をお待ちしております🐾");
+  // 取り直し・一部だけのキャンセルのあとに「残りの予約はどうなったか」が分かるように添える。
+  // 残っているときに「またのご利用を」と結ぶと、全部なくなったように読める＝結びも変える。
+  const remaining = (params.remaining ?? []).filter(Boolean);
+  if (remaining.length > 0) {
+    lines.push("", ...remaining, "", "引き続きよろしくお願いいたします🐾");
+  } else {
+    lines.push("", "またのご利用をお待ちしております🐾");
+  }
   return [{ type: "text", text: lines.join("\n") }];
 }
 

@@ -17,9 +17,10 @@ import {
 } from "@/lib/line-ack";
 import { sendLineStaffAlert } from "@/lib/email";
 import {
-  isBookingStatusQuery,
+  bookingStatusQueryKind,
   decideBookingStatus,
   buildBookingStatusReply,
+  type BookingStatusQueryKind,
   type StatusReservation,
 } from "@/lib/line-booking-status";
 import {
@@ -105,8 +106,11 @@ async function handleEvent(event: LineEvent) {
         const ackContext = await loadAckContext(userId);
         // 「予約内容の確認」は、LINE連携済みで安全に答えられる予約だけ自動で答える（2026-10-23）。
         // 答えられない（延長・仮予約・スタッフメモあり・未連携など）ときは null＝従来の受付文。
-        const statusReply = isBookingStatusQuery(text)
-          ? await loadBookingStatusReply(userId, ackContext)
+        // 「変更できましたか？」（変更の結果の確かめ）も同じ安全条件で答える（2026-11-26）。
+        // 文面だけ「現在承っているご予約は下記のとおりです」に変える（変更できたとは言い切らない）。
+        const statusKind = bookingStatusQueryKind(text);
+        const statusReply = statusKind
+          ? await loadBookingStatusReply(userId, ackContext, statusKind)
           : null;
         const reply =
           statusReply ??
@@ -118,7 +122,15 @@ async function handleEvent(event: LineEvent) {
         // reply token は受信から約1分・1回限り。先に返信して確実に消費する。
         await sendLineReplyMessage(replyToken, reply);
         // 自由文は内容を問わず必ずスタッフへメールでエスカレーション
-        await alertStaff(userId, text, statusReply ? "予約確認（予約内容を自動回答済み）" : category);
+        await alertStaff(
+          userId,
+          text,
+          statusReply
+            ? statusKind === "change_done"
+              ? "変更の確かめ（現在の予約内容を自動回答済み・変更の中身はスタッフが確認）"
+              : "予約確認（予約内容を自動回答済み）"
+            : category
+        );
         // 受信トレイへ記録（reply送信後・独立処理。失敗してもreply/200を壊さない）
         await recordInboundWithBotReply({
           lineUserId: userId,
@@ -248,7 +260,8 @@ async function loadAckContext(lineUserId?: string): Promise<AckContext> {
 // decideBookingStatus が「答えてよい」と判断したときだけ文面を返す。それ以外・遅延・失敗は null。
 async function loadBookingStatusReply(
   lineUserId: string | undefined,
-  ctx: AckContext
+  ctx: AckContext,
+  kind: BookingStatusQueryKind = "status"
 ): Promise<ReturnType<typeof buildBookingStatusReply> | null> {
   if (!lineUserId) return null;
   const today = getJstMoment().date;
@@ -283,6 +296,7 @@ async function loadBookingStatusReply(
     return buildBookingStatusReply(decision.reservations, {
       greeting: nameGreeting(ctx.lastName),
       outsideBusinessHours: ctx.outsideBusinessHours,
+      kind,
     });
   };
   try {

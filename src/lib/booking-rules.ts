@@ -583,6 +583,72 @@ export function rescheduleIneligibleMessage(reason: RescheduleIneligibleReason):
   }
 }
 
+// ── 日帰り（半日・1日）の「同じ日の時間だけ」の変更（2026-11-26 CEO 承認）──
+// きっかけ: 11/25 夜、半日 9:00 のお客様が LINE で「10時に変更してください」→ 自動返信は
+// 「到着予定時間の変更はその場でお手続きいただけます」と案内したのに、変更画面では日帰りの時間が
+// 変えられず（「時間の変更はお電話で」）、新規予約を取り直して元をキャンセルするしかなかった。
+// 決まりは日付の変更と同じ＝期限（当日・前日17時以降はお電話）・対象外の条件（スポット・早預かり／延長付き）。
+// 部屋数は日単位（その日の day_booked に頭数）＝同じ日の時間だけの変更は枠を動かさない。
+// 宿泊の到着予定時間（目安）は従来どおり期限なしで変えられる＝ここでは扱わない。
+
+/** 日帰りの時間だけの変更を、お客様ご自身でできない理由（null＝できる）。宿泊は対象外＝常に null */
+export function timeChangeIneligibleReason(
+  r: RescheduleTarget,
+  today: string = getJstToday(),
+  hourJst: number = getJstHour()
+): RescheduleIneligibleReason | null {
+  if (r.plan === "stay") return null;
+  return rescheduleIneligibleReason(r, today, hourJst);
+}
+
+export function timeChangeIneligibleMessage(reason: RescheduleIneligibleReason): string {
+  switch (reason) {
+    case "status":
+      return "このご予約は時間を変更できません";
+    case "plan":
+      return `このプランの時間の変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`;
+    case "attachments":
+      return `早預かり・延長が付いているご予約の時間の変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`;
+    case "deadline":
+      return `ご予約日の当日、および前日17時以降の時間の変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`;
+  }
+}
+
+export interface TimeChangeContext {
+  today: string;
+  hourJst: number;
+  /** その日が「午後から営業」か（読めなければ常に false でよい＝日帰りでは結果が変わらない） */
+  isAfternoonOnly?: (date: string) => boolean;
+}
+
+export type TimeChangeCheck = { ok: true } | { ok: false; message: string };
+
+/**
+ * 日帰り（4h・8h）の同じ日の時間だけの変更を受けてよいか。宿泊には使わない（常に ok）。
+ * 午後から営業の日は「今回の変更で新しくルールに触れたときだけ止める」（到着時刻・備考の変更と同じ考え方）。
+ * 日帰りはその日の時刻に関係なく同じ違反（day_plan）になる＝時間を変えても新しく触れることはない。
+ * そもそもお客様は午後から営業の日に日帰りを予約できない（スタッフが警告を見て入れた分だけが残りうる）。
+ */
+export function checkTimeChange(r: RescheduleTarget, newTime: string, ctx: TimeChangeContext): TimeChangeCheck {
+  if (r.plan === "stay") return { ok: true };
+  const ng = (message: string): TimeChangeCheck => ({ ok: false, message });
+  const reason = timeChangeIneligibleReason(r, ctx.today, ctx.hourJst);
+  if (reason) return ng(timeChangeIneligibleMessage(reason));
+  const time = (newTime || "").slice(0, 5);
+  const times = checkinTimeOptions(r.plan);
+  if (!times.includes(time)) {
+    return ng(`チェックイン時間は${times[0]}〜${times[times.length - 1]}の間でお選びください`);
+  }
+  if (time === (r.checkin_time || "").slice(0, 5)) return ng("変更前と同じ時間です");
+  const isAo = ctx.isAfternoonOnly ?? (() => false);
+  const vNext = findAfternoonOnlyViolation({ plan: r.plan, date: r.date, checkinTime: time }, isAo);
+  const vBefore = findAfternoonOnlyViolation({ plan: r.plan, date: r.date, checkinTime: r.checkin_time }, isAo);
+  if (vNext && !(vBefore && vBefore.kind === vNext.kind && vBefore.date === vNext.date)) {
+    return ng(afternoonOnlyCustomerMessage(vNext));
+  }
+  return { ok: true };
+}
+
 export interface RescheduleRequest {
   /** 新しいチェックイン日（日帰りはその日） */
   date: string;
@@ -648,7 +714,13 @@ export function checkReschedule(
   if (!isDateStr(date) || (isStay && !isDateStr(co))) return ng("日付を選び直してください");
 
   if (date === r.date && (!isStay || co === r.checkout_date)) {
-    return ng("変更前と同じ日程です");
+    // 日帰りで同じ日・別の時間＝「時間だけの変更」（2026-11-26）。枠は動かない。
+    // API では日付が変わらないので時間・備考の変更の経路に入り、同じ checkTimeChange で判定される。
+    if (!isStay && (req.checkinTime || "").slice(0, 5) !== (r.checkin_time || "").slice(0, 5)) {
+      const tc = checkTimeChange(r, req.checkinTime, ctx);
+      return tc.ok ? { ok: true, capDelta: [] } : tc;
+    }
+    return ng(isStay ? "変更前と同じ日程です" : "変更前と同じ日時です");
   }
   if (isPastSelfServiceDeadline(date, ctx.today, ctx.hourJst)) {
     return ng(`当日、および前日17時以降の翌日への変更は、お手数ですがお電話（${STORE_TEL}）でご連絡ください`);

@@ -18,6 +18,7 @@ import {
   isActiveReservationStatus,
   isLateBooking,
   checkReschedule,
+  checkTimeChange,
   rescheduleChangeLines,
   STORE_TEL,
   type RescheduleDayRow,
@@ -155,8 +156,27 @@ export async function POST(req: Request) {
     // CI前の半日・1日が付いている（付ける）予約は到着時刻を変えない（14:00 に揃えているため）
     if (!nextCiAddon && checkin_time && checkin_time !== reservation.checkin_time?.slice(0, 5)) {
       const oldTime = reservation.checkin_time?.slice(0, 5);
+      if (reservation.plan !== "stay") {
+        // 日帰り（半日・1日）の同じ日の時間だけの変更（2026-11-26 CEO 承認）。
+        // 決まりは日付の変更と同じ（期限・対象外の条件）＝lib/booking-rules.ts の checkTimeChange が正本。
+        // 以前はこの経路が日帰りでも時刻を検査せずに書き換えていた（画面から出していないだけだった）。
+        const { data: aoRow } = await supabase
+          .from("daily_capacity")
+          .select("date")
+          .eq("date", reservation.date)
+          .eq("afternoon_only", true)
+          .maybeSingle();
+        const tc = checkTimeChange(reservation, checkin_time, {
+          today: getJstToday(),
+          hourJst: getJstHour(),
+          isAfternoonOnly: (d) => !!aoRow && d === reservation.date,
+        });
+        if (!tc.ok) {
+          return NextResponse.json({ error: tc.message }, { status: 400 });
+        }
+      }
       updates.checkin_time = checkin_time;
-      changes.push(`到着予定時間: ${oldTime} → ${checkin_time}`);
+      changes.push(`${reservation.plan === "stay" ? "到着予定時間" : "チェックイン時間"}: ${oldTime} → ${checkin_time}`);
     }
 
     if (notes !== undefined && notes !== reservation.notes) {
@@ -271,6 +291,14 @@ export async function POST(req: Request) {
     if (updateErr) {
       // 先に動かした枠を戻す
       if (capDelta.length > 0) await applyCapacityDelta(supabase, diffFootprint(capDelta, []));
+      // 同じお客様・同じ日時・同じプランの予約が別にある（一意制約 reservations_unique_active）。
+      // 日帰りの時間の変更で、取り直した別の予約と同じ時刻を選んだときに起きる。
+      if (updateErr.code === "23505") {
+        return NextResponse.json(
+          { error: "同じ日時・同じプランのご予約がすでにあります。お時間を選び直してください" },
+          { status: 400 },
+        );
+      }
       return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
     }
 

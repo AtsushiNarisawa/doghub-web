@@ -5,6 +5,7 @@ import { verifyPhoneLast4 } from "@/lib/booking-auth";
 import { activeFootprint, diffFootprint } from "@/lib/booking-rules";
 import { applyCapacityDelta } from "@/lib/capacity-server";
 import { getJstToday } from "@/lib/datetime";
+import { loadRemainingBookings, remainingBookingLines } from "@/lib/remaining-bookings";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     // 予約を取得（容量戻し・通知に必要な情報をすべて取得）
     const { data: reservation, error: fetchError } = await supabase
       .from("reservations")
-      .select("id, status, date, plan, checkout_date, checkin_time, dog_count, checkout_extension_until, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers(last_name, first_name, phone, email, line_id)")
+      .select("id, customer_id, status, date, plan, checkout_date, checkin_time, dog_count, checkout_extension_until, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers(last_name, first_name, phone, email, line_id)")
       .eq("id", reservation_id)
       .single();
 
@@ -72,6 +73,17 @@ export async function POST(req: NextRequest) {
     // LINE友だち登録済みのお客様はLINEを優先し、同じ内容のメールは送らない
     // （2026-08-30 総点検 #10）。送れたかを確かめてからメールの要否を決めるため、
     // メールより先に push する。
+    // 同じお客様に残っている今後のご予約（取り直しのあとのキャンセルで「残りはどうなったか」を示す・2026-11-26）。
+    // 読み取りに失敗・遅延したら空＝従来の文面で送る（通知そのものは止めない）。
+    const remaining = remainingBookingLines(
+      await loadRemainingBookings(supabase, {
+        customerId: reservation.customer_id,
+        lineId: customer?.line_id,
+        excludeId: reservation_id,
+        today,
+      })
+    );
+
     let lineDelivered = false;
     if (customer?.line_id) {
       try {
@@ -84,6 +96,7 @@ export async function POST(req: NextRequest) {
             plan: reservation.plan,
             date: reservation.date,
             cancelledBy: "customer",
+            remaining,
           }),
           "cancel"
         );
@@ -113,6 +126,7 @@ export async function POST(req: NextRequest) {
         cancelReason: cancel_reason || null,
         cancelledBy: "customer",
         skipCustomerEmail: lineDelivered,
+        remainingLines: remaining,
       });
     } catch (emailErr) {
       console.error("Cancel notification email error:", emailErr);

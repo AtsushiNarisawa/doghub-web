@@ -10,6 +10,8 @@ import { activeFootprint, diffFootprint, increasedDates } from "@/lib/booking-ru
 import { applyCapacityDelta } from "@/lib/capacity-server";
 import { PHYSICAL_ROOM_LIMIT } from "@/lib/capacity";
 import { checkinAddonLabel, checkoutAddonLabel } from "@/types/booking";
+import { loadRemainingBookings, remainingBookingLines } from "@/lib/remaining-bookings";
+import { getJstToday } from "@/lib/datetime";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -113,7 +115,7 @@ export async function POST(req: NextRequest) {
       try {
         const { data: res } = await supabase
           .from("reservations")
-          .select("plan, date, checkin_time, checkout_date, dog_count, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers!inner(last_name, first_name, email, phone, line_id)")
+          .select("customer_id, plan, date, checkin_time, checkout_date, dog_count, checkout_addon_plan, checkin_addon_plan, checkin_addon_from, customers!inner(last_name, first_name, email, phone, line_id)")
           .eq("id", reservation_id)
           .single();
         if (res) {
@@ -127,6 +129,16 @@ export async function POST(req: NextRequest) {
           // LINE友だち登録済みのお客様はLINEを優先し、同じ内容のメールは送らない
           // （2026-08-30 総点検 #10）。送れたかを確かめてからメールの要否を決めるため、
           // メールより先に push する。
+          // 同じお客様に残っている今後のご予約（2026-11-26）。失敗・遅延なら空＝従来の文面
+          const remaining = remainingBookingLines(
+            await loadRemainingBookings(supabase, {
+              customerId: res.customer_id,
+              lineId: customer?.line_id,
+              excludeId: reservation_id,
+              today: getJstToday(),
+            })
+          );
+
           let lineDelivered = false;
           if (customer?.line_id) {
             lineDelivered = await sendLinePushAndRecord(
@@ -136,6 +148,7 @@ export async function POST(req: NextRequest) {
                 plan: res.plan,
                 date: res.date,
                 cancelledBy: "staff",
+                remaining,
               }),
               "cancel"
             ).catch((lineErr) => {
@@ -163,6 +176,7 @@ export async function POST(req: NextRequest) {
             cancelReason: null,
             cancelledBy: "staff",
             skipCustomerEmail: lineDelivered,
+            remainingLines: remaining,
           });
         }
       } catch (emailErr) {

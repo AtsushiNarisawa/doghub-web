@@ -61,7 +61,52 @@ export function isRecallQuestion(text: string): boolean {
   return RECALL_PATTERN.test(t) && RECALL_TOPIC.test(t) && !RECALL_BLOCK.some((w) => t.includes(w));
 }
 
-/** 「予約内容を確認したい」という問い合わせか */
+/**
+ * 「変更できましたか？」＝ご自身で変えた結果を確かめたい問い合わせ（2026-11-26 追加）。
+ * 実例（11/25 夜・半日のお客様）: 9時の予約を取り直して10時にしたあと
+ * 「これで、28日9時の予約から、10時の予約に変更できましたか？」→「変更」が BLOCK_WORDS に当たり、
+ * 時間外の受付文だけが返っていた。
+ * 🔴 完了を確かめる形（できましたか／できていますか／されていますか／なっていますか 等）だけを拾う。
+ *    「変更してください」（依頼）・「変更できますか」（可否の質問）は拾わない＝依頼に予約一覧を返さない。
+ *    疑問の形（か／？）で終わるものだけ（「変更できました！」はお礼・報告）。
+ */
+const CHANGE_DONE_QUESTION =
+  /(変更|変え)(が|は|も|の方|の手続き(は|が)?)?[、,]?(でき|出来)(ました|てい?ます|てい?る|た)(でしょう)?(か|[？?])|(変更|変え)(が|は)?(され|に?なっ)てい?ます(でしょう)?(か|[？?])|(変更|変え)し?て(もら|いただ|頂)(えました|えてい?ます|けました|けてい?ます|いました)(でしょう)?(か|[？?])|(変更|変え)(が|は)?(され|に?なり|完了し)ました(でしょう)?(か|[？?])|変わ(りました|ってい?ます|った)(でしょう)?(か|[？?])/g;
+
+/** 「変更したのですが」「変えました」＝ご自身で済ませた報告（確かめの前置き）。「変更したい」は含めない */
+const CHANGE_DID_REPORT = /(変更|変え)(を)?(し)?(ました|た)(?!い)(の|ん)?(です)?(が|けど|けれど|けれども)?/g;
+
+/** 完了の確かめに混ざっていたら自動回答しない語（別の用件・依頼・可否の質問が同じ文にある） */
+const CHANGE_DONE_BLOCK = [
+  "キャンセル", "取り消", "取消", "空き", "空いて", "空室", "延長", "延泊", "追加", "リスケ",
+  "行けなく", "行けません", "伺えなく", "遅れ", "遅刻", "早め", "早く", "お迎え",
+  "料金", "金額", "いくら", "支払", "ワクチン", "持病", "薬", "体調",
+  "希望", "可能", "相談", "でも大丈夫", "お願いしたい", "してください", "して下さい", "してほしい", "して欲しい",
+  "できますか", "出来ますか", "できませんか", "変更したい", "変えたい", "まだなら",
+];
+
+/** 予約を変えた結果の確かめか（「変更できましたか？」）。予約の話であること（「予約」を含む）が前提 */
+export function isChangeDoneQuestion(text: string): boolean {
+  const t = (text ?? "").replace(/\s+/g, "");
+  if (!t.includes("予約")) return false;
+  const rest = t.replace(CHANGE_DONE_QUESTION, "");
+  if (rest === t) return false;
+  // 確かめの言い回しを取り除いた残りに、用件・依頼が残っていたら人が答える
+  if (CHANGE_DONE_BLOCK.some((w) => rest.includes(w))) return false;
+  // 「変更したのですが」の前置きを除いても、まだ「変更」が残る（別の変更の話がある）なら人が答える
+  if (/変更|変え/.test(rest.replace(CHANGE_DID_REPORT, ""))) return false;
+  return true;
+}
+
+export type BookingStatusQueryKind = "status" | "change_done";
+
+/** 予約内容の自動回答の対象なら、その種類（ただの確認／変更の結果の確かめ）。対象外は null */
+export function bookingStatusQueryKind(text: string): BookingStatusQueryKind | null {
+  if (isChangeDoneQuestion(text)) return "change_done";
+  return isBookingStatusQuery(text) ? "status" : null;
+}
+
+/** 「予約内容を確認したい」という問い合わせか（変更の結果の確かめは bookingStatusQueryKind が拾う） */
 export function isBookingStatusQuery(text: string): boolean {
   const t = (text ?? "").replace(/\s+/g, "");
   if (isRecallQuestion(t) && t.includes("予約")) return true;
@@ -177,6 +222,12 @@ export interface StatusReplyOptions {
   /** 「◯◯様、」の頭（line-ack の nameGreeting の結果をそのまま渡す） */
   greeting?: string;
   outsideBusinessHours?: boolean;
+  /**
+   * "change_done"＝「変更できましたか？」への回答（2026-11-26）。
+   * 🔴「変更できました」とは言い切らない（お客様が何をどう変えたかは照合していない）。
+   *    いま承っている予約という状態だけを述べ、照らし合わせはお客様にしていただく。
+   */
+  kind?: BookingStatusQueryKind;
 }
 
 /** 予約内容の自動回答文。decideBookingStatus が ok のときだけ呼ぶ。 */
@@ -184,7 +235,10 @@ export function buildBookingStatusReply(
   reservations: StatusReservation[],
   opts: StatusReplyOptions = {}
 ): LineMessage[] {
-  const head = `${opts.greeting ?? ""}ご予約内容のご確認です🐾\n下記のとおり承っております。`;
+  const head =
+    opts.kind === "change_done"
+      ? `${opts.greeting ?? ""}ご予約内容のご確認です🐾\n現在承っているご予約は下記のとおりです。`
+      : `${opts.greeting ?? ""}ご予約内容のご確認です🐾\n下記のとおり承っております。`;
   const body = reservations.map(reservationBlock).join("\n\n");
   // 🔴 営業時間外に「お急ぎはお電話へ」とは書かない（line-ack と同じ方針）
   const foot = opts.outsideBusinessHours
