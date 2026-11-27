@@ -6,6 +6,7 @@ import { buildThankYouLineMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { isReviewRequestOptedOut } from "@/lib/review-opt-out";
+import { memoriesPageUrl, reservationHasMedia } from "@/lib/memories";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -126,6 +127,9 @@ async function handle(req: NextRequest): Promise<NextResponse> {
     const optedOut = await isReviewRequestOptedOut(supabase, r.customer_id);
     const isFirstVisit = (count ?? 0) <= 1 && !optedOut;
 
+    // 記念ショート動画：スタッフが動画・写真を載せた回だけ受け取りページのリンクを付ける（2026-11-28 S84）
+    const memoriesUrl = (await reservationHasMedia(supabase, r.id)) ? memoriesPageUrl(r.id) : null;
+
     try {
       // 友だち解除・ブロック後は push が失敗する。LINE優先のままだとお礼が丸ごと消えるため、
       // メールがあれば切り替える（cron/reminder と同じ考え方）。
@@ -133,7 +137,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       if (useLine) {
         const ok = await sendLinePushAndRecord(
           customer.line_id!,
-          buildThankYouLineMessage(customerName, isFirstVisit),
+          buildThankYouLineMessage(customerName, isFirstVisit, memoriesUrl),
           "thankyou"
         ).catch(() => false);
         if (ok) {
@@ -154,7 +158,8 @@ async function handle(req: NextRequest): Promise<NextResponse> {
           dogNames,
           planName,
           isFirstVisit,
-          buildLineLinkUrl(customer.id)
+          buildLineLinkUrl(customer.id),
+          memoriesUrl
         );
         sentEmail++;
       }

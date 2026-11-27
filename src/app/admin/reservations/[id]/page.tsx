@@ -19,6 +19,7 @@ import {
 } from "@/types/booking";
 import { DestinationPicker } from "@/components/admin/destination-picker";
 import { EmailStatusBadge } from "@/components/admin/email-status-badge";
+import { MemoriesSection } from "@/components/admin/memories-section";
 
 interface Reservation {
   id: string;
@@ -903,6 +904,9 @@ export default function ReservationDetailPage() {
           </div>
         </div>
       )}
+
+      {/* 思い出の動画・写真（記念ショート動画 1段目・2026-11-28 S84）。載せた回だけ翌朝のお礼にリンクが付く */}
+      <MemoriesSection reservationId={res.id} isCancelled={res.status === "cancelled"} />
 
       {/* 行き先（来店時にスタッフが後から入力する導線） */}
       <div className="bg-white rounded-xl p-4">

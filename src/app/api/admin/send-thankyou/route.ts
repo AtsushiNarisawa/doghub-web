@@ -6,6 +6,7 @@ import { buildThankYouLineMessage } from "@/lib/line";
 import { sendLinePushAndRecord } from "@/lib/line-store";
 import { buildLineLinkUrl } from "@/lib/link-token";
 import { isReviewRequestOptedOut } from "@/lib/review-opt-out";
+import { memoriesPageUrl, reservationHasMedia } from "@/lib/memories";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -78,6 +79,8 @@ export async function POST(req: NextRequest) {
     const optedOut = await isReviewRequestOptedOut(supabase, reservation.customer_id);
     const isFirstVisit = (count ?? 0) === 0 && !optedOut;
     const customerName = `${customer.last_name}${customer.first_name || ""}`;
+    // 記念ショート動画：動画・写真を載せた回だけリンクを付ける（自動のお礼と同じ判定・2026-11-28 S84）
+    const memoriesUrl = (await reservationHasMedia(supabase, reservation_id)) ? memoriesPageUrl(reservation_id) : null;
 
     // LINE友だち登録済みのお客様はLINEを優先（開封率が高く、二重連絡を避けるためメールは送らない）
     const useLine = !!customer.line_id;
@@ -85,7 +88,7 @@ export async function POST(req: NextRequest) {
     if (useLine) {
       const ok = await sendLinePushAndRecord(
         customer.line_id!,
-        buildThankYouLineMessage(customerName, isFirstVisit),
+        buildThankYouLineMessage(customerName, isFirstVisit, memoriesUrl),
         "thankyou"
       );
       if (!ok) {
@@ -100,6 +103,7 @@ export async function POST(req: NextRequest) {
         isFirstVisit,
         // メール経路＝まだLINE未紐付けの方。1タップ連携リンクを同梱する
         buildLineLinkUrl(reservation.customer_id),
+        memoriesUrl,
       );
     }
 

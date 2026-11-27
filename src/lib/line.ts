@@ -455,7 +455,9 @@ export function buildWelcomeMessage(): LineMessage[] {
 // ───────────────────────────────────────────
 export function buildThankYouLineMessage(
   customerName: string,
-  isFirstVisit: boolean
+  isFirstVisit: boolean,
+  // 記念ショート動画の受け取りページ（動画・写真を載せた回だけ・2026-11-28 S84）
+  memoriesUrl?: string | null
 ): LineMessage[] {
   const messages: LineMessage[] = [
     {
@@ -469,6 +471,18 @@ export function buildThankYouLineMessage(
       ].join("\n"),
     },
   ];
+
+  if (memoriesUrl) {
+    messages.push({
+      type: "template",
+      altText: "お預かり中の動画をお作りしました",
+      template: {
+        type: "buttons",
+        text: "お預かり中の動画をお作りしました。ご予約時の電話番号の下4桁でお開きください。",
+        actions: [{ type: "uri", label: "動画を見る", uri: memoriesUrl }],
+      },
+    });
+  }
 
   if (isFirstVisit) {
     messages.push({

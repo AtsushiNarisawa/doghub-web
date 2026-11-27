@@ -493,13 +493,24 @@ export function buildLineLinkSection(url: string | null | undefined, compact = f
     </div>`;
 }
 
-function buildThankYouEmailHtml(
+export function buildThankYouEmailHtml(
   customerName: string,
   dogNames: string[],
   planName: string,
   isFirstVisit: boolean,
   lineLinkUrl?: string | null,
+  memoriesUrl?: string | null,
 ): string {
+  // 記念ショート動画（1段目・2026-11-28 S84）：動画・写真を載せた回だけ付く。無い回は今までと同じ本文
+  const memoriesSection = memoriesUrl
+    ? `
+    <div style="margin:24px 0;padding:20px;background:#FFF8EE;border-radius:12px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:14px;color:#3C200F;font-weight:600;">${dogNames.length > 0 ? `${dogNames.join("・")}の` : ""}お預かり中の動画をお作りしました</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#888;line-height:1.7;">スタッフが撮影した動画・写真をご覧いただけます。<br>ご予約時の電話番号の下4桁でお開きください。</p>
+      <a href="${memoriesUrl}" style="display:inline-block;padding:12px 32px;background:#B87942;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">動画を見る</a>
+    </div>`
+    : "";
+
   const reviewSection = isFirstVisit
     ? `
     <div style="margin:24px 0;padding:20px;background:#F8F5F0;border-radius:12px;text-align:center;">
@@ -535,8 +546,9 @@ function buildThankYouEmailHtml(
       看板犬のポロ・ぱんち・ムックともども、またお会いできるのを楽しみにしています。
     </p>
 
+    ${memoriesSection}
     ${reviewSection}
-    ${isFirstVisit ? "" : buildLineLinkSection(lineLinkUrl)}
+    ${isFirstVisit ? "" : buildLineLinkSection(lineLinkUrl, !!memoriesUrl)}
 
     <!-- 次回予約 -->
     <div style="margin:20px 0;text-align:center;">
@@ -569,6 +581,8 @@ export async function sendThankYouEmail(
   // まだLINEと紐付いていない方にだけ渡す（lib/link-token.ts の buildLineLinkUrl で生成）。
   // 初回のお客様には口コミ依頼を優先するため、この案内は2回目以降にのみ表示される。
   lineLinkUrl?: string | null,
+  // 記念ショート動画の受け取りページ（動画・写真を載せた回だけ・lib/memories.ts）
+  memoriesUrl?: string | null,
 ) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn("Email not configured");
@@ -583,7 +597,7 @@ export async function sendThankYouEmail(
       replyTo: "info@dog-hub.shop",
       to: email,
       subject,
-      html: buildThankYouEmailHtml(customerName, dogNames, planName, isFirstVisit, lineLinkUrl),
+      html: buildThankYouEmailHtml(customerName, dogNames, planName, isFirstVisit, lineLinkUrl, memoriesUrl),
     });
     console.log(`Thank-you email sent to ${email}`);
   } catch (err) {
