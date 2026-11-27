@@ -8,13 +8,13 @@ import Image from "next/image";
 
 export const metadata: Metadata = {
   openGraph: {
-    title: "読みもの｜箱根の犬連れ旅行と愛犬の預け方｜DogHub箱根仙石原",
-    description: "箱根の観光スポットの犬連れルール、宿・ゴルフ場と愛犬の預け方、旅のコラム、DogHub箱根仙石原からのお知らせをまとめています。",
+    title: "読みもの｜DogHub箱根仙石原",
+    description: "DogHub箱根仙石原の読みもの。観光スポットのルール、宿・ゴルフ場と愛犬の預け方、旅のコラム、お知らせをまとめています。",
     url: "https://dog-hub.shop/news",
     type: "website",
   },
-  title: "読みもの｜箱根の犬連れ旅行と愛犬の預け方｜DogHub箱根仙石原",
-  description: "箱根の観光スポットの犬連れルール、宿・ゴルフ場と愛犬の預け方、旅のコラム、DogHub箱根仙石原からのお知らせをまとめています。",
+  title: "読みもの｜DogHub箱根仙石原",
+  description: "DogHub箱根仙石原の読みもの。観光スポットのルール、宿・ゴルフ場と愛犬の預け方、旅のコラム、お知らせをまとめています。",
   alternates: { canonical: "/news" },
 };
 
