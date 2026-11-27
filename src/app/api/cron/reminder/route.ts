@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { runReportedJob } from "@/lib/job-report";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { buildReminderLineMessage } from "@/lib/line";
@@ -133,7 +134,7 @@ function buildReminderHtml(reservation: {
 </html>`;
 }
 
-export async function GET(req: NextRequest) {
+async function handle(req: NextRequest): Promise<NextResponse> {
   // Vercel Cron認証
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -282,4 +283,9 @@ export async function GET(req: NextRequest) {
     failed,
     skipped,
   });
+}
+
+// 終わるたびに ops_job_runs へ1行（general の見張り役が読む・lib/job-report.ts）
+export async function GET(req: NextRequest) {
+  return runReportedJob("doghub-reminder", () => handle(req));
 }

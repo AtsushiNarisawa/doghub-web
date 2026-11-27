@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { runReportedJob } from "@/lib/job-report";
 import { fdb } from "@/lib/fragrance/db";
 import { getStripe } from "@/lib/stripe";
 import { confirmFromSession, sendConfirmIfNeeded } from "@/lib/fragrance/orders";
@@ -27,7 +28,7 @@ import {
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-export async function GET(req: NextRequest) {
+async function handle(req: NextRequest): Promise<NextResponse> {
   if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -216,4 +217,9 @@ async function notifyStaff(subject: string, text: string) {
   } catch (e) {
     console.error("fragrance-daily: staff notice failed", e);
   }
+}
+
+// 終わるたびに ops_job_runs へ1行（general の見張り役が読む・lib/job-report.ts）
+export async function GET(req: NextRequest) {
+  return runReportedJob("doghub-fragrance-daily", () => handle(req));
 }

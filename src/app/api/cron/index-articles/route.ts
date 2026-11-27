@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { runReportedJob } from "@/lib/job-report";
 import { google } from "googleapis";
 import { getArticles } from "@/lib/cms";
 import nodemailer from "nodemailer";
@@ -86,7 +87,7 @@ async function sendFailureEmail(failures: { url: string; error: string }[]) {
   }
 }
 
-export async function GET(req: NextRequest) {
+async function handle(req: NextRequest): Promise<NextResponse> {
   // Vercel Cron 認証
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -145,4 +146,9 @@ export async function GET(req: NextRequest) {
     failed: failures.length,
     results,
   });
+}
+
+// 終わるたびに ops_job_runs へ1行（general の見張り役が読む・lib/job-report.ts）
+export async function GET(req: NextRequest) {
+  return runReportedJob("doghub-index-articles", () => handle(req));
 }
