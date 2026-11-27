@@ -46,6 +46,13 @@ export function middleware(req: NextRequest) {
     );
   }
 
+  // ── サイト整理④-1: /beginner を /guide へ1段301（2026-11-27 S82）──
+  // 手順書 marketing/reports/site_restructure_procedure_2026-10-25.md §3・§8。
+  // 上のモデルコースと同じ形で、末尾スラッシュ正規化(308)より前に置く（2段にしない）。
+  if (pathname === "/beginner" || pathname === "/beginner/") {
+    return NextResponse.redirect(`${req.nextUrl.origin}/guide`, 301);
+  }
+
   // ── 末尾スラッシュ正規化（Next.js デフォルト308を middleware で代替）──
   // skipTrailingSlashRedirect: true により Next.js 側の自動308は無効化。
   // 既存サイトの canonical（末尾スラッシュなし）を維持するため、ここで308を返す。
