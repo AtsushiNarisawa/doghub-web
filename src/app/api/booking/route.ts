@@ -20,6 +20,8 @@ import {
   checkoutAddonBlockReason,
   checkoutAddonCustomerMessage,
   checkoutAddonStaffMessage,
+  checkoutExtensionBlockReason,
+  checkoutExtensionCustomerMessage,
 } from "@/lib/booking-rules";
 import { applyCapacityDelta } from "@/lib/capacity-server";
 import { isDefaultClosedWeekday } from "@/lib/business-days";
@@ -341,6 +343,26 @@ export async function POST(req: NextRequest) {
               ? checkoutAddonStaffMessage(reason, body.checkout_date)
               : checkoutAddonCustomerMessage(reason, body.checkout_date),
           },
+          { status: 400 },
+        );
+      }
+    }
+
+    // チェックアウト後の時間の延長: チェックアウト日が定休日・臨時休業なら付けられない
+    // （お引き取りは 9:00〜11:00 だけ・2026-11-27 CEO）。判定は半日・1日と同じ正本。
+    // お客様の経路だけで止める（スタッフ入力 source=phone は例外対応の余地を残す）。
+    // 延長は枠を押さえないので Web受付停止・満席は対象外。
+    // フェイルセーフ: その日の行が読めないとき（エラー）は止めない（誤ブロックで予約を失う方が大きい）。
+    if (!isStaffBooking && body.plan === "stay" && body.checkout_date && body.checkout_extension && body.checkout_extension_until) {
+      const { data: coRow, error: coErr } = await supabase
+        .from("daily_capacity")
+        .select("closed")
+        .eq("date", body.checkout_date)
+        .maybeSingle();
+      const reason = coErr ? null : checkoutExtensionBlockReason(body.checkout_date, coRow);
+      if (reason) {
+        return NextResponse.json(
+          { error: checkoutExtensionCustomerMessage(reason, body.checkout_date) },
           { status: 400 },
         );
       }

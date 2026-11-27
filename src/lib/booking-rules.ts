@@ -408,6 +408,42 @@ export function checkoutAddonCustomerMessage(reason: CheckoutAddonBlockReason, c
   }
 }
 
+// ── チェックアウト後の時間の延長を付けられるか（2026-11-27 CEO「定休日のお引き取りは11時まで」） ──
+// 定休日・臨時休業のチェックアウト日は、お引き取りが 9:00〜11:00 だけ（店は開けない）。
+// 以前は延長が CO 日の休業を見ておらず、定休日（水）のチェックアウトで「〜17:00」まで選べた
+// （11-26 の実例: 火→水の宿泊で延長〜17時）。
+//   - 対象は休業（closed・行なしの定休曜日）だけ。水木でも臨時営業（行あり closed=false）の日は選べる。
+//   - Web受付停止（web_closed）・満席は休業ではない＝延長はお部屋の枠を押さえないので止めない。
+//   - お客様の経路（予約フォーム・予約API）だけで止める。スタッフ（source=phone）は例外対応の余地を残す。
+//   - 電話へは誘導しない（半日・1日を付けるときと同じ決まり）。
+
+export type CheckoutExtensionBlockReason = "regular_closed" | "closed";
+
+/**
+ * チェックアウト日にチェックアウト後の時間の延長を付けられない理由（null＝付けられる）。
+ * 判定は半日・1日と同じ＝daily_capacity に行があればその closed、無ければ定休の曜日。
+ *
+ * @param coDate チェックアウト日 "YYYY-MM-DD"
+ * @param row    その日の daily_capacity 行（無ければ null）
+ * @param closedWeekdays 定休曜日（省略時は DEFAULT_CLOSED_WEEKDAYS）
+ */
+export function checkoutExtensionBlockReason(
+  coDate: string,
+  row: { closed?: boolean | null } | null | undefined,
+  closedWeekdays: number[] = DEFAULT_CLOSED_WEEKDAYS
+): CheckoutExtensionBlockReason | null {
+  if (!coDate) return null;
+  if (row) return row.closed ? "closed" : null;
+  return closedWeekdays.includes(getJstWeekday(coDate)) ? "regular_closed" : null;
+}
+
+/** お客様向けの案内（予約フォーム・予約APIで同じ文言を出す） */
+export function checkoutExtensionCustomerMessage(reason: CheckoutExtensionBlockReason, coDate: string): string {
+  const label = formatDateJaWithWeekday(coDate);
+  const why = reason === "regular_closed" ? "定休日" : "臨時休業";
+  return `チェックアウト日の${label}は${why}のため、時間の延長はお付けできません。お引き取りは9:00〜11:00の間でお願いいたします`;
+}
+
 // ── お客様ご自身の付け外し（/booking/modify・2026-11-22 第2段） ─────────────
 // 項目を送ってこなければ「変更しない」。"" / null は外す、"4h"/"8h" は付ける（付け替え）。
 // 同じ側に時間の延長・早預かりが付いている予約は、ここでは付けられない（DB の制約でも止まる）。

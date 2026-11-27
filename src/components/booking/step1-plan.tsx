@@ -24,6 +24,8 @@ import {
   AFTERNOON_OPEN_TIME,
   checkoutAddonBlockReason,
   checkoutAddonCustomerMessage,
+  checkoutExtensionBlockReason,
+  checkoutExtensionCustomerMessage,
   type CheckoutDayRow,
 } from "@/lib/booking-rules";
 import { DEFAULT_CLOSED_WEEKDAYS, getJstWeekday } from "@/lib/business-days";
@@ -449,6 +451,12 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
         })
       : null;
   const coAddonBlockReason = form.plan === "stay" ? coAddonBlock(form.checkout_date) : null;
+  // チェックアウト日が定休日・臨時休業なら、時間の延長は付けられない（お引き取りは9:00〜11:00だけ・
+  // 2026-11-27 CEO）。予約APIと同じ関数・同じ文言。Web受付停止・満席は対象外（延長は枠を押さえない）。
+  const coExtensionBlockReason =
+    form.plan === "stay" && form.checkout_date
+      ? checkoutExtensionBlockReason(form.checkout_date, capRows[form.checkout_date] ?? null, closedWeekdays)
+      : null;
   const ciAddonSelected = findCheckinAddon(form.checkin_addon);
 
   // 受付期間内にある「午後から営業」の日（カレンダー下の案内に使う）。
@@ -489,6 +497,7 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
         stayClosedDates.length === 0 &&
         (!form.checkin_extension || form.checkin_extension_from) &&
         (!form.checkout_extension || form.checkout_extension_until) &&
+        !(form.checkout_extension && coExtensionBlockReason) &&
         (!ciAddonSelected || form.checkin_addon_from) &&
         !(form.checkout_addon && coAddonBlockReason)
       : true);
@@ -514,6 +523,8 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
       need.push("延長のお迎え時間");
     if (form.plan === "stay" && ciAddonSelected && !form.checkin_addon_from)
       need.push("チェックイン前の1日お預かりの開始時刻");
+    if (form.plan === "stay" && form.checkout_extension && coExtensionBlockReason)
+      return checkoutExtensionCustomerMessage(coExtensionBlockReason, form.checkout_date);
     if (form.plan === "stay" && form.checkout_addon && coAddonBlockReason)
       return checkoutAddonCustomerMessage(coAddonBlockReason, form.checkout_date);
     if (need.length > 0) return `あと「${need.join("」「")}」をお選びください`;
@@ -763,7 +774,7 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
             }
           />
           <p className="text-[12px] text-[#888] mt-2">
-            チェックアウト日は{closedWeekdayNames()}曜日（定休日）でもお引き取りいただけます（半日・1日はお付けできません）。
+            チェックアウト日は{closedWeekdayNames()}曜日（定休日）でもお引き取りいただけます（9:00〜11:00の間。時間の延長・半日・1日はお付けできません）。
           </p>
           {form.checkout_date && stayClosedDates.length > 0 && (
             <p className="text-red-500 text-sm mt-2">
@@ -901,9 +912,13 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
       {/* チェックアウト後の延長預かり（宿泊のみ） */}
       {form.plan === "stay" && form.checkout_date && (
         <div className="space-y-3">
-          <label className="flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0]">
+          <label
+            className={`flex items-start gap-3 p-4 rounded-xl bg-[#F8F5F0] ${coExtensionBlockReason ? "opacity-60" : ""}`}
+          >
             <input
               type="checkbox"
+              // 定休日・臨時休業のチェックアウトでは選べない（選んだ後に日付を変えた方が外せるよう、付いているときは押せる）
+              disabled={!!coExtensionBlockReason && !form.checkout_extension}
               checked={form.checkout_extension}
               onChange={(e) =>
                 onChange({
@@ -923,8 +938,13 @@ export function Step1Plan({ form, onChange, onNext, prefilledPlan = false, autoA
               </p>
             </div>
           </label>
+          {coExtensionBlockReason && (
+            <p className="text-[12px] text-red-500 leading-relaxed">
+              {checkoutExtensionCustomerMessage(coExtensionBlockReason, form.checkout_date)}
+            </p>
+          )}
 
-          {form.checkout_extension && (
+          {form.checkout_extension && !coExtensionBlockReason && (
             <div>
               <h2 className="text-lg font-medium mb-2">何時頃お迎えに来ますか？</h2>
               <div className="grid grid-cols-4 gap-2">
