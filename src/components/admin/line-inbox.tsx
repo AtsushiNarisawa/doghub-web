@@ -1,7 +1,7 @@
 // LINE のやり取り画面（/admin/messages）で共有する表示部品。
 
 import type { LineNotificationKind } from "@/lib/line-notification";
-import { LINE_NOTIFICATION_LABELS, parseNotificationKind } from "@/lib/line-notification";
+import { LINE_NOTIFICATION_LABELS, isStaffReplyMark, parseNotificationKind } from "@/lib/line-notification";
 
 // 必ず出す注記。
 //
@@ -16,7 +16,8 @@ export function LineInboxNotice() {
       <p className="font-medium mb-1">この画面について</p>
       <p>
         スタッフがLINEアプリから送った返信は、LINEの仕様上ここには表示されません。
-        表示されるのは「お客様からの受信」「自動応答」「当店からの自動通知（予約確認・リマインドなど）」の3つだけです。
+        表示されるのは「お客様からの受信」「自動応答」「当店からの自動通知（予約確認・リマインドなど）」と、
+        この画面で「LINEで送りました」「LINEアプリで返信済みにする」を押した返信の控えだけです。
       </p>
       <p className="mt-1">
         読むための画面です。お返事はこれまでどおりLINEアプリからお願いします。
@@ -54,7 +55,10 @@ export function conversationName(c: {
 // お客様の発言／Botの自動応答／当店からの通知（種類つき）を見分けられるようにする。
 export function messageLabel(sender: string, messageType: string): string {
   if (sender === "customer") return "お客様";
-  if (sender === "staff") return "スタッフ";
+  if (sender === "staff") {
+    // 「LINEで送りました」の控え（2026-11-27）。LINE に届いた記録ではなく、押した人の申告
+    return isStaffReplyMark(messageType) ? "スタッフ（LINEアプリで送信）" : "スタッフ";
+  }
   const kind: LineNotificationKind | null = parseNotificationKind(messageType);
   if (kind) return `当店からの通知・${LINE_NOTIFICATION_LABELS[kind]}`;
   return "自動応答";

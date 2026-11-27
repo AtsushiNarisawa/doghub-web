@@ -55,3 +55,41 @@ export const LINE_NOTIFICATION_LABELS: Record<LineNotificationKind, string> = {
   reminder: "前々日のリマインド",
   thankyou: "ご利用後のお礼",
 };
+
+// ───── スタッフが LINE アプリから返信したことの「控え」（2026-11-27） ─────
+//
+// スタッフが LINE アプリから送った返信は LINE の仕様上こちらに届かない。そのため
+// 「返信済みかどうか」の手がかりが無く、毎朝の要返信チェックが返信済みのメッセージを
+// 拾い直して下書きを作り直していた（11-27 金曜朝・水曜分の LINE 2件）。
+//
+// 管理画面で「LINEで送りました」（下書きあり）／「LINEアプリで返信済みにする」（下書きなし）を
+// 押したときに、line_messages へ1行だけ控えを残す:
+//   direction = 'outbound'・sender = 'staff'・message_type = 'staff_reply_marked'
+//   text = 送った下書きの本文（直した後の文面）。下書きなしで押したときは null。
+// 要返信チェックは「その会話で最後の sender='staff' の行より後のお客様のメッセージ」だけを拾う。
+//
+// 🔴 これは「LINE で実際に届いた」ことの記録ではない（押した人の申告）。LINE への送信は今もしない。
+// 'staff' はもともと「スタッフが手で送った返信」を指す値で、この控えはまさにそれにあたる。
+// 列・制約・RLS・記録用の DB 関数は変えていない（sender の制約は customer/bot/staff を元から許す）。
+export const STAFF_REPLY_MARKED_TYPE = "staff_reply_marked";
+
+export function isStaffReplyMark(messageType: string): boolean {
+  return messageType === STAFF_REPLY_MARKED_TYPE;
+}
+
+/**
+ * 最後の「返信済みの印」（sender='staff'）より後に、お客様からのメッセージがあるか。
+ * 要返信チェック（inbox-check §3 の SQL）・save_reply_draft.py と同じ考え方。
+ * messages は古い順（created_at 昇順）で渡す。
+ */
+export function lineAwaitingReply(
+  messages: { direction: string; sender: string }[]
+): boolean {
+  let lastStaff = -1;
+  messages.forEach((m, i) => {
+    if (m.sender === "staff") lastStaff = i;
+  });
+  return messages
+    .slice(lastStaff + 1)
+    .some((m) => m.direction === "inbound" && m.sender === "customer");
+}

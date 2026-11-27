@@ -5,6 +5,9 @@
 // この画面はやり取りを書き換えない。既読にする処理も持たない（未読管理は作らない方針）。
 // 例外（2026-11-21）: 毎朝の要返信チェックが作った「返信の下書き」（line_reply_drafts）を表示し、
 // 「LINEで送りました」を押すと下書きを消す。LINE への送信そのものはしない（LINE アプリで送る）。
+// 例外（2026-11-27）: 「LINEで送りました」／「LINEアプリで返信済みにする」を押すと、その事実を
+// 会話に1行だけ控えとして残す（/api/admin/line/mark-replied）。毎朝の要返信チェックは
+// 控えより前のお客様のメッセージを拾い直さない。控えが残せなくても下書きは消す（操作を止めない）。
 // 表示できるのは3種類だけ:
 //   ① お客様からの受信  ② Botの自動応答  ③ 当店からの自動通知（予約確認・リマインドなど）
 // スタッフがLINEアプリから手で送った返信はLINEの仕様上取得できないため、ここには出ない。
@@ -13,6 +16,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { adminFetch } from "@/lib/admin-fetch";
+import { lineAwaitingReply } from "@/lib/line-notification";
 import {
   LineInboxNotice,
   conversationName,
@@ -46,6 +51,7 @@ export default function LineConversationPage() {
   const [draft, setDraft] = useState<{ body: string; confirm_note: string | null } | null>(null);
   const [draftText, setDraftText] = useState("");
   const [copied, setCopied] = useState(false);
+  const [marking, setMarking] = useState(false);
 
   useEffect(() => {
     supabase
@@ -70,10 +76,58 @@ export default function LineConversationPage() {
     }
   };
 
-  const finishDraft = async (message: string) => {
-    if (!confirm(message)) return;
+  const discardDraft = async () => {
+    if (!confirm("この下書きを捨てますか？")) return;
     await supabase.from("line_reply_drafts" as never).delete().eq("conversation_id", conversationId);
     setDraft(null);
+  };
+
+  // LINE アプリで返信したことを控えとして残す。失敗しても例外を出さず false を返す（操作は止めない）
+  const recordReplied = async (text: string | null): Promise<boolean> => {
+    try {
+      const res = await adminFetch("/api/admin/line/mark-replied", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversation_id: conversationId, body: text }),
+      });
+      const json = await res.json().catch(() => ({}));
+      return res.ok && json?.recorded === true;
+    } catch {
+      return false;
+    }
+  };
+
+  const loadMessages = async () => {
+    const { data: msgs } = await supabase
+      .from("line_messages")
+      .select("id, direction, sender, message_type, text, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+    if (msgs) setMessages(msgs as Message[]);
+  };
+
+  // 下書きあり: 直した後の本文を控えに残してから下書きを消す
+  const sentDraft = async () => {
+    if (!confirm("LINEで送りましたか？下書きを消して、返信済みの印を残します。")) return;
+    setMarking(true);
+    const recorded = await recordReplied(draftText);
+    await supabase.from("line_reply_drafts" as never).delete().eq("conversation_id", conversationId);
+    setDraft(null);
+    if (recorded) await loadMessages();
+    setMarking(false);
+    if (!recorded) {
+      alert("下書きは消しましたが、返信済みの印を残せませんでした。少し時間をおいて、この画面の「LINEアプリで返信済みにする」を押してください（押さないと翌朝の要返信チェックでもう一度出ることがあります）。");
+    }
+  };
+
+  // 下書きなし（LINEアプリから直接返信した）: 本文なしで控えだけ残す
+  const markRepliedWithoutDraft = async () => {
+    if (!confirm("LINEアプリでこのお客様に返信しましたか？返信済みの印を残します（LINEには何も送りません）。")) return;
+    setMarking(true);
+    const recorded = await recordReplied(null);
+    if (recorded) await loadMessages();
+    setMarking(false);
+    if (!recorded) alert("返信済みの印を残せませんでした。時間をおいてもう一度お試しください。");
   };
 
   useEffect(() => {
@@ -172,18 +226,34 @@ export default function LineConversationPage() {
               {copied ? "コピーしました" : "コピー"}
             </button>
             <button
-              onClick={() => finishDraft("LINEで送りましたか？下書きを消します。")}
-              className="flex-1 py-2.5 rounded-lg border border-[#B87942] text-[#B87942] text-sm font-medium active:bg-[#F7F5F0]"
+              onClick={sentDraft}
+              disabled={marking}
+              className="flex-1 py-2.5 rounded-lg border border-[#B87942] text-[#B87942] text-sm font-medium active:bg-[#F7F5F0] disabled:opacity-50"
             >
               LINEで送りました
             </button>
             <button
-              onClick={() => finishDraft("この下書きを捨てますか？")}
+              onClick={discardDraft}
               className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 active:bg-gray-50"
             >
               捨てる
             </button>
           </div>
+        </div>
+      )}
+
+      {!draft && lineAwaitingReply(messages) && (
+        <div className="bg-white rounded-xl p-4">
+          <p className="text-xs text-gray-500 mb-2 leading-relaxed">
+            LINEアプリから直接返信したときは、ここを押すと翌朝の要返信チェックがこのメッセージを拾い直しません（LINEには何も送りません）。
+          </p>
+          <button
+            onClick={markRepliedWithoutDraft}
+            disabled={marking}
+            className="w-full py-2.5 rounded-lg border border-[#B87942] text-[#B87942] text-sm font-medium active:bg-[#F7F5F0] disabled:opacity-50"
+          >
+            LINEアプリで返信済みにする
+          </button>
         </div>
       )}
 
@@ -240,6 +310,8 @@ const NON_TEXT_LABELS: Record<string, string> = {
   file: "ファイルが届いています（LINEアプリでご確認ください）",
   sticker: "スタンプ",
   location: "位置情報が届いています（LINEアプリでご確認ください）",
+  // 下書きなしで「LINEアプリで返信済みにする」を押したときの控え（本文は LINE アプリ側にだけある）
+  staff_reply_marked: "LINEアプリで返信しました（本文はLINEアプリでご確認ください）",
 };
 
 function nonTextLabel(messageType: string): string {

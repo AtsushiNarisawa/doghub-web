@@ -10,7 +10,9 @@ import { createClient } from "@supabase/supabase-js";
 import { fetchLineProfile, sendLinePushMessage, type LineMessage } from "./line";
 import {
   isNotificationType,
+  isStaffReplyMark,
   notificationMessageType,
+  STAFF_REPLY_MARKED_TYPE,
   type LineNotificationKind,
 } from "./line-notification";
 
@@ -44,6 +46,10 @@ function buildPreview(messageType: string, text: string | null): string {
   if (messageType === "text" || isNotificationType(messageType)) {
     return (text ?? "").slice(0, 100);
   }
+  // スタッフが LINE アプリで送った返信の控え。下書きなしで押したときは本文が無い
+  if (isStaffReplyMark(messageType)) {
+    return text ? text.slice(0, 100) : "[LINEアプリで返信済み]";
+  }
   return NON_TEXT_LABELS[messageType] ?? "[その他]";
 }
 
@@ -76,7 +82,8 @@ interface RecordParams {
 }
 
 // 1メッセージを記録。会話の get_or_create・unread++・再送防止は DB 関数側に集約。
-async function recordLineMessage(p: RecordParams): Promise<void> {
+// 戻り値＝記録できたか（これまでの呼び出し側は戻り値を見ない＝挙動は変わらない）。
+async function recordLineMessage(p: RecordParams): Promise<boolean> {
   try {
     const { error } = await supabase
       .rpc("record_line_message", {
@@ -89,10 +96,30 @@ async function recordLineMessage(p: RecordParams): Promise<void> {
         p_preview: buildPreview(p.messageType, p.text),
       })
       .abortSignal(AbortSignal.timeout(RECORD_TIMEOUT_MS));
-    if (error) console.error("recordLineMessage rpc error:", error);
+    if (error) {
+      console.error("recordLineMessage rpc error:", error);
+      return false;
+    }
+    return true;
   } catch (e) {
     console.error("recordLineMessage failed:", e);
+    return false;
   }
+}
+
+// スタッフが LINE アプリから返信したことの控えを1行残す（管理画面の「LINEで送りました」・2026-11-27）。
+// LINE へは何も送らない。例外を投げず、記録できたかだけを返す（失敗しても画面の操作は止めない）。
+// 会話の unread は inbound のときだけ増える DB 関数なので、この行では増えない（未読/既読は作らない方針のまま）。
+export async function recordStaffReplyMark(lineUserId: string, text: string | null): Promise<boolean> {
+  if (!lineUserId) return false;
+  return recordLineMessage({
+    lineUserId,
+    direction: "outbound",
+    sender: "staff",
+    messageType: STAFF_REPLY_MARKED_TYPE,
+    text: text && text.trim() ? text.trim() : null,
+    lineMessageId: null,
+  });
 }
 
 // 友だち追加: 会話だけ作成（メッセージ行は作らない）。
