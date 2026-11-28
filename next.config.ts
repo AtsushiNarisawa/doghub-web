@@ -5,6 +5,17 @@ const nextConfig: NextConfig = {
   // 末尾スラッシュ正規化を middleware で一元管理するため無効化
   // /walks/* の1段301維持のため（Next.js デフォルト308が先に発火するのを抑止）
   skipTrailingSlashRedirect: true,
+  // 記念動画をサーバーで作る関数にだけ、ffmpeg（Linux 用）と日本語の書体を同梱する（2026-11-28 S88）
+  outputFileTracingIncludes: {
+    "/api/memorial/render": [
+      "./node_modules/@ffmpeg-installer/linux-x64/ffmpeg",
+      "./assets/fonts/NotoSansJP-*.ttf",
+    ],
+    "/api/admin/memorial": [
+      "./node_modules/@ffmpeg-installer/linux-x64/ffmpeg",
+      "./assets/fonts/NotoSansJP-*.ttf",
+    ],
+  },
   images: {
     // Vercel Image Optimization の月間クォータ到達により /_next/image が 402 を返す問題への恒久対策。
     // Supabase Storage 側で 600KB 以下に最適化済みのため、Vercelの変換を経由せず直接配信する。

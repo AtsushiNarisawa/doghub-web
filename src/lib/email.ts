@@ -506,7 +506,7 @@ export function buildThankYouEmailHtml(
     ? `
     <div style="margin:24px 0;padding:20px;background:#FFF8EE;border-radius:12px;text-align:center;">
       <p style="margin:0 0 8px;font-size:14px;color:#3C200F;font-weight:600;">${dogNames.length > 0 ? `${dogNames.join("・")}の` : ""}お預かり中の動画をお作りしました</p>
-      <p style="margin:0 0 16px;font-size:13px;color:#888;line-height:1.7;">スタッフが撮影した動画・写真をご覧いただけます。<br>ご予約時の電話番号の下4桁でお開きください。</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#888;line-height:1.7;">スタッフが撮影した動画・写真をご覧いただけます。<br>ご予約のときの電話番号の下4桁でお開きください。</p>
       <a href="${memoriesUrl}" style="display:inline-block;padding:12px 32px;background:#B87942;color:white;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">動画を見る</a>
     </div>`
     : "";

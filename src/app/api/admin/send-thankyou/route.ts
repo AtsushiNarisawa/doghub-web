@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     if (useLine) {
       const ok = await sendLinePushAndRecord(
         customer.line_id!,
-        buildThankYouLineMessage(customerName, isFirstVisit, memoriesUrl),
+        buildThankYouLineMessage(customerName, isFirstVisit, memoriesUrl, dogs?.map((d) => d.name) || []),
         "thankyou"
       );
       if (!ok) {

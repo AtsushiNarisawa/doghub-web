@@ -137,7 +137,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
       if (useLine) {
         const ok = await sendLinePushAndRecord(
           customer.line_id!,
-          buildThankYouLineMessage(customerName, isFirstVisit, memoriesUrl),
+          buildThankYouLineMessage(customerName, isFirstVisit, memoriesUrl, dogNames),
           "thankyou"
         ).catch(() => false);
         if (ok) {

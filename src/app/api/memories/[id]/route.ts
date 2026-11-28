@@ -57,8 +57,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const signed = await Promise.all(
       media.map(async (m, i) => {
         const r = resById.get(m.reservation_id);
-        const ext = m.kind === "video" ? "mp4" : "jpg";
-        const fileName = `DogHub_${r?.date || "memory"}_${i + 1}.${ext}`;
+        const ext = m.kind === "photo" ? "jpg" : "mp4";
+        const fileName =
+          m.kind === "memorial"
+            ? `DogHub_${r?.date || "memory"}_memorial.mp4`
+            : `DogHub_${r?.date || "memory"}_${i + 1}.${ext}`;
         const store = supabase.storage.from(MEMORIES_BUCKET);
         const [view, dl] = await Promise.all([
           store.createSignedUrl(m.storage_path, MEMORIES_SIGNED_URL_TTL),
@@ -90,7 +93,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           checkout_date: r.checkout_date,
           plan_kind: planKind(r.plan),
           dogs,
-          media: signed.filter((s) => s.reservation_id === rid && s.url),
+          // 記念動画（2段目-B・サーバーで自動で作ったもの）は上に1つ、元の写真・動画は下に
+          memorial: signed.filter((s) => s.reservation_id === rid && s.url && s.kind === "memorial").pop() || null,
+          media: signed.filter((s) => s.reservation_id === rid && s.url && s.kind !== "memorial"),
         };
       })
       .filter((g): g is NonNullable<typeof g> => !!g && (g.reservation_id === id || g.media.length > 0))

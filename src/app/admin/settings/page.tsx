@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_CLOSED_WEEKDAYS } from "@/lib/business-days";
 import { findAfternoonOnlyViolation, AFTERNOON_OPEN_TIME } from "@/lib/booking-rules";
+import { MemorialScenesSection } from "@/components/admin/memorial-scenes-section";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -686,6 +687,9 @@ export default function SettingsPage() {
           {saved ? "保存しました" : saving ? "保存中..." : "受付期間を保存"}
         </button>
       </div>
+
+      {/* 記念動画の景色（2段目-B・2026-11-28 S88） */}
+      <MemorialScenesSection />
     </div>
   );
 }

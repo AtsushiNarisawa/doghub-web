@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 
 type Media = {
   id: string;
-  kind: "video" | "photo";
+  kind: "video" | "photo" | "memorial";
   url: string | null;
   size_bytes: number | null;
   duration_sec: number | null;
@@ -102,6 +102,7 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
+  const [making, setMaking] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   type Loaded = { media: Media[]; memorial_opt_out: boolean; thankyou_sent: boolean } | { error: string };
@@ -200,8 +201,32 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
     setBusy(false);
   }
 
+  // 記念動画（2段目-B）：翌朝9:30に自動で作られる。ここから手動でも、今ある素材ですぐ作れる・作り直せる（数十秒）
+  // （11-28 CEO「手動で動画を生成するボタンもつけておいてほしい」）
+  async function makeMemorial() {
+    setMaking(true);
+    setError("");
+    setProgress("記念動画を作っています…（1分ほどかかります）");
+    try {
+      const resp = await adminFetch("/api/admin/memorial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservation_id: reservationId }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) setError(data.error || "記念動画を作れませんでした");
+      else setProgress(`記念動画を作りました（${data.seconds}秒）`);
+    } catch {
+      setError("通信エラーが発生しました");
+      setProgress("");
+    }
+    await load();
+    setMaking(false);
+  }
+
   async function remove(m: Media) {
-    if (!confirm(`この${m.kind === "video" ? "動画" : "写真"}を消しますか？（お客様の受け取りページからも消えます）`)) return;
+    const what = m.kind === "memorial" ? "記念動画" : m.kind === "video" ? "動画" : "写真";
+    if (!confirm(`この${what}を消しますか？（お客様の受け取りページからも消えます）`)) return;
     setBusy(true);
     try {
       const resp = await adminFetch("/api/admin/memories", {
@@ -220,6 +245,8 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
 
   if (!loaded) return null;
   if (isCancelled && media.length === 0) return null;
+  const sources = media.filter((m) => m.kind !== "memorial");
+  const memorial = media.find((m) => m.kind === "memorial");
 
   return (
     <div className="bg-white rounded-xl p-4">
@@ -236,9 +263,9 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
         </p>
       )}
 
-      {media.length > 0 ? (
+      {sources.length > 0 ? (
         <div className="grid grid-cols-3 gap-2 mb-3">
-          {media.map((m) => (
+          {sources.map((m) => (
             <div key={m.id} className="relative">
               {m.url ? (
                 m.kind === "video" ? (
@@ -288,6 +315,36 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
             {busy ? "処理中…（画面を閉じないでください）" : "動画・写真を載せる"}
           </button>
         </>
+      )}
+      {sources.length > 0 && (
+        <div className="mt-4 border-t border-gray-100 pt-3">
+          <p className="text-xs font-medium text-gray-500 mb-1">記念動画（自動）</p>
+          {memorial?.url ? (
+            <div className="relative w-1/2">
+              <video src={memorial.url} className="w-full aspect-[9/16] rounded-lg bg-gray-100" preload="metadata" controls playsInline />
+              <button
+                onClick={() => remove(memorial)}
+                disabled={busy || making}
+                className="absolute top-1 right-1 px-2 py-0.5 rounded bg-black/60 text-white text-[11px] disabled:opacity-50"
+              >
+                消す
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 leading-relaxed">
+              {thankyouSent
+                ? "まだありません。"
+                : "翌朝9:30に、それまでに載った動画・写真から自動で作られます（お礼の前）。待たずに作るときは下のボタンで。"}
+            </p>
+          )}
+          <button
+            onClick={makeMemorial}
+            disabled={busy || making}
+            className="mt-2 w-full py-2 rounded-lg border border-[#B87942] text-[#B87942] text-xs font-medium disabled:opacity-50"
+          >
+            {making ? "作っています…（画面を閉じないでください）" : memorial ? "記念動画を作り直す" : "記念動画を今すぐ作る"}
+          </button>
+        </div>
       )}
       {progress && <p className="mt-2 text-xs text-gray-600">{progress}</p>}
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}

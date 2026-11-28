@@ -23,7 +23,8 @@ export function MobileCta() {
   const partner = getPartner(pathname.match(/^\/partner\/([^/]+)/)?.[1]);
   const bookingHref = partner ? `/booking?partner=${partner.slug}` : "/booking";
 
-  if (pathname === "/booking" || pathname.startsWith("/admin") || pathname.startsWith("/news/")) return null;
+  // /memories＝記念動画の受け取りページ（11-28 S88 ユーザーテスト：動画を見ている最中に営業っぽい）
+  if (pathname === "/booking" || pathname.startsWith("/admin") || pathname.startsWith("/news/") || pathname.startsWith("/memories")) return null;
 
   return (
     <div

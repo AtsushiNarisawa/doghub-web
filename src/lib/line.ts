@@ -457,7 +457,9 @@ export function buildThankYouLineMessage(
   customerName: string,
   isFirstVisit: boolean,
   // 記念ショート動画の受け取りページ（動画・写真を載せた回だけ・2026-11-28 S84）
-  memoriesUrl?: string | null
+  memoriesUrl?: string | null,
+  // 動画のお知らせに入れる愛犬の名前（メールと同じ・11-28 S88 ユーザーテスト「LINE にも名前を」）
+  dogNames: string[] = []
 ): LineMessage[] {
   const messages: LineMessage[] = [
     {
@@ -478,7 +480,7 @@ export function buildThankYouLineMessage(
       altText: "お預かり中の動画をお作りしました",
       template: {
         type: "buttons",
-        text: "お預かり中の動画をお作りしました。ご予約時の電話番号の下4桁でお開きください。",
+        text: `${dogNames.length > 0 ? `${dogNames.join("・")}の` : ""}お預かり中の動画をお作りしました。ご予約のときの電話番号の下4桁でお開きください。`,
         actions: [{ type: "uri", label: "動画を見る", uri: memoriesUrl }],
       },
     });

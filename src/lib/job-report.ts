@@ -13,7 +13,8 @@ export type JobName =
   | "doghub-reminder"
   | "doghub-thankyou"
   | "doghub-fragrance-daily"
-  | "doghub-index-articles";
+  | "doghub-index-articles"
+  | "doghub-memorial";
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
