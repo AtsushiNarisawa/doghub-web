@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { adminFetch } from "@/lib/admin-fetch";
 import { supabase } from "@/lib/supabase";
 import { compressPhoto, compressVideo } from "@/components/admin/memories-section";
+import { DEFAULT_SCENES } from "@/lib/memorial-timeline";
 
 // 管理画面の設定「記念動画の景色」（2段目-B・2026-11-28 S88）。
 // 記念動画のワンちゃんの合間に入る箱根の景色を、文字・使う月と組にして登録する。
@@ -227,6 +228,20 @@ export function MemorialScenesSection() {
         <p className="text-sm text-gray-500 mt-1 leading-relaxed">
           記念動画のワンちゃんの合間に入る箱根の景色です。ご利用の月にチェックが入った景色から、自動で最大3つ選ばれます。
           文字は「いまの箱根」の話にしてください（例：いまの仙石原は／すすきが金色に）。人・車のナンバー・近所のお宅が写らない縦の写真か、数秒の縦の動画を選んでください（動画は最初の2秒を使います）。
+        </p>
+      </div>
+
+      <div className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
+        <p className="font-medium text-gray-700">最初から入っている見本の景色</p>
+        <ul className="mt-1 list-disc pl-5">
+          {DEFAULT_SCENES.map((d) => (
+            <li key={d.id}>
+              「{d.caption.replace("\n", "／")}」（{d.months.map((m) => `${m}月`).join("・")}）
+            </li>
+          ))}
+        </ul>
+        <p className="mt-1 text-xs text-gray-500">
+          ここで登録した景色が3つに足りない月は、この見本で足します（登録した景色が先に使われます）。上の月以外の見本はまだありません。
         </p>
       </div>
 

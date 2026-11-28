@@ -40,6 +40,17 @@ export const EXTRA_LINES = {
   short: [["スタッフと過ごした", "仙石原のひととき"], ["家族の帰りを", "仙石原で待ってたよ"]],
 } as const;
 
+/**
+ * 最初から入っている見本の景色（web/assets/scenes/・11-28 S88 CEO「景色はデフォルトで入っていると良い」）。
+ * CEO が設定で登録した景色が足りない月は、ここから足す（登録した景色が先）。
+ * 🔴 季節外れの文字を出さないよう、月で絞る（すすき＝10〜11月・林の「11月の箱根」＝11月）。
+ *    12月〜9月の見本はまだ無い＝撮りためて設定から登録する。
+ */
+export const DEFAULT_SCENES: { id: string; file: string; caption: string; months: number[] }[] = [
+  { id: "default-susuki", file: "default-susuki.mp4", caption: "いまの仙石原は\nすすきが金色に", months: [10, 11] },
+  { id: "default-hayashi", file: "default-hayashi.mp4", caption: "空気が澄んだ\n11月の箱根", months: [11] },
+];
+
 /** 文字列から決まった数を作る（同じ予約なら毎回同じ並び・別の予約なら入れ替わる） */
 export function hashOf(s: string): number {
   let h = 2166136261;

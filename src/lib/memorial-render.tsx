@@ -7,6 +7,7 @@ import path from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { MEMORIES_BUCKET } from "@/lib/memories";
 import {
+  DEFAULT_SCENES,
   buildTimeline,
   monthOf,
   pickScenes,
@@ -252,6 +253,13 @@ export async function renderMemorialVideo(
     const dogShots = dogSlots.filter((s): s is DogShot => !!s);
     const sceneShots = sceneSlots.filter((s): s is SceneShot => !!s);
     if (dogShots.length === 0) return { status: "skipped", reason: "no_media" };
+    // 登録した景色が3つに足りない月は、最初から入っている見本で足す
+    const month = monthOf(r.date);
+    for (const d of pickScenes(DEFAULT_SCENES.map((x) => ({ ...x, active: true })), month, reservationId)) {
+      if (sceneShots.length >= 3) break;
+      const file = path.join(process.cwd(), "assets/scenes", d.file);
+      if (existsSync(file)) sceneShots.push({ id: d.id, kind: "video", file, caption: d.caption });
+    }
 
     const dogNames = ((r.reservation_dogs as unknown as { dogs: { name: string } | null }[]) || [])
       .map((rd) => rd.dogs?.name)
