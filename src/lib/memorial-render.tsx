@@ -273,7 +273,7 @@ export async function renderMemorialVideo(
     const style = opts.style ?? pickStyle(reservationId);
     const out =
       style === "album"
-        ? await composeAlbum(ff, clips, dir)
+        ? await composeAlbum(ff, clips, dir, r.date)
         : style === "cinema"
           ? await composeCinema(ff, clips, dir, r.date)
           : await composeMemorial(ff, clips, dir);

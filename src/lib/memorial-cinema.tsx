@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { VIDEO_H, VIDEO_W, type Clip } from "@/lib/memorial-timeline";
+import { SEASON_THEMES, VIDEO_H, VIDEO_W, monthOf, seasonOf, type Clip, type Season } from "@/lib/memorial-timeline";
 
 // 記念動画「シネマ型」（11-28 S88・CEO「他のインフルエンサーの動画を参考に」）。
 // 旅行 vlog でよく見る作り：画面いっぱいの写真・動画／色味を少し温かく・フィルムの粒子・周辺を少し暗く
@@ -110,7 +110,7 @@ async function cinemaTextPng(clip: Clip, dateStamp: string, out: string) {
   await fs.writeFile(out, Buffer.from(await img.arrayBuffer()));
 }
 
-async function renderCinemaClip(ff: string, clip: Clip, index: number, total: number, png: string, out: string) {
+async function renderCinemaClip(ff: string, clip: Clip, index: number, total: number, png: string, out: string, season: Season) {
   const W = VIDEO_W;
   const H = VIDEO_H;
   const dur = clip.seconds;
@@ -126,7 +126,10 @@ async function renderCinemaClip(ff: string, clip: Clip, index: number, total: nu
     ? `,scale=${W * 2}:${H * 2},zoompan=z='1+0.07*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${W}x${H}:fps=30`
     : `,fps=30`;
   // 色味（少し温かく・落ち着いた彩度）＋周辺を暗く＋粒子。題名と締めは文字が読めるよう少し暗く
-  const grade = `,eq=saturation=0.92:contrast=1.05${big ? ":brightness=-0.06" : ""},colorbalance=rs=0.04:gs=0.01:bs=-0.05:rh=0.03:bh=-0.03,vignette=PI/4.5,noise=alls=3:allf=t`;
+  // 季節の色合い（春は明るく桜色・夏は鮮やか・秋は琥珀色・冬は青みの白）
+  const th = SEASON_THEMES[season];
+  const bright = (th.brightness + (big ? -0.06 : 0)).toFixed(2);
+  const grade = `,eq=saturation=${th.saturation}:contrast=${th.contrast}:brightness=${bright},colorbalance=${th.balance},vignette=PI/4.5,noise=alls=3:allf=t`;
   const dip = `${first ? "" : `,fade=t=in:st=0:d=${DIP}`}${last ? `,fade=t=out:st=${(dur - 0.6).toFixed(2)}:d=0.6` : `,fade=t=out:st=${(dur - DIP).toFixed(2)}:d=${DIP}`}`;
   const textIn = first ? "" : `,fade=t=in:st=0.2:d=0.45:alpha=1`;
   const textOut = last ? `,fade=t=out:st=${(dur - 0.6).toFixed(2)}:d=0.6:alpha=1` : `,fade=t=out:st=${(dur - DIP).toFixed(2)}:d=${DIP}:alpha=1`;
@@ -148,7 +151,7 @@ export async function composeCinema(ff: string, clips: Clip[], dir: string, date
     const png = path.join(dir, `k${i}.png`);
     const out = path.join(dir, `kc${i}.mp4`);
     await cinemaTextPng(clips[i], stamp, png);
-    await renderCinemaClip(ff, clips[i], i, clips.length, png, out);
+    await renderCinemaClip(ff, clips[i], i, clips.length, png, out, seasonOf(monthOf(date)));
     parts.push(out);
   }
   const list = path.join(dir, "klist.txt");

@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { VIDEO_H, VIDEO_W, type Clip } from "@/lib/memorial-timeline";
+import { SEASON_THEMES, VIDEO_H, VIDEO_W, monthOf, seasonOf, type Clip, type Season } from "@/lib/memorial-timeline";
 
 // 記念動画「アルバム型」（11-28 S88・CEO「センスの良い動画のフォーマットを」）。
 // 型の元＝店の「2024年 年末のご挨拶」リール：生成りの紙の上に白いふちの写真を少し傾けて置き、明朝体の文字と DogHub のロゴ。
@@ -13,7 +13,6 @@ import { VIDEO_H, VIDEO_W, type Clip } from "@/lib/memorial-timeline";
 
 const run = promisify(execFile);
 const ENC = ["-r", "30", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-an"];
-const INK = "#3C200F";
 const PRINT_CY = Math.round(VIDEO_H * 0.58); // 写真の中心の高さ
 const FADE = 0.4; // 現れる・消える秒数
 const ANGLES = [-3, 2.5, -2, 3, -2.5, 2]; // 場面ごとの傾き（度）
@@ -43,7 +42,7 @@ async function logoDataUrl() {
 }
 
 /** 紙の上の文字（明朝・こげ茶・字間を広く）。題名と締めにはロゴを添える */
-async function albumTextPng(clip: Clip, out: string) {
+async function albumTextPng(clip: Clip, out: string, INK: string) {
   const fonts = await loadSerif();
   const logo = clip.role === "title" || clip.role === "end" ? await logoDataUrl() : null;
   const [main, sub] = clip.texts;
@@ -102,7 +101,7 @@ async function albumTextPng(clip: Clip, out: string) {
 }
 
 /** 1場面：紙＋影＋白いふちの写真（少し傾ける）＋文字。写真と文字は紙の上で現れて消える */
-async function renderAlbumClip(ff: string, clip: Clip, index: number, total: number, png: string, out: string) {
+async function renderAlbumClip(ff: string, clip: Clip, index: number, total: number, png: string, out: string, season: Season) {
   const dur = clip.seconds;
   const angle = ANGLES[index % ANGLES.length];
   const rad = `${angle}*PI/180`;
@@ -117,10 +116,11 @@ async function renderAlbumClip(ff: string, clip: Clip, index: number, total: num
   const lift = first ? `-6*t/${dur}` : `22*max(0\\,1-t/0.5)-6*t/${dur}`;
   const textFade = first ? "" : `,fade=t=in:st=0.25:d=0.5:alpha=1`;
   const filter = [
-    `[1]scale=${box}:force_original_aspect_ratio=decrease,pad=iw+28:ih+28:14:14:color=0xFBFAF7,format=rgba,split[p1][p2]`,
+    `[1]scale=${box}:force_original_aspect_ratio=decrease,pad=iw+28:ih+28:14:14:color=0xFBFAF7,format=rgba,drawbox=x=iw/2-70:y=0:w=140:h=30:color=${SEASON_THEMES[season].tape}@0.8:t=fill,split[p1][p2]`,
     `[p2]colorchannelmixer=rr=0:gg=0:bb=0:aa=0.32,boxblur=lr=12:lp=2:cr=12:cp=2:ar=12:ap=2,rotate=${rad}:c=none:ow=rotw(${rad}):oh=roth(${rad})${fadeIn}${fadeOut}[sh]`,
     `[p1]rotate=${rad}:c=none:ow=rotw(${rad}):oh=roth(${rad})${fadeIn}${fadeOut}[pr]`,
-    `[0]scale=${VIDEO_W}:${VIDEO_H},setsar=1,fps=30[bg]`,
+    // 紙の色味を季節に合わせる（秋はそのまま）
+    `[0]scale=${VIDEO_W}:${VIDEO_H},setsar=1,fps=30${SEASON_THEMES[season].paper ? `,colorbalance=${SEASON_THEMES[season].paper}` : ""}[bg]`,
     `[bg][sh]overlay=x=(W-w)/2+8:y=${PRINT_CY}-h/2+14+${lift}:shortest=1[b1]`,
     `[b1][pr]overlay=x=(W-w)/2:y=${PRINT_CY}-h/2+${lift}:shortest=1[b2]`,
     `[2]format=rgba${textFade}${fadeOut}[t]`,
@@ -141,13 +141,14 @@ async function renderAlbumClip(ff: string, clip: Clip, index: number, total: num
 }
 
 /** アルバム型で1本の mp4 を作り、その場所を返す */
-export async function composeAlbum(ff: string, clips: Clip[], dir: string): Promise<string> {
+export async function composeAlbum(ff: string, clips: Clip[], dir: string, date: string): Promise<string> {
+  const season = seasonOf(monthOf(date));
   const parts: string[] = [];
   for (let i = 0; i < clips.length; i++) {
     const png = path.join(dir, `a${i}.png`);
     const out = path.join(dir, `ac${i}.mp4`);
-    await albumTextPng(clips[i], png);
-    await renderAlbumClip(ff, clips[i], i, clips.length, png, out);
+    await albumTextPng(clips[i], png, SEASON_THEMES[season].ink);
+    await renderAlbumClip(ff, clips[i], i, clips.length, png, out, season);
     parts.push(out);
   }
   const list = path.join(dir, "alist.txt");

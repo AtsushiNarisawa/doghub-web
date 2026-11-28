@@ -85,6 +85,32 @@ export function hashOf(s: string): number {
 }
 
 /** 「ムック」「ムックとモカ」「ムック・モカ・ハナ」 */
+/**
+ * 季節の色合い（11-28 S88 CEO「季節で変えてよい。秋は今のよう、春先は明るいイメージ」）。
+ * ご利用の月で決める：春 3〜5月／夏 6〜8月／秋 9〜11月／冬 12〜2月。
+ * cinema＝シネマ型の色の整え方（ffmpeg の eq と colorbalance）／paper・ink＝アルバム型の紙の色味と文字の色。
+ */
+export type Season = "spring" | "summer" | "autumn" | "winter";
+export function seasonOf(month: number): Season {
+  if (month >= 3 && month <= 5) return "spring";
+  if (month >= 6 && month <= 8) return "summer";
+  if (month >= 9 && month <= 11) return "autumn";
+  return "winter";
+}
+export const SEASON_THEMES: Record<
+  Season,
+  { label: string; saturation: number; contrast: number; brightness: number; balance: string; paper: string; ink: string; tape: string }
+> = {
+  // 春：明るく、やわらかい桜色
+  spring: { label: "春（明るく・やわらかい桜色）", saturation: 1.0, contrast: 0.92, brightness: 0.08, balance: "rs=0.06:gs=-0.01:bs=0.04:rh=0.06:gh=0.01:bh=0.04", paper: "rs=0.07:gs=-0.02:bs=0.03", ink: "#7A4255", tape: "0xF4B6C2" },
+  // 夏：鮮やかで、さわやかな緑と青
+  summer: { label: "夏（鮮やか・さわやか）", saturation: 1.18, contrast: 1.06, brightness: 0.03, balance: "rs=-0.04:gs=0.03:bs=0.06:gh=0.03", paper: "rs=-0.05:gs=0.04:bs=0.02", ink: "#1F4A3D", tape: "0x8FD3C1" },
+  // 秋：温かい琥珀色（これまでの色）
+  autumn: { label: "秋（温かい琥珀色）", saturation: 0.92, contrast: 1.05, brightness: 0, balance: "rs=0.04:gs=0.01:bs=-0.05:rh=0.03:bh=-0.03", paper: "", ink: "#3C200F", tape: "0xE0A458" },
+  // 冬：すっきり、少し青みのある白
+  winter: { label: "冬（すっきり・青みの白）", saturation: 0.7, contrast: 1.0, brightness: 0.05, balance: "rs=-0.06:bs=0.08:rh=-0.04:bh=0.06", paper: "rs=-0.06:gs=-0.01:bs=0.06", ink: "#25344A", tape: "0xA9C6E8" },
+};
+
 /** 予約ごとに型を決める（同じ予約なら毎回同じ・予約によって入れ替わる） */
 export function pickStyle(reservationId: string): MemorialStyle {
   return MEMORIAL_STYLES[hashOf(reservationId + ":style") % MEMORIAL_STYLES.length];
