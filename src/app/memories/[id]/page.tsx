@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 type MediaItem = {
   id: string;
   kind: "video" | "photo" | "memorial";
+  style?: string | null; // 記念動画の型（classic / album / cinema）
   width: number | null;
   height: number | null;
   url: string | null;
@@ -51,6 +52,19 @@ function buildPostText(g: Group) {
   return `${names}と箱根へ🐾 DogHub箱根仙石原で${what}しました\n${INSTAGRAM_HANDLE}\n#PR #DogHub箱根仙石原 #箱根 #犬連れ旅行`;
 }
 
+// ---- 計測（11-28 S88 CEO「いろいろな型を試し、良いものを集約」）----
+// 型ごとに「見た」「保存した」を数える。GTM で GA4 に送る（memorial_view / memorial_save）。
+declare global {
+  interface Window {
+    dataLayer?: Record<string, unknown>[];
+  }
+}
+function track(event: string, params: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event, ...params });
+}
+
 // ---- 保存（11-28 S88 ユーザーテスト：6人全員が「ファイルアプリ経由」で困った）----
 // iPhone・iPad＝共有の画面を開く →「ビデオを保存／画像を保存」で写真アプリに直接入る（LINE で家族に送るのも同じ画面）。
 // それ以外（Android・パソコン）＝これまでどおりダウンロード（Android は「ダウンロード」に入り、フォト／ギャラリーからも見られる）。
@@ -87,9 +101,20 @@ function fallbackDownload(items: SaveItem[]) {
   });
 }
 
-function SaveButton({ items, label, primary }: { items: SaveItem[]; label: string; primary?: boolean }) {
+function SaveButton({
+  items,
+  label,
+  primary,
+  trackParams,
+}: {
+  items: SaveItem[];
+  label: string;
+  primary?: boolean;
+  trackParams: Record<string, unknown>;
+}) {
   const [state, setState] = useState<"idle" | "loading" | "again" | "done">("idle");
   const onClick = async () => {
+    if (state !== "again") track("memorial_save", { ...trackParams, save_count: items.length });
     if (!isAppleMobile() || typeof navigator.share !== "function") {
       fallbackDownload(items);
       setState("done");
@@ -158,7 +183,11 @@ function MediaGrid({ media, date }: { media: MediaItem[]; date: string }) {
   return (
     <div className="space-y-4">
       {media.length > 1 && (
-        <SaveButton items={media.map((m, i) => toSaveItem(m, date, i))} label={`写真・動画${media.length}つをまとめて保存する`} />
+        <SaveButton
+          items={media.map((m, i) => toSaveItem(m, date, i))}
+          label={`写真・動画${media.length}つをまとめて保存する`}
+          trackParams={{ save_target: "original_bulk" }}
+        />
       )}
       {media.map((m, i) => (
         <div key={m.id}>
@@ -168,7 +197,11 @@ function MediaGrid({ media, date }: { media: MediaItem[]; date: string }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={m.url!} alt="" className="w-full rounded-xl" />
           )}
-          <SaveButton items={[toSaveItem(m, date, i)]} label={m.kind === "video" ? "この動画を保存する" : "この写真を保存する"} />
+          <SaveButton
+            items={[toSaveItem(m, date, i)]}
+            label={m.kind === "video" ? "この動画を保存する" : "この写真を保存する"}
+            trackParams={{ save_target: m.kind === "video" ? "original_video" : "original_photo" }}
+          />
         </div>
       ))}
     </div>
@@ -181,6 +214,7 @@ function VisitMedia({ g }: { g: Group }) {
   // 記念動画は小さい（数MB）ので先に読み込んでおく＝押した瞬間に保存の画面が開く
   useEffect(() => {
     if (memorial?.url && isAppleMobile()) loadFile(toSaveItem(memorial, g.date, 0)).catch(() => {});
+    if (memorial) track("memorial_view", { memorial_style: memorial.style || "classic" });
   }, [memorial, g.date]);
   const names = g.dogs.length > 0 ? g.dogs.join("・") : "";
   return (
@@ -192,7 +226,12 @@ function VisitMedia({ g }: { g: Group }) {
             {names ? `${names}の` : ""}写真と箱根の景色を、短い動画にまとめました。そのまま保存して、ご家族に送ったり SNS に投稿したりできます。
           </p>
           <video src={memorial.url!} controls playsInline preload="metadata" className="w-full rounded-xl bg-black" />
-          <SaveButton items={[toSaveItem(memorial, g.date, 0)]} label="記念動画を保存する" primary />
+          <SaveButton
+            items={[toSaveItem(memorial, g.date, 0)]}
+            label="記念動画を保存する"
+            primary
+            trackParams={{ save_target: "memorial", memorial_style: memorial.style || "classic" }}
+          />
           <p className="mt-2 text-sm text-[#3C200F] leading-relaxed bg-[#F8F5F0] rounded-lg p-3">{saveHelpText()}</p>
         </div>
       )}
@@ -220,7 +259,7 @@ function CopyPostText({ text }: { text: string }) {
       </p>
       <pre className="whitespace-pre-wrap text-sm text-[#3C200F] bg-white rounded-lg p-3 font-sans leading-relaxed">{text}</pre>
       <p className="mt-2 text-xs text-[#888] leading-relaxed">
-        「#PR」は、お店からお願いしてご投稿いただく形のため入れている表示です。
+        「#PR」は、お店からお願いしてご投稿いただく形のため入れている表示です。お好みで外してお使いいただいてもかまいません。
       </p>
       <button
         onClick={async () => {

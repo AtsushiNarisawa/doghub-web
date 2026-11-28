@@ -6,9 +6,13 @@ import os from "node:os";
 import path from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { MEMORIES_BUCKET } from "@/lib/memories";
+import { composeAlbum } from "@/lib/memorial-album";
+import { composeCinema } from "@/lib/memorial-cinema";
 import {
   DEFAULT_SCENES,
   buildTimeline,
+  pickStyle,
+  type MemorialStyle,
   monthOf,
   pickScenes,
   VIDEO_H,
@@ -31,7 +35,7 @@ const run = promisify(execFile);
 const ENC = ["-r", "30", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-an"];
 
 export type RenderResult =
-  | { status: "made"; storage_path: string; seconds: number; clips: number; scenes: number; render_ms: number }
+  | { status: "made"; storage_path: string; style: MemorialStyle; seconds: number; clips: number; scenes: number; render_ms: number }
   | { status: "skipped"; reason: "no_media" | "up_to_date" | "opt_out" | "cancelled" | "not_found" };
 
 async function ffmpegPath(): Promise<string> {
@@ -184,7 +188,7 @@ async function download(supabase: SupabaseClient, storagePath: string, dest: str
 export async function renderMemorialVideo(
   supabase: SupabaseClient,
   reservationId: string,
-  opts: { force?: boolean } = {}
+  opts: { force?: boolean; style?: MemorialStyle } = {}
 ): Promise<RenderResult> {
   const started = Date.now();
   const { data: r } = await supabase
@@ -265,10 +269,18 @@ export async function renderMemorialVideo(
       .map((rd) => rd.dogs?.name)
       .filter(Boolean) as string[];
     const clips = buildTimeline({ reservationId, plan: r.plan, date: r.date, dogNames, dogShots, scenes: sceneShots });
-    const buf = await fs.readFile(await composeMemorial(ff, clips, dir));
+    // 型は予約ごとに自動で入れ替え（管理画面で選んで作り直すこともできる）
+    const style = opts.style ?? pickStyle(reservationId);
+    const out =
+      style === "album"
+        ? await composeAlbum(ff, clips, dir)
+        : style === "cinema"
+          ? await composeCinema(ff, clips, dir, r.date)
+          : await composeMemorial(ff, clips, dir);
+    const buf = await fs.readFile(out);
     const seconds = Math.round(clips.reduce((s, c) => s + c.seconds, 0) * 10) / 10;
 
-    const storagePath = `${reservationId}/memorial-${Date.now()}-${crypto.randomUUID()}.mp4`;
+    const storagePath = `${reservationId}/memorial-${style}-${Date.now()}-${crypto.randomUUID()}.mp4`;
     const { error: upError } = await supabase.storage
       .from(MEMORIES_BUCKET)
       .upload(storagePath, buf, { contentType: "video/mp4", upsert: false });
@@ -296,6 +308,7 @@ export async function renderMemorialVideo(
     return {
       status: "made",
       storage_path: storagePath,
+      style,
       seconds,
       clips: clips.length,
       scenes: sceneShots.length,

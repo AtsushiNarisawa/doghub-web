@@ -10,12 +10,16 @@ const nextConfig: NextConfig = {
     "/api/memorial/render": [
       "./node_modules/@ffmpeg-installer/linux-x64/ffmpeg",
       "./assets/fonts/NotoSansJP-*.ttf",
+      "./assets/fonts/NotoSerifJP-*.ttf",
       "./assets/scenes/*.mp4",
+      "./assets/album/*",
     ],
     "/api/admin/memorial": [
       "./node_modules/@ffmpeg-installer/linux-x64/ffmpeg",
       "./assets/fonts/NotoSansJP-*.ttf",
+      "./assets/fonts/NotoSerifJP-*.ttf",
       "./assets/scenes/*.mp4",
+      "./assets/album/*",
     ],
   },
   images: {

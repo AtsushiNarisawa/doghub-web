@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyPhoneLast4 } from "@/lib/booking-auth";
 import { MEMORIES_BUCKET, MEMORIES_SIGNED_URL_TTL } from "@/lib/memories";
+import { styleFromPath } from "@/lib/memorial-timeline";
 
 // お客様の受け取りページ用（記念ショート動画 1段目・2026-11-28 S84）。
 // id＝お礼のリンクに入っている予約の UUID。本人確認＝電話番号の下4桁（予約の変更・キャンセル画面と同じ型）。
@@ -71,6 +72,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           id: m.id,
           reservation_id: m.reservation_id,
           kind: m.kind,
+          // 記念動画の型（保存を型ごとに数えるため・11-28 S88）
+          style: m.kind === "memorial" ? styleFromPath(m.storage_path) : null,
           width: m.width,
           height: m.height,
           url: view.data?.signedUrl || null,

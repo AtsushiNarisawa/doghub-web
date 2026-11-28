@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { adminFetch } from "@/lib/admin-fetch";
 import { supabase } from "@/lib/supabase";
+import { MEMORIAL_STYLES, STYLE_LABELS, styleFromPath, type MemorialStyle } from "@/lib/memorial-timeline";
 
 // 管理画面の予約詳細「思い出の動画・写真」（記念ショート動画 1段目・2026-11-28 S84）。
 // スタッフがスマホで撮った動画・写真を選ぶ → この端末の中で小さく縮める → 置き場へ直接送る → 記録。
@@ -12,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 type Media = {
   id: string;
   kind: "video" | "photo" | "memorial";
+  storage_path: string;
   url: string | null;
   size_bytes: number | null;
   duration_sec: number | null;
@@ -103,6 +105,7 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
   const [making, setMaking] = useState(false);
+  const [style, setStyle] = useState<MemorialStyle | "auto">("auto");
   const fileRef = useRef<HTMLInputElement>(null);
 
   type Loaded = { media: Media[]; memorial_opt_out: boolean; thankyou_sent: boolean } | { error: string };
@@ -211,7 +214,7 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
       const resp = await adminFetch("/api/admin/memorial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reservation_id: reservationId }),
+        body: JSON.stringify({ reservation_id: reservationId, style: style === "auto" ? undefined : style }),
       });
       const data = await resp.json();
       if (!resp.ok) setError(data.error || "記念動画を作れませんでした");
@@ -318,7 +321,9 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
       )}
       {sources.length > 0 && (
         <div className="mt-4 border-t border-gray-100 pt-3">
-          <p className="text-xs font-medium text-gray-500 mb-1">記念動画（自動）</p>
+          <p className="text-xs font-medium text-gray-500 mb-1">
+            記念動画（自動）{memorial && <span className="ml-1 font-normal text-gray-400">型：{STYLE_LABELS[styleFromPath(memorial.storage_path)]}</span>}
+          </p>
           {memorial?.url ? (
             <div className="relative w-1/2">
               <video src={memorial.url} className="w-full aspect-[9/16] rounded-lg bg-gray-100" preload="metadata" controls playsInline />
@@ -337,6 +342,19 @@ export function MemoriesSection({ reservationId, isCancelled }: { reservationId:
                 : "翌朝9:30に、それまでに載った動画・写真から自動で作られます（お礼の前）。待たずに作るときは下のボタンで。"}
             </p>
           )}
+          <select
+            value={style}
+            onChange={(e) => setStyle(e.target.value as MemorialStyle | "auto")}
+            disabled={busy || making}
+            className="mt-2 w-full py-2 px-2 rounded-lg border border-gray-200 text-xs text-gray-700 bg-white"
+          >
+            <option value="auto">型：おまかせ（予約ごとに自動で入れ替え）</option>
+            {MEMORIAL_STYLES.map((s) => (
+              <option key={s} value={s}>
+                型：{STYLE_LABELS[s]}
+              </option>
+            ))}
+          </select>
           <button
             onClick={makeMemorial}
             disabled={busy || making}

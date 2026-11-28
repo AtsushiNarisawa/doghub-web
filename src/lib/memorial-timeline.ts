@@ -22,6 +22,8 @@ export type Clip = {
   startSec: number;
   /** 写真のとき、ゆっくり寄る */
   zoom: boolean;
+  /** 場面の役目（アルバム型で文字の置き方・ロゴを決める） */
+  role: "title" | "mid" | "end" | "scene";
   texts: TextBlock[];
 };
 
@@ -51,6 +53,27 @@ export const DEFAULT_SCENES: { id: string; file: string; caption: string; months
   { id: "default-hayashi", file: "default-hayashi.mp4", caption: "空気が澄んだ\n11月の箱根", months: [11] },
 ];
 
+/**
+ * 記念動画の型（11-28 S88 CEO「いろいろな型を試し、良いものを集約していく」）。
+ * 予約ごとに自動で入れ替え、受け取りページでの保存を型ごとに数える（dataLayer の memorial_save）。
+ * 型を足すときは、ここと memorial-render.tsx の分岐に足す。
+ */
+export const MEMORIAL_STYLES = ["classic", "album", "cinema"] as const;
+export type MemorialStyle = (typeof MEMORIAL_STYLES)[number];
+export const STYLE_LABELS: Record<MemorialStyle, string> = {
+  classic: "帯（黒い帯に白い字）",
+  album: "アルバム（紙と写真）",
+  cinema: "シネマ（旅行 vlog 風）",
+};
+export function isMemorialStyle(v: unknown): v is MemorialStyle {
+  return typeof v === "string" && (MEMORIAL_STYLES as readonly string[]).includes(v);
+}
+/** 置き場の住所から型を読む（memorial-<型>-<時刻>-<uuid>.mp4。型の無い古いものは classic） */
+export function styleFromPath(storagePath: string): MemorialStyle {
+  const m = storagePath.match(/\/memorial-([a-z]+)-\d+-/);
+  return m && isMemorialStyle(m[1]) ? m[1] : "classic";
+}
+
 /** 文字列から決まった数を作る（同じ予約なら毎回同じ並び・別の予約なら入れ替わる） */
 export function hashOf(s: string): number {
   let h = 2166136261;
@@ -62,6 +85,11 @@ export function hashOf(s: string): number {
 }
 
 /** 「ムック」「ムックとモカ」「ムック・モカ・ハナ」 */
+/** 予約ごとに型を決める（同じ予約なら毎回同じ・予約によって入れ替わる） */
+export function pickStyle(reservationId: string): MemorialStyle {
+  return MEMORIAL_STYLES[hashOf(reservationId + ":style") % MEMORIAL_STYLES.length];
+}
+
 export function joinDogNames(names: string[]): string {
   const n = names.map((s) => s.trim()).filter(Boolean);
   if (n.length === 0) return "";
@@ -155,9 +183,9 @@ export function buildTimeline(input: TimelineInput): Clip[] {
     if (s.kind === "video") {
       const dur = s.durationSec ?? 0;
       const start = dur > 3.5 ? 0.5 : 0;
-      clips.push({ kind: "video", file: s.file, seconds: 2.5, startSec: start, zoom: false, texts: slot.texts });
+      clips.push({ kind: "video", file: s.file, seconds: 2.5, startSec: start, zoom: false, texts: slot.texts, role: slot.role });
     } else {
-      clips.push({ kind: "photo", file: s.file, seconds: photoSec(slot.role), startSec: 0, zoom: true, texts: slot.texts });
+      clips.push({ kind: "photo", file: s.file, seconds: photoSec(slot.role), startSec: 0, zoom: true, texts: slot.texts, role: slot.role });
     }
     const scene = i < slots.length - 1 ? input.scenes[i] : undefined;
     if (scene) {
@@ -167,6 +195,7 @@ export function buildTimeline(input: TimelineInput): Clip[] {
         seconds: 2.0,
         startSec: 0,
         zoom: scene.kind === "photo",
+        role: "scene",
         texts: [
           {
             lines: scene.caption.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 2),
